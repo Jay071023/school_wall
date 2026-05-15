@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嘉二の墙墙 - 个人主页</title>
+  <link rel="stylesheet" href="/css/style.css?v=2026050719">
+  <link rel="stylesheet" href="/css/responsive.css?v=2026050701">
+  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026050701">
+  <link rel="stylesheet" href="/css/user-card.css?v=2026050712">
+  <style>
+    .wechat-bind-card { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .wechat-bind-header { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #333; }
+    .wechat-bind-hint { color: #666; margin-bottom: 16px; font-size: 14px; }
+    .btn-wechat-bind { background: linear-gradient(135deg, #07c160, #06ad56); color: #fff; border: none; padding: 12px 28px; border-radius: 25px; font-size: 15px; cursor: pointer; transition: transform 0.2s; }
+    .btn-wechat-bind:hover { transform: scale(1.05); }
+    .btn-wechat-unbind { background: #f5f5f5; color: #666; border: 1px solid #ddd; padding: 10px 24px; border-radius: 25px; font-size: 14px; cursor: pointer; margin-left: 10px; }
+    .wechat-status-bound { color: #07c160; font-weight: 600; }
+
+    /* 微信二维码弹窗 */
+    .wechat-modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      animation: wechatFadeIn 0.3s ease;
+    }
+    @keyframes wechatFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .wechat-modal-card {
+      background: #fff; border-radius: 20px;
+      padding: 40px 36px 32px;
+      max-width: 380px; width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      animation: wechatSlideUp 0.35s cubic-bezier(0.21,1.02,0.35,1);
+      position: relative;
+    }
+    @keyframes wechatSlideUp {
+      from { transform: translateY(40px) scale(0.95); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .wechat-modal-close {
+      position: absolute; top: 12px; right: 16px;
+      background: none; border: none;
+      font-size: 24px; color: #999; cursor: pointer;
+      padding: 4px 8px; border-radius: 8px;
+      transition: all 0.2s; line-height: 1;
+    }
+    .wechat-modal-close:hover { background: #f0f0f0; color: #333; }
+    .wechat-modal-title {
+      font-size: 20px; font-weight: 700; color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .wechat-modal-subtitle {
+      font-size: 14px; color: #888;
+      margin-bottom: 24px;
+    }
+    .wechat-modal-qr-wrapper {
+      position: relative;
+      display: inline-block;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 16px;
+      border: 2px solid #e8eaed;
+      margin-bottom: 20px;
+      transition: border-color 0.3s;
+    }
+    .wechat-modal-qr-wrapper:hover { border-color: #07c160; }
+    .wechat-modal-qr {
+      width: 200px; height: 200px;
+      border-radius: 8px;
+      display: block;
+    }
+    .wechat-modal-loading {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      font-size: 14px; color: #07c160;
+      padding: 10px 0;
+    }
+    .wechat-modal-spinner {
+      width: 18px; height: 18px;
+      border: 2px solid #e0e0e0;
+      border-top: 2px solid #07c160;
+      border-radius: 50%;
+      animation: wechatSpin 0.8s linear infinite;
+    }
+    @keyframes wechatSpin { to { transform: rotate(360deg); } }
+    .wechat-modal-steps {
+      text-align: left;
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+    .wechat-modal-step {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: #555;
+      padding: 4px 0;
+    }
+    .wechat-modal-step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #07c160; color: #fff;
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .wechat-modal-step.done .wechat-modal-step-num { background: #07c160; }
+    .wechat-modal-step.done { color: #07c160; }
+    .wechat-modal-success {
+      display: none;
+      flex-direction: column; align-items: center;
+      padding: 20px 0;
+    }
+    .wechat-modal-success-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #07c160, #06ad56);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin-bottom: 12px;
+      animation: wechatPopIn 0.4s cubic-bezier(0.21,1.02,0.35,1);
+    }
+    @keyframes wechatPopIn {
+      from { transform: scale(0); }
+      to { transform: scale(1); }
+    }
+    .wechat-modal-success-text {
+      font-size: 18px; font-weight: 700; color: #07c160;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 480px) {
+      .wechat-modal-card {
+        padding: 28px 20px 24px;
+        max-width: 92%;
+      }
+      .wechat-modal-qr {
+        width: 160px; height: 160px;
+      }
+      .wechat-modal-title { font-size: 18px; }
+    }
+    @media (max-width: 360px) {
+      .wechat-modal-card { padding: 20px 16px 20px; }
+      .wechat-modal-qr { width: 130px; height: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+        <button class="nav-notification" id="navNotification" title="通知">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-logout" id="navLogout" title="退出登录">🚪</button>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 个人资料卡片 -->
+    <div class="profile-card" id="profileCard">
+      <div class="profile-avatar-wrapper">
+        <img class="profile-avatar" id="profileAvatar" src="/images/default-avatar.png" alt="头像">
+      </div>
+      <div class="profile-nickname" id="profileNickname"></div>
+      <div class="profile-stats" id="profileStats">
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profilePostCount">0</span>
+          <span class="profile-stat-label">发帖</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileCommentCount">0</span>
+          <span class="profile-stat-label">评论</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileLikeCount">0</span>
+          <span class="profile-stat-label">获赞</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileFollowerCount">0</span>
+          <span class="profile-stat-label">粉丝</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileFollowingCount">0</span>
+          <span class="profile-stat-label">关注</span>
+        </div>
+      </div>
+      <div class="profile-join-time" id="profileJoinTime"></div>
+      <div id="profileInfo"></div>
+      
+      <!-- 用户资料信息（性别/MBTI/生日/爱好） -->
+      <div class="profile-detail-info" id="profileDetailInfo"></div>
+      
+      <button class="btn-edit-profile" onclick="window.location.href='/edit-profile'">✏️ 编辑资料</button>
+      <button class="btn-edit-profile btn-secondary" id="changePasswordBtn">🔒 修改密码</button>
+      <button class="btn-edit-profile btn-admin" id="adminPanelBtn" onclick="window.location.href='/admin'">⚙️ 管理后台</button>
+    </div>
+
+    <div class="profile-card wechat-bind-card" id="wechatBindCard">
+      <div class="wechat-bind-header">
+        <span class="wechat-bind-icon">🔗</span>
+        <span>微信绑定</span>
+      </div>
+      <div class="wechat-bind-content" id="wechatBindContent">
+        <p class="wechat-bind-hint" id="wechatHint">📱 关注公众号即可自动绑定账号</p>
+        <button class="btn-wechat-bind" id="btnWechatBind" onclick="bindWechat()">📱 绑定微信</button>
+        <button class="btn-wechat-unbind" id="btnWechatUnbind" style="display:none" onclick="unbindWechat()">🔓 解除绑定</button>
+      </div>
+    </div>
+
+    <!-- 邮件通知偏好设置 -->
+    <div class="profile-card notify-settings-card" id="notifySettingsCard" style="display:none;">
+      <div class="notify-settings-header">
+        <span class="notify-settings-icon">📮</span>
+        <span>邮件通知设置</span>
+      </div>
+      <p class="notify-settings-hint">开启后，以下事件将通过邮件通知你（需先绑定邮箱）</p>
+      <div class="notify-settings-list" id="notifySettingsList"></div>
+    </div>
+
+    <!-- 标签页 -->
+    <div class="profile-tabs-section">
+      <div class="profile-tabs">
+        <div class="profile-tab active" data-tab="posts">我的帖子</div>
+        <div class="profile-tab" data-tab="favorites">我的收藏</div>
+        <div class="profile-tab" data-tab="songs">我的点歌</div>
+        <div class="profile-tab" data-tab="notifications">
+          🔔 通知
+          <span class="notification-badge" id="notificationBadge" style="display:none">0</span>
+        </div>
+      </div>
+      <div class="profile-tab-content" id="tabContent"></div>
+      <button class="btn-profile-load-more" id="loadMoreBtn" style="display:none">加载更多</button>
+    </div>
+  </div>
+
+  <!-- 编辑资料弹窗 -->
+  <div class="modal-overlay" id="editModal" style="display:none">
+    <div class="modal-card" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3>✏️ 编辑资料</h3>
+        <button class="modal-close" id="editModalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>头像</label>
+          <div class="avatar-upload-area" id="avatarUploadArea">
+            <img id="editAvatarPreview" src="" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;cursor:pointer;border:2px dashed #ccc;">
+            <input type="file" id="editAvatarInput" accept="image/*" style="display:none">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>昵称 <span style="color:red">*</span></label>
+          <input type="text" class="form-input" id="editNickname" placeholder="请输入昵称" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>📧 邮箱</label>
+          <input type="email" class="form-input" id="editEmail" placeholder="用于接收帖子评论、点歌审核等通知">
+        </div>
+        <div class="form-group">
+          <label>🎂 生日</label>
+          <input type="date" class="form-input" id="editBirthday" placeholder="选择你的生日" style="color:var(--text-primary);">
+        </div>
+        <div class="form-group">
+          <label>🛍️ 性别</label>
+          <div class="gender-tabs" id="genderTabs" style="display:flex;gap:10px;">
+            <div class="edit-gender-tab" data-value="男" style="flex:1;padding:10px;text-align:center;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+              <span>👦</span> <span>男</span>
+            </div>
+            <div class="edit-gender-tab" data-value="女" style="flex:1;padding:10px;text-align:center;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+              <span>👧</span> <span>女</span>
+            </div>
+            <div class="edit-gender-tab" data-value="保密" style="flex:1;padding:10px;text-align:center;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+              <span>🤫</span> <span>保密</span>
+            </div>
+          </div>
+          <input type="hidden" id="editGender" value="">
+        </div>
+        <div class="form-group">
+          <label>🧠 MBTI</label>
+          <select class="form-input" id="editMbti">
+            <option value="">不设置</option>
+            <optgroup label="分析家">
+              <option value="INTJ">INTJ - 建筑师</option>
+              <option value="INTP">INTP - 逻辑学家</option>
+              <option value="ENTJ">ENTJ - 指挥官</option>
+              <option value="ENTP">ENTP - 辩论家</option>
+            </optgroup>
+            <optgroup label="外交家">
+              <option value="INFJ">INFJ - 提倡者</option>
+              <option value="INFP">INFP - 调停者</option>
+              <option value="ENFJ">ENFJ - 主人公</option>
+              <option value="ENFP">ENFP - 竞选者</option>
+            </optgroup>
+            <optgroup label="哨兵">
+              <option value="ISTJ">ISTJ - 物流师</option>
+              <option value="ISFJ">ISFJ - 守卫者</option>
+              <option value="ESTJ">ESTJ - 总经理</option>
+              <option value="ESFJ">ESFJ - 执政官</option>
+            </optgroup>
+            <optgroup label="探险家">
+              <option value="ISTP">ISTP - 鉴赏家</option>
+              <option value="ISFP">ISFP - 探险家</option>
+              <option value="ESTP">ESTP - 企业家</option>
+              <option value="ESFP">ESFP - 表演者</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>❤️ 喜好</label>
+          <textarea class="form-input" id="editHobbies" placeholder="用逗号分隔你的喜好" rows="2" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="editModalCancel">取消</button>
+        <button class="btn btn-primary" id="editSaveBtn">💾 保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 修改密码面板 -->
+  <div class="password-panel" id="passwordPanel" style="display:none">
+    <div class="password-panel-inner">
+      <div class="password-panel-header">
+        <h3>
+          <span class="header-icon">🔐</span>
+          <span>修改密码</span>
+        </h3>
+        <button class="password-panel-close" id="passwordPanelClose">✕</button>
+      </div>
+      <form id="passwordForm" class="password-panel-body" onsubmit="return false;">
+        <div class="password-field">
+          <label class="password-field-label">
+            <span class="field-icon">🔒</span>
+            <span>当前密码</span>
+          </label>
+          <div class="password-field-input-wrap">
+            <input type="text" id="usernameField" name="username" autocomplete="username" style="display:none" tabindex="-1" aria-hidden="true">
+            <input type="password" class="password-field-input" id="oldPassword" placeholder="请输入当前密码" autocomplete="current-password">
+            <button type="button" class="password-visibility-btn" data-target="oldPassword">
+              <span class="visibility-icon">👁️</span>
+            </button>
+          </div>
+        </div>
+        <div class="password-field">
+          <label class="password-field-label">
+            <span class="field-icon">✨</span>
+            <span>新密码</span>
+          </label>
+          <div class="password-field-input-wrap">
+            <input type="password" class="password-field-input" id="newPassword" placeholder="请输入新密码（至少6位）" autocomplete="new-password" oninput="updatePasswordStrength(this.value)">
+            <button type="button" class="password-visibility-btn" data-target="newPassword">
+              <span class="visibility-icon">👁️</span>
+            </button>
+          </div>
+          <div class="password-strength-meter" id="passwordStrengthMeter">
+            <div class="strength-meter-bar">
+              <div class="strength-meter-fill" id="strengthFill"></div>
+            </div>
+            <span class="strength-meter-text" id="strengthText">请输入新密码</span>
+          </div>
+        </div>
+        <div class="password-field">
+          <label class="password-field-label">
+            <span class="field-icon">✅</span>
+            <span>确认新密码</span>
+          </label>
+          <div class="password-field-input-wrap">
+            <input type="password" class="password-field-input" id="confirmNewPassword" placeholder="请再次输入新密码" autocomplete="new-password">
+            <button type="button" class="password-visibility-btn" data-target="confirmNewPassword">
+              <span class="visibility-icon">👁️</span>
+            </button>
+          </div>
+        </div>
+        <div class="password-panel-footer">
+          <button type="button" class="btn-cancel" id="passwordPanelCancel">取消</button>
+          <button type="button" class="btn-confirm" id="passwordSaveBtn">
+            <span class="btn-icon">💾</span>
+            <span>确认修改</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/side-cards.js?v=2026050701"></script>
+  <script src="/js/user-card.js?v=2026050712"></script>
+  <script src="/js/profile.js?v=2026050719"></script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 个人主页';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+      }
+    })();
+  </script>
+
+  <!-- 微信绑定功能 -->
+  <script>
+    var wechatCheckTimer = null;
+    var wechatModalEl = null;
+
+    // 获取token
+    function getToken() {
+      return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    }
+
+    // 认证请求
+    async function authFetch(url, options) {
+      options = options || {};
+      options.headers = options.headers || {};
+      options.headers['Authorization'] = 'Bearer ' + getToken();
+      if (options.body && typeof options.body === 'object') {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(options.body);
+      }
+      if (options.body && !options.headers['Content-Type']) {
+        options.headers['Content-Type'] = 'application/json';
+      }
+      var res = await fetch(url, options);
+      return res.json();
+    }
+
+    // 关闭微信弹窗
+    function closeWechatModal() {
+      if (wechatCheckTimer) { clearInterval(wechatCheckTimer); wechatCheckTimer = null; }
+      if (wechatModalEl) { wechatModalEl.remove(); wechatModalEl = null; }
+    }
+
+    var wechatWasBound = false; // 记录上一次绑定状态
+
+    // 加载绑定状态
+    async function loadWechatBindStatus() {
+      try {
+        var json = await authFetch('/api/wechat/status');
+        if (json.code === 200 && json.data) {
+          var hint = document.getElementById('wechatHint');
+          var btnBind = document.getElementById('btnWechatBind');
+          var btnUnbind = document.getElementById('btnWechatUnbind');
+          var isBound = json.data.bound;
+
+          // 检测到从已绑定变为未绑定（取消关注了）
+          if (wechatWasBound && !isBound) {
+            showToast('⚠️ 检测到您已取消关注公众号，请重新扫码绑定', 'warning');
+          }
+
+          wechatWasBound = isBound;
+
+          if (isBound) {
+            hint.innerHTML = '✅ 已绑定微信，可接收通知';
+            hint.style.color = '#07c160';
+            btnBind.style.display = 'none';
+            btnUnbind.style.display = 'inline-block';
+          } else {
+            hint.innerHTML = '📱 微信未绑定，关注公众号即可自动绑定';
+            hint.style.color = '#666';
+            btnBind.style.display = 'inline-block';
+            btnUnbind.style.display = 'none';
+          }
+        }
+      } catch (e) { console.error('加载微信绑定状态失败:', e); }
+    }
+
+    // 创建微信绑定弹窗
+    function createWechatModal(qrCodeUrl) {
+      var overlay = document.createElement('div');
+      overlay.className = 'wechat-modal-overlay';
+      overlay.id = 'wechatModal';
+      overlay.innerHTML =
+        '<div class="wechat-modal-card">' +
+          '<button class="wechat-modal-close" onclick="closeWechatModal()">✕</button>' +
+          '<div class="wechat-modal-title">🔗 绑定微信</div>' +
+          '<div class="wechat-modal-subtitle">扫描下方二维码关注公众号</div>' +
+
+          '<div class="wechat-modal-steps">' +
+            '<div class="wechat-modal-step" data-step="1">' +
+              '<span class="wechat-modal-step-num">1</span>' +
+              '<span>使用微信扫描下方二维码关注</span>' +
+            '</div>' +
+            '<div class="wechat-modal-step" data-step="2">' +
+              '<span class="wechat-modal-step-num">2</span>' +
+              '<span>关注后点击下方"我已关注"按钮</span>' +
+            '</div>' +
+            '<div class="wechat-modal-step" data-step="3" id="wechatStep3">' +
+              '<span class="wechat-modal-step-num">3</span>' +
+              '<span>系统自动完成绑定</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="wechat-modal-qr-wrapper">' +
+            '<img class="wechat-modal-qr" src="' + qrCodeUrl + '" alt="公众号二维码">' +
+          '</div>' +
+
+          '<div style="display:flex;flex-direction:column;gap:10px;">' +
+            '<button class="btn-wechat-bind" id="btnVerifyFollow" onclick="verifyFollow()" style="width:100%;">✅ 我已关注，验证绑定</button>' +
+            '<button class="btn-wechat-unbind" id="btnRetry" onclick="closeWechatModal();bindWechat()" style="width:100%;margin-left:0;display:none;">🔄 重新扫码</button>' +
+          '</div>' +
+
+          '<div class="wechat-modal-loading" id="wechatModalLoading" style="display:none;">' +
+            '<div class="wechat-modal-spinner"></div>' +
+            '<span>正在验证...</span>' +
+          '</div>' +
+
+          '<div class="wechat-modal-success" id="wechatModalSuccess">' +
+            '<div class="wechat-modal-success-icon">✓</div>' +
+            '<div class="wechat-modal-success-text">微信绑定成功！</div>' +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(overlay);
+      wechatModalEl = overlay;
+
+      // 点击背景关闭
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeWechatModal();
+      });
+    }
+
+    // 验证关注并绑定
+    async function verifyFollow() {
+      var btn = document.getElementById('btnVerifyFollow');
+      var loading = document.getElementById('wechatModalLoading');
+      var retry = document.getElementById('btnRetry');
+      if (!btn) return;
+
+      btn.style.display = 'none';
+      loading.style.display = 'flex';
+
+      try {
+        var json = await authFetch('/api/wechat/verify-follow', { method: 'POST' });
+        if (json.code === 200 && json.bound) {
+          // 绑定成功
+          loading.style.display = 'none';
+          var success = document.getElementById('wechatModalSuccess');
+          if (success) success.style.display = 'flex';
+          loadWechatBindStatus();
+          showToast('🎉 微信绑定成功！', 'success');
+          // 2.5秒后关闭
+          setTimeout(closeWechatModal, 2500);
+        } else {
+          // 未检测到关注
+          loading.style.display = 'none';
+          btn.style.display = 'inline-block';
+          showToast(json.message || '未检测到关注，请确认已扫码关注', 'warning');
+          retry.style.display = 'inline-block';
+        }
+      } catch (e) {
+        loading.style.display = 'none';
+        btn.style.display = 'inline-block';
+        showToast('验证失败，请重试', 'error');
+      }
+    }
+
+    // 开始绑定
+    async function bindWechat() {
+      try {
+        var json = await authFetch('/api/wechat/generate-bind', { method: 'POST' });
+        if (json.code !== 200) {
+          showToast(json.message || '操作失败', 'error');
+          return;
+        }
+
+        var qrUrl = json.data && json.data.qrCodeUrl;
+        if (!qrUrl) {
+          showToast('获取二维码失败，请重试', 'error');
+          return;
+        }
+
+        // 创建弹窗
+        createWechatModal(qrUrl);
+        document.getElementById('btnWechatBind').style.display = 'none';
+      } catch (e) { showToast('操作失败，请重试', 'error'); }
+    }
+
+    // 解绑
+    async function unbindWechat() {
+      if (!confirm('确定要解除微信绑定吗？')) return;
+      var json = await authFetch('/api/wechat/unbind', { method: 'POST' });
+      if (json.code === 200) {
+        loadWechatBindStatus();
+        showToast('已解除绑定', 'success');
+      } else { showToast(json.message || '解绑失败', 'error'); }
+    }
+
+    if (currentUser && currentUser.id) {
+      loadWechatBindStatus();
+      // 每30秒检测一次绑定状态（用于检测取消关注）
+      setInterval(function() {
+        // 只在页面可见时检测
+        if (!document.hidden) {
+          loadWechatBindStatus();
+        }
+      }, 30000);
+    }
+  </script>
+
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item active" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,67 @@
+/* ===== 性能优化 CSS ===== */
+
+/* 1. 减少背景装饰元素的动画 */
+@media (max-width: 1024px) {
+    .bg-decorations {
+        display: none !important;
+    }
+}
+
+/* 2. 优化动画性能 - 使用 transform 和 opacity */
+.float-element {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* 3. 减少重绘重排 */
+.side-card {
+    contain: layout style paint;
+}
+
+/* 4. 优化图片加载 */
+img {
+    loading: lazy;
+}
+
+/* 5. 减少阴影复杂度 */
+.glass-effect {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 6. 优化滚动性能 */
+.main-content {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 7. 减少渐变计算 */
+.bg-gradient {
+    opacity: 0.3;
+}
+
+/* 8. 优化字体渲染 */
+body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 9. 禁用不必要的过渡动画 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 10. 优化移动端性能 */
+@media (max-width: 768px) {
+    .side-cards-container {
+        display: none !important;
+    }
+    
+    .bg-decorations {
+        display: none !important;
+    }
+}

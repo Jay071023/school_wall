@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公众号素材管理 - 嘉二校园墙</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      color: #4A3F5C;
+      margin-bottom: 10px;
+    }
+    .header p {
+      color: #666;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      color: #4A3F5C;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #FF6B9D;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+    }
+    .btn-warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .post-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .post-item {
+      padding: 15px;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .post-item:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    .post-item.selected {
+      border-color: #667eea;
+      background: #f0f3ff;
+    }
+    .post-item h3 {
+      color: #4A3F5C;
+      margin-bottom: 8px;
+    }
+    .post-item p {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .post-meta {
+      display: flex;
+      gap: 15px;
+      color: #999;
+      font-size: 12px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .stat-card h3 {
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+    .stat-card p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .config-section {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .config-section label {
+      display: block;
+      margin-bottom: 5px;
+      color: #4A3F5C;
+      font-weight: 500;
+    }
+    .config-section input, .config-section select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    .checkbox-group {
+      display: flex;
+      gap: 20px;
+      margin: 15px 0;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+    #previewContent {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .info-card {
+      padding: 15px;
+      border-radius: 12px;
+      color: white;
+    }
+    .info-card.weather {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .info-card.hitokoto {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .info-card.date {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .info-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .info-card p {
+      font-size: 14px;
+      opacity: 0.95;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📱 公众号素材管理</h1>
+      <p>自动采集校墙热点内容，生成精美图文素材（含天气、一言），手动审核后发布</p>
+    </div>
+
+    <div id="messageContainer"></div>
+
+    <!-- 信息卡片 -->
+    <div class="card" id="infoCards" style="display: none;">
+      <h2>📊 今日信息</h2>
+      <div class="info-cards" id="infoCardsContainer"></div>
+    </div>
+
+    <!-- 配置区 -->
+    <div class="card">
+      <h2>⚙️ 配置</h2>
+      <div class="config-section">
+        <label>统计时间范围（小时）</label>
+        <input type="number" id="hoursInput" value="24" min="1" max="168">
+        
+        <label>帖子数量</label>
+        <input type="number" id="limitInput" value="10" min="1" max="50">
+        
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" id="includeWeather" checked>
+            🌤️ 包含天气信息
+          </label>
+          <label>
+            <input type="checkbox" id="includeHitokoto" checked>
+            💬 包含每日一言
+          </label>
+        </div>
+        
+        <button class="btn btn-primary" onclick="loadHotPosts()">🔥 加载热点帖子</button>
+        <button class="btn btn-success" onclick="publishDaily()">🚀 一键生成今日精选</button>
+      </div>
+    </div>
+
+    <!-- 热点帖子列表 -->
+    <div class="card">
+      <h2>📊 热点帖子 <span id="selectedCount" style="color: #999; font-size: 14px;">（点击选择）</span></h2>
+      <div id="postList" class="post-list">
+        <div class="loading">点击"加载热点帖子"按钮获取数据</div>
+      </div>
+      <div style="margin-top: 20px;">
+        <button class="btn btn-primary" onclick="generateContent()" id="generateBtn" disabled>
+          📝 生成图文素材
+        </button>
+        <button class="btn btn-warning" onclick="selectAll()">☑️ 全选</button>
+        <button class="btn" onclick="clearSelection()">❌ 清空选择</button>
+      </div>
+    </div>
+
+    <!-- 预览区 -->
+    <div class="card" id="previewCard" style="display: none;">
+      <h2>👁️ 内容预览</h2>
+      <div id="previewContent"></div>
+      <div style="margin-top: 20px;">
+        <button class="btn btn-success" onclick="createDraft()" id="createDraftBtn">
+          📤 上传到公众号草稿箱
+        </button>
+      </div>
+    </div>
+
+    <!-- 使用说明 -->
+    <div class="card">
+      <h2>📖 使用说明</h2>
+      <div style="line-height: 1.8; color: #666;">
+        <h3 style="color: #4A3F5C; margin-bottom: 10px;">方式一：一键生成今日精选</h3>
+        <p>1. 点击"🚀 一键生成今日精选"按钮</p>
+        <p>2. 系统自动采集热门帖子并生成精美图文（含天气、一言）</p>
+        <p>3. 自动上传到公众号草稿箱</p>
+        <p>4. 登录<a href="https://mp.weixin.qq.com" target="_blank">公众号后台</a>，在"草稿箱"中查看并编辑发布</p>
+        
+        <h3 style="color: #4A3F5C; margin: 20px 0 10px;">方式二：手动选择帖子</h3>
+        <p>1. 点击"🔥 加载热点帖子"获取热门内容</p>
+        <p>2. 点击选择想要发布的帖子（可多选）</p>
+        <p>3. 点击"📝 生成图文素材"预览内容</p>
+        <p>4. 点击"📤 上传到公众号草稿箱"</p>
+        <p>5. 登录公众号后台编辑并发布</p>
+        
+        <h3 style="color: #4A3F5C; margin: 20px 0 10px;">✨ 新增功能</h3>
+        <p>🌤️ <strong>自动天气卡片</strong>：根据城市自动生成天气信息（需配置和风天气API Key）</p>
+        <p>💬 <strong>每日一言</strong>：随机获取诗词、名言等，增加文艺气息</p>
+        <p>🎨 <strong>精美卡片样式</strong>：渐变色、圆角、阴影等现代化设计</p>
+        
+        <h3 style="color: #4A3F5C; margin: 20px 0 10px;">注意事项</h3>
+        <p>⚠️ 需要配置 WECHAT_SECRET（在公众号后台获取）</p>
+        <p>⚠️ 天气功能需配置 WEATHER_API_KEY（和风天气免费版每天1000次）</p>
+        <p>⚠️ 订阅号每天只能群发1次，服务号每月4次</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedPosts = [];
+    let generatedArticles = [];
+
+    // 显示消息
+    function showMessage(text, type = 'success') {
+      const container = document.getElementById('messageContainer');
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      msg.textContent = text;
+      container.appendChild(msg);
+      setTimeout(() => msg.remove(), 5000);
+    }
+
+    // 加载辅助信息（天气、一言）- 不阻塞页面，静默加载
+    async function loadExtraInfo() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const res = await fetch('/api/mp/extra-info', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+        
+        if (data.code === 200 && data.data) {
+          renderInfoCards(data.data);
+        }
+      } catch (err) {
+        // 静默失败，不影响页面使用
+        console.log('辅助信息加载完成（可忽略）');
+      }
+    }
+
+    // 渲染信息卡片
+    function renderInfoCards({ weather, hitokoto, dateInfo }) {
+      const container = document.getElementById('infoCardsContainer');
+      const cardsDiv = document.getElementById('infoCards');
+      
+      let html = '';
+      
+      // 日期卡片
+      html += `
+        <div class="info-card date">
+          <h3>📅 ${dateInfo.date}</h3>
+          <p>${dateInfo.week}</p>
+        </div>
+      `;
+      
+      // 天气卡片
+      if (weather) {
+        html += `
+          <div class="info-card weather">
+            <h3>${weather.icon} ${weather.temperature}</h3>
+            <p>${weather.weather} | ${weather.city}</p>
+            <p>💨 ${weather.wind} | 💧 ${weather.humidity}</p>
+          </div>
+        `;
+      }
+      
+      // 一言卡片
+      if (hitokoto) {
+        html += `
+          <div class="info-card hitokoto">
+            <h3>💬 每日一言</h3>
+            <p style="font-style: italic;">"${hitokoto.text}"</p>
+            <p style="text-align: right; font-size: 12px; margin-top: 5px;">—— ${hitokoto.from_who || hitokoto.from}</p>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = html;
+      cardsDiv.style.display = 'block';
+    }
+
+    // 加载热点帖子
+    async function loadHotPosts() {
+      const hours = document.getElementById('hoursInput').value;
+      const limit = document.getElementById('limitInput').value;
+      
+      // 显示加载中
+      const container = document.getElementById('postList');
+      container.innerHTML = '<div class="loading">⏳ 正在加载热点帖子...</div>';
+      
+      // 设置超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const res = await fetch(`/api/mp/hot-posts?hours=${hours}&limit=${limit}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+        
+        if (data.code === 200) {
+          renderPostList(data.data);
+          showMessage(`成功加载 ${data.data.length} 条热门帖子`);
+          // 静默加载辅助信息，不阻塞
+          loadExtraInfo();
+        } else {
+          container.innerHTML = '<div class="loading">暂无热门帖子</div>';
+          showMessage(data.message, 'error');
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          container.innerHTML = '<div class="loading">⏰ 加载超时，请稍后重试</div>';
+          showMessage('加载超时，数据库可能响应较慢', 'error');
+        } else {
+          container.innerHTML = '<div class="loading">❌ 加载失败，请重试</div>';
+          showMessage('加载失败: ' + err.message, 'error');
+        }
+      }
+    }
+
+    // 渲染帖子列表
+    function renderPostList(posts) {
+      const container = document.getElementById('postList');
+      
+      if (posts.length === 0) {
+        container.innerHTML = '<div class="loading">暂无热门帖子</div>';
+        return;
+      }
+
+      container.innerHTML = posts.map(post => `
+        <div class="post-item" data-id="${post.id}" onclick="togglePost(${post.id})">
+          <h3>${post.title || '无标题'}</h3>
+          <p>${post.content.substring(0, 100)}${post.content.length > 100 ? '...' : ''}</p>
+          <div class="post-meta">
+            <span>👤 ${post.author || '匿名'}</span>
+            <span>❤️ ${post.like_count} 赞</span>
+            <span>💬 ${post.comment_count} 评论</span>
+            <span>👁️ ${post.view_count} 浏览</span>
+            <span>🕒 ${new Date(post.created_at).toLocaleString('zh-CN')}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 选择/取消选择帖子
+    function togglePost(postId) {
+      const index = selectedPosts.indexOf(postId);
+      if (index > -1) {
+        selectedPosts.splice(index, 1);
+      } else {
+        selectedPosts.push(postId);
+      }
+      
+      // 更新UI
+      document.querySelectorAll('.post-item').forEach(el => {
+        const id = parseInt(el.dataset.id);
+        el.classList.toggle('selected', selectedPosts.includes(id));
+      });
+      
+      // 更新计数
+      document.getElementById('selectedCount').textContent = `（已选择 ${selectedPosts.length} 条）`;
+      document.getElementById('generateBtn').disabled = selectedPosts.length === 0;
+    }
+
+    // 全选
+    function selectAll() {
+      const items = document.querySelectorAll('.post-item');
+      selectedPosts = Array.from(items).map(el => parseInt(el.dataset.id));
+      items.forEach(el => el.classList.add('selected'));
+      document.getElementById('selectedCount').textContent = `（已选择 ${selectedPosts.length} 条）`;
+      document.getElementById('generateBtn').disabled = false;
+    }
+
+    // 清空选择
+    function clearSelection() {
+      selectedPosts = [];
+      document.querySelectorAll('.post-item').forEach(el => el.classList.remove('selected'));
+      document.getElementById('selectedCount').textContent = `（点击选择）`;
+      document.getElementById('generateBtn').disabled = true;
+    }
+
+    // 生成图文素材
+    async function generateContent() {
+      if (selectedPosts.length === 0) {
+        showMessage('请先选择帖子', 'error');
+        return;
+      }
+
+      const includeWeather = document.getElementById('includeWeather').checked;
+      const includeHitokoto = document.getElementById('includeHitokoto').checked;
+
+      try {
+        const res = await fetch('/api/mp/generate-content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            postIds: selectedPosts,
+            template: 'daily-summary',
+            includeWeather,
+            includeHitokoto
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.code === 200) {
+          generatedArticles = data.data.articles;
+          showPreview(data.data.articles);
+          showMessage('生成成功，请预览后上传');
+          // 更新信息卡片
+          if (data.data.weather || data.data.hitokoto || data.data.dateInfo) {
+            renderInfoCards({
+              weather: data.data.weather,
+              hitokoto: data.data.hitokoto,
+              dateInfo: data.data.dateInfo
+            });
+          }
+        } else {
+          showMessage(data.message, 'error');
+        }
+      } catch (err) {
+        showMessage('生成失败: ' + err.message, 'error');
+      }
+    }
+
+    // 显示预览
+    function showPreview(articles) {
+      const card = document.getElementById('previewCard');
+      const content = document.getElementById('previewContent');
+      
+      card.style.display = 'block';
+      content.innerHTML = articles.map(article => `
+        <div style="margin-bottom: 30px;">
+          <h3 style="color: #4A3F5C; margin-bottom: 10px;">${article.title}</h3>
+          <p style="color: #999; font-size: 12px; margin-bottom: 10px;">
+            摘要：${article.digest}
+          </p>
+          <div>${article.content}</div>
+        </div>
+      `).join('');
+      
+      // 滚动到预览区
+      card.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 创建草稿
+    async function createDraft() {
+      if (generatedArticles.length === 0) {
+        showMessage('请先生成内容', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('createDraftBtn');
+      btn.disabled = true;
+      btn.textContent = '上传中...';
+
+      try {
+        const res = await fetch('/api/mp/create-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ articles: generatedArticles })
+        });
+        
+        const data = await res.json();
+        
+        if (data.code === 200) {
+          showMessage(`✅ 草稿创建成功！请登录公众号后台查看和发布`);
+          showMessage(`media_id: ${data.data.media_id}`, 'success');
+        } else {
+          showMessage(data.message, 'error');
+        }
+      } catch (err) {
+        showMessage('上传失败: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📤 上传到公众号草稿箱';
+      }
+    }
+
+    // 一键生成并发布
+    async function publishDaily() {
+      const hours = document.getElementById('hoursInput').value;
+      const limit = document.getElementById('limitInput').value;
+
+      if (!confirm(`确定要生成今日精选吗？\n时间范围：${hours}小时\n帖子数量：${limit}条`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/mp/publish-daily', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hours, limit })
+        });
+        
+        const data = await res.json();
+        
+        if (data.code === 200) {
+          showMessage(`✅ 成功！已生成包含 ${data.data.post_count} 条帖子的精选`);
+          if (data.data.weather) {
+            showMessage(`🌤️ 天气：${data.data.weather}`, 'success');
+          }
+          if (data.data.hitokoto) {
+            showMessage(`💬 ${data.data.hitokoto}`, 'success');
+          }
+          showMessage(`请登录公众号后台查看草稿并发布`, 'success');
+          // 加载辅助信息
+          loadExtraInfo();
+        } else {
+          showMessage(data.message, 'error');
+        }
+      } catch (err) {
+        showMessage('操作失败: ' + err.message, 'error');
+      }
+    }
+
+    // 页面加载时自动加载热点和信息
+    window.addEventListener('load', () => {
+      loadHotPosts();
+      loadExtraInfo();
+    });
+  </script>
+</body>
+</html>

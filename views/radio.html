@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嘉二の墙墙 - 广播站点歌</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="校园广播站点歌平台，为你心爱的人点一首歌，让广播站替你传递心声。支持实时查看排歌单，快来点歌吧！">
+  <meta name="keywords" content="校园点歌,广播站,点歌,排歌单,校园广播,音乐分享">
+  <link rel="canonical" href="https://wall.jay23.cn/radio">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="嘉二の墙墙 - 校园广播站点歌">
+  <meta property="og:description" content="为你心爱的人点一首歌，让广播站替你传递心声。支持实时查看排歌单，快来点歌吧！">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wall.jay23.cn/radio">
+  <meta property="og:site_name" content="嘉二の墙墙">
+  <meta property="og:locale" content="zh_CN">
+  <link rel="stylesheet" href="/css/style.css?v=2026052201">
+  <link rel="stylesheet" href="/css/responsive.css?v=2026052121">
+  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026052121">
+  <link rel="stylesheet" href="/css/reservation.css?v=2026052121">
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+        <button class="nav-notification" id="navNotification" title="通知">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-logout" id="navLogout" title="退出登录">🚪</button>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- SEO H1标签 -->
+    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">嘉二の墙墙 - 校园广播站点歌平台</h1>
+    <!-- 页面头部 -->
+    <div class="radio-header">
+      <h1 class="radio-title">🎵 广播站点歌</h1>
+      <p class="radio-subtitle">为TA点一首歌，送上你的祝福</p>
+    </div>
+
+    <!-- 点歌表单 -->
+    <div class="radio-section">
+      <h2 class="section-title">📝 点歌表单</h2>
+      <div class="radio-form-card">
+        <form class="radio-form" id="radioForm">
+          <!-- 歌曲名 -->
+          <div class="form-group">
+            <label class="form-label">歌曲名 <span class="required-tag">必填</span></label>
+            <input type="text" id="songName" class="form-input" placeholder="请输入歌曲名" required>
+          </div>
+          <!-- 歌手 -->
+          <div class="form-group">
+            <label class="form-label">歌手 <span class="optional-tag">选填</span></label>
+            <input type="text" id="songArtist" class="form-input" placeholder="请输入歌手名">
+          </div>
+          <!-- 送给谁 -->
+          <div class="form-group">
+            <label class="form-label">送给谁 <span class="optional-tag">选填</span></label>
+            <input type="text" id="songRecipient" class="form-input" placeholder="请输入收歌人">
+          </div>
+          <!-- 祝福语 -->
+          <div class="form-group">
+            <label class="form-label">祝福语 <span class="optional-tag">选填</span></label>
+            <textarea id="songMessage" class="form-textarea" placeholder="写下你的祝福..." rows="3" maxlength="100"></textarea>
+            <div class="form-footer">
+              <span id="msgCount" class="char-count">0/100</span>
+            </div>
+          </div>
+          <!-- 选择时段 -->
+          <div class="form-group">
+            <label class="form-label">播放时段 <span class="required-tag">必填</span></label>
+            <input type="hidden" id="slotSelect" value="">
+            <div class="slot-cards-grid" id="slotCardsGrid"></div>
+          </div>
+          <!-- 播放日期 -->
+          <div class="form-group" id="dateSelectGroup" style="display:none;">
+            <label class="form-label">播放日期 <span class="required-tag">必填</span></label>
+            <select id="dateSelect" class="form-select">
+              <option value="">请选择播放日期</option>
+            </select>
+          </div>
+          <!-- 匿名开关 -->
+          <div class="radio-anonymous">
+            <label class="toggle-switch">
+              <input type="checkbox" id="radioAnonymous">
+              <span class="toggle-slider"></span>
+            </label>
+            <span>匿名点歌</span>
+          </div>
+          <!-- 提交按钮 -->
+          <div class="form-actions">
+            <button type="submit" class="btn-publish" id="submitSong">提交点歌</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 我的点歌记录 -->
+    <div class="radio-section" id="mySongsSection" style="display:none;">
+      <h2 class="section-title">🎤 我的点歌</h2>
+      <div id="mySongsList"></div>
+      <div class="playlist-empty" id="mySongsEmpty">您还没有点过歌~</div>
+    </div>
+
+    <!-- 今日播放列表 -->
+    <div class="radio-section">
+      <h2 class="section-title">📋 点歌列表</h2>
+      <div class="playlist" id="playlist"></div>
+      <div class="playlist-empty" id="playlistEmpty">暂无播放记录~</div>
+    </div>
+
+    <!-- 热门歌曲排行榜 -->
+    <div class="radio-section">
+      <h2 class="section-title">🔥 热门歌曲排行榜</h2>
+      <p style="color:#6B7280;font-size:0.9rem;margin-bottom:16px;">看看大家都点了什么歌，为你喜欢的歌曲投票吧！</p>
+      <div class="hot-songs-list" id="hotSongsList"></div>
+      <div class="playlist-empty" id="hotSongsEmpty">暂无热门歌曲~</div>
+    </div>
+  </div>
+
+  <script src="/js/app.js?v=202604281"></script>
+  <script src="/js/side-cards.js?v=20260502"></script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || 'null');</script>
+  <script src="/js/radio.js?v=2026050221"></script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二人の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 广播站点歌';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 匿名点歌开关
+        var anonSongSetting = settings.anon_song;
+        var anonSongEl = document.querySelector('.radio-anonymous');
+        if (anonSongEl) {
+          if (anonSongSetting === false || anonSongSetting === 'false' || anonSongSetting === 0) {
+            anonSongEl.style.display = 'none';
+          } else {
+            anonSongEl.style.display = '';
+          }
+        }
+      }
+    })();
+    
+    // ===== 通知功能 =====
+    (function() {
+      var notificationBtn = document.getElementById('navNotification');
+      if (!notificationBtn) return;
+      var notificationBadge = document.getElementById('notificationBadge');
+      
+      function createNotificationSidebar() {
+        if (document.getElementById('notificationSidebar')) return;
+        var sidebar = document.createElement('div');
+        sidebar.id = 'notificationSidebar';
+        sidebar.className = 'notification-sidebar';
+        sidebar.innerHTML = [
+          '<div class="notification-sidebar-overlay" onclick="closeNotificationSidebar()"></div>',
+          '<div class="notification-sidebar-content">',
+            '<div class="notification-sidebar-header">',
+              '<h3>🔔 通知</h3>',
+              '<button class="notification-sidebar-close" onclick="closeNotificationSidebar()">✕</button>',
+            '</div>',
+            '<div class="notification-sidebar-body" id="notificationList">',
+              '<div class="notification-empty"><div class="notification-empty-icon">📭</div><div class="notification-empty-text">暂无通知</div></div>',
+            '</div>',
+          '</div>'
+        ].join('');
+        document.body.appendChild(sidebar);
+      }
+      
+      window.openNotificationSidebar = function() {
+        createNotificationSidebar();
+        var sidebar = document.getElementById('notificationSidebar');
+        sidebar.classList.add('show');
+        var sw = window.innerWidth - document.documentElement.clientWidth;
+        if (sw > 0) document.body.style.paddingRight = sw + 'px';
+        document.body.style.overflow = 'hidden';
+        loadNotifications();
+      };
+      
+      window.closeNotificationSidebar = function() {
+        var sidebar = document.getElementById('notificationSidebar');
+        if (sidebar) {
+          sidebar.classList.remove('show');
+          document.body.style.paddingRight = '';
+          document.body.style.overflow = '';
+        }
+      };
+      
+      async function loadNotifications() {
+        var listEl = document.getElementById('notificationList');
+        if (!listEl) return;
+        listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载中...</div>';
+        try {
+          var res = await fetch('/api/notifications', {
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || sessionStorage.getItem('token') || '') }
+          });
+          var data = await res.json();
+          if (data.code === 200 && data.data && data.data.length > 0) {
+            var html = '';
+            data.data.forEach(function(notif) {
+              html += '<div class="notification-item">' +
+                '<div class="notification-item-title">' + notif.title + '</div>' +
+                '<div class="notification-item-text">' + (notif.message || '') + '</div>' +
+                '<div class="notification-item-time">' + (notif.time_ago || '') + '</div></div>';
+            });
+            listEl.innerHTML = html;
+          } else {
+            listEl.innerHTML = '<div class="notification-empty"><div class="notification-empty-icon">📭</div><div class="notification-empty-text">暂无通知</div></div>';
+          }
+        } catch(e) {
+          listEl.innerHTML = '<div class="notification-empty"><div class="notification-empty-icon">⚠️</div><div class="notification-empty-text">加载失败</div></div>';
+        }
+      }
+      
+      notificationBtn.addEventListener('click', function() {
+        if (currentUser) { openNotificationSidebar(); }
+        else { window.location.href = '/login'; }
+      });
+      
+      // 退出登录
+      var logoutBtn = document.getElementById('navLogout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          if (confirm('确定要退出登录吗？')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            window.location.href = '/';
+          }
+        });
+      }
+    })();
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item active" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
+    <p>
+      <a href="/agreement" target="_blank">用户协议</a> | 
+      <a href="/privacy" target="_blank">隐私政策</a> | 
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a>
+    </p>
+  </footer>
+</body>
+</html>

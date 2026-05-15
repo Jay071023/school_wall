@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.local
+*.log
+ssh_key
+ssh_key_new
+private.*.key
+$null
+*.zip
+data/

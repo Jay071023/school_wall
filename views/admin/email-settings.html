@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邮件配置 - 嘉二の墙墙</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: #F8F5FF;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    }
+    .smtp-card {
+      background: #FFFCFA;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(255,107,157,0.10), 0 2px 8px rgba(0,0,0,0.04);
+      max-width: 560px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .smtp-header {
+      background: linear-gradient(135deg, #FF9ABF, #C084FC, #93C5FD);
+      padding: 32px 24px 24px;
+      text-align: center;
+    }
+    .smtp-header h1 {
+      color: #fff;
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .smtp-header p {
+      color: rgba(255,255,255,0.8);
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
+    .smtp-body {
+      padding: 28px 24px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4A3F5C;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #f0e6ea;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background: #faf7f9;
+      transition: all 0.25s ease;
+      box-sizing: border-box;
+    }
+    .form-group input:focus {
+      border-color: #FF6B9D;
+      box-shadow: 0 0 0 4px rgba(255,107,157,0.1);
+      background: #fff;
+      outline: none;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      display: none;
+    }
+    .toggle-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 48px;
+      height: 26px;
+      background: #E5E7EB;
+      border-radius: 13px;
+      transition: all 0.3s;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      transition: all 0.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, #34D399, #10B981);
+    }
+    .toggle-switch input:checked + .toggle-slider::after {
+      transform: translateX(22px);
+    }
+    .toggle-label {
+      font-size: 0.9rem;
+      color: #4A3F5C;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .btn-save {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #FF9ABF, #C084FC);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255,107,157,0.25);
+      transition: all 0.25s;
+      letter-spacing: 1px;
+      margin-top: 8px;
+    }
+    .btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255,107,157,0.35);
+    }
+    .btn-save:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: #B8A9D4;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .status-msg {
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: none;
+    }
+    .status-msg.success {
+      display: block;
+      background: #D1FAE5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+    .status-msg.error {
+      display: block;
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #C084FC;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .back-link:hover {
+      color: #8B5CF6;
+    }
+    .test-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,107,157,0.08);
+    }
+    .test-section h3 {
+      font-size: 15px;
+      color: #4A3F5C;
+      margin: 0 0 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="smtp-card">
+    <div class="smtp-header">
+      <div style="font-size:40px;margin-bottom:8px;">📧</div>
+      <h1>邮件通知配置</h1>
+      <p>配置SMTP后，用户将收到评论、点赞、关注等邮件通知 ✨</p>
+    </div>
+    <div class="smtp-body">
+      <div id="statusMsg" class="status-msg"></div>
+
+      <div class="form-group">
+        <label>
+          <span>🔔</span>
+          <span>邮件通知开关</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+          <label class="toggle-switch" style="margin:0;">
+            <input type="checkbox" id="emailEnabled">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="toggleLabel" style="font-size:0.9rem;font-weight:600;color:#9CA3AF;">关闭</span>
+        </div>
+        <div class="hint">关闭后所有邮件通知将不再发送</div>
+      </div>
+
+      <div class="form-group">
+        <label><span>🏢</span><span>SMTP 服务器</span></label>
+        <input type="text" id="smtpHost" placeholder="smtp.example.com">
+        <div class="hint">例如：smtp.qq.com、smtp.gmail.com</div>
+      </div>
+
+      <div class="form-group">
+        <label><span>🔌</span><span>SMTP 端口</span></label>
+        <input type="text" id="smtpPort" placeholder="587">
+        <div class="hint">SSL: 465 / TLS: 587</div>
+      </div>
+
+      <div class="form-group">
+        <label><span>👤</span><span>SMTP 账号</span></label>
+        <input type="text" id="smtpUser" placeholder="your@email.com">
+      </div>
+
+      <div class="form-group">
+        <label><span>🔑</span><span>SMTP 密码/授权码</span></label>
+        <input type="password" id="smtpPass" placeholder="输入密码或授权码">
+        <div class="hint">QQ邮箱等需使用授权码，非登录密码</div>
+      </div>
+
+      <div class="form-group">
+        <label><span>📨</span><span>发件人名称</span></label>
+        <input type="text" id="smtpFrom" placeholder="嘉二の墙墙 <noreply@wall.jay23.cn>">
+        <div class="hint">格式：名称 &lt;邮箱地址&gt;</div>
+      </div>
+
+      <button class="btn-save" id="saveBtn" onclick="saveSettings()">💾 保存配置</button>
+
+      <div class="test-section">
+        <h3>🧪 测试邮件发送</h3>
+        <div class="form-group">
+          <label><span>📬</span><span>测试邮箱地址</span></label>
+          <input type="email" id="testEmail" placeholder="输入你的邮箱进行测试">
+        </div>
+        <button class="btn-save" id="testBtn" onclick="testSend()" style="background:linear-gradient(135deg,#34D399,#10B981);">✈️ 发送测试邮件</button>
+      </div>
+
+      <a href="/admin" class="back-link">← 返回管理后台</a>
+    </div>
+  </div>
+
+  <script>
+    var API_BASE = '/api/admin';
+    var token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+
+    // 加载当前配置
+    async function loadSettings() {
+      try {
+        document.getElementById('saveBtn').disabled = true;
+        var res = await fetch(API_BASE + '/settings', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        var data = await res.json();
+        if (data.code === 200 && data.data) {
+          var s = data.data;
+          document.getElementById('emailEnabled').checked = s.email_enabled === 'true' || s.email_enabled === true;
+          document.getElementById('smtpHost').value = s.smtp_host || '';
+          document.getElementById('smtpPort').value = s.smtp_port || '587';
+          document.getElementById('smtpUser').value = s.smtp_user || '';
+          document.getElementById('smtpPass').value = s.smtp_pass || '';
+          document.getElementById('smtpFrom').value = s.smtp_from || '';
+          updateToggleLabel();
+        }
+      } catch (err) {
+        showStatus('加载配置失败: ' + err.message, 'error');
+      } finally {
+        document.getElementById('saveBtn').disabled = false;
+      }
+    }
+
+    // 保存配置
+    async function saveSettings() {
+      var btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ 保存中...';
+      try {
+        // 先加载现有全部设置，避免覆盖其他配置
+        var res = await fetch(API_BASE + '/settings', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        var data = await res.json();
+        var currentSettings = (data.code === 200 && data.data) ? data.data : {};
+
+        var body = { ...currentSettings };
+        body.email_enabled = document.getElementById('emailEnabled').checked;
+        body.smtp_host = document.getElementById('smtpHost').value.trim();
+        body.smtp_port = document.getElementById('smtpPort').value.trim() || '587';
+        body.smtp_user = document.getElementById('smtpUser').value.trim();
+        body.smtp_pass = document.getElementById('smtpPass').value.trim();
+        body.smtp_from = document.getElementById('smtpFrom').value.trim();
+
+        var saveRes = await fetch(API_BASE + '/settings', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(body)
+        });
+        var saveData = await saveRes.json();
+        if (saveData.code === 200) {
+          showStatus('✅ 配置保存成功！', 'success');
+        } else {
+          showStatus('❌ 保存失败: ' + (saveData.message || '未知错误'), 'error');
+        }
+      } catch (err) {
+        showStatus('❌ 保存失败: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 保存配置';
+      }
+    }
+
+    // 测试发送
+    async function testSend() {
+      var testEmail = document.getElementById('testEmail').value.trim();
+      if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+        showStatus('请输入有效的测试邮箱地址', 'error');
+        return;
+      }
+      var btn = document.getElementById('testBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ 发送中...';
+      try {
+        var res = await fetch('/api/admin/test-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ email: testEmail })
+        });
+        var data = await res.json();
+        if (data.code === 200) {
+          showStatus('✅ 测试邮件已发送，请检查 ' + testEmail + ' 的收件箱！', 'success');
+        } else {
+          showStatus('❌ 发送失败: ' + (data.message || '请检查SMTP配置'), 'error');
+        }
+      } catch (err) {
+        showStatus('❌ 发送失败: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✈️ 发送测试邮件';
+      }
+    }
+
+    function updateToggleLabel() {
+      var label = document.getElementById('toggleLabel');
+      label.textContent = document.getElementById('emailEnabled').checked ? '已开启 ✨' : '关闭';
+      label.style.color = document.getElementById('emailEnabled').checked ? '#10B981' : '#9CA3AF';
+    }
+
+    document.getElementById('emailEnabled').addEventListener('change', updateToggleLabel);
+
+    function showStatus(msg, type) {
+      var el = document.getElementById('statusMsg');
+      el.textContent = msg;
+      el.className = 'status-msg ' + type;
+      el.style.display = 'block';
+      setTimeout(function() {
+        el.style.display = 'none';
+      }, 8000);
+    }
+
+    // 页面加载后读取配置
+    loadSettings();
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "campus-wall",
+  "version": "1.0.0",
+  "description": "嘉二人の墙墙网站 + 广播站点歌系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.1",
+    "express-session": "^1.17.3",
+    "helmet": "^8.1.0",
+    "ip2region": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.6.0",
+    "naive-ui": "^2.38.0",
+    "nodemailer": "^6.9.7",
+    "pinia": "^2.1.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.34.5",
+    "ssh2": "^1.17.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "nodemon": "^3.0.1",
+    "vite": "^5.0.0"
+  }
+}

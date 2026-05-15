@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公众号推送 - 管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fb; color: #333; min-height: 100vh;
+        }
+        [data-theme="dark"] body {
+            background: #1a1a2e; color: #e0e0e0;
+        }
+
+        /* ===== 顶部导航 ===== */
+        .top-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-bar h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .top-bar .back-link {
+            color: white; text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; gap: 6px; opacity: 0.85;
+            padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.15);
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .top-bar .back-link:hover { opacity: 1; background: rgba(255,255,255,0.25); }
+
+        /* ===== 主体容器 ===== */
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* ===== Tab导航 ===== */
+        .tabs {
+            display: flex; gap: 4px; background: white; border-radius: 12px;
+            padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px;
+        }
+        [data-theme="dark"] .tabs { background: #16213e; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .tab-btn {
+            flex: 1; padding: 12px 20px; border: none; background: transparent;
+            font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px;
+            color: #888; transition: all 0.3s;
+        }
+        .tab-btn:hover { color: #667eea; background: rgba(102,126,234,0.08); }
+        .tab-btn.active { color: white; background: linear-gradient(135deg, #667eea, #764ba2); }
+        [data-theme="dark"] .tab-btn.active { color: white; }
+        .tab-btn .badge {
+            display: inline-block; background: rgba(255,107,157,0.2); color: #FF6B9D;
+            font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-left: 6px;
+        }
+        .tab-btn.active .badge { background: rgba(255,255,255,0.3); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ===== 面板卡片 ===== */
+        .card {
+            background: white; border-radius: 16px; padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 20px;
+        }
+        [data-theme="dark"] .card { background: #16213e; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+        .card-title {
+            font-size: 16px; font-weight: 700; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-desc { font-size: 13px; color: #999; margin-bottom: 16px; }
+
+        /* ===== 工具栏 ===== */
+        .toolbar {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .toolbar label { font-size: 13px; color: #888; }
+        .toolbar select, .toolbar input {
+            padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 8px;
+            font-size: 13px; background: white; color: #333;
+        }
+        [data-theme="dark"] .toolbar select, [data-theme="dark"] .toolbar input {
+            background: #1a1a2e; border-color: #333; color: #e0e0e0;
+        }
+        .btn {
+            padding: 8px 20px; border: none; border-radius: 10px; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-success { background: linear-gradient(135deg, #43e97b, #38f9d7); color: white; }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67,233,123,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+        .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,87,108,0.4); }
+        .btn-outline {
+            background: transparent; border: 1px solid #667eea; color: #667eea;
+        }
+        .btn-outline:hover { background: rgba(102,126,234,0.08); }
+        [data-theme="dark"] .btn-outline { border-color: #667eea; color: #667eea; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+
+        /* ===== 帖子表格 ===== */
+        .post-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .post-table th {
+            text-align: left; padding: 10px 12px; border-bottom: 2px solid #f0f0f0;
+            color: #888; font-weight: 600; font-size: 12px;
+        }
+        .post-table td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; }
+        [data-theme="dark"] .post-table th { border-bottom-color: #333; }
+        [data-theme="dark"] .post-table td { border-bottom-color: #2a2a3e; }
+        .post-table tr:hover td { background: rgba(102,126,234,0.03); }
+        .post-table tr.row-selected td { background: rgba(102,126,234,0.08); }
+        [data-theme="dark"] .post-table tr.row-selected td { background: rgba(102,126,234,0.15); }
+        .post-table .post-title { font-weight: 600; color: #333; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .post-table .post-preview { font-size: 12px; color: #aaa; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; line-height: 1.4; }
+        [data-theme="dark"] .post-table .post-title { color: #e0e0e0; }
+        .post-table .post-author { color: #888; font-size: 12px; }
+        .post-table .post-stats { color: #999; font-size: 12px; white-space: nowrap; }
+        .post-table .checkbox-cell { width: 36px; text-align: center; }
+        .post-table input[type="checkbox"] {
+            width: 16px; height: 16px; cursor: pointer; accent-color: #667eea;
+        }
+        .select-all { font-size: 12px; color: #667eea; cursor: pointer; margin-left: 8px; }
+        .select-all:hover { text-decoration: underline; }
+
+        /* ===== 预览区域 ===== */
+        .preview-area {
+            border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px;
+            max-height: 600px; overflow-y: auto; background: #fafafa;
+            font-size: 14px; line-height: 1.6;
+        }
+        [data-theme="dark"] .preview-area { background: #1a1a2e; border-color: #333; }
+        .preview-area .placeholder {
+            text-align: center; padding: 60px 20px; color: #bbb;
+        }
+        .preview-area .placeholder .icon { font-size: 48px; margin-bottom: 16px; }
+        .preview-area .placeholder .text { font-size: 15px; }
+        .preview-toolbar {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .preview-toolbar .toggle-group { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .preview-toolbar .toggle-group label { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .preview-toolbar .toggle-group input[type="checkbox"] { accent-color: #667eea; }
+
+        /* ===== 草稿列表 ===== */
+        .draft-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px;
+        }
+        [data-theme="dark"] .draft-item { background: #1a1a2e; }
+        .draft-item .draft-info { flex: 1; }
+        .draft-item .draft-title { font-weight: 600; font-size: 14px; }
+        .draft-item .draft-meta { color: #999; font-size: 12px; margin-top: 4px; }
+        .draft-item .draft-actions { display: flex; gap: 8px; }
+        .draft-empty { text-align: center; padding: 40px; color: #bbb; }
+
+        /* ===== 消息提示 ===== */
+        .msg {
+            padding: 12px 16px; border-radius: 10px; font-size: 13px; margin: 12px 0;
+            display: none;
+        }
+        .msg.success { display: block; background: #e8f5e9; color: #2e7d32; }
+        .msg.error { display: block; background: #fbe9e7; color: #c62828; }
+        .msg.info { display: block; background: #e3f2fd; color: #1565c0; }
+        [data-theme="dark"] .msg.success { background: rgba(46,125,50,0.15); color: #66bb6a; }
+        [data-theme="dark"] .msg.error { background: rgba(198,40,40,0.15); color: #ef5350; }
+        [data-theme="dark"] .msg.info { background: rgba(21,101,192,0.15); color: #42a5f5; }
+
+        /* ===== 加载动画 ===== */
+        .loading {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(102,126,234,0.3); border-top: 2px solid #667eea;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-bar {
+            text-align: center; padding: 12px; color: #999; font-size: 13px;
+            border-top: 1px solid #f0f0f0; margin-top: 24px;
+        }
+        [data-theme="dark"] .status-bar { border-top-color: #2a2a3e; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .top-bar { padding: 12px 16px; flex-direction: column; gap: 10px; }
+            .top-bar h1 { font-size: 17px; }
+            .container { padding: 12px; }
+            .card { padding: 16px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .post-table { font-size: 12px; }
+            .post-table .post-title { max-width: 150px; }
+            .preview-area { max-height: 400px; }
+            .draft-item { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+
+        /* ===== 按钮扩展 ===== */
+        .btn-info {
+            background: #17a2b8; color: white; border: none;
+        }
+        .btn-info:hover { background: #138496; }
+        [data-theme="dark"] .btn-info { background: #138496; }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="top-bar">
+        <h1>📰 公众号推送</h1>
+        <a href="/admin" class="back-link">← 返回管理后台</a>
+    </div>
+
+    <div class="container">
+        <!-- Tab导航 -->
+        <div class="tabs" role="tablist">
+            <button class="tab-btn active" data-tab="posts" onclick="switchTab('posts')">
+                📝 选择帖子 <span class="badge" id="selectedCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="preview" onclick="switchTab('preview')">
+                👁️ 图文预览
+            </button>
+            <button class="tab-btn" data-tab="drafts" onclick="switchTab('drafts')">
+                📖 发布指南
+            </button>
+        </div>
+
+        <!-- Tab 1: 选择帖子 -->
+        <div class="tab-content active" id="tab-posts">
+            <div class="card">
+                <div class="card-title">🔍 选择热点帖子</div>
+                <div class="card-desc">选择要推送到公众号的帖子，支持多选。按热度（点赞×2 + 评论×3 + 浏览×0.1）排序。</div>
+                <div class="toolbar">
+                    <label>时间范围：</label>
+                    <select id="hoursSelect" onchange="loadHotPosts()">
+                        <option value="6">最近 6 小时</option>
+                        <option value="12">最近 12 小时</option>
+                        <option value="24" selected>最近 24 小时</option>
+                        <option value="48">最近 48 小时</option>
+                        <option value="72">最近 72 小时</option>
+                        <option value="0">🌟 全站精华（不限时间）</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadHotPosts()">🔄 刷新帖子</button>
+                    <button class="btn btn-outline btn-sm" onclick="selectTopN(5)">选前5</button>
+                    <button class="btn btn-outline btn-sm" onclick="selectTopN(10)">选前10</button>
+                    <span style="flex:1;"></span>
+                    <span style="font-size:12px;color:#999;" id="postStatus">未加载</span>
+                </div>
+                <table class="post-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell"><input type="checkbox" id="selectAllCheck" onchange="toggleSelectAll(this)"></th>
+                            <th style="width:40px;">#</th>
+                            <th>标题</th>
+                            <th style="width:80px;">作者</th>
+                            <th style="width:120px;" class="post-stats">热度 ❤️💬👁️</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postList">
+                        <tr><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">点击"刷新帖子"加载数据</td></tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:16px;text-align:right;">
+                    <button class="btn btn-primary" onclick="generatePreview()" id="btnGenerate">
+                        🚀 生成图文预览
+                    </button>
+                </div>
+            </div>
+
+            <!-- ===== 每周之星 ===== -->
+            <div class="card" id="weeklyStarSection">
+                <div class="card-title">⭐ 每周之星</div>
+                <div class="card-desc">勾选要选入图文推送的同学，然后点击"生成图文预览"</div>
+                <div style="display:flex;gap:12px;margin-bottom:12px;">
+                    <button class="btn btn-outline btn-sm" onclick="loadWeeklyStar('week')">📅 本周</button>
+                    <button class="btn btn-outline btn-sm" onclick="loadWeeklyStar('month')">📅 本月</button>
+                    <span style="font-size:12px;color:#999;margin-left:12px;" id="weeklyStarStatus"></span>
+                    <span id="weeklyStarSelectedCount" style="font-size:12px;color:#667eea;margin-left:8px;display:none;"></span>
+                </div>
+                <div id="weeklyStarList">
+                    <div style="text-align:center;padding:20px;color:#999;">点击"本周"或"本月"加载</div>
+                </div>
+            </div>
+
+            <!-- ===== 那年今日 ===== -->
+            <div class="card" id="todayHistorySection">
+                <div class="card-title">📜 那年今日</div>
+                <div class="card-desc">过去同月同日的热门帖子，打上 #那年今日 标签重现</div>
+                <div style="display:flex;gap:12px;margin-bottom:12px;">
+                    <button class="btn btn-outline btn-sm" onclick="loadTodayHistory()">🔄 加载那年今日</button>
+                    <span style="font-size:12px;color:#999;margin-left:12px;" id="todayHistoryStatus"></span>
+                </div>
+                <div id="todayHistoryList">
+                    <div style="text-align:center;padding:20px;color:#999;">点击加载查看历史同日帖子</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 图文预览 -->
+        <div class="tab-content" id="tab-preview">
+            <div class="card">
+                <div class="card-title">🎨 图文预览</div>
+                <div class="card-desc">预览生成的公众号图文卡片效果，确认后复制内容到公众号后台发布。</div>
+
+                <div class="preview-toolbar">
+                    <div class="toggle-group">
+                        <label><input type="checkbox" id="cbWeather" checked> 🌤️ 包含天气</label>
+                        <label><input type="checkbox" id="cbHitokoto" checked> 📝 包含一言</label>
+                        <label><input type="checkbox" id="cbWeeklyStar" checked> ⭐ 包含每周之星</label>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="generatePreview()">🔄 刷新预览</button>
+                    <button class="btn btn-success btn-sm" onclick="copyContent()" id="btnCopy">
+                        📋 复制内容
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="downloadHTML()" id="btnDownload">
+                        ⬇️ 下载HTML
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="syncDraft()" id="btnSync">
+                        📱 同步到公众号
+                    </button>
+                </div>
+
+                <div class="preview-area" id="previewArea">
+                    <div class="placeholder">
+                        <div class="icon">📝</div>
+                        <div class="text">先选择帖子，再点击"生成图文预览"</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="msg" id="previewMsg"></div>
+        </div>
+
+        <!-- Tab 3: 发布指南 -->
+        <div class="tab-content" id="tab-drafts">
+            <div class="card">
+                <div class="card-title">📖 发布指南</div>
+                <div class="card-desc">个人订阅号无法通过API自动发布，请按照以下步骤手动发布。</div>
+
+                <div style="padding: 16px; background: #f8f9fa; border-radius: 12px;">
+                    <div style="display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start;">
+                        <span style="display: inline-flex; width: 28px; height: 28px; background: #667eea; color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">1</span>
+                        <div>
+                            <strong>生成图文预览</strong>
+                            <p style="color: #888; font-size: 13px; margin-top: 4px;">在"选择帖子"tab中勾选帖子，点击"生成图文预览"</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start;">
+                        <span style="display: inline-flex; width: 28px; height: 28px; background: #667eea; color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">2</span>
+                        <div>
+                            <strong>复制内容或下载HTML</strong>
+                            <p style="color: #888; font-size: 13px; margin-top: 4px;">点击"复制内容"一键复制，或"下载HTML"保存文件</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start;">
+                        <span style="display: inline-flex; width: 28px; height: 28px; background: #667eea; color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">3</span>
+                        <div>
+                            <strong>登录公众号后台</strong>
+                            <p style="color: #888; font-size: 13px; margin-top: 4px;">打开 <a href="https://mp.weixin.qq.com" target="_blank" style="color:#667eea;">mp.weixin.qq.com</a> → 新建图文消息</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 14px; align-items: flex-start;">
+                        <span style="display: inline-flex; width: 28px; height: 28px; background: #667eea; color: white; border-radius: 50%; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">4</span>
+                        <div>
+                            <strong>粘贴发布</strong>
+                            <p style="color: #888; font-size: 13px; margin-top: 4px;">在编辑器中使用"Ctrl+V"粘贴内容，调整后发布</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态信息 -->
+        <div class="status-bar" id="statusBar">✅ 就绪</div>
+    </div>
+
+    <script>
+        // ===== 配置 =====
+        var API_BASE = '/api/mp';
+        var selectedPosts = [];
+        var allPosts = [];
+        var generatedArticles = null;
+
+        // ===== Tab切换 =====
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+            document.querySelector('.tab-btn[data-tab="' + name + '"]').classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        // ===== 获取Auth Token =====
+        function getToken() {
+            return localStorage.getItem('token') || sessionStorage.getItem('token') || localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token') || '';
+        }
+
+        // ===== 请求包装 =====
+        async function apiFetch(url, options) {
+            var opts = options || {};
+            opts.headers = opts.headers || {};
+            opts.headers['Authorization'] = 'Bearer ' + getToken();
+            opts.headers['Content-Type'] = opts.headers['Content-Type'] || 'application/json';
+            try {
+                var resp = await fetch(url, opts);
+                return await resp.json();
+            } catch (e) {
+                return { code: 500, message: '网络请求失败: ' + e.message };
+            }
+        }
+
+        function setStatus(msg, type) {
+            type = type || 'info';
+            var el = document.getElementById('statusBar');
+            if (type === 'loading') {
+                el.innerHTML = '<span class="loading"></span> ' + msg;
+            } else {
+                el.innerHTML = msg;
+            }
+        }
+
+        // ===== 全选/取消 =====
+        function toggleSelectAll(el) {
+            var checkboxes = document.querySelectorAll('#postList input[type="checkbox"]');
+            checkboxes.forEach(function(cb) {
+                cb.checked = el.checked;
+                toggleRowHighlight(cb);
+            });
+            updateSelectedCount();
+        }
+
+        // ===== 快捷选择前N条 =====
+        function selectTopN(n) {
+            var checkboxes = document.querySelectorAll('#postList input[type="checkbox"]');
+            checkboxes.forEach(function(cb, i) {
+                var checked = i < n;
+                cb.checked = checked;
+                toggleRowHighlight(cb);
+            });
+            document.getElementById('selectAllCheck').checked = checkboxes.length > 0 && checkboxes.length <= n;
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            var checkboxes = document.querySelectorAll('#postList input[type="checkbox"]');
+            var count = 0;
+            checkboxes.forEach(function(cb) { if (cb.checked) count++; });
+            document.getElementById('selectedCount').textContent = count;
+        }
+
+        // ===== 加载热点帖子 =====
+        async function loadHotPosts() {
+            var hours = document.getElementById('hoursSelect').value;
+            var statusEl = document.getElementById('postStatus');
+            statusEl.innerHTML = '<span class="loading"></span> 加载中...';
+            setStatus('正在获取热点帖子...', 'loading');
+
+            var res = await apiFetch(API_BASE + '/hot-posts?hours=' + hours + '&limit=20');
+            if (res.code !== 200) {
+                statusEl.textContent = '❌ ' + (res.message || '加载失败');
+                setStatus('❌ 获取热点帖子失败: ' + (res.message || '未知错误'), 'error');
+                return;
+            }
+
+            allPosts = res.data || [];
+            renderPostList(allPosts);
+            statusEl.textContent = '✅ 共 ' + allPosts.length + ' 条热点帖子';
+            setStatus('✅ 已加载 ' + allPosts.length + ' 条热点帖子');
+        }
+
+        function renderPostList(posts) {
+            var tbody = document.getElementById('postList');
+            if (!posts || posts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">暂无热点帖子</td></tr>';
+                return;
+            }
+            var html = '';
+            posts.forEach(function(p, i) {
+                var title = p.title || '无标题';
+                var author = p.author || '匿名同学';
+                var content = (p.content || '').substring(0, 80) + ((p.content || '').length > 80 ? '...' : '');
+                var likes = p.likes_count || 0;
+                var comments = p.comment_count || 0;
+                var views = p.view_count || 0;
+                var heat = likes * 2 + comments * 3 + views * 0.1;
+                var hasImg = false; try { var imgs = JSON.parse(p.images); hasImg = imgs && imgs.length > 0; } catch(e) {}
+                var cover = hasImg ? '<span style="font-size:11px;color:#667eea;">🖼️</span>' : '';
+                // 默认勾选热度前5条
+                var checked = i < 5 ? 'checked' : '';
+                html += '<tr class="' + (checked ? 'row-selected' : '') + '">' +
+                    '<td class="checkbox-cell"><input type="checkbox" value="' + p.id + '" ' + checked + ' onchange="toggleRowHighlight(this); updateSelectedCount()"></td>' +
+                    '<td style="color:#999;">' + (i + 1) + '</td>' +
+                    '<td><div class="post-title">' + cover + ' ' + escapeHtml(title) + '</div><div class="post-preview">' + escapeHtml(content) + '</div></td>' +
+                    '<td class="post-author">' + escapeHtml(author) + '</td>' +
+                    '<td class="post-stats">❤️' + likes + ' 💬' + comments + ' 👁️' + views + ' <span style="color:#667eea;">(' + heat.toFixed(0) + ')</span></td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+            document.getElementById('selectAllCheck').checked = false;
+            updateSelectedCount();
+        }
+
+        // ===== 选中行高亮 =====
+        function toggleRowHighlight(cb) {
+            var tr = cb.closest('tr');
+            if (cb.checked) {
+                tr.classList.add('row-selected');
+            } else {
+                tr.classList.remove('row-selected');
+            }
+        }
+
+        function getSelectedPostIds() {
+            var ids = [];
+            document.querySelectorAll('#postList input[type="checkbox"]:checked').forEach(function(cb) {
+                ids.push(parseInt(cb.value));
+            });
+            return ids;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(text));
+            return d.innerHTML;
+        }
+
+        // ===== 每周之星 =====
+        var selectedWeeklyStarIds = [];
+
+        function toggleWeeklyStarUser(userId) {
+            var idx = selectedWeeklyStarIds.indexOf(userId);
+            var card = document.getElementById('wsCard_' + userId);
+            var checkEl = document.getElementById('wsCheck_' + userId);
+            if (idx >= 0) {
+                selectedWeeklyStarIds.splice(idx, 1);
+                if (card) card.style.border = '2px solid transparent';
+                if (checkEl) { checkEl.textContent = '点击选入'; checkEl.style.color = '#ccc'; }
+            } else {
+                selectedWeeklyStarIds.push(userId);
+                if (card) card.style.border = '2px solid #667eea';
+                if (checkEl) { checkEl.textContent = '✅ 已选入'; checkEl.style.color = '#667eea'; }
+            }
+            updateWeeklyStarCount();
+        }
+
+        function updateWeeklyStarCount() {
+            var countEl = document.getElementById('weeklyStarSelectedCount');
+            if (selectedWeeklyStarIds.length > 0) {
+                countEl.textContent = '✅ 已选 ' + selectedWeeklyStarIds.length + ' 人';
+                countEl.style.display = 'inline';
+            } else {
+                countEl.style.display = 'none';
+            }
+        }
+
+        async function loadWeeklyStar(period) {
+            var statusEl = document.getElementById('weeklyStarStatus');
+            statusEl.textContent = '加载中...';
+            var res = await apiFetch(API_BASE + '/weekly-star?period=' + period);
+            if (res.code !== 200) {
+                statusEl.textContent = '❌ 加载失败';
+                return;
+            }
+            var users = res.data || [];
+            var container = document.getElementById('weeklyStarList');
+            statusEl.textContent = '✅ 共 ' + users.length + ' 位活跃同学';
+
+            if (users.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">📭 暂无活跃用户</div>';
+                return;
+            }
+
+            var medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+            var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;">';
+            users.forEach(function(u, i) {
+                var nick = u.nickname || u.username || '同学';
+                var score = u.contribution_score || 0;
+                var checked = selectedWeeklyStarIds.indexOf(u.id) >= 0 ? 'checked' : '';
+                var isChecked = selectedWeeklyStarIds.indexOf(u.id) >= 0;
+                html += '<div style="flex:1;min-width:130px;text-align:center;padding:12px;background:#f8f9ff;border-radius:14px;cursor:pointer;' + (isChecked ? 'border:2px solid #667eea;' : 'border:2px solid transparent;') + '" id="wsCard_' + u.id + '" onclick="toggleWeeklyStarUser(' + u.id + ')">' +
+                    '<div style="font-size:24px;margin-bottom:4px;">' + (medals[i] || '🏅') + '</div>' +
+                    '<div style="font-weight:600;font-size:14px;">' + escapeHtml(nick) + '</div>' +
+                    '<div style="font-size:12px;color:#999;margin-top:4px;">📝 ' + u.post_count + ' 帖 · 💬 ' + u.comment_count + ' 评</div>' +
+                    '<div style="font-size:11px;color:#667eea;margin-top:2px;">热度 ' + score + '</div>' +
+                    '<div style="margin-top:6px;font-size:12px;color:' + (isChecked ? '#667eea' : '#ccc') + ';" id="wsCheck_' + u.id + '">' + (isChecked ? '✅ 已选入' : '点击选入') + '</div>' +
+                    '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ===== 那年今日 =====
+        async function loadTodayHistory() {
+            var statusEl = document.getElementById('todayHistoryStatus');
+            statusEl.textContent = '加载中...';
+            var res = await apiFetch(API_BASE + '/today-history-posts?limit=5');
+            if (res.code !== 200) {
+                statusEl.textContent = '❌ 加载失败';
+                return;
+            }
+            var posts = res.data || [];
+            var container = document.getElementById('todayHistoryList');
+            statusEl.textContent = '✅ 找到 ' + posts.length + ' 条历史帖子';
+
+            if (posts.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">📭 暂无历史同日帖子</div>';
+                return;
+            }
+
+            var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+            posts.forEach(function(p, i) {
+                var title = p.title || '无标题';
+                var author = p.author || '匿名同学';
+                var year = p.post_year || '?';
+                html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#FFF9F5;border-radius:10px;border-left:3px solid #FFB6C1;">' +
+                    '<div style="flex:1;">' +
+                    '<div><span style="font-size:11px;background:#FFB6C1;color:#fff;padding:2px 8px;border-radius:4px;margin-right:8px;">#那年今日 ' + year + '</span>' +
+                    '<strong style="font-size:14px;">' + escapeHtml(title) + '</strong></div>' +
+                    '<div style="font-size:12px;color:#999;margin-top:4px;">👤 ' + escapeHtml(author) + ' · ❤️ ' + (p.likes_count || 0) + ' · 💬 ' + (p.comment_count || 0) + '</div></div>' +
+                    '<label style="cursor:pointer;flex-shrink:0;" title="选入图文">' +
+                    '<input type="checkbox" value="' + p.id + '" onchange="toggleHistoryPost(this, ' + p.id + ')"> 选入</label>' +
+                    '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 从那年今日选入帖子
+        function toggleHistoryPost(cb, postId) {
+            if (cb.checked) {
+                if (!selectedPosts.includes(postId)) {
+                    selectedPosts.push(postId);
+                }
+            } else {
+                selectedPosts = selectedPosts.filter(function(id) { return id !== postId; });
+            }
+            updateSelectedCount();
+            var mainCb = document.querySelector('#postList input[value="' + postId + '"]');
+            if (mainCb) mainCb.checked = cb.checked;
+        }
+
+        // ===== 自动分段函数 =====
+        function autoFormatContent(text) {
+            if (!text) return '';
+            var blocks = [];
+            var byDoubleNewline = text.split(/\n\s*\n/);
+            if (byDoubleNewline.length > 1) {
+                blocks = byDoubleNewline;
+            } else {
+                var byNewline = text.split(/\n/);
+                if (byNewline.length > 1) {
+                    blocks = byNewline;
+                } else {
+                    var raw = text, sentences = [], buffer = '';
+                    for (var k = 0; k < raw.length; k++) {
+                        buffer += raw[k];
+                        if (/[。！？；;!?]/.test(raw[k])) { sentences.push(buffer); buffer = ''; }
+                    }
+                    if (buffer.trim()) sentences.push(buffer);
+                    if (sentences.length === 0) sentences = [text];
+                    for (var g = 0; g < sentences.length; g += 3) {
+                        blocks.push(sentences.slice(g, g + 3).join(''));
+                    }
+                }
+            }
+            return blocks.filter(function(b) { return b.trim(); }).map(function(b) {
+                return '<p style="text-indent:2em;line-height:2;margin-bottom:16px;font-size:15px;color:#555;margin-top:0;">' + b.trim() + '</p>';
+            }).join('\n');
+        }
+
+        // ===== 生成图文预览 =====
+        async function generatePreview() {
+            var ids = getSelectedPostIds();
+
+
+            var includeWeather = document.getElementById('cbWeather').checked;
+            var includeHitokoto = document.getElementById('cbHitokoto').checked;
+            var includeWeeklyStar = document.getElementById('cbWeeklyStar').checked;
+            setStatus('正在生成图文...', 'loading');
+
+            var res = await apiFetch(API_BASE + '/generate-content', {
+                method: 'POST',
+                body: JSON.stringify({
+                    postIds: ids,
+                    includeWeather: includeWeather,
+                    includeHitokoto: includeHitokoto,
+                    includeWeeklyStar: includeWeeklyStar,
+                    weeklyStarUserIds: includeWeeklyStar ? selectedWeeklyStarIds : []
+                })
+            });
+
+            if (res.code !== 200) {
+                showMsg('previewMsg', '生成失败: ' + (res.message || '未知错误'), 'error');
+                setStatus('❌ 生成图文失败', 'error');
+                return;
+            }
+
+            generatedArticles = res.data.articles;
+            var articles = res.data.articles;
+            var postData = res.data.posts;
+            var weather = res.data.weather;
+            var hitokoto = res.data.hitokoto;
+            var dateInfo = res.data.dateInfo;
+            var stats = res.data.stats || {};
+            var categories = res.data.categories || [];
+            var songs = res.data.songs || [];
+            var todayHistory = res.data.todayHistory || {};
+            var weeklyStar = res.data.weeklyStar || [];
+            var commentsByPost = res.data.commentsByPost || {};
+
+            var previewArea = document.getElementById('previewArea');
+            var previewHtml = '';
+            previewHtml += '<div style="padding: 10px 0;">';
+
+            // 头部
+            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#FFF0F5;padding:22px 16px 18px;text-align:center;">';
+            previewHtml += '<div style="color:#FF69B4;font-size:24px;font-weight:bold;letter-spacing:2px;">🌸 今日校园精选</div>';
+            previewHtml += '<div style="color:#bbb;font-size:13px;margin-top:8px;">' + escapeHtml(dateInfo.date || '') + ' ' + escapeHtml(dateInfo.week || '') + '</div>';
+            previewHtml += '<div style="width:40px;height:3px;background:#FFB6C1;margin:14px auto 0;"></div>';
+            previewHtml += '</td></tr></table>';
+
+            // 天气（今天+明天）
+            if (includeWeather && weather && weather.temperature) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#E0F0FF;padding:16px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:8px;">🌤️ 天气预报 · ' + escapeHtml(weather.city || '') + '</div>';
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+                // 今天
+                previewHtml += '<td style="width:50%;text-align:center;padding:6px;border-right:1px dashed #B0D4F1;">';
+                previewHtml += '<div style="font-size:12px;color:#888;margin-bottom:4px;">今日</div>';
+                previewHtml += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
+                previewHtml += '<div style="font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(weather.weather || '') + '</div>';
+                previewHtml += '<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">💨 ' + escapeHtml(weather.wind || '') + '<br>💧 ' + escapeHtml(weather.humidity || '') + '</div>';
+                previewHtml += '</td>';
+                // 明天
+                if (weather.tomorrow) {
+                    previewHtml += '<td style="width:50%;text-align:center;padding:6px;">';
+                    previewHtml += '<div style="font-size:12px;color:#888;margin-bottom:4px;">' + escapeHtml(weather.tomorrow.week || '明日') + '</div>';
+                    previewHtml += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '🌤') + ' ' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
+                    previewHtml += '<div style="font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
+                    previewHtml += '<div style="font-size:12px;color:#999;margin-top:4px;">📍 预报</div>';
+                    previewHtml += '</td>';
+                }
+                previewHtml += '</tr></table>';
+                previewHtml += '</td></tr></table>';
+            }
+
+            // 一言
+            if (includeHitokoto && hitokoto) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #FFB6C1;">';
+                previewHtml += '<p style="font-size:15px;color:#666;margin:0 0 8px 0;line-height:1.9;font-style:italic;">💕 "' + escapeHtml(hitokoto.text || '') + '"</p>';
+                previewHtml += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + escapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p>';
+                previewHtml += '</td></tr></table>';
+            }
+
+            // 数据统计
+            if (stats && stats.total > 0) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#F0FFF0;padding:14px;text-align:center;">';
+                previewHtml += '<div style="font-size:14px;color:#666;line-height:1.6;">📊 今日校园 · 共 <strong style="color:#43e97b;font-size:18px;">' + stats.total + '</strong> 篇新帖子</div>';
+                previewHtml += '</td></tr></table>';
+            }
+
+            // 热门分类
+            if (categories && categories.length > 0) {
+                var cNames = { 'daily':'日常', 'confession':'表白', 'help':'求助', 'secondhand':'二手', 'club':'社团', 'other':'其他' };
+                var cEmoji = { '日常':'🌸', '表白':'💕', '求助':'🆘', '二手':'🛍️', '社团':'🎪', '其他':'📌' };
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFFFF0;padding:12px 14px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:6px;">🏷️ 热门分类</div><div style="font-size:14px;color:#666;line-height:1.8;">';
+                for (var ci = 0; ci < categories.length; ci++) {
+                    var cn = cNames[categories[ci].category] || categories[ci].category;
+                    previewHtml += (ci > 0 ? '&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;' : '') + (cEmoji[cn] || '📌') + ' ' + cn + ' <strong style="color:#FFB6C1;font-size:14px;">' + categories[ci].cnt + '</strong>';
+                }
+                previewHtml += '</div></td></tr></table>';
+            }
+
+            // 历史的今天
+            if (todayHistory && todayHistory.title) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#F8F0FF;padding:12px 14px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:5px;">📜 历史上的今天</div>';
+                previewHtml += '<div style="font-size:14px;color:#666;line-height:1.7;">' + escapeHtml(todayHistory.title) + '</div>';
+                previewHtml += '</td></tr></table>';
+            }
+
+            // ===== 每周之星 =====
+            if (weeklyStar && weeklyStar.length > 0) {
+                var medals = ['🥇', '🥈', '🥉'];
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF9F9;padding:14px 14px 18px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:10px;">⭐ 每周之星</div>';
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+                for (var wi = 0; wi < weeklyStar.length; wi++) {
+                    var w = weeklyStar[wi];
+                    var wName = w.nickname || w.username || '同学';
+                    previewHtml += '<td style="text-align:center;width:' + (100 / weeklyStar.length) + '%;padding:4px;">';
+                    previewHtml += '<div style="font-size:20px;">' + (medals[wi] || '🏅') + '</div>';
+                    previewHtml += '<div style="font-weight:600;font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(wName) + '</div>';
+                    previewHtml += '<div style="font-size:11px;color:#bbb;margin-top:2px;">📝' + (w.post_count || 0) + ' 💬' + (w.comment_count || 0) + '</div>';
+                    previewHtml += '</td>';
+                }
+                previewHtml += '</tr></table></td></tr></table>';
+            }
+
+            // 最近点歌
+            if (songs && songs.length > 0) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:12px 14px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:6px;">🎵 最近点歌</div>';
+                for (var si = 0; si < songs.length; si++) {
+                    var song = songs[si];
+                    var authorStr = song.is_anonymous ? '匿名同学' : (song.nickname || song.username || '同学');
+                    previewHtml += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:8px 0;">';
+                    previewHtml += '<div style="font-size:14px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(song.song_name || '') + '</strong>' + (song.artist ? ' - <span style="color:#aaa;">' + escapeHtml(song.artist) + '</span>' : '') + '</div>';
+                    previewHtml += '<div style="font-size:12px;color:#bbb;margin-top:3px;line-height:1.5;">';
+                    if (song.slot_name || song.play_date || song.req_date) previewHtml += '📅 ' + escapeHtml(song.slot_name || '') + ((song.play_date || song.req_date) ? ' · ' + escapeHtml(song.play_date || song.req_date) : '') + (song.start_time && song.end_time ? ' ' + escapeHtml(song.start_time.substring(0,5) + '-' + song.end_time.substring(0,5)) : '');
+                    if (song.message) previewHtml += ' &nbsp;💬 ' + escapeHtml(song.message.length > 25 ? song.message.substring(0, 25) + '...' : song.message);
+                    if (song.to_whom) previewHtml += ' &nbsp;💝 ' + escapeHtml(song.to_whom);
+                    previewHtml += ' &nbsp;👤 ' + escapeHtml(authorStr);
+                    previewHtml += '</div></div>';
+                }
+                previewHtml += '</td></tr></table>';
+            }
+
+            // 分割
+            previewHtml += '<div style="text-align:center;margin:22px 0;color:#e8e8e8;font-size:14px;">✨&nbsp;&nbsp;💕&nbsp;&nbsp;✨</div>';
+
+            // 帖子
+            postData.forEach(function(p, i) {
+                var colors = ['#FFB6C1','#DDA0DD','#87CEEB','#98FB98','#FFD700'];
+                var bgColors = ['#FFF0F5','#F8F0FF','#F0F8FF','#F0FFF0','#FFFFF0'];
+                var c = colors[i % colors.length];
+                var bg = bgColors[i % bgColors.length];
+                var allImgs = [];
+                try { if (p.images) { var parsed = JSON.parse(p.images); if (Array.isArray(parsed)) allImgs = parsed; } } catch(e) {}
+                var imgsHtml = '';
+                for (var ii = 0; ii < allImgs.length; ii++) {
+                    imgsHtml += (ii > 0 ? '<div style="border-top:1px dashed #eee;margin:8px 0;"></div>' : '') + '<img src="' + allImgs[ii] + '" style="width:100%;" alt="封面">';
+                }
+                var content = p.content || '';
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;"><tr><td style="border-top:3px solid ' + c + ';background:' + bg + ';padding:16px;">';
+                previewHtml += '<div style="color:' + c + ';font-weight:bold;font-size:13px;margin-bottom:6px;">#' + (i+1) + ' · 热门帖子</div>';
+                previewHtml += '<div style="font-weight:bold;font-size:18px;color:#333;margin-bottom:8px;line-height:1.4;">' + escapeHtml(p.title || '无标题') + '</div>';
+                previewHtml += imgsHtml;
+                previewHtml += '<div style="margin:12px 0 0 0;">' + autoFormatContent(escapeHtml(content)) + '</div>';
+                previewHtml += '<div style="font-size:13px;color:#bbb;margin-top:12px;padding-top:10px;border-top:1px solid #eee;line-height:1.6;">';
+                previewHtml += '👤 ' + escapeHtml(p.author || '匿名同学') + '&nbsp;&nbsp;&nbsp;❤️ ' + (p.likes_count || 0) + '&nbsp;&nbsp;&nbsp;💬 ' + (p.comment_count || 0) + '</div>';
+                // 展示评论
+                var postComments = commentsByPost[p.id];
+                if (postComments && postComments.length > 0) {
+                    previewHtml += '<div style="margin-top:10px;">';
+                    postComments.forEach(function(c) {
+                        var ca = escapeHtml(c.author || '同学');
+                        var ct = escapeHtml(c.content || '');
+                        previewHtml += '<div style="background:#f9f9f9;border-radius:8px;padding:8px 12px;margin-top:6px;font-size:13px;">';
+                        previewHtml += '<span style="color:#667eea;font-weight:600;">' + ca + '</span>';
+                        previewHtml += '<span style="color:#999;">: </span>';
+                        previewHtml += '<span style="color:#555;">' + ct + '</span>';
+                        previewHtml += '</div>';
+                    });
+                    previewHtml += '</div>';
+                }
+                previewHtml += '</td></tr></table>';
+            });
+
+            // 底部
+            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
+            previewHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🎉 更多校园精彩</div>';
+            previewHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
+            previewHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
+            previewHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
+            previewHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
+            previewHtml += '</td></tr></table>';
+            previewHtml += '</td></tr></table>';
+            previewHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
+            previewHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
+            previewHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
+            previewHtml += '</td></tr></table>';
+
+            previewHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© 嘉二校园墙 · 💕</p>';
+            previewHtml += '</div>';
+
+            previewArea.innerHTML = previewHtml;
+            switchTab('preview');
+            showMsg('previewMsg', '✅ 图文生成成功，共 ' + postData.length + ' 篇帖子' + (weather ? ' + 天气' : '') + (hitokoto ? ' + 一言' : ''));
+            setStatus('✅ 图文生成成功');
+        }
+
+        // ===== 复制内容（富文本粘贴） =====
+        async function copyContent() {
+            var previewArea = document.getElementById('previewArea');
+            var content = previewArea.innerHTML;
+            if (!content || content.includes('placeholder')) {
+                showMsg('previewMsg', '请先生成图文预览', 'error');
+                return;
+            }
+
+            // 创建一个隐藏的富文本容器，让浏览器复制带格式的内容
+            var container = document.createElement('div');
+            container.innerHTML = '<div style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</div>';
+            container.style.position = 'fixed';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            document.body.appendChild(container);
+
+            try {
+                // 选中容器内容
+                var range = document.createRange();
+                range.selectNodeContents(container);
+                var selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                document.execCommand('copy');
+                selection.removeAllRanges();
+                showMsg('previewMsg', '✅ 内容已复制！请到公众号后台 → 新建图文 → Ctrl+V 粘贴', 'success');
+                setStatus('✅ 内容已复制到剪贴板（带格式）');
+            } catch (e) {
+                showMsg('previewMsg', '复制失败，请使用"下载HTML"功能', 'error');
+            } finally {
+                document.body.removeChild(container);
+            }
+        }
+
+        // ===== 下载HTML =====
+        function downloadHTML() {
+            var previewArea = document.getElementById('previewArea');
+            var content = previewArea.innerHTML;
+            if (!content || content.includes('placeholder')) {
+                showMsg('previewMsg', '请先生成图文预览', 'error');
+                return;
+            }
+
+            var fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>嘉二校园墙 · 今日精选</title></head><body style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</body></html>';
+
+            var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = '校园精选_' + new Date().toISOString().slice(0, 10) + '.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showMsg('previewMsg', '✅ HTML文件已下载，双击即可在浏览器中预览', 'success');
+            setStatus('✅ HTML文件已下载');
+        }
+
+        // ===== 工具函数 =====
+        function showMsg(elId, text, type) {
+            var el = document.getElementById(elId);
+            if (!el) return;
+            el.className = 'msg ' + type;
+            el.innerHTML = text;
+            setTimeout(function() { el.className = 'msg'; }, 6000);
+        }
+
+        function formatTime(unixTs) {
+            if (!unixTs) return '未知';
+            var d = new Date(unixTs * 1000);
+            return d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0') + ' ' +
+                String(d.getHours()).padStart(2, '0') + ':' +
+                String(d.getMinutes()).padStart(2, '0');
+        }
+
+        // ===== 监听主题变化 =====
+        (function init() {
+            if (window.parent && window.parent.document) {
+                var dark = window.parent.document.documentElement.getAttribute('data-theme');
+                if (dark) {
+                    document.documentElement.setAttribute('data-theme', dark);
+                }
+            }
+            // 页面可见时自动检测
+            var interval = setInterval(function() {
+                try {
+                    var dark = document.documentElement.getAttribute('data-theme');
+                    var parentDark = window.parent && window.parent.document &&
+                        window.parent.document.documentElement.getAttribute('data-theme');
+                    if (parentDark && parentDark !== dark) {
+                        document.documentElement.setAttribute('data-theme', parentDark);
+                    }
+                } catch(e) {}
+            }, 2000);
+
+            // 检查管理权限
+            var token = getToken();
+            if (!token) {
+                window.location.href = '/login?redirect=/admin/mp-draft';
+                return;
+            }
+
+            // 验证token并检查角色
+            apiFetch('/api/auth/me').then(function(res) {
+                if (res.code !== 200) {
+                    window.location.href = '/login?redirect=/admin/mp-draft';
+                    return;
+                }
+                var roleLevel = { user: 0, reviewer: 1, radio_admin: 1, admin: 2, super_admin: 3 };
+                if ((roleLevel[res.data.role] || 0) < 1) {
+                    alert('无管理权限，请联系管理员');
+                    window.location.href = '/';
+                    return;
+                }
+                // 权限通过，加载页面
+                setTimeout(function() { loadHotPosts(); }, 100);
+            }).catch(function() {
+                window.location.href = '/login?redirect=/admin/mp-draft';
+            });
+        })();
+
+        // ===== 同步到公众号 =====
+        async function syncDraft() {
+            if (!generatedArticles || generatedArticles.length === 0) {
+                showMsg('previewMsg', '请先生成图文预览', 'error');
+                return;
+            }
+
+            var btn = document.getElementById('btnSync');
+            var originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> 同步中...';
+            setStatus('正在同步到公众号...', 'loading');
+
+            var res = await apiFetch(API_BASE + '/sync-draft', {
+                method: 'POST',
+                body: JSON.stringify({ article: generatedArticles[0] })
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+
+            if (res.code === 200) {
+                showMsg('previewMsg', '✅ 同步成功！草稿已创建到公众号草稿箱，请前往 mp.weixin.qq.com 查看', 'success');
+                setStatus('✅ 已同步到公众号草稿箱');
+            } else {
+                showMsg('previewMsg', '❌ 同步失败: ' + (res.message || '未知错误'), 'error');
+                setStatus('❌ 同步失败');
+            }
+        }
+
+        console.log('📰 公众号推送页面已加载');
+        console.log('✅ 管理权限验证通过');
+        console.log('💡 操作提示：勾选帖子 → 生成预览 → 同步到公众号');
+    </script>
+</body>
