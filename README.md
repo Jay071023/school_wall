@@ -186,7 +186,7 @@ pm2 start server.js --name school_wall
 如有问题或建议，欢迎联系：
 
 - **作者**: Jay071023
-- **邮箱**: 邮箱@qq.com
+- **邮箱**: 2108474355@qq.com
 - **GitHub**: https://github.com/Jay071023
 
 ---
