@@ -6,6 +6,13 @@ const { notifyNewComment, notifyNewLike, notifyMention, notifyFollowPost, notify
 const { createNotification } = require('./notifications');
 const router = express.Router();
 
+// ORDER BY 白名单（防 SQL 注入）
+const ORDER_BY_WHITELIST = {
+  latest: 'p.is_pinned DESC, p.created_at DESC',
+  hot: 'p.is_pinned DESC, p.likes_count DESC, p.created_at DESC',
+};
+const ORDER_BY_MAP = ORDER_BY_WHITELIST;
+
 // 初始化comments表的mentioned_users字段
 (async function initMentionedUsersField() {
   try {
@@ -171,8 +178,8 @@ router.get('/', optionalAuth, async (req, res) => {
       params.push(parseInt(user_id));
     }
 
-    let orderBy = 'p.is_pinned DESC, p.created_at DESC';
-    if (sort === 'hot') orderBy = 'p.is_pinned DESC, p.likes_count DESC, p.created_at DESC';
+    let orderBy = ORDER_BY_MAP.latest;
+    if (ORDER_BY_MAP[sort]) orderBy = ORDER_BY_MAP[sort];
 
     // 获取帖子列表
     const [posts] = await pool.execute(`
@@ -479,16 +486,6 @@ router.get('/:id', optionalAuth, async (req, res) => {
     const post = posts[0];
     post.images = post.images ? JSON.parse(post.images) : [];
     post.time_ago = getTimeAgo(post.created_at);
-
-    // 增加浏览次数（使用异步，不阻塞响应）- 只增加计数，不记录浏览历史
-    // 浏览历史由 POST /:id/view 接口统一记录
-    setImmediate(async () => {
-      try {
-        await pool.execute('UPDATE posts SET view_count = view_count + 1, views = views + 1 WHERE id = ?', [req.params.id]);
-      } catch (err) {
-        console.error('增加浏览次数失败:', err.message);
-      }
-    });
 
     // 获取评论
     const [comments] = await pool.execute(`
@@ -805,9 +802,229 @@ router.delete('/:postId/comments/:commentId', auth, async (req, res) => {
   }
 });
 
+// 评论点赞
+router.post('/comments/:commentId/like', auth, async (req, res) => {
+  try {
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    // 检查评论是否存在
+    const [comments] = await pool.execute('SELECT id, post_id FROM comments WHERE id = ?', [commentId]);
+    if (comments.length === 0) {
+      return res.json({ code: 404, message: '评论不存在' });
+    }
+
+    // 检查是否已经点赞
+    const [existing] = await pool.execute(
+      'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
+      [commentId, userId]
+    );
+
+    let liked = false;
+    if (existing.length > 0) {
+      // 取消点赞
+      await pool.execute('DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?', [commentId, userId]);
+      await pool.execute('UPDATE comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [commentId]);
+    } else {
+      // 添加点赞
+      await pool.execute('INSERT INTO comment_likes (comment_id, user_id) VALUES (?, ?)', [commentId, userId]);
+      await pool.execute('UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?', [commentId]);
+      liked = true;
+    }
+
+    // 获取最新点赞数
+    const [updated] = await pool.execute('SELECT likes_count FROM comments WHERE id = ?', [commentId]);
+    const likesCount = updated[0]?.likes_count || 0;
+
+    res.json({ code: 200, data: { liked, likes_count: likesCount } });
+  } catch (err) {
+    console.error('评论点赞错误:', err.message);
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 获取评论的回复列表
+router.get('/:postId/comments/:commentId/replies', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { sort = 'latest' } = req.query;
+
+    let orderBy = 'created_at DESC';
+    if (sort === 'hot') {
+      orderBy = 'likes_count DESC, created_at DESC';
+    }
+    // 白名单校验（防止注入）
+    if (!['created_at DESC', 'likes_count DESC, created_at DESC'].includes(orderBy)) {
+      orderBy = 'created_at DESC';
+    }
+
+    const [replies] = await pool.execute(
+      `SELECT r.*, u.nickname, u.username, u.avatar, u.role as author_role
+       FROM comment_replies r
+       LEFT JOIN users u ON r.user_id = u.id
+       WHERE r.comment_id = ?
+       ORDER BY ${orderBy}`,
+      [commentId]
+    );
+
+    const formattedReplies = replies.map(reply => ({
+      id: reply.id,
+      content: reply.content,
+      is_anonymous: reply.is_anonymous,
+      author_name: reply.is_anonymous ? '匿名用户' : (reply.nickname || reply.username || '用户'),
+      author_avatar: reply.is_anonymous ? '/uploads/avatars/default.png' : (reply.avatar || '/uploads/avatars/default.png'),
+      author_id: reply.user_id,
+      author_role: reply.author_role,
+      time_ago: getTimeAgo(reply.created_at),
+      ip_region: reply.ip_region,
+      likes_count: reply.likes_count || 0,
+      created_at: reply.created_at
+    }));
+
+    res.json({ code: 200, data: { replies: formattedReplies, total: replies.length } });
+  } catch (err) {
+    console.error('获取回复列表错误:', err.message);
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 发送评论回复
+router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
+  try {
+    const { commentId, postId } = req.params;
+    const { content, is_anonymous, client_ip } = req.body;
+
+    if (!content || content.trim() === '') {
+      return res.json({ code: 400, message: '请输入回复内容' });
+    }
+    if (content.length > 500) {
+      return res.json({ code: 400, message: '回复不能超过500字' });
+    }
+
+    // 检查评论是否存在
+    const [comments] = await pool.execute('SELECT id, user_id FROM comments WHERE id = ?', [commentId]);
+    if (comments.length === 0) {
+      return res.json({ code: 404, message: '评论不存在' });
+    }
+
+    // 获取客户端IP
+    var clientIp = client_ip || getClientIp(req);
+
+    // 插入回复
+    const [result] = await pool.execute(
+      'INSERT INTO comment_replies (comment_id, user_id, content, is_anonymous, ip_address) VALUES (?, ?, ?, ?, ?)',
+      [commentId, req.user.id, content.trim(), is_anonymous ? 1 : 0, clientIp]
+    );
+
+    // 异步查询IP归属地并更新
+    getIpRegion(clientIp).then(region => {
+      pool.execute('UPDATE comment_replies SET ip_region = ? WHERE id = ?', [region, result.insertId]).catch(() => {});
+    });
+
+    // 获取当前用户信息用于通知
+    const [users] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [req.user.id]);
+    const commenter = users[0] || {};
+
+    // 获取原评论作者并发送通知
+    const commentAuthorId = comments[0].user_id;
+    if (commentAuthorId !== req.user.id) {
+      createNotification(
+        commentAuthorId,
+        'comment_reply',
+        '收到新回复',
+        commenter.nickname || commenter.username + ' 回复了你的评论: ' + content.trim().substring(0, 50),
+        postId,
+        'post'
+      ).catch(err => {
+        console.error('[通知] 发送回复通知失败:', err.message);
+      });
+    }
+
+    res.json({ code: 200, message: '回复成功' });
+  } catch (err) {
+    console.error('评论回复错误:', err.message);
+    res.json({ code: 500, message: '服务器错误: ' + err.message });
+  }
+});
+
+// 删除评论回复
+router.delete('/:postId/comments/:commentId/replies/:replyId', auth, async (req, res) => {
+  try {
+    const { replyId, commentId } = req.params;
+
+    const [replies] = await pool.execute('SELECT user_id, comment_id FROM comment_replies WHERE id = ?', [replyId]);
+    if (replies.length === 0) {
+      return res.json({ code: 404, message: '回复不存在' });
+    }
+
+    const reply = replies[0];
+    const isReplyAuthor = reply.user_id === req.user.id;
+
+    // 检查是否是管理员角色
+    const [users] = await pool.execute('SELECT role FROM users WHERE id = ?', [req.user.id]);
+    const staffRoles = ['admin', 'super_admin', 'reviewer'];
+    const isStaff = staffRoles.indexOf(users[0].role) !== -1;
+
+    if (!isReplyAuthor && !isStaff) {
+      return res.json({ code: 403, message: '无权删除此回复' });
+    }
+
+    await pool.execute('DELETE FROM comment_replies WHERE id = ?', [replyId]);
+    res.json({ code: 200, message: '删除成功' });
+  } catch (err) {
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 回复点赞
+router.post('/:postId/comments/:commentId/replies/:replyId/like', auth, async (req, res) => {
+  try {
+    const { replyId } = req.params;
+    const userId = req.user.id;
+
+    // 检查回复是否存在
+    const [replies] = await pool.execute('SELECT id FROM comment_replies WHERE id = ?', [replyId]);
+    if (replies.length === 0) {
+      return res.json({ code: 404, message: '回复不存在' });
+    }
+
+    // 检查是否已经点赞
+    const [existing] = await pool.execute(
+      'SELECT id FROM comment_reply_likes WHERE reply_id = ? AND user_id = ?',
+      [replyId, userId]
+    );
+
+    let liked = false;
+    if (existing.length > 0) {
+      await pool.execute('DELETE FROM comment_reply_likes WHERE reply_id = ? AND user_id = ?', [replyId, userId]);
+      await pool.execute('UPDATE comment_replies SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [replyId]);
+    } else {
+      await pool.execute('INSERT INTO comment_reply_likes (reply_id, user_id) VALUES (?, ?)', [replyId, userId]);
+      await pool.execute('UPDATE comment_replies SET likes_count = likes_count + 1 WHERE id = ?', [replyId]);
+      liked = true;
+    }
+
+    const [updated] = await pool.execute('SELECT likes_count FROM comment_replies WHERE id = ?', [replyId]);
+    const likesCount = updated[0]?.likes_count || 0;
+
+    res.json({ code: 200, data: { liked, likes_count: likesCount } });
+  } catch (err) {
+    console.error('回复点赞错误:', err.message);
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
 // 点赞/取消点赞防抖（同一用户同一帖子1秒内只处理一次）
 const likeDebounce = new Map();
-setInterval(function() { likeDebounce.clear(); }, 5000); // 每5秒清一次
+const MAX_DEBOUNCE_ENTRIES = 5000;
+setInterval(function() {
+  if (likeDebounce.size > MAX_DEBOUNCE_ENTRIES) {
+    const keys = [...likeDebounce.keys()].slice(0, likeDebounce.size - MAX_DEBOUNCE_ENTRIES);
+    keys.forEach(k => likeDebounce.delete(k));
+  } else {
+    likeDebounce.clear();
+  }
+}, 5000); // 每5秒清一次（超出上限则只清理超出的部分）
 
 router.post('/:id/like', auth, async (req, res) => {
   const key = req.user.id + ':' + req.params.id;
@@ -1059,27 +1276,48 @@ router.get('/:id/edit', auth, async (req, res) => {
   }
 });
 
-// 增加帖子浏览量（前端主动调用）
+// 增加帖子浏览量（前端主动调用，1分钟内同IP/同用户去重）
 router.post('/:id/view', optionalAuth, async (req, res) => {
   try {
     const viewerIp = getClientIp(req);
     const viewerNickname = req.user ? (req.user.nickname || req.user.username) : null;
     const userId = req.user ? req.user.id : null;
-    
+    const postId = req.params.id;
+
+    // 检查1分钟内是否已浏览过（同IP或同用户）
+    let hasRecentView = false;
+    if (userId) {
+      const [recent] = await pool.execute(
+        'SELECT id FROM post_views WHERE post_id = ? AND user_id = ? AND viewed_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE) LIMIT 1',
+        [postId, userId]
+      );
+      hasRecentView = recent.length > 0;
+    } else {
+      const [recent] = await pool.execute(
+        'SELECT id FROM post_views WHERE post_id = ? AND viewer_ip = ? AND viewed_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE) LIMIT 1',
+        [postId, viewerIp]
+      );
+      hasRecentView = recent.length > 0;
+    }
+
+    if (hasRecentView) {
+      return res.json({ code: 200, message: 'duplicate' });
+    }
+
     // 异步增加，不阻塞响应
     setImmediate(async () => {
       try {
         const ipRegion = await getIpRegion(viewerIp);
-        await pool.execute('UPDATE posts SET view_count = view_count + 1, views = views + 1 WHERE id = ?', [req.params.id]);
+        await pool.execute('UPDATE posts SET view_count = view_count + 1, views = views + 1 WHERE id = ?', [postId]);
         await pool.execute(
           'INSERT INTO post_views (post_id, user_id, viewer_ip, ip_region, viewer_nickname) VALUES (?, ?, ?, ?, ?)',
-          [req.params.id, userId, viewerIp, ipRegion, viewerNickname]
+          [postId, userId, viewerIp, ipRegion, viewerNickname]
         );
       } catch (err) {
         console.error('增加浏览次数失败:', err.message);
       }
     });
-    
+
     res.json({ code: 200, message: 'ok' });
   } catch (err) {
     console.error('增加浏览量错误:', err);

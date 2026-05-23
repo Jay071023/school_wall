@@ -193,6 +193,210 @@
             .draft-item { flex-direction: column; gap: 10px; align-items: flex-start; }
         }
 
+        /* ===== 移动端优化 (max-width: 600px) ===== */
+        @media (max-width: 600px) {
+            /* 顶部导航 */
+            .top-bar {
+                padding: 10px 12px !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .top-bar h1 {
+                font-size: 16px !important;
+                justify-content: center;
+            }
+            .top-bar .back-link {
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+
+            /* 容器 */
+            .container {
+                padding: 10px !important;
+            }
+
+            /* Tab导航 - 移动端横向滚动 */
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                padding: 4px;
+                gap: 2px;
+            }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tab-btn {
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+            .tab-btn .badge {
+                font-size: 10px !important;
+                padding: 1px 6px !important;
+                margin-left: 4px !important;
+            }
+
+            /* 卡片 */
+            .card {
+                padding: 14px !important;
+                border-radius: 12px !important;
+                margin-bottom: 14px;
+            }
+            .card-title {
+                font-size: 15px !important;
+                margin-bottom: 12px !important;
+            }
+            .card-desc {
+                font-size: 12px !important;
+                margin-bottom: 12px !important;
+            }
+
+            /* 工具栏 */
+            .toolbar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .toolbar label {
+                font-size: 12px;
+            }
+            .toolbar select, .toolbar input {
+                font-size: 13px;
+                padding: 8px 10px;
+                width: 100%;
+            }
+            .toolbar > * {
+                width: 100%;
+                text-align: center;
+            }
+            .toolbar > span {
+                text-align: center;
+            }
+
+            /* 按钮 */
+            .btn {
+                padding: 10px 16px !important;
+                font-size: 13px !important;
+                width: 100%;
+                justify-content: center;
+            }
+            .btn-sm {
+                padding: 8px 14px !important;
+                font-size: 12px !important;
+            }
+            [style*="flex:1"] { display: none; }
+
+            /* 表格 */
+            .post-table {
+                font-size: 11px !important;
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .post-table th, .post-table td {
+                padding: 8px 6px !important;
+            }
+            .post-table .post-title {
+                max-width: 120px !important;
+                font-size: 12px !important;
+            }
+            .post-table .post-preview {
+                max-width: 120px !important;
+                font-size: 11px !important;
+            }
+            .post-table .post-stats {
+                font-size: 11px !important;
+                white-space: nowrap;
+            }
+            .post-table .post-author {
+                font-size: 11px !important;
+            }
+            .checkbox-cell { width: 28px !important; }
+            .post-table input[type="checkbox"] {
+                width: 14px !important;
+                height: 14px !important;
+            }
+
+            /* 预览区域 */
+            .preview-area {
+                max-height: 350px !important;
+                padding: 12px !important;
+                font-size: 13px !important;
+                border-radius: 10px !important;
+            }
+            .preview-toolbar {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .preview-toolbar .toggle-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .preview-toolbar label {
+                font-size: 12px;
+            }
+            .preview-toolbar .btn {
+                width: 100%;
+                margin-bottom: 4px;
+            }
+
+            /* 每周之星 */
+            #weeklyStarSection .card {
+                padding: 12px !important;
+            }
+            [id$="StarSection"] [style*="display:flex"] {
+                flex-wrap: wrap !important;
+            }
+
+            /* 那年今日 */
+            #todayHistorySection [style*="display:flex"] {
+                flex-wrap: wrap !important;
+            }
+
+            /* 发布指南 */
+            [id="tab-drafts"] [style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 12px !important;
+            }
+            [id="tab-drafts"] strong {
+                font-size: 14px !important;
+            }
+            [id="tab-drafts"] p {
+                font-size: 12px !important;
+            }
+
+            /* 状态栏 */
+            .status-bar {
+                font-size: 11px !important;
+                padding: 10px !important;
+            }
+
+            /* 消息提示 */
+            .msg {
+                font-size: 12px !important;
+                padding: 10px 12px !important;
+                margin: 8px 0 !important;
+            }
+
+            /* 全选复选框 */
+            .select-all {
+                font-size: 11px !important;
+            }
+        }
+
+        /* ===== 超小屏幕优化 (max-width: 400px) ===== */
+        @media (max-width: 400px) {
+            .top-bar h1 { font-size: 15px !important; }
+            .container { padding: 8px !important; }
+            .card { padding: 12px !important; border-radius: 10px !important; }
+            .tab-btn { padding: 8px 10px !important; font-size: 12px !important; }
+            .post-table { font-size: 10px !important; }
+            .post-table .post-title { max-width: 100px !important; font-size: 11px !important; }
+            .post-table .post-preview { display: none !important; }
+            .btn { padding: 8px 12px !important; font-size: 12px !important; }
+        }
+
         /* ===== 按钮扩展 ===== */
         .btn-info {
             background: #17a2b8; color: white; border: none;
@@ -710,31 +914,48 @@
             previewHtml += '<div style="padding: 10px 0;">';
 
             // 头部
-            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#FFF0F5;padding:22px 16px 18px;text-align:center;">';
-            previewHtml += '<div style="color:#FF69B4;font-size:24px;font-weight:bold;letter-spacing:2px;">🌸 今日校园精选</div>';
-            previewHtml += '<div style="color:#bbb;font-size:13px;margin-top:8px;">' + escapeHtml(dateInfo.date || '') + ' ' + escapeHtml(dateInfo.week || '') + '</div>';
-            previewHtml += '<div style="width:40px;height:3px;background:#FFB6C1;margin:14px auto 0;"></div>';
+            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
+            previewHtml += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 今日校园精选</div>';
+            previewHtml += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">🌸 今日校园精选</div>';
+            previewHtml += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + escapeHtml(dateInfo.date || '') + ' ' + escapeHtml(dateInfo.week || '') + '</div>';
+            previewHtml += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
             previewHtml += '</td></tr></table>';
+
+            // ===== 阅读信息 =====
+            var totalChars = 0;
+            for (var pc = 0; pc < postData.length; pc++) {
+                totalChars += (postData[pc].content || '').replace(/\s/g, '').length;
+            }
+            var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
+            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFFFF0;padding:12px;border-radius:10px;">';
+            previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+            previewHtml += '<td style="text-align:center;width:50%;padding:4px;border-right:1px dashed #E8D5B5;">';
+            previewHtml += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div>';
+            previewHtml += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">' + totalChars.toLocaleString() + ' 字</div>';
+            previewHtml += '</td>';
+            previewHtml += '<td style="text-align:center;width:50%;padding:4px;">';
+            previewHtml += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div>';
+            previewHtml += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">约 ' + readMinutes + ' 分钟</div>';
+            previewHtml += '</td>';
+            previewHtml += '</tr></table></td></tr></table>';
 
             // 天气（今天+明天）
             if (includeWeather && weather && weather.temperature) {
-                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#E0F0FF;padding:16px;">';
-                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:8px;">🌤️ 天气预报 · ' + escapeHtml(weather.city || '') + '</div>';
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:linear-gradient(135deg,#E8F4FD,#E0F0FF);padding:16px;">';
+                previewHtml += '<div style="font-size:13px;color:#888;margin-bottom:10px;font-weight:500;">🌤️ ' + escapeHtml(weather.city || '') + ' 天气预报</div>';
                 previewHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
-                // 今天
-                previewHtml += '<td style="width:50%;text-align:center;padding:6px;border-right:1px dashed #B0D4F1;">';
-                previewHtml += '<div style="font-size:12px;color:#888;margin-bottom:4px;">今日</div>';
-                previewHtml += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
-                previewHtml += '<div style="font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(weather.weather || '') + '</div>';
-                previewHtml += '<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">💨 ' + escapeHtml(weather.wind || '') + '<br>💧 ' + escapeHtml(weather.humidity || '') + '</div>';
+                previewHtml += '<td style="width:50%;text-align:center;padding:4px;border-right:1px dashed #B0D4F1;">';
+                previewHtml += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">今日</div>';
+                previewHtml += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
+                previewHtml += '<div style="font-size:12px;color:#666;margin-top:2px;">' + escapeHtml(weather.weather || '') + '</div>';
+                previewHtml += '<div style="font-size:11px;color:#999;margin-top:4px;">💨 ' + escapeHtml(weather.wind || '') + ' 💧 ' + escapeHtml(weather.humidity || '') + '</div>';
                 previewHtml += '</td>';
-                // 明天
                 if (weather.tomorrow) {
-                    previewHtml += '<td style="width:50%;text-align:center;padding:6px;">';
-                    previewHtml += '<div style="font-size:12px;color:#888;margin-bottom:4px;">' + escapeHtml(weather.tomorrow.week || '明日') + '</div>';
-                    previewHtml += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '🌤') + ' ' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
-                    previewHtml += '<div style="font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
-                    previewHtml += '<div style="font-size:12px;color:#999;margin-top:4px;">📍 预报</div>';
+                    previewHtml += '<td style="width:50%;text-align:center;padding:4px;">';
+                    previewHtml += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">' + escapeHtml(weather.tomorrow.week || '周五') + '</div>';
+                    previewHtml += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '☀️') + ' ' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
+                    previewHtml += '<div style="font-size:12px;color:#666;margin-top:2px;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
+                    previewHtml += '<div style="font-size:11px;color:#999;margin-top:4px;">📍 预报</div>';
                     previewHtml += '</td>';
                 }
                 previewHtml += '</tr></table>';
@@ -743,8 +964,8 @@
 
             // 一言
             if (includeHitokoto && hitokoto) {
-                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #FFB6C1;">';
-                previewHtml += '<p style="font-size:15px;color:#666;margin:0 0 8px 0;line-height:1.9;font-style:italic;">💕 "' + escapeHtml(hitokoto.text || '') + '"</p>';
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #A78BFA;">';
+                previewHtml += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + escapeHtml(hitokoto.text || '') + '"</p>';
                 previewHtml += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + escapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p>';
                 previewHtml += '</td></tr></table>';
             }
@@ -771,9 +992,12 @@
 
             // 历史的今天
             if (todayHistory && todayHistory.title) {
+                var htParts = (todayHistory.title || '').split(' ');
+                var datePart = htParts.length > 1 ? htParts[0] : '';
+                var eventPart = htParts.length > 1 ? htParts.slice(1).join(' ') : todayHistory.title;
                 previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#F8F0FF;padding:12px 14px;">';
                 previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:5px;">📜 历史上的今天</div>';
-                previewHtml += '<div style="font-size:14px;color:#666;line-height:1.7;">' + escapeHtml(todayHistory.title) + '</div>';
+                previewHtml += '<div style="font-size:14px;color:#666;line-height:1.7;">' + (datePart ? '<span class="history-date">' + escapeHtml(datePart) + '</span> ' : '') + '<span class="history-event">' + escapeHtml(eventPart) + '</span></div>';
                 previewHtml += '</td></tr></table>';
             }
 
@@ -815,7 +1039,7 @@
             }
 
             // 分割
-            previewHtml += '<div style="text-align:center;margin:22px 0;color:#e8e8e8;font-size:14px;">✨&nbsp;&nbsp;💕&nbsp;&nbsp;✨</div>';
+            previewHtml += '<div style="text-align:center;margin:18px 0;color:#e8e8e8;font-size:14px;">❀&nbsp;&nbsp;❁&nbsp;&nbsp;❀</div>';
 
             // 帖子
             postData.forEach(function(p, i) {
@@ -857,19 +1081,19 @@
 
             // 底部
             previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
-            previewHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🎉 更多校园精彩</div>';
-            previewHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
+            previewHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 校园故事站</div>';
+            previewHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
             previewHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
             previewHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-            previewHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
+            previewHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
             previewHtml += '</td></tr></table>';
             previewHtml += '</td></tr></table>';
-            previewHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
+            previewHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
             previewHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
             previewHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
             previewHtml += '</td></tr></table>';
 
-            previewHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© 嘉二校园墙 · 💕</p>';
+            previewHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + (dateInfo.year || '') + ' 某校园墙 ❀ ❀</p>';
             previewHtml += '</div>';
 
             previewArea.innerHTML = previewHtml;

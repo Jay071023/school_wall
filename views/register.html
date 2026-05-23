@@ -11,9 +11,183 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://wall.jay23.cn/register">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
   <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EE 30%, #F0E6FF 70%, #E6F7FF 100%);
+      position: relative; overflow-x: hidden; margin: 0;
+    }
+    [data-theme="dark"] body {
+      background: linear-gradient(135deg, #1a1423 0%, #2a1f33 30%, #1e1a30 70%, #141a2a 100%);
+    }
+
+    .kawaii-star {
+      position: fixed; pointer-events: none; font-size: 1.2rem;
+      opacity: 0.5; animation: kawaiiFloat 6s ease-in-out infinite; z-index: 0;
+    }
+    .kawaii-star:nth-child(1) { top: 8%; left: 10%; animation-delay: 0s; font-size: 1.5rem; }
+    .kawaii-star:nth-child(2) { top: 15%; right: 15%; animation-delay: 1s; }
+    .kawaii-star:nth-child(3) { bottom: 20%; left: 8%; animation-delay: 2s; font-size: 1rem; }
+    .kawaii-star:nth-child(4) { bottom: 10%; right: 12%; animation-delay: 0.5s; font-size: 1.8rem; }
+    .kawaii-star:nth-child(5) { top: 45%; left: 5%; animation-delay: 1.5s; }
+    .kawaii-star:nth-child(6) { top: 40%; right: 8%; animation-delay: 2.5s; font-size: 0.9rem; }
+    .kawaii-star:nth-child(7) { top: 70%; left: 50%; animation-delay: 3s; font-size: 1.1rem; }
+    @keyframes kawaiiFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
+      50% { transform: translateY(-15px) rotate(15deg); opacity: 0.7; }
+    }
+    [data-theme="dark"] .kawaii-star { opacity: 0.25; }
+
+    .reg-orb {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; opacity: 0.3; z-index: 0;
+    }
+    .reg-orb:nth-child(8) { width: 350px; height: 350px; background: #FFB6C1; top: -120px; right: -80px; animation: orbFloat1 12s ease-in-out infinite; }
+    .reg-orb:nth-child(9) { width: 280px; height: 280px; background: #DDA0DD; bottom: -100px; left: -60px; animation: orbFloat2 10s ease-in-out infinite; }
+    .reg-orb:nth-child(10) { width: 180px; height: 180px; background: #87CEEB; top: 30%; left: 55%; animation: orbFloat3 14s ease-in-out infinite; }
+    [data-theme="dark"] .reg-orb:nth-child(8) { background: #8B3A62; }
+    [data-theme="dark"] .reg-orb:nth-child(9) { background: #553C7B; }
+    [data-theme="dark"] .reg-orb:nth-child(10) { background: #2C5F7A; }
+    @keyframes orbFloat1 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(30px,25px)scale(1.08)} }
+    @keyframes orbFloat2 { 0%,100%{transform:translate(0,0)scale(1)} 50%{transform:translate(-20px,-30px)scale(1.12)} }
+    @keyframes orbFloat3 { 0%,100%{transform:translate(0,0)scale(1);opacity:.25} 50%{transform:translate(15px,-15px)scale(1.15);opacity:.4} }
+
+    .register-page-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px; position: relative; z-index: 1;
+    }
+
+    .register-card {
+      width: 100%; max-width: 420px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 28px; padding: 38px 34px;
+      box-shadow: 0 20px 60px rgba(255,107,157,0.12), 0 0 0 1px rgba(255,255,255,0.5) inset;
+      position: relative; z-index: 1;
+      animation: cardIn 0.5s ease-out;
+    }
+    [data-theme="dark"] .register-card {
+      background: rgba(30,20,40,0.85);
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(20px)scale(.97)} to{opacity:1;transform:translateY(0)scale(1)} }
+
+    .register-header { text-align: center; margin-bottom: 24px; }
+    .register-header .reg-emoji { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+    .register-title {
+      font-size: 1.35rem; font-weight: 700;
+      background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin: 0 0 4px;
+    }
+    [data-theme="dark"] .register-title {
+      background: linear-gradient(135deg, #FF8FB1, #C4A5FF);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .register-subtitle { font-size: 0.82rem; color: #999; margin: 0; }
+    [data-theme="dark"] .register-subtitle { color: rgba(255,255,255,0.4); }
+
+    .form-group { margin-bottom: 14px; }
+    .input-wrap {
+      display: flex; align-items: center;
+      border: 1.5px solid #F0E6FF; border-radius: 14px;
+      background: rgba(255,255,255,0.7);
+      transition: all 0.25s;
+    }
+    .input-wrap:focus-within {
+      border-color: #D8B4FE;
+      box-shadow: 0 0 0 3px rgba(216,180,254,0.15);
+      background: #fff;
+    }
+    [data-theme="dark"] .input-wrap {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.1);
+    }
+    [data-theme="dark"] .input-wrap:focus-within {
+      border-color: rgba(167,139,250,0.4);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+      background: rgba(255,255,255,0.1);
+    }
+    .input-wrap .input-icon {
+      width: 40px; flex-shrink: 0; text-align: center;
+      font-size: 1rem; opacity: 0.4; line-height: 1; user-select: none;
+    }
+    .form-input {
+      flex: 1; padding: 13px 14px 13px 6px;
+      border: none; background: transparent;
+      font-size: 0.938rem; outline: none; font-family: inherit;
+      color: #333;
+    }
+    .form-input::placeholder { color: #ccc; }
+    [data-theme="dark"] .form-input { color: #eee; }
+    [data-theme="dark"] .form-input::placeholder { color: rgba(255,255,255,0.25); }
+
+    .captcha-group {
+      display: flex; gap: 10px; align-items: center;
+    }
+    .captcha-input { flex: 1; }
+    .captcha-img {
+      height: 44px; min-width: 100px; border-radius: 12px; cursor: pointer;
+      border: 1.5px solid #F0E6FF; transition: border-color 0.3s;
+    }
+    .captcha-img:hover { border-color: #D8B4FE; }
+    [data-theme="dark"] .captcha-img { border-color: rgba(255,255,255,0.1); }
+
+    .auth-link { text-align: center; margin-top: 16px; }
+    .auth-link a { font-size: 0.82rem; color: #ccc; text-decoration: none; transition: color 0.2s; }
+    .auth-link a:hover { color: #FF6B9D; }
+
+    .beian-text { text-align: center; margin-top: 12px; }
+    .beian-text a { font-size: 0.78rem; color: #ddd; text-decoration: none; }
+    .beian-text a:hover { color: #FF6B9D; }
+
+    .verify-tabs {
+      display: flex; gap: 0; margin-bottom: 16px;
+      background: rgba(245,245,245,0.7); border-radius: 12px; padding: 3px;
+    }
+    .verify-tab {
+      flex: 1; padding: 8px 12px; border: none; background: transparent;
+      border-radius: 10px; cursor: pointer; font-size: 0.85rem;
+      color: #aaa; transition: all 0.3s;
+    }
+    .verify-tab.active {
+      background: rgba(255,255,255,0.9); color: #FF6B9D; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(255,107,157,0.15);
+    }
+
+    .register-btn {
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, #FF9A9E, #FAD0C4, #A18CD1);
+      background-size: 200% 200%; color: #fff; font-size: 1rem;
+      font-weight: 600; cursor: pointer; transition: all 0.3s;
+      font-family: inherit; letter-spacing: 1px; position: relative;
+      overflow: hidden; min-height: 48px;
+      animation: gradientShift 4s ease-in-out infinite;
+    }
+    @keyframes gradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+    .register-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(161,140,209,0.35); }
+    .register-btn:active { transform: translateY(0); }
+    .register-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .register-btn .spinner {
+      display: none; width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.6s linear infinite; margin: 0 auto;
+    }
+    .register-btn.loading .btn-text { display: none; }
+    .register-btn.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* 用户协议区域 */
     .agreement-section {
       background: rgba(255, 107, 157, 0.05);
@@ -77,12 +251,16 @@
   </style>
 </head>
 <body>
-  <!-- 光晕效果背景 -->
-  <div class="page-glow">
-    <div class="glow-orb glow-orb-1"></div>
-    <div class="glow-orb glow-orb-2"></div>
-    <div class="glow-orb glow-orb-3"></div>
-  </div>
+  <div class="kawaii-star">⭐</div>
+  <div class="kawaii-star">🌸</div>
+  <div class="kawaii-star">✨</div>
+  <div class="kawaii-star">💖</div>
+  <div class="kawaii-star">🌟</div>
+  <div class="kawaii-star">🦋</div>
+  <div class="kawaii-star">🎀</div>
+  <div class="reg-orb"></div>
+  <div class="reg-orb"></div>
+  <div class="reg-orb"></div>
 
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
@@ -115,38 +293,83 @@
   </div>
 
   <!-- 注册页 -->
-  <div class="auth-page">
-    <div class="auth-decorations">
-      <div class="decor-circle" style="width:300px;height:300px;background:rgba(78,205,196,0.15);top:-80px;left:-60px;"></div>
-      <div class="decor-circle" style="width:200px;height:200px;background:rgba(255,107,107,0.15);bottom:-50px;right:-40px;"></div>
-      <div class="decor-circle" style="width:150px;height:150px;background:rgba(255,217,61,0.15);top:30%;right:10%;"></div>
-    </div>
-    <div class="auth-card">
-      <div class="auth-emoji">🎉</div>
-      <h1 class="auth-title">加入嘉二の墙墙</h1>
-      <p class="auth-subtitle">创建你的嘉二の墙墙账号</p>
-      <form class="auth-form" id="registerForm">
+  <div class="register-page-wrap">
+    <div class="register-card">
+      <div class="register-header">
+        <span class="reg-emoji">🎉</span>
+        <h1 class="register-title">加入嘉二の墙墙</h1>
+        <p class="register-subtitle">创建你的嘉二の墙墙账号 💕</p>
+      </div>
+      <form id="registerForm">
         <div class="form-group">
-          <input type="text" id="username" class="form-input" placeholder="请输入用户名（3-20个字符）" required minlength="3" maxlength="20">
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="username" class="form-input" placeholder="用户名（3-20个字符）" required minlength="3" maxlength="20">
+          </div>
         </div>
         <div class="form-group">
-          <input type="text" id="nickname" class="form-input" placeholder="请输入昵称" required>
+          <div class="input-wrap">
+            <span class="input-icon">🏷️</span>
+            <input type="text" id="nickname" class="form-input" placeholder="昵称" required>
+          </div>
         </div>
         <div class="form-group">
-          <input type="email" id="email" class="form-input" placeholder="请输入邮箱（用于接收通知、找回密码）" required>
-          <div style="font-size:12px;color:#999;margin-top:4px;padding-left:4px;">📧 用于接收评论回复、点歌通知和找回密码</div>
+          <div class="input-wrap">
+            <span class="input-icon">📧</span>
+            <input type="email" id="email" class="form-input" placeholder="邮箱（用于通知、找回密码）" required>
+          </div>
         </div>
         <div class="form-group">
-          <input type="password" id="password" class="form-input" placeholder="请输入密码（至少6个字符）" required minlength="6" autocomplete="new-password">
+          <div class="input-wrap">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="password" class="form-input" placeholder="密码（至少6个字符）" required minlength="6" autocomplete="new-password">
+          </div>
         </div>
         <div class="form-group">
-          <input type="password" id="confirmPassword" class="form-input" placeholder="请确认密码" required autocomplete="new-password">
+          <div class="input-wrap">
+            <span class="input-icon">✓</span>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="确认密码" required autocomplete="new-password">
+          </div>
         </div>
         
-        <!-- 验证码 -->
-        <div class="form-group captcha-group">
-          <input type="text" id="captchaCode" class="form-input captcha-input" placeholder="请输入验证码" required>
-          <img id="captchaImg" class="captcha-img" src="" alt="验证码" title="点击刷新验证码" onclick="loadCaptcha()">
+        <!-- 验证方式切换 -->
+        <div class="verify-tabs">
+          <button type="button" class="verify-tab active" data-method="captcha" onclick="switchVerifyMethod('captcha')">图片验证码</button>
+          <button type="button" class="verify-tab" data-method="wechat" onclick="switchVerifyMethod('wechat')">微信验证</button>
+        </div>
+
+        <!-- 图片验证码 -->
+        <div class="verify-panel" id="verifyCaptcha">
+          <div class="form-group captcha-group" style="margin-bottom:0;">
+            <input type="text" id="captchaCode" class="form-input captcha-input" placeholder="验证码" required>
+            <img id="captchaImg" class="captcha-img" src="" alt="验证码" title="点击刷新" onclick="loadCaptcha()">
+          </div>
+        </div>
+
+        <!-- 微信验证注册 -->
+        <div class="verify-panel" id="verifyWechat" style="display:none;">
+          <div class="form-group">
+            <div class="wechat-reg-step">
+              <div class="reg-step">
+                <span class="step-num">1</span>
+                <span class="step-text">填写上方信息，点击下方"获取微信验证码"</span>
+              </div>
+              <div class="reg-step">
+                <span class="step-num">2</span>
+                <span class="step-text">将验证码发送到微信公众号"嘉二校园墙"</span>
+              </div>
+              <div class="reg-step">
+                <span class="step-num">3</span>
+                <span class="step-text">回到此页面，点击"验证并注册"</span>
+              </div>
+            </div>
+            <div class="wechat-code-row" id="regCodeRow" style="display:none;">
+              <input type="text" id="regCodeDisplay" class="form-input" readonly style="text-align:center;font-size:20px;letter-spacing:4px;font-weight:bold;">
+              <button type="button" class="btn-copy-code" onclick="copyRegCode()">📋 复制</button>
+            </div>
+            <button type="button" class="btn-wechat-reg" id="getRegCodeBtn" onclick="getRegCode()">📱 获取微信验证码</button>
+            <div id="regCodeStatus" class="reg-code-status"></div>
+          </div>
         </div>
         
         <!-- 用户协议勾选 -->
@@ -162,13 +385,14 @@
           </label>
         </div>
         
-        <button type="submit" class="btn-register" id="registerBtn">注 册</button>
+        <button type="submit" class="register-btn" id="registerBtn">
+          <span class="btn-text">🎉 注 册</span>
+          <span class="spinner"></span>
+        </button>
       </form>
       <div class="auth-link">
-        已有账号？<a href="/login">去登录</a>
+        <a href="/login">已有账号？去登录</a>
       </div>
-      
-      <!-- 备案号 -->
       <div class="beian-text">
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a>
       </div>
@@ -279,6 +503,114 @@
       flex-shrink: 0;
     }
     
+    /* 验证方式切换 */
+    .verify-method-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .verify-tab {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #888;
+      transition: all 0.3s;
+    }
+    .verify-tab.active {
+      background: white;
+      color: #FF6B9D;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(255,107,157,0.15);
+    }
+    /* 微信验证注册 */
+    .wechat-reg-step {
+      background: rgba(7,193,96,0.06);
+      border: 1px solid rgba(7,193,96,0.15);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .reg-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: #555;
+      line-height: 1.4;
+    }
+    .reg-step:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, #07C160, #06AD56);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .step-text { flex: 1; }
+    .btn-wechat-reg {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #07C160, #06AD56);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-wechat-reg:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-wechat-reg:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .wechat-code-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .wechat-code-row .form-input {
+      flex: 1;
+      text-align: center;
+      font-size: 20px;
+      letter-spacing: 4px;
+      font-weight: bold;
+      color: #07C160;
+    }
+    .btn-copy-code {
+      padding: 8px 14px;
+      background: #07C160;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+    .btn-copy-code:hover { opacity: 0.9; }
+    .reg-code-status {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      display: none;
+    }
+    .reg-code-status.success { display: block; background: rgba(7,193,96,0.1); color: #07C160; }
+    .reg-code-status.error { display: block; background: rgba(255,77,79,0.1); color: #FF4D4F; }
+    .reg-code-status.waiting { display: block; background: rgba(255,193,7,0.1); color: #D48806; }
+
     /* 验证码样式 */
     .captcha-group {
       display: flex;
@@ -304,10 +636,11 @@
     }
     
     @media (max-width: 480px) {
-      .captcha-img {
-        min-width: 80px;
-        height: 40px;
-      }
+      .register-card { padding: 28px 22px; border-radius: 24px; }
+      .register-header .reg-emoji { font-size: 2rem; }
+      .register-title { font-size: 1.15rem; }
+      .register-btn { padding: 12px; font-size: 0.95rem; min-height: 44px; }
+      .captcha-img { min-width: 80px; height: 40px; }
     }
   </style>
 
@@ -391,6 +724,17 @@
     }
   });
   
+  // 验证方式切换
+  var currentVerifyMethod = 'captcha';
+  function switchVerifyMethod(method) {
+    currentVerifyMethod = method;
+    document.querySelectorAll('.verify-tab').forEach(function(t) {
+      t.classList.toggle('active', t.dataset.method === method);
+    });
+    document.getElementById('verifyCaptcha').style.display = method === 'captcha' ? '' : 'none';
+    document.getElementById('verifyWechat').style.display = method === 'wechat' ? '' : 'none';
+  }
+
   // 加载验证码
   var captchaKey = '';
   async function loadCaptcha() {
@@ -412,6 +756,140 @@
   // 页面加载时自动加载验证码
   loadCaptcha();
 
+  // 微信注册验证码
+  var currentRegCode = '';
+  async function getRegCode() {
+    var username = document.getElementById('username').value.trim();
+    var nickname = document.getElementById('nickname').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var confirmPassword = document.getElementById('confirmPassword').value;
+    var agreeCheckbox = document.getElementById('agreeTerms');
+
+    if (!agreeCheckbox.checked) {
+      showToast('请先阅读并同意《用户协议》和《隐私政策》', 'error');
+      return;
+    }
+    if (!username || !nickname || !password) {
+      showToast('请填写所有必填项', 'error');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showToast('两次输入的密码不一致', 'error');
+      return;
+    }
+    if (password.length < 6) {
+      showToast('密码至少需要6个字符', 'error');
+      return;
+    }
+
+    var btn = document.getElementById('getRegCodeBtn');
+    btn.disabled = true;
+    btn.textContent = '生成中...';
+
+    try {
+      var res = await fetch('/api/auth/generate-reg-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password, nickname: nickname, email: email || null })
+      });
+      var data = await res.json();
+      if (data.code === 200) {
+        currentRegCode = data.data.regCode;
+        document.getElementById('regCodeDisplay').value = currentRegCode;
+        document.getElementById('regCodeRow').style.display = 'flex';
+        var status = document.getElementById('regCodeStatus');
+        status.className = 'reg-code-status waiting';
+        status.style.display = 'block';
+        status.textContent = '⏳ 请在微信公众号发送验证码：' + currentRegCode + '，验证完成后点击"验证并注册"';
+        btn.style.display = 'none';
+        // 开始轮询验证状态
+        pollRegCodeStatus();
+      } else {
+        showToast(data.message || '获取失败', 'error');
+        btn.disabled = false;
+        btn.textContent = '📱 获取微信验证码';
+      }
+    } catch (err) {
+      console.error('获取注册验证码失败:', err);
+      showToast('网络错误，请稍后重试', 'error');
+      btn.disabled = false;
+      btn.textContent = '📱 获取微信验证码';
+    }
+  }
+
+  async function pollRegCodeStatus() {
+    if (!currentRegCode) return;
+    var status = document.getElementById('regCodeStatus');
+    try {
+      var res = await fetch('/api/auth/check-reg-code-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regCode: currentRegCode })
+      });
+      var data = await res.json();
+      if (data.code === 200 && data.data.verified) {
+        status.className = 'reg-code-status success';
+        status.textContent = '✅ 微信验证成功！点击下方按钮完成注册';
+        // 替换"获取验证码"按钮为"验证并注册"
+        var row = document.getElementById('regCodeRow');
+        row.style.display = 'none';
+        var btn = document.getElementById('getRegCodeBtn');
+        btn.style.display = 'block';
+        btn.textContent = '✅ 验证并注册';
+        btn.disabled = false;
+        btn.onclick = wechatRegister;
+        return;
+      } else if (data.code === 200 && data.data.expired) {
+        status.className = 'reg-code-status error';
+        status.textContent = '❌ 验证码已过期，请重新获取';
+        var btn = document.getElementById('getRegCodeBtn');
+        btn.disabled = false;
+        btn.textContent = '📱 重新获取验证码';
+        return;
+      }
+    } catch (e) {}
+    // 继续轮询
+    setTimeout(pollRegCodeStatus, 3000);
+  }
+
+  function copyRegCode() {
+    var input = document.getElementById('regCodeDisplay');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value).catch(function() { document.execCommand('copy'); });
+    showToast('已复制验证码，请发送到微信公众号', 'success');
+  }
+
+  async function wechatRegister() {
+    var btn = document.getElementById('getRegCodeBtn');
+    btn.disabled = true;
+    btn.textContent = '注册中...';
+
+    try {
+      var res = await fetch('/api/auth/register-wechat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regCode: currentRegCode })
+      });
+      var data = await res.json();
+      if (data.code === 200) {
+        showToast('🎉 注册成功！');
+        saveAuth(data.data.token, data.data.user, true);
+        window.location.href = '/';
+      } else {
+        showToast(data.message || '注册失败', 'error');
+        btn.disabled = false;
+        btn.textContent = '✅ 验证并注册';
+      }
+    } catch (err) {
+      console.error('注册失败:', err);
+      showToast('网络错误，请稍后重试', 'error');
+      btn.disabled = false;
+      btn.textContent = '✅ 验证并注册';
+    }
+  }
+
   // 表单验证增强
   document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('registerForm');
@@ -424,6 +902,16 @@
         // 检查是否同意协议
         if (!agreeCheckbox.checked) {
           showToast('请先阅读并同意《用户协议》和《隐私政策》', 'error');
+          return;
+        }
+        
+        // 如果是微信验证方式，走微信注册流程
+        if (currentVerifyMethod === 'wechat') {
+          if (!currentRegCode) {
+            showToast('请先获取微信验证码', 'error');
+          } else {
+            wechatRegister();
+          }
           return;
         }
         
@@ -481,6 +969,16 @@
         document.title = siteName + ' - 注册';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520', 'register-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520', 'register-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
       }
     })();
   </script>

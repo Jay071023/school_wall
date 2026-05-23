@@ -10,6 +10,7 @@ const aiService = require('../services/ai');
 const router = express.Router();
 
 const SITE_URL = 'https://wall.jay23.cn';
+const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
 
 // 所有管理路由都需要登录 + 是管理后台用户
 router.use(auth, isStaff);
@@ -130,6 +131,21 @@ router.put('/posts/:id/status', requirePermission('posts:review'), async (req, r
     });
 
     res.json({ code: 200, message: '操作成功' });
+  } catch (err) {
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 批量审核帖子
+router.put('/posts/batch-status', requirePermission('posts:review'), async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0 || !['approved', 'rejected'].includes(status)) {
+      return res.json({ code: 400, message: '无效参数' });
+    }
+    const placeholders = ids.map(() => '?').join(',');
+    await pool.execute(`UPDATE posts SET status = ? WHERE id IN (${placeholders})`, [status, ...ids]);
+    res.json({ code: 200, message: `已批量${status === 'approved' ? '通过' : '拒绝'} ${ids.length} 条` });
   } catch (err) {
     res.json({ code: 500, message: '服务器错误' });
   }
@@ -490,7 +506,7 @@ router.get('/songs', requirePermission('songs:review'), async (req, res) => {
       LEFT JOIN slot_dates sd ON sr.slot_date_id = sd.id
       LEFT JOIN users u ON sr.user_id = u.id
       WHERE ${whereClause}
-      ORDER BY sd.play_date IS NULL ASC, sd.play_date ASC, sr.created_at DESC
+      ORDER BY sr.hot_score DESC, sr.created_at DESC
       LIMIT ? OFFSET ?
     `, [...params, parseInt(limit), parseInt(offset)]);
 
@@ -571,6 +587,21 @@ router.put('/songs/:id/status', requirePermission('songs:review'), async (req, r
     });
 
     res.json({ code: 200, message: '操作成功' });
+  } catch (err) {
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 批量审核点歌
+router.put('/songs/batch-status', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0 || !['approved', 'rejected', 'pending'].includes(status)) {
+      return res.json({ code: 400, message: '无效参数' });
+    }
+    const placeholders = ids.map(() => '?').join(',');
+    await pool.execute(`UPDATE song_requests SET status = ? WHERE id IN (${placeholders})`, [status, ...ids]);
+    res.json({ code: 200, message: `已批量${status === 'approved' ? '通过' : status === 'rejected' ? '拒绝' : '设为待审核'} ${ids.length} 条` });
   } catch (err) {
     res.json({ code: 500, message: '服务器错误' });
   }
@@ -1064,7 +1095,8 @@ router.get('/settings', requirePermission('settings:view'), async (req, res) => 
         smtp_port: settings.smtp_port || '587',
         smtp_user: settings.smtp_user || '',
         smtp_pass: settings.smtp_pass || '',
-        smtp_from: settings.smtp_from || ''
+        smtp_from: settings.smtp_from || '',
+        special_mode_520: settings.special_mode_520 === 'true'
       }
     });
   } catch (err) {
@@ -1075,9 +1107,9 @@ router.get('/settings', requirePermission('settings:view'), async (req, res) => 
 // 保存系统设置
 router.put('/settings', requirePermission('settings:view'), async (req, res) => {
   try {
-    const { site_name, site_description, allow_register, post_review, song_enabled, daily_song_limit, anon_post, anon_comment, email_enabled, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from } = req.body;
+    const { site_name, site_description, allow_register, post_review, song_enabled, daily_song_limit, anon_post, anon_comment, anon_song, email_enabled, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, special_mode_520 } = req.body;
     console.log('[DEBUG] 保存设置请求:', req.body);
-    
+
     const keys = [
       ['site_name', site_name || ''],
       ['site_description', site_description || ''],
@@ -1093,7 +1125,8 @@ router.put('/settings', requirePermission('settings:view'), async (req, res) => 
       ['smtp_port', smtp_port || '587'],
       ['smtp_user', smtp_user || ''],
       ['smtp_pass', smtp_pass || ''],
-      ['smtp_from', smtp_from || '']
+      ['smtp_from', smtp_from || ''],
+      ['special_mode_520', special_mode_520 !== undefined ? String(Boolean(special_mode_520)) : 'false']
     ];
     
     for (const [key, value] of keys) {
@@ -2085,7 +2118,7 @@ router.post('/login-as-user', superAdminOnly, async (req, res) => {
     var [users] = await pool.execute('SELECT id, username, nickname, role, avatar FROM users WHERE id = ?', [userId]);
     if (users.length === 0) return res.json({ code: 404, message: '用户不存在' });
     var user = users[0];
-    var token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '7d' });
+    var token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
       code: 200,
       data: {
@@ -2177,32 +2210,162 @@ router.post('/conversations/:id/purge', auth, async (req, res) => {
   }
 });
 
-// ===== 连载小说管理 =====
-// 存储结构：config/stories/index.json (索引) + config/stories/N.json (单章内容)
+// ===== 小说管理（支持多本小说） =====
+// 存储结构：
+//   config/novels.json          - 小说列表
+//   config/auto-publish.json    - 其中包含 activeNovelId + 每本小说的配置
+//   config/stories/{novelId}/   - 每本小说的章节文件
 const fs_stories = require('fs');
 const path_stories = require('path');
-const STORIES_DIR = path_stories.join(__dirname, '..', 'config', 'stories');
+const STORIES_BASE = path_stories.join(__dirname, '..', 'config', 'stories');
+const NOVELS_PATH = path_stories.join(__dirname, '..', 'config', 'novels.json');
 
-// 确保目录存在
-if (!fs_stories.existsSync(STORIES_DIR)) {
-  fs_stories.mkdirSync(STORIES_DIR, { recursive: true });
+if (!fs_stories.existsSync(STORIES_BASE)) {
+  fs_stories.mkdirSync(STORIES_BASE, { recursive: true });
 }
 
-// ===== 故事存储辅助函数 =====
-function storiesGetIndex() {
-  var p = path_stories.join(STORIES_DIR, 'index.json');
+// ===== 小说管理 =====
+
+function novelsGetList() {
+  if (fs_stories.existsSync(NOVELS_PATH)) {
+    return JSON.parse(fs_stories.readFileSync(NOVELS_PATH, 'utf8'));
+  }
+  // 自动迁移：从旧单本小说结构创建默认小说
+  var list = [];
+  var oldIndexPath = path_stories.join(STORIES_BASE, 'index.json');
+  if (fs_stories.existsSync(oldIndexPath)) {
+    try {
+      var oldIndex = JSON.parse(fs_stories.readFileSync(oldIndexPath, 'utf8'));
+      if (Array.isArray(oldIndex) && oldIndex.length > 0) {
+        // 已有章节，创建默认小说
+        list.push({ id: 'default', title: '致那个夏天的你', author: '嘉二校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+        // 把文件从 config/stories/ 移到 config/stories/default/
+        var novelDir = path_stories.join(STORIES_BASE, 'default');
+        if (!fs_stories.existsSync(novelDir)) fs_stories.mkdirSync(novelDir, { recursive: true });
+        fs_stories.renameSync(oldIndexPath, path_stories.join(novelDir, 'index.json'));
+        oldIndex.forEach(function(entry) {
+          var src = path_stories.join(STORIES_BASE, entry.file);
+          if (fs_stories.existsSync(src)) {
+            fs_stories.renameSync(src, path_stories.join(novelDir, entry.file));
+          }
+        });
+        // 更新 auto-publish.json
+        var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
+        if (fs_stories.existsSync(autoPubPath)) {
+          try {
+            var pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
+            pubConfig.activeNovelId = 'default';
+            if (!pubConfig.novels) pubConfig.novels = {};
+            pubConfig.novels['default'] = {
+              currentStoryIndex: pubConfig.currentStoryIndex || 0,
+              promptConfig: pubConfig.promptConfig || {}
+            };
+            delete pubConfig.currentStoryIndex;
+            delete pubConfig.promptConfig;
+            fs_stories.writeFileSync(autoPubPath, JSON.stringify(pubConfig, null, 2), 'utf8');
+          } catch(e) {}
+        }
+        console.log('[小说] 旧单本结构已自动迁移为多小说结构');
+      }
+    } catch(e) { console.warn('[小说] 自动迁移失败:', e.message); }
+  }
+  if (list.length === 0) {
+    // 全新安装，创建默认小说
+    list.push({ id: 'default', title: '致那个夏天的你', author: '嘉二校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+  }
+  fs_stories.writeFileSync(NOVELS_PATH, JSON.stringify(list, null, 2), 'utf8');
+  return list;
+}
+
+function novelsSaveList(list) {
+  fs_stories.writeFileSync(NOVELS_PATH, JSON.stringify(list, null, 2), 'utf8');
+}
+
+function novelsGetById(id) {
+  var list = novelsGetList();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id) return list[i];
+  }
+  return null;
+}
+
+function getNovelDir(novelId) {
+  return path_stories.join(STORIES_BASE, novelId || 'default');
+}
+
+function getNovelPubConfig(pubConfig, novelId) {
+  novelId = novelId || pubConfig.activeNovelId || 'default';
+  if (!pubConfig.novels) pubConfig.novels = {};
+  if (!pubConfig.novels[novelId]) {
+    pubConfig.novels[novelId] = { currentStoryIndex: 0, promptConfig: {} };
+  }
+  return {
+    novels: pubConfig.novels,
+    currentStoryIndex: pubConfig.novels[novelId].currentStoryIndex || 0,
+    promptConfig: pubConfig.novels[novelId].promptConfig || {}
+  };
+}
+
+function saveNovelPubConfig(pubConfig, novelId, data) {
+  novelId = novelId || pubConfig.activeNovelId || 'default';
+  if (!pubConfig.novels) pubConfig.novels = {};
+  if (!pubConfig.novels[novelId]) pubConfig.novels[novelId] = {};
+  if (data.currentStoryIndex !== undefined) pubConfig.novels[novelId].currentStoryIndex = data.currentStoryIndex;
+  if (data.promptConfig !== undefined) pubConfig.novels[novelId].promptConfig = data.promptConfig;
+  var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
+  fs_stories.writeFileSync(autoPubPath, JSON.stringify(pubConfig, null, 2), 'utf8');
+}
+
+function loadPubConfig() {
+  var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
+  if (fs_stories.existsSync(autoPubPath)) {
+    try { return JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8')); } catch(e) {}
+  }
+  return { hour: 8, minute: 0, enabled: true, activeNovelId: 'default', novels: {} };
+}
+
+// ===== 章节存储辅助函数（支持多小说） =====
+
+function storiesGetIndex(novelId) {
+  var dir = getNovelDir(novelId);
+  var p = path_stories.join(dir, 'index.json');
   if (fs_stories.existsSync(p)) return JSON.parse(fs_stories.readFileSync(p, 'utf8'));
-  // 兼容旧格式：自动迁移
+  // 兼容：当 novelId 为 default 时，检查老位置 config/stories/index.json
+  if (!novelId || novelId === 'default') {
+    var oldDir = path_stories.join(__dirname, '..', 'config', 'stories');
+    var oldP = path_stories.join(oldDir, 'index.json');
+    if (fs_stories.existsSync(oldP)) {
+      try {
+        var oldIndex = JSON.parse(fs_stories.readFileSync(oldP, 'utf8'));
+        if (Array.isArray(oldIndex) && oldIndex.length > 0) {
+          if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
+          // 搬 index
+          fs_stories.renameSync(oldP, p);
+          // 搬章节文件
+          oldIndex.forEach(function(entry) {
+            var src = path_stories.join(oldDir, entry.file);
+            if (fs_stories.existsSync(src)) {
+              fs_stories.renameSync(src, path_stories.join(dir, entry.file));
+            }
+          });
+          console.log('[故事] 从 config/stories/ 迁移到 ' + dir + '，共' + oldIndex.length + '章');
+          return JSON.parse(fs_stories.readFileSync(p, 'utf8'));
+        }
+      } catch(e) { console.warn('[故事] 迁移 config/stories/ 失败:', e.message); }
+    }
+  }
+  // 兼容旧格式：config/stories.json（更古老的格式）
   var oldPath = path_stories.join(__dirname, '..', 'config', 'stories.json');
   if (fs_stories.existsSync(oldPath)) {
     try {
       var oldStories = JSON.parse(fs_stories.readFileSync(oldPath, 'utf8'));
       if (Array.isArray(oldStories) && oldStories.length > 0) {
+        if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
         var idx = [];
         oldStories.forEach(function(s, i) {
           var chapFile = i + '.json';
-          fs_stories.writeFileSync(path_stories.join(STORIES_DIR, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
-          idx.push({ file: chapFile, title: s.title, author: s.author || '嘉二校园墙编辑部' });
+          fs_stories.writeFileSync(path_stories.join(dir, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
+          idx.push({ file: chapFile, title: s.title, author: s.author || '嘉二校园墙编辑部', published: false });
         });
         fs_stories.writeFileSync(p, JSON.stringify(idx, null, 2), 'utf8');
         fs_stories.renameSync(oldPath, oldPath + '.bak');
@@ -2214,65 +2377,164 @@ function storiesGetIndex() {
   return [];
 }
 
-function storiesSaveIndex(index) {
-  fs_stories.writeFileSync(path_stories.join(STORIES_DIR, 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+function storiesSaveIndex(index, novelId) {
+  var dir = getNovelDir(novelId);
+  if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
+  fs_stories.writeFileSync(path_stories.join(dir, 'index.json'), JSON.stringify(index, null, 2), 'utf8');
 }
 
-function storiesGetChapter(idx) {
-  var index = storiesGetIndex();
+function storiesGetChapter(idx, novelId) {
+  var index = storiesGetIndex(novelId);
+  var dir = getNovelDir(novelId);
   if (idx >= 0 && idx < index.length) {
-    var chapPath = path_stories.join(STORIES_DIR, index[idx].file);
+    var chapPath = path_stories.join(dir, index[idx].file);
     if (fs_stories.existsSync(chapPath)) return JSON.parse(fs_stories.readFileSync(chapPath, 'utf8'));
   }
   return null;
 }
 
-function storiesSaveChapter(idx, data) {
-  var index = storiesGetIndex();
+function storiesSaveChapter(idx, data, novelId) {
+  var index = storiesGetIndex(novelId);
+  var dir = getNovelDir(novelId);
   if (idx >= 0 && idx < index.length) {
-    fs_stories.writeFileSync(path_stories.join(STORIES_DIR, index[idx].file), JSON.stringify({ title: data.title, content: data.content, author: data.author }, null, 2), 'utf8');
+    fs_stories.writeFileSync(path_stories.join(dir, index[idx].file), JSON.stringify({ title: data.title, content: data.content, author: data.author }, null, 2), 'utf8');
     index[idx].title = data.title;
     index[idx].author = data.author || '嘉二校园墙编辑部';
-    storiesSaveIndex(index);
+    if (index[idx].published === undefined) index[idx].published = false;
+    storiesSaveIndex(index, novelId);
   }
 }
 
-function storiesAddChapter(title, author) {
-  var index = storiesGetIndex();
+function storiesAddChapter(title, content, author, novelId) {
+  var index = storiesGetIndex(novelId);
+  var dir = getNovelDir(novelId);
+  if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
   var nextFile = index.length + '.json';
-  fs_stories.writeFileSync(path_stories.join(STORIES_DIR, nextFile), JSON.stringify({ title: title, content: '', author: author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
-  index.push({ file: nextFile, title: title, author: author || '嘉二校园墙编辑部' });
-  storiesSaveIndex(index);
+  fs_stories.writeFileSync(path_stories.join(dir, nextFile), JSON.stringify({ title: title, content: content || '', author: author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
+  index.push({ file: nextFile, title: title, author: author || '嘉二校园墙编辑部', published: false });
+  storiesSaveIndex(index, novelId);
   return index.length - 1;
 }
 
-function storiesDeleteChapter(idx) {
-  var index = storiesGetIndex();
+function storiesDeleteChapter(idx, novelId) {
+  var index = storiesGetIndex(novelId);
+  var dir = getNovelDir(novelId);
   if (idx >= 0 && idx < index.length) {
-    // 删除文件
-    try { fs_stories.unlinkSync(path_stories.join(STORIES_DIR, index[idx].file)); } catch(e) {}
+    try { fs_stories.unlinkSync(path_stories.join(dir, index[idx].file)); } catch(e) {}
     index.splice(idx, 1);
-    storiesSaveIndex(index);
+    storiesSaveIndex(index, novelId);
   }
   return index;
+}
+
+// ===== 小说 CRUD 路由 =====
+
+// 获取小说列表
+router.get('/novels', auth, async (req, res) => {
+  try {
+    var list = novelsGetList();
+    var pubConfig = loadPubConfig();
+    res.json({ code: 200, data: { novels: list, activeNovelId: pubConfig.activeNovelId || 'default' } });
+  } catch (err) {
+    res.json({ code: 500, message: err.message });
+  }
+});
+
+// 创建新小说
+router.post('/novels/create', auth, async (req, res) => {
+  try {
+    var { title, author, desc } = req.body;
+    if (!title) return res.json({ code: 400, message: '小说标题不能为空' });
+    var list = novelsGetList();
+    var id = 'novel_' + Date.now();
+    list.push({ id: id, title: title, author: author || '嘉二校园墙编辑部', desc: desc || '', createdAt: new Date().toISOString().substring(0, 10) });
+    novelsSaveList(list);
+    // 初始化该小说的目录和配置
+    var dir = getNovelDir(id);
+    if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
+    var pubConfig = loadPubConfig();
+    if (!pubConfig.novels) pubConfig.novels = {};
+    pubConfig.novels[id] = { currentStoryIndex: 0, promptConfig: { novelTitle: title } };
+    fs_stories.writeFileSync(path_stories.join(__dirname, '..', 'config', 'auto-publish.json'), JSON.stringify(pubConfig, null, 2), 'utf8');
+    res.json({ code: 200, data: { id: id }, message: '小说「' + title + '」创建成功' });
+  } catch (err) {
+    res.json({ code: 500, message: err.message });
+  }
+});
+
+// 删除小说
+router.post('/novels/delete', auth, async (req, res) => {
+  try {
+    var { novelId } = req.body;
+    var list = novelsGetList();
+    var idx = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === novelId) { idx = i; break; }
+    }
+    if (idx < 0) return res.json({ code: 400, message: '小说不存在' });
+    if (list.length <= 1) return res.json({ code: 400, message: '至少保留一本小说' });
+    // 删除章节目录
+    var dir = getNovelDir(novelId);
+    try {
+      var chapIdx = JSON.parse(fs_stories.readFileSync(path_stories.join(dir, 'index.json'), 'utf8') || '[]');
+      chapIdx.forEach(function(entry) {
+        try { fs_stories.unlinkSync(path_stories.join(dir, entry.file)); } catch(e) {}
+      });
+      try { fs_stories.unlinkSync(path_stories.join(dir, 'index.json')); } catch(e) {}
+      try { fs_stories.rmdirSync(dir); } catch(e) {}
+    } catch(e) {}
+    list.splice(idx, 1);
+    novelsSaveList(list);
+    // 清理配置
+    var pubConfig = loadPubConfig();
+    if (pubConfig.novels && pubConfig.novels[novelId]) {
+      delete pubConfig.novels[novelId];
+    }
+    if (pubConfig.activeNovelId === novelId) {
+      pubConfig.activeNovelId = list[0].id;
+    }
+    fs_stories.writeFileSync(path_stories.join(__dirname, '..', 'config', 'auto-publish.json'), JSON.stringify(pubConfig, null, 2), 'utf8');
+    res.json({ code: 200, message: '已删除' });
+  } catch (err) {
+    res.json({ code: 500, message: err.message });
+  }
+});
+
+// 设置当前活跃小说
+router.post('/novels/set-active', auth, async (req, res) => {
+  try {
+    var { novelId } = req.body;
+    var novel = novelsGetById(novelId);
+    if (!novel) return res.json({ code: 400, message: '小说不存在' });
+    var pubConfig = loadPubConfig();
+    pubConfig.activeNovelId = novelId;
+    fs_stories.writeFileSync(path_stories.join(__dirname, '..', 'config', 'auto-publish.json'), JSON.stringify(pubConfig, null, 2), 'utf8');
+    res.json({ code: 200, message: '已切换到「' + novel.title + '」' });
+  } catch (err) {
+    res.json({ code: 500, message: err.message });
+  }
+});
+
+// ===== 章节路由（支持多小说，通过 query 或 body 传递 novelId）=====
+
+function getNovelId(req) {
+  return req.query.novelId || req.body.novelId || '';
 }
 
 // 获取所有章节（不含内容）和配置信息
 router.get('/stories', auth, async (req, res) => {
   try {
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    var index = storiesGetIndex();
-    var pubConfig = { currentStoryIndex: 0, promptConfig: {} };
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
+    var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
+    var index = storiesGetIndex(novelId);
+    var pubConfig = loadPubConfig();
+    var novelCfg = getNovelPubConfig(pubConfig, novelId);
     res.json({
       code: 200,
       data: {
         stories: index,
-        currentIndex: pubConfig.currentStoryIndex || 0,
+        currentIndex: novelCfg.currentStoryIndex || 0,
         totalChapters: index.length,
-        promptConfig: pubConfig.promptConfig || {}
+        promptConfig: novelCfg.promptConfig || {}
       }
     });
   } catch (err) {
@@ -2283,8 +2545,9 @@ router.get('/stories', auth, async (req, res) => {
 // 获取单章内容
 router.get('/stories/chapter-content', auth, async (req, res) => {
   try {
+    var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var idx = parseInt(req.query.index);
-    var chapter = storiesGetChapter(idx);
+    var chapter = storiesGetChapter(idx, novelId);
     if (chapter) {
       res.json({ code: 200, data: chapter });
     } else {
@@ -2298,8 +2561,9 @@ router.get('/stories/chapter-content', auth, async (req, res) => {
 // 保存章节
 router.post('/stories/save', auth, async (req, res) => {
   try {
-    var { index, title, content, author } = req.body;
-    storiesSaveChapter(index, { title: title, content: content, author: author });
+    var { index, title, content, author, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    storiesSaveChapter(index, { title: title, content: content, author: author }, novelId);
     res.json({ code: 200, message: '保存成功' });
   } catch (err) {
     res.json({ code: 500, message: err.message });
@@ -2309,8 +2573,9 @@ router.post('/stories/save', auth, async (req, res) => {
 // 添加新章节
 router.post('/stories/add', auth, async (req, res) => {
   try {
-    var { title, content, author } = req.body;
-    var newIdx = storiesAddChapter(title || '新章节', author);
+    var { title, content, author, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    var newIdx = storiesAddChapter(title || '新章节', content, author, novelId);
     res.json({ code: 200, message: '添加成功', data: { index: newIdx } });
   } catch (err) {
     res.json({ code: 500, message: err.message });
@@ -2320,20 +2585,18 @@ router.post('/stories/add', auth, async (req, res) => {
 // 删除章节
 router.post('/stories/delete', auth, async (req, res) => {
   try {
-    var { index } = req.body;
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    var pubConfig = {};
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
-    var resultIndex = storiesDeleteChapter(index);
+    var { index, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    var pubConfig = loadPubConfig();
+    var novelCfg = getNovelPubConfig(pubConfig, novelId);
+    var resultIndex = storiesDeleteChapter(index, novelId);
     // 如果删除的是当前或之前的章节，调整索引
-    if (pubConfig.currentStoryIndex >= index && pubConfig.currentStoryIndex > 0) {
-      pubConfig.currentStoryIndex = pubConfig.currentStoryIndex - 1;
-      if (pubConfig.currentStoryIndex >= resultIndex.length) pubConfig.currentStoryIndex = 0;
-      fs_stories.writeFileSync(autoPubPath, JSON.stringify(pubConfig, null, 2), 'utf8');
+    if (novelCfg.currentStoryIndex >= index && novelCfg.currentStoryIndex > 0) {
+      novelCfg.currentStoryIndex = novelCfg.currentStoryIndex - 1;
+      if (novelCfg.currentStoryIndex >= resultIndex.length) novelCfg.currentStoryIndex = 0;
+      saveNovelPubConfig(pubConfig, novelId, { currentStoryIndex: novelCfg.currentStoryIndex });
     }
-    res.json({ code: 200, message: '删除成功', data: { stories: resultIndex, currentIndex: pubConfig.currentStoryIndex || 0 } });
+    res.json({ code: 200, message: '删除成功', data: { stories: resultIndex, currentIndex: novelCfg.currentStoryIndex || 0 } });
   } catch (err) {
     res.json({ code: 500, message: err.message });
   }
@@ -2342,14 +2605,10 @@ router.post('/stories/delete', auth, async (req, res) => {
 // 设置当前连载章节索引
 router.post('/stories/set-current', auth, async (req, res) => {
   try {
-    var { index } = req.body;
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    var pubConfig = {};
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
-    pubConfig.currentStoryIndex = index;
-    fs_stories.writeFileSync(autoPubPath, JSON.stringify(pubConfig, null, 2), 'utf8');
+    var { index, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    var pubConfig = loadPubConfig();
+    saveNovelPubConfig(pubConfig, novelId, { currentStoryIndex: index });
     res.json({ code: 200, message: '已设置为第' + (index + 1) + '章' });
   } catch (err) {
     res.json({ code: 500, message: err.message });
@@ -2359,14 +2618,10 @@ router.post('/stories/set-current', auth, async (req, res) => {
 // 保存提示词模板配置
 router.post('/stories/save-prompt-config', auth, async (req, res) => {
   try {
-    var { promptConfig } = req.body;
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    var pubConfig = {};
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
-    pubConfig.promptConfig = promptConfig;
-    fs_stories.writeFileSync(autoPubPath, JSON.stringify(pubConfig, null, 2), 'utf8');
+    var { promptConfig, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    var pubConfig = loadPubConfig();
+    saveNovelPubConfig(pubConfig, novelId, { promptConfig: promptConfig });
     res.json({ code: 200, message: '提示词模板已保存' });
   } catch (err) {
     res.json({ code: 500, message: err.message });
@@ -2376,29 +2631,28 @@ router.post('/stories/save-prompt-config', auth, async (req, res) => {
 // 获取下一个 DeepSeek 提示词
 router.get('/stories/next-prompt', auth, async (req, res) => {
   try {
-    var index = storiesGetIndex();
-    var pubConfig = {};
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
-    var cfg = pubConfig.promptConfig || {};
+    var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
+    var index = storiesGetIndex(novelId);
+    var pubConfig = loadPubConfig();
+    var novelCfg = getNovelPubConfig(pubConfig, novelId);
+    var cfg = novelCfg.promptConfig || {};
     var nextChapNum = index.length + 1;
     
     // 构建已有章节梗概
     var summaryLines = [];
     for (var si = 0; si < index.length; si++) {
-      var chap = storiesGetChapter(si);
+      var chap = storiesGetChapter(si, novelId);
       var contentPreview = chap ? (chap.content || '').replace(/[\n\r]+/g, ' ').substring(0, 80) : '';
       summaryLines.push((si + 1) + '. ' + (index[si].title || '') + '：' + contentPreview + '...');
     }
     var chapterSummary = summaryLines.join('\n');
     
+    var novelTitle = cfg.novelTitle || (novelsGetById(novelId) ? novelsGetById(novelId).title : '致那个夏天的你');
     var promptLines = [
       cfg.authorRole || '你是一位校园青春小说作家。',
       '',
       '请写一篇校园青春小说的第' + nextChapNum + '章，继续以下故事：',
-      '小说标题：' + (cfg.novelTitle || '致那个夏天的你'),
+      '小说标题：' + novelTitle,
       '',
       '已有章节梗概：'
     ];
@@ -2427,29 +2681,27 @@ router.get('/stories/next-prompt', auth, async (req, res) => {
 // ===== AI 自动生成章节 =====
 router.post('/stories/generate-chapter', auth, async (req, res) => {
   try {
-    var index = storiesGetIndex();
-    var pubConfig = {};
-    var autoPubPath = path_stories.join(__dirname, '..', 'config', 'auto-publish.json');
-    if (fs_stories.existsSync(autoPubPath)) {
-      pubConfig = JSON.parse(fs_stories.readFileSync(autoPubPath, 'utf8'));
-    }
-    var cfg = pubConfig.promptConfig || {};
+    var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
+    var index = storiesGetIndex(novelId);
+    var pubConfig = loadPubConfig();
+    var novelCfg = getNovelPubConfig(pubConfig, novelId);
+    var cfg = novelCfg.promptConfig || {};
     var nextChapNum = index.length + 1;
 
     // 构建已有章节梗概
     var summaryLines = [];
     for (var si = 0; si < index.length; si++) {
-      var chap = storiesGetChapter(si);
+      var chap = storiesGetChapter(si, novelId);
       var contentPreview = chap ? (chap.content || '').replace(/[\n\r]+/g, ' ').substring(0, 150) : '';
       summaryLines.push('第' + (si + 1) + '章《' + (index[si].title || '') + '》：' + contentPreview + '...');
     }
     var chapterSummary = summaryLines.join('\n');
 
-    // 构建给 AI 的续写提示
+    var novelTitle = cfg.novelTitle || (novelsGetById(novelId) ? novelsGetById(novelId).title : '致那个夏天的你');
     var aiPrompt = '';
     aiPrompt += '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。\n\n';
     aiPrompt += '请写一篇校园青春小说的第' + nextChapNum + '章。\n';
-    aiPrompt += '小说标题：' + (cfg.novelTitle || '致那个夏天的你') + '\n\n';
+    aiPrompt += '小说标题：' + novelTitle + '\n\n';
     if (chapterSummary) {
       aiPrompt += '已有章节梗概：\n' + chapterSummary + '\n\n';
     }
@@ -2465,18 +2717,15 @@ router.post('/stories/generate-chapter', auth, async (req, res) => {
     }
     aiPrompt += '\n请直接输出章节内容，不要额外说明，不要输出思考过程。';
 
-    // 调用 MiniMax 生成
-    var generatedContent = await aiService.getAIReply(aiPrompt, 'story_gen');
+    var generatedContent = await aiService.generateChapter(aiPrompt);
     if (!generatedContent || generatedContent.length < 50) {
       return res.json({ code: 500, message: '生成内容过短，请重试' });
     }
 
-    // 从生成内容中提取标题（第一行可能包含标题）
     var lines = generatedContent.split('\n');
     var aiTitle = '';
     var aiContent = generatedContent;
     
-    // 如果第一行像标题，提取出来
     if (lines.length > 0) {
       var firstLine = lines[0].replace(/^#+\s*/, '').replace(/^第\d+章[：\s]*/, '').trim();
       if (firstLine.length > 0 && firstLine.length < 30) {
@@ -2496,6 +2745,93 @@ router.post('/stories/generate-chapter', auth, async (req, res) => {
     });
   } catch (err) {
     res.json({ code: 500, message: 'AI生成失败: ' + err.message });
+  }
+});
+
+// ===== AI 流式生成章节（SSE） =====
+router.get('/stories/generate-chapter-stream', async (req, res) => {
+  try {
+    var token = req.query.token;
+    if (!token) return res.status(401).end();
+    var decoded;
+    try { decoded = jwt.verify(token, JWT_SECRET); } catch(e) { return res.status(401).end(); }
+
+    var novelId = req.query.novelId || loadPubConfig().activeNovelId || getNovelId(req) || 'default';
+    var index = storiesGetIndex(novelId);
+    var pubConfig = loadPubConfig();
+    var novelCfg = getNovelPubConfig(pubConfig, novelId);
+    var cfg = novelCfg.promptConfig || {};
+    var nextChapNum = index.length + 1;
+
+    var summaryLines = [];
+    for (var si = 0; si < index.length; si++) {
+      var chap = storiesGetChapter(si, novelId);
+      var contentPreview = chap ? (chap.content || '').replace(/[\n\r]+/g, ' ').substring(0, 150) : '';
+      summaryLines.push('第' + (si + 1) + '章《' + (index[si].title || '') + '》：' + contentPreview + '...');
+    }
+    var chapterSummary = summaryLines.join('\n');
+    var novelTitle = cfg.novelTitle || (novelsGetById(novelId) ? novelsGetById(novelId).title : '致那个夏天的你');
+
+    var aiPrompt = '';
+    aiPrompt += '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。\n\n';
+    aiPrompt += '请写一篇校园青春小说的第' + nextChapNum + '章。\n';
+    aiPrompt += '小说标题：' + novelTitle + '\n\n';
+    if (chapterSummary) {
+      aiPrompt += '已有章节梗概：\n' + chapterSummary + '\n\n';
+    }
+    aiPrompt += '第' + nextChapNum + '章要求：\n';
+    aiPrompt += '- 字数：' + (cfg.wordCount || '800-1200字') + '\n';
+    aiPrompt += '- 风格：' + (cfg.style || '温暖治愈，校园青春') + '\n';
+    aiPrompt += '- ' + (cfg.sceneRequirement || '需要出现1-2个新的校园场景') + '\n';
+    aiPrompt += '- ' + (cfg.endingRequirement || '在章节末尾留下悬念或期待') + '\n';
+    aiPrompt += '- 标题自拟\n';
+    aiPrompt += '- 请注意使用中文引号「」或""表示对话\n';
+    if (cfg.extraRequirements) {
+      aiPrompt += '- ' + cfg.extraRequirements + '\n';
+    }
+    aiPrompt += '\n请直接输出章节内容，不要额外说明，不要输出思考过程。';
+
+    // SSE 头
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+
+    var fullText = '';
+
+    var aiService = require('../services/ai');
+    await aiService.generateChapterStream(aiPrompt, function(token) {
+      fullText += token;
+      // 发送 token（避免换行破坏 SSE）
+      var safe = token.replace(/\n/g, '\\n').replace(/\r/g, '');
+      res.write('data: ' + safe + '\n\n');
+    });
+
+    // 生成完毕
+    var lines = fullText.split('\n');
+    var aiTitle = '';
+    var aiContent = fullText;
+    if (lines.length > 0) {
+      var firstLine = lines[0].replace(/^#+\s*/, '').replace(/^第\d+章[：\s]*/, '').trim();
+      if (firstLine.length > 0 && firstLine.length < 30) {
+        aiTitle = firstLine;
+        aiContent = lines.slice(1).join('\n').trim();
+      }
+    }
+    if (!aiTitle) aiTitle = '第' + nextChapNum + '章';
+
+    // 发送完成事件
+    res.write('event: done\ndata: ' + JSON.stringify({ title: aiTitle, content: aiContent, chapterNum: nextChapNum }) + '\n\n');
+    res.end();
+  } catch (err) {
+    console.error('[SSE] 生成错误:', err.message);
+    if (!res.headersSent) {
+      res.writeHead(500);
+    }
+    res.write('event: error\ndata: ' + err.message + '\n\n');
+    res.end();
   }
 });
 
@@ -2527,17 +2863,19 @@ async function uploadStoryImages(htmlContent) {
 
 router.post('/stories/publish-to-wechat', auth, async (req, res) => {
   try {
-    var { chapterIndex } = req.body;
-    var index = storiesGetIndex();
+    var { chapterIndex, novelId } = req.body;
+    novelId = novelId || loadPubConfig().activeNovelId || 'default';
+    var novel = novelsGetById(novelId);
+    var novelTitle = novel ? novel.title : '小说连载';
+    var index = storiesGetIndex(novelId);
     if (index.length === 0) return res.json({ code: 400, message: '故事库为空' });
     if (chapterIndex === undefined || chapterIndex < 0 || chapterIndex >= index.length) {
       return res.json({ code: 400, message: '无效的章节索引' });
     }
     
-    var chapter = storiesGetChapter(chapterIndex);
+    var chapter = storiesGetChapter(chapterIndex, novelId);
     if (!chapter) return res.json({ code: 400, message: '章节内容不存在' });
     
-    // 获取天气、一言等辅助数据
     var [weather, hitokoto, dateInfo] = await Promise.all([
       mpDraftService.getWeather(),
       mpDraftService.getHitokoto(),
@@ -2550,17 +2888,37 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
     var week = dateInfo.week;
     var paragraphs = (chapter.content || '').replace(/\r\n/g, '\n').split(/\n\n+/);
     
-    // 构建文章HTML
     var storyHtml = '';
     storyHtml += '<div style="padding:6px 0;">';
+    
+    // ===== 头部 =====
     storyHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
-    storyHtml += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 校园小说连载 · 第' + chapNum + '章</div>';
-    storyHtml += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">' + storyEscapeHtml(chapter.title) + '</div>';
-    storyHtml += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + storyEscapeHtml(chapter.author || '嘉二校园墙编辑部') + '</div>';
+    storyHtml += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 校园小说连载 · 第' + chapNum + '/' + chapTotal + '章</div>';
+    storyHtml += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">第' + chapNum + '章 ' + storyEscapeHtml(chapter.title) + '</div>';
+    storyHtml += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + storyEscapeHtml(chapter.author || '匿名投稿') + '</div>';
     storyHtml += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
     storyHtml += '</td></tr></table>';
     
-    // 天气（今天+明天对比）
+    // ===== 阅读信息 =====
+    var totalChars = (chapter.content || '').replace(/\s/g, '').length;
+    var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
+    storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFFFF0;padding:12px;border-radius:10px;">';
+    storyHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+    storyHtml += '<td style="text-align:center;width:33%;padding:4px;border-right:1px dashed #E8D5B5;">';
+    storyHtml += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div>';
+    storyHtml += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">' + totalChars.toLocaleString() + ' 字</div>';
+    storyHtml += '</td>';
+    storyHtml += '<td style="text-align:center;width:33%;padding:4px;border-right:1px dashed #E8D5B5;">';
+    storyHtml += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div>';
+    storyHtml += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">约 ' + readMinutes + ' 分钟</div>';
+    storyHtml += '</td>';
+    storyHtml += '<td style="text-align:center;width:33%;padding:4px;">';
+    storyHtml += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">📚 连载进度</div>';
+    storyHtml += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">第' + chapNum + '/' + chapTotal + '章</div>';
+    storyHtml += '</td>';
+    storyHtml += '</tr></table></td></tr></table>';
+    
+    // ===== 天气 =====
     if (weather && weather.temperature) {
       storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:linear-gradient(135deg,#E8F4FD,#E0F0FF);padding:16px;">';
       storyHtml += '<div style="font-size:13px;color:#888;margin-bottom:10px;font-weight:500;">🌤️ ' + (weather.city || '') + ' 天气预报</div>';
@@ -2573,28 +2931,28 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
       storyHtml += '</td>';
       if (weather.tomorrow) {
         storyHtml += '<td style="width:50%;text-align:center;padding:4px;">';
-        storyHtml += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">' + (weather.tomorrow.week || '明日') + '</div>';
-        storyHtml += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '🌤') + ' ' + (weather.tomorrow.tempRange || '') + '</div>';
+        storyHtml += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">' + (weather.tomorrow.week || '周五') + '</div>';
+        storyHtml += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '☀️') + ' ' + (weather.tomorrow.tempRange || '') + '</div>';
         storyHtml += '<div style="font-size:12px;color:#666;margin-top:2px;">' + (weather.tomorrow.weather || '') + '</div>';
         storyHtml += '<div style="font-size:11px;color:#999;margin-top:4px;">📍 预报</div>';
         storyHtml += '</td>';
       } else {
-        storyHtml += '<td style="width:50%;text-align:center;padding:4px;color:#ccc;font-size:12px;">🌤️ 暂无明日预报</td>';
+        storyHtml += '<td style="width:50%;text-align:center;padding:4px;color:#ccc;font-size:13px;">🌤️ 暂无预报</td>';
       }
       storyHtml += '</tr></table></td></tr></table>';
     }
     
-    // 一言
+    // ===== 一言 =====
     if (hitokoto && hitokoto.text) {
       storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #A78BFA;">';
-      storyHtml += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💕 "' + storyEscapeHtml(hitokoto.text) + '"</p>';
-      storyHtml += '<p style="text-align:right;color:#ccc;font-size:11px;margin:0;">—— ' + storyEscapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p></td></tr></table>';
+      storyHtml += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + storyEscapeHtml(hitokoto.text) + '"</p>';
+      storyHtml += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + storyEscapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p></td></tr></table>';
     }
     
-    // 分割
-    storyHtml += '<div style="text-align:center;margin:18px 0;color:#e8e8e8;font-size:14px;">✨&nbsp;&nbsp;📖&nbsp;&nbsp;✨</div>';
+    // ===== 分割线 =====
+    storyHtml += '<div style="text-align:center;margin:18px 0;color:#e8e8e8;font-size:14px;">❀&nbsp;&nbsp;❁&nbsp;&nbsp;❀</div>';
     
-    // 小说正文
+    // ===== 小说正文 =====
     storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;"><tr><td style="background:#FFFBFF;padding:20px 16px;">';
     storyHtml += '<div style="text-align:center;margin-bottom:20px;">';
     storyHtml += '<div style="display:inline-block;background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:6px 20px;border-radius:20px;font-size:12px;color:#A78BFA;letter-spacing:1px;">第' + chapNum + '章</div>';
@@ -2602,48 +2960,53 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
     for (var pi = 0; pi < paragraphs.length; pi++) {
       var para = paragraphs[pi].trim();
       if (!para) continue;
-      storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + storyEscapeHtml(para) + '</p>';
+      var isDialogue = para.includes('"') || para.includes('"') || para.includes('"');
+      if (isDialogue) {
+        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#6B4C3B;margin-top:0;letter-spacing:0.5px;background:#FFFBF8;padding:8px 14px;border-radius:8px;border-left:3px solid #FFD4B8;">' + storyEscapeHtml(para) + '</p>';
+      } else {
+        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + storyEscapeHtml(para) + '</p>';
+      }
     }
     if (chapNum < chapTotal) {
       storyHtml += '<div style="text-align:center;margin:24px 0 10px 0;">';
-      storyHtml += '<div style="display:inline-block;background:#FFF0F5;padding:8px 24px;border-radius:12px;font-size:13px;color:#FF69B4;">💫 未完待续 · 明天同一时间见</div>';
+      storyHtml += '<div style="display:inline-block;background:#FFF0F5;padding:8px 24px;border-radius:12px;font-size:13px;color:#FF69B4;">🌟 未完待续 · 同一时间见</div>';
       storyHtml += '</div>';
-      storyHtml += '<div style="text-align:center;font-size:12px;color:#ccc;margin-top:6px;">📖 明天继续更新第' + (chapNum + 1) + '章</div>';
+      storyHtml += '<div style="text-align:center;font-size:12px;color:#ccc;margin-top:6px;">📖 第' + (chapNum + 1) + '/' + chapTotal + '章 敬请期待</div>';
     }
     storyHtml += '</td></tr></table>';
     
-    // 引流语
+    // ===== 引流语 =====
     storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF8F0;padding:16px;border-radius:12px;">';
     storyHtml += '<div style="font-size:13px;color:#D4876A;line-height:1.8;text-align:center;">';
-    storyHtml += '📢 今日校园暂无新投稿～<br>';
-    storyHtml += '墙墙准备了一篇暖心小说，希望你喜欢 💕<br><br>';
-    storyHtml += '📤 如果觉得不错，<strong style="color:#FF6B9D;">欢迎分享给同学和朋友</strong><br>';
-    storyHtml += '📝 有想说的？来 <strong>https://wall.jay23.cn</strong> 投稿吧！<br>';
-    storyHtml += '你的每一条分享，都可能成为明天的推送内容 ✨';
+    storyHtml += '❤️ 校园故事持续征集中<br>';
+    storyHtml += '墙墙准备了一篇暖心小说，希望你喜欢 ❤️<br><br>';
+    storyHtml += '🎨 如果你也有故事，<strong style="color:#FF6B9D;">欢迎分享给身边的同学哦</strong><br>';
+    storyHtml += '📮 想说的，去 <strong style="color:#FF6B9D;">https://wall.jay23.cn</strong> 投稿吧！<br>';
+    storyHtml += '你的每一个故事，都有可能成为下篇文章的主角 ❤️';
     storyHtml += '</div></td></tr></table>';
     
-    // 底部二维码
+    // ===== 底部二维码 =====
     storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
-    storyHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🎉 更多校园精彩</div>';
-    storyHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
+    storyHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 校园故事站</div>';
+    storyHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
     storyHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
     storyHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-    storyHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
-    storyHtml += '</td></tr></table></td></tr></table>';
-    storyHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
+    storyHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
+    storyHtml += '</td></tr></table>';
+    storyHtml += '</td></tr></table>';
+    storyHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
     storyHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
     storyHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
     storyHtml += '</td></tr></table>';
-    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' 嘉二校园墙 · 💕</p>';
+    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 嘉二校园墙 ❀ ❀</p>';
     storyHtml += '</div>';
     
-    // 上传图片到微信CDN
     storyHtml = await uploadStoryImages(storyHtml);
     
     var article = {
-      title: '小说连载 · ' + chapter.title + ' | ' + dateInfo.date,
-      author: chapter.author || '嘉二校园墙',
-      digest: '小说连载 · ' + chapter.title + '。' + (chapter.content || '').replace(/[\n\r]+/g, '').substring(0, 60) + '...',
+      title: '小说连载 · 第' + chapNum + '章 ' + chapter.title + ' | ' + dateInfo.date,
+      author: 'JAY',
+      digest: '小说连载 · ' + novelTitle + ' · ' + chapter.title + '。' + (chapter.content || '').replace(/[\n\r]+/g, '').substring(0, 60) + '...',
       content: storyHtml,
       content_source_url: 'https://wall.jay23.cn',
       show_cover_pic: 1,
@@ -2652,6 +3015,14 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
     };
     
     var mediaId = await mpDraftService.createDraft([article]);
+    
+    // 标记为已发布
+    var idx = storiesGetIndex(novelId);
+    if (chapterIndex >= 0 && chapterIndex < idx.length) {
+      idx[chapterIndex].published = true;
+      storiesSaveIndex(idx, novelId);
+    }
+    
     res.json({ code: 200, data: { media_id: mediaId }, message: '✅ 已同步到公众号草稿箱' });
   } catch (err) {
     console.error('[故事推送] 失败:', err.message);

@@ -4,8 +4,8 @@
  * 自动注入到页面中，无需在 HTML 中手动添加
  */
 (function() {
-  // 如果已存在则不重复注入
-  if (document.getElementById('sideGaokao')) return;
+  // 如果已存在则不重复注入 HTML，但仍执行更新逻辑
+  var hasExistingCards = document.getElementById('sideGaokao') !== null;
   // 极小屏不显示
   if (window.innerWidth <= 600) return;
 
@@ -99,11 +99,13 @@
 
   // 注入到 body 中 main-content 之后
   function inject() {
-    var mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-      mainContent.insertAdjacentHTML('afterend', html);
-    } else {
-      document.body.insertAdjacentHTML('beforeend', html);
+    if (!hasExistingCards) {
+      var mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        mainContent.insertAdjacentHTML('afterend', html);
+      } else {
+        document.body.insertAdjacentHTML('beforeend', html);
+      }
     }
     initAll();
   }
@@ -320,7 +322,7 @@
             if (data && data.data && data.data.length > 0) {
               data.data.slice(0, 5).forEach(function(item, i) {
                 var div = document.createElement('div');
-                div.className = 'hotsearch-item';
+                div.className = 'hotsearch-item history-item';
                 var txt = typeof item === 'string' ? item : (item.title || item.text || item.content || '');
                 // 提取日期前缀（如"2003年05月02日 "）
                 var datePart = '';
@@ -331,11 +333,12 @@
                   eventPart = txt.substring(match[0].length);
                 }
                 if (eventPart.length > 15) eventPart = eventPart.substring(0, 15) + '…';
-                div.innerHTML = '<span class="hotsearch-rank">' + (i + 1) + '</span>' +
-                  '<span class="history-text">' +
-                    (datePart ? '<span class="history-date">' + escapeHtml(datePart) + '</span>' : '') +
-                    '<span class="history-event">' + escapeHtml(eventPart) + '</span>' +
-                  '</span>';
+                 div.innerHTML = '<span class="hotsearch-rank">' + (i + 1) + '.</span>' +
+                   '<span class="history-text">' +
+                     (datePart ? '<span class="history-date">' + escapeHtml(datePart) + '</span>' : '') +
+                     (datePart && eventPart ? ' ' : '') +
+                     '<span class="history-event">' + escapeHtml(eventPart) + '</span>' +
+                   '</span>';
                 if (hotsearchList) hotsearchList.appendChild(div);
               });
             } else {

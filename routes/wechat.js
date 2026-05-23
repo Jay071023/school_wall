@@ -4,9 +4,15 @@
  */
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 const mpDraftService = require('../services/mp-draft');
 const aiService = require('../services/ai');
+const wechatService = require('../services/wechat');
 const router = express.Router();
 
 const WECHAT_TOKEN = process.env.WECHAT_TOKEN || 'wall_jay23';
@@ -165,7 +171,7 @@ router.post('/callback', async (req, res) => {
       var event = (xmlContent.match(/<Event><!\[CDATA\[(.*?)\]\]><\/Event>/) || [])[1];
       var eventKey = (xmlContent.match(/<EventKey><!\[CDATA\[(.*?)\]\]><\/EventKey>/) || [])[1];
       var msgType = (xmlContent.match(/<MsgType><!\[CDATA\[(.*?)\]\]><\/MsgType>/) || [])[1];
-      var msgContent = (xmlContent.match(/<Content><!\[CDATA\[(.*?)\]\]><\/Content>/) || [])[1];
+      var msgContent = (xmlContent.match(/<Content><!\[CDATA\[([\s\S]*?)\]\]><\/Content>/) || [])[1];
 
       if (!openid) {
         return res.send('');
@@ -211,6 +217,8 @@ router.post('/callback', async (req, res) => {
 
       // ===== 文本消息回复 =====
       if (msgType === 'text' && msgContent) {
+        console.log('[WeChat] 收到文本消息, openid:', openid.substring(0,10), '内容:', msgContent.substring(0, 50));
+        try {
         // 防止重复请求: 如果同一个 openid 在 3 秒内有未完成的请求,直接返回空
         var requestKey = openid + '_' + msgContent;
         if (processingRequests.has(requestKey)) {
@@ -224,9 +232,206 @@ router.post('/callback', async (req, res) => {
         var text = msgContent.trim();
         var replyText = '';
 
-        if (text === '帮助' || text === 'help' || text === '菜单' || text === '功能') {
+        // ===== 多步投稿流程 =====
+        // 查询当前用户的投稿会话状态（10分钟超时）
+        var session = null;
+        try {
+          var [sessions] = await pool.execute(
+            'SELECT step, title, content FROM wechat_submit_sessions WHERE openid = ? AND updated_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+            [openid]
+          );
+          session = sessions.length > 0 ? sessions[0] : null;
+        } catch (e) {
+          console.error('[WeChat] 查询会话失败:', e.message);
+        }
+
+        // 处理投稿提交流程
+        if (session && session.step !== 'idle') {
+          // 如果用户想重新投稿，重置旧会话
+          if (text === '投稿' || text === '发帖' || text === '我要投稿' || text === '我想发帖') {
+            var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+            if (boundUsers.length === 0) {
+              await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+              replyText = '🔗 发帖前需要先绑定账号哦~\n\n' +
+                '1️⃣ 打开 https://wall.jay23.cn\n' +
+                '2️⃣ 登录你的账号\n' +
+                '3️⃣ 进入"个人中心"→"绑定微信"\n' +
+                '4️⃣ 完成绑定后对我说"投稿"就可以啦！';
+            } else {
+            await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+            await pool.execute(
+              'INSERT INTO wechat_submit_sessions (openid, step, created_at, updated_at) VALUES (?, "awaiting_title", NOW(), NOW())',
+              [openid]
+            );
+            replyText = '📝 好的，重新开始！请告诉我**标题**是什么？\n\n（回复"取消"可以随时终止）';
+            }
+          } else if (text === '取消' || text === '算了' || text === '不发了' || text === 'cancel') {
+            await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+            replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 https://wall.jay23.cn';
+          } else if (session.step === 'awaiting_title') {
+            // 用户输入了标题
+            await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_content", title = ?, updated_at = NOW() WHERE openid = ?', [text, openid]);
+            replyText = '📝 标题："' + text + '"\n\n好的！现在请告诉我**内容**是什么？✏️\n\n（回复"取消"可以随时终止投稿）';
+          } else if (session.step === 'awaiting_content') {
+            // 用户输入了内容 → 保存，询问是否润色
+            console.log('[WeChat] awaiting_content 收到内容, 长度:', text.length);
+            await pool.execute('UPDATE wechat_submit_sessions SET content = ?, step = "awaiting_polish_choice", updated_at = NOW() WHERE openid = ?', [text, openid]);
+            console.log('[WeChat] awaiting_content 保存完成, 准备回复');
+            replyText = '✏️ 内容已收到！要不要让 AI 润色一下？\n\n✅ 回复"要" 让 AI 帮忙润色\n❌ 回复"不要" 直接使用原文';
+          } else if (session.step === 'awaiting_polish_choice') {
+            if (text === '要' || text === '要的' || text === '要润色' || text === '润色' || text === '好' || text === '好的' || text === '嗯' || text === '是' || text === 'yes') {
+              replyText = '⏳ AI 润色中，请稍等...';
+              try {
+                var polished = await aiService.getAIReply('请帮我润色这段投稿内容，修正语病和错别字，让表达更通顺自然，但不要改变原意和语气风格，不要添加新内容，直接返回润色后的文字即可。原文：' + session.content, openid);
+                if (polished && polished.trim() !== session.content.trim() && polished.trim() !== '💬 回复"帮助"查看我能做什么吧~' && polished.trim() !== '😄 谢谢夸奖！有什么需要帮忙的尽管说~') {
+                  await pool.execute('UPDATE wechat_submit_sessions SET polished_content = ?, step = "awaiting_polish", updated_at = NOW() WHERE openid = ?', [polished, openid]);
+                  replyText = '✨ AI润色完成！请选择：\n\n📝 原文：\n' + session.content.substring(0, 150) + '\n\n✨ 润色版：\n' + polished.substring(0, 150) + '\n\n✅ 回复"确认" 使用润色版\n📄 回复"原文" 使用原版\n🔄 回复"重写" 重新填\n❌ 回复"取消" 放弃';
+                } else {
+                  await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_polish", updated_at = NOW() WHERE openid = ?', [openid]);
+                  replyText = '📄 AI觉得原文已经很好了，无需修改！\n\n📌 标题：' + session.title + '\n💬 内容：' + session.content.substring(0, 100) + '\n\n✅ 回复"确认"提交\n🔄 回复"重写"重新来\n❌ 回复"取消"放弃';
+                }
+              } catch(e) {
+                console.error('[WeChat] AI润色失败:', e.message);
+                await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_polish", updated_at = NOW() WHERE openid = ?', [openid]);
+                replyText = '✏️ AI暂时忙不过来，直接发布：\n\n📌 标题：' + session.title + '\n💬 内容：' + session.content.substring(0, 100) + (session.content.length > 100 ? '...' : '') + '\n\n✅ 回复"确认"提交\n🔄 回复"重写"重新来\n❌ 回复"取消"放弃';
+              }
+            } else {
+              // "不要" 或任何其他回复 → 直接跳过润色
+              await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_polish", updated_at = NOW() WHERE openid = ?', [openid]);
+              replyText = '📄 好的，直接发布：\n\n📌 标题：' + session.title + '\n💬 内容：' + session.content.substring(0, 100) + (session.content.length > 100 ? '...' : '') + '\n\n✅ 回复"确认"提交\n🔄 回复"重写"重新来\n❌ 回复"取消"放弃';
+            }
+          } else if (session.step === 'awaiting_polish') {
+            if (text === '确认' || text === '确认发布' || text === '发布' || text === '提交' || text === '是的' || text === '确定') {
+              // 用润色版（优先）或原文
+              var finalContent = session.polished_content || session.content;
+              await pool.execute('UPDATE wechat_submit_sessions SET content = ?, polished_content = NULL, step = "awaiting_image", updated_at = NOW() WHERE openid = ?', [finalContent, openid]);
+              replyText = '📸 最后一步！可以发图片过来一起发布（可选，可发多张）；或者直接回复"确认"完成投稿~';
+            } else if (text === '用润色版' || text === '润色版' || text === '润色') {
+              if (session.polished_content) {
+                await pool.execute('UPDATE wechat_submit_sessions SET content = polished_content, polished_content = NULL, step = "awaiting_polish", updated_at = NOW() WHERE openid = ?', [openid]);
+                replyText = '✅ 已使用润色版！\n\n📌 标题：' + session.title + '\n💬 润色后：' + session.polished_content.substring(0, 100) + '\n\n✅ 回复"确认"提交\n🔄 回复"重写"重来\n❌ 回复"取消"放弃';
+              } else {
+                replyText = '😅 AI润色还未完成，请稍等几秒后再试~';
+              }
+            } else if (text === '用原文' || text === '原文') {
+              await pool.execute('UPDATE wechat_submit_sessions SET polished_content = NULL, updated_at = NOW() WHERE openid = ?', [openid]);
+              replyText = '📄 已使用原文！\n\n📌 标题：' + session.title + '\n💬 内容：' + session.content.substring(0, 100) + '\n\n✅ 回复"确认"提交\n🔄 回复"重写"重来\n❌ 回复"取消"放弃';
+            } else if (text === '重写' || text === '重新' || text === '重新开始' || text === '再来') {
+              await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_title", title = NULL, content = NULL, updated_at = NOW() WHERE openid = ?', [openid]);
+              replyText = '好的，重新开始！请告诉我**标题**是什么？📝';
+            } else {
+              replyText = '😅 请回复"确认"提交 / "重写"重新来 / "取消"放弃\n\n📌 标题：' + session.title + '\n💬 内容：' + (session.content || '').substring(0, 100) + ((session.content || '').length > 100 ? '...' : '');
+            }
+          } else if (session.step === 'awaiting_image') {
+            if (text === '确认' || text === '确认发布' || text === '发布' || text === '提交' || text === '是的' || text === '确定' || text === '跳过' || text === '不发了' || text === '不用') {
+              // 创建帖子
+              try {
+                var [imgSess] = await pool.execute('SELECT title, content, images FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+                if (imgSess.length === 0) throw new Error('session not found');
+                var sessData = imgSess[0];
+                var [settingRows] = await pool.execute("SELECT config_value FROM settings WHERE config_key = 'post_review'");
+                var needReview = settingRows.length === 0 || settingRows[0].config_value === 'true';
+                var postStatus = needReview ? 'pending' : 'approved';
+                var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+                var userId = boundUsers.length > 0 ? boundUsers[0].id : null;
+                var imagesJson = sessData.images || '[]';
+                var wxIp = (req.headers['x-forwarded-for'] || req.ip || '').replace(/^::ffff:/, '');
+                await pool.execute(
+                  'INSERT INTO posts (user_id, title, content, images, status, category, ip_address, ip_region, created_at) VALUES (?, ?, ?, ?, ?, "daily", ?, "微信用户", NOW())',
+                  [userId, sessData.title, sessData.content, imagesJson, postStatus, wxIp]
+                );
+                await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+                replyText = needReview
+                  ? '🎉 投稿成功！已提交审核~\n\n审核通过后就能在墙上看到你的帖子啦！\n去 https://wall.jay23.cn 看看吧~'
+                  : '🎉 投稿成功！帖子已直接发布~\n去 https://wall.jay23.cn 看看吧！';
+              } catch (e) {
+                console.error('[WeChat] 创建帖子失败:', e.message);
+                replyText = '😅 投稿时出了点问题，稍后再试试？\n或者去 https://wall.jay23.cn 直接发帖~';
+              }
+            } else if (text === '重写' || text === '重新' || text === '重新开始' || text === '再来') {
+              await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_title", title = NULL, content = NULL, images = NULL, updated_at = NOW() WHERE openid = ?', [openid]);
+              replyText = '好的，重新开始！请告诉我**标题**是什么？📝';
+            } else if (text === '取消' || text === '算了' || text === 'cancel') {
+              await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
+              replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 https://wall.jay23.cn';
+            } else {
+              replyText = '📸 发张图片吧（可发多张），或者回复"跳过"/"确认"直接发布~\n📌 标题：' + session.title + ' 🆗 回复"确认"完成';
+            }
+          }
+        } else if (text === '投稿' || text === '发帖' || text === '我要投稿' || text === '我想发帖' || text === '发布') {
+          // 检查是否绑定了账号
+          var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+          if (boundUsers.length === 0) {
+            replyText = '🔗 发帖前需要先绑定账号哦~\n\n' +
+              '1️⃣ 打开 https://wall.jay23.cn\n' +
+              '2️⃣ 登录你的账号\n' +
+              '3️⃣ 进入"个人中心"→"绑定微信"\n' +
+              '4️⃣ 扫码或输入验证码完成绑定\n\n' +
+              '绑定成功后对我说"投稿"就可以啦！📝';
+          } else {
+          // 开始新的投稿流程
+          await pool.execute(
+            'INSERT INTO wechat_submit_sessions (openid, step, created_at, updated_at) VALUES (?, "awaiting_title", NOW(), NOW()) ON DUPLICATE KEY UPDATE step = "awaiting_title", title = NULL, content = NULL, updated_at = NOW()',
+            [openid]
+          );
+          replyText = '📝 好的！请告诉我你想要发布的**标题**是什么？\n\n（标题不要太长哦~ 回复"取消"可以随时终止）';
+          }
+        } else if (/^BIND[A-Z0-9]{4}$/i.test(text)) {
+          // 处理微信验证码绑定
+          try {
+            var code = text.toUpperCase();
+            var [bindings] = await pool.execute(
+              'SELECT id, user_id FROM wechat_bindings WHERE bind_code = ? AND used = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1',
+              [code]
+            );
+            if (bindings.length === 0) {
+              replyText = '❌ 验证码无效或已过期，请登录网站重新获取绑定验证码~\n🌐 https://wall.jay23.cn';
+            } else {
+              var binding = bindings[0];
+              // 检查openid是否已被其他账号绑定
+              var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+              if (boundUsers.length > 0 && boundUsers[0].id !== binding.user_id) {
+                replyText = '❌ 这个微信已被其他账号绑定了，请先解绑再试~';
+              } else {
+                await pool.execute('UPDATE users SET openid = ? WHERE id = ?', [openid, binding.user_id]);
+                await pool.execute('UPDATE wechat_bindings SET openid = ?, used = 1, bound_at = NOW() WHERE id = ?', [openid, binding.id]);
+                replyText = '✅ 绑定成功！🎉\n\n现在你可以直接对我说"投稿"发帖啦~\n或者去 https://wall.jay23.cn 逛逛吧~';
+              }
+            }
+          } catch (e) {
+            console.error('[WeChat] 验证码绑定失败:', e.message);
+            replyText = '😅 绑定出了点问题，请重新获取验证码试试~';
+          }
+        } else if (/^REG[A-Z0-9]{6}$/i.test(text)) {
+          // 处理微信注册验证码
+          try {
+            var regCode = text.toUpperCase();
+            var [codes] = await pool.execute(
+              'SELECT id FROM wechat_reg_codes WHERE code = ? AND verified = 0 AND used = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1',
+              [regCode]
+            );
+            if (codes.length === 0) {
+              replyText = '❌ 注册验证码无效或已过期，请登录网站重新获取~\n🌐 https://wall.jay23.cn';
+            } else {
+              // 检查openid是否已有账号
+              var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+              if (boundUsers.length > 0) {
+                replyText = '❌ 这个微信已绑定其他账号了，无需重新注册哦~\n直接去 https://wall.jay23.cn 登录吧~';
+              } else {
+                await pool.execute(
+                  'UPDATE wechat_reg_codes SET verified = 1, openid = ?, verified_at = NOW() WHERE id = ?',
+                  [openid, codes[0].id]
+                );
+                replyText = '✅ 验证码已确认！🎉\n\n请回到注册页面点击"验证并注册"即可完成注册~\n🌐 https://wall.jay23.cn/register';
+              }
+            }
+          } catch (e) {
+            console.error('[WeChat] 注册验证码处理失败:', e.message);
+            replyText = '😅 验证码处理出了点问题，请重新获取试试~';
+          }
+        } else if (text === '帮助' || text === 'help' || text === '菜单' || text === '功能') {
           replyText = '🌸 嘉二校园墙 · 帮助菜单\n\n' +
-            '📝 投稿：访问网站发帖\n' +
+            '📝 投稿：对我说"投稿"可直接发帖\n' +
             '🎵 点歌：在网站点歌给TA\n' +
             '🔗 绑定：回复"绑定"获取绑定教程\n' +
             '🌤️ 天气：回复"天气"查看今日天气\n' +
@@ -239,13 +444,10 @@ router.post('/callback', async (req, res) => {
             '3️⃣ 进入"个人中心"→"绑定微信"\n' +
             '4️⃣ 扫码即可完成绑定\n\n' +
             '绑定后可以接收评论、点赞通知哦~';
-        } else if (text === '投稿' || text === '怎么投稿' || text === '发布') {
+        } else if (text === '怎么投稿') {
           replyText = '📝 投稿指南\n\n' +
-            '1️⃣ 打开 https://wall.jay23.cn\n' +
-            '2️⃣ 点击"发布"按钮\n' +
-            '3️⃣ 填写标题和内容\n' +
-            '4️⃣ 可选配图\n' +
-            '5️⃣ 提交等待审核\n\n' +
+            '方法一：直接对我说"投稿"，按提示操作就能在微信里直接发帖啦！📱\n' +
+            '方法二：打开 https://wall.jay23.cn → 点击"发布"按钮\n\n' +
             '审核通过后就能在墙上看到啦~';
         } else if (text === '点歌' || text === '怎么点歌' || text === '点歌') {
           replyText = '🎵 点歌指南\n\n' +
@@ -351,29 +553,81 @@ router.post('/callback', async (req, res) => {
           replyText = '📅 今天是' + today + '~\n\n' +
             (new Date().getDay() === 0 || new Date().getDay() === 6 ? '周末啦！好好放松一下吧~🎉' : '今天也要加油呀！💪') +
             '\n\n🌐 https://wall.jay23.cn';
+        } else if (text.length > 200) {
+          // 长消息不走 AI，避免微信 5 秒超时
+          replyText = '📝 太长了我有点看不过来😅\n' +
+            '有什么想说的可以简化一下，或者直接说"投稿"来发帖哦~\n\n' +
+            '🌐 https://wall.jay23.cn';
         } else {
-          // 未匹配关键词 → 调用 AI 智能回复（带4.5秒超时保护）
+          // 未匹配关键词 → 调用 AI 智能回复
           try {
             console.log('[WeChat] 调用AI回复,用户:', openid.substring(0, 10), '消息:', text.substring(0, 30));
-            var aiPromise = aiService.getAIReply(text, openid);
-            var timeoutPromise = new Promise(function(_, reject) {
-              setTimeout(function() { reject(new Error('AI回复超时(4.8s)')); }, 4800);
-            });
-            replyText = await Promise.race([aiPromise, timeoutPromise]);
+            replyText = await aiService.getAIReply(text, openid);
             console.log('[WeChat] AI回复成功:', replyText.substring(0, 50));
           } catch(e) {
             console.error('[WeChat] AI回复异常:', e.message);
-            replyText = '回复"帮助"查看我能做什么吧~\n🌐 https://wall.jay23.cn';
+            replyText = '不好意思，我现在有点卡卡的😅 有什么可以帮你？\n' +
+              '📝 发"投稿"可以发帖\n' +
+              '📖 发"帮助"查看所有功能\n' +
+              '🌐 https://wall.jay23.cn';
           }
         }
 
         var replyXml = buildTextReply(replyText);
         res.set('Content-Type', 'application/xml; charset=utf-8');
         return res.send(replyXml);
+        } catch (err) {
+          console.error('[WeChat] 文本处理异常:', err.message, err.stack);
+          var replyXml = buildTextReply('😅 出了点小问题 (' + err.message.substring(0, 80) + ')，再试一次？或者去 https://wall.jay23.cn 看看吧~');
+          res.set('Content-Type', 'application/xml; charset=utf-8');
+          return res.send(replyXml);
+        }
       }
 
       // ===== 图片消息 =====
       if (msgType === 'image') {
+        var mediaId = (xmlContent.match(/<MediaId><!\[CDATA\[(.*?)\]\]><\/MediaId>/) || [])[1];
+
+        // 检查是否在投稿图片步骤
+        var [imgSessions] = await pool.execute(
+          'SELECT step, images FROM wechat_submit_sessions WHERE openid = ? AND step = "awaiting_image" AND updated_at > DATE_SUB(NOW(), INTERVAL 30 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+          [openid]
+        );
+
+        if (imgSessions.length > 0 && mediaId) {
+          try {
+            var token = await wechatService.getAccessToken();
+            var imgUrl = 'https://api.weixin.qq.com/cgi-bin/media/get?access_token=' + token + '&media_id=' + mediaId;
+            var fileName = 'post_wechat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8) + '.jpg';
+            var savePath = path.join(__dirname, '..', 'public', 'uploads', 'posts', fileName);
+
+            // 下载图片
+            await new Promise(function(resolve, reject) {
+              https.get(imgUrl, function(imgRes) {
+                if (imgRes.statusCode !== 200) return reject(new Error('HTTP' + imgRes.statusCode));
+                var fileStream = fs.createWriteStream(savePath);
+                imgRes.pipe(fileStream);
+                fileStream.on('finish', function() { fileStream.close(); resolve(); });
+              }).on('error', reject);
+            });
+
+            var relativePath = '/uploads/posts/' + fileName;
+            var existing = imgSessions[0].images || '[]';
+            var imgList = JSON.parse(existing);
+            imgList.push(relativePath);
+            await pool.execute('UPDATE wechat_submit_sessions SET images = ?, updated_at = NOW() WHERE openid = ?', [JSON.stringify(imgList), openid]);
+
+            var replyXml = buildTextReply('✅ 图片已保存！已收到 ' + imgList.length + ' 张图片~\n可以继续发图，或回复"确认"完成投稿 📤');
+            res.set('Content-Type', 'application/xml; charset=utf-8');
+            return res.send(replyXml);
+          } catch (e) {
+            console.error('[WeChat] 保存图片失败:', e.message);
+            var replyXml = buildTextReply('😅 图片上传失败了，再试一次？或者回复"确认"跳过图片直接发布~');
+            res.set('Content-Type', 'application/xml; charset=utf-8');
+            return res.send(replyXml);
+          }
+        }
+
         var imgTips = [
           '这张图看起来好有意思呀！🖼️',
           '哇塞！这是谁拍的/画的？太强了！🌟',
@@ -525,8 +779,7 @@ router.get('/status', async (req, res) => {
     var token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
     if (!token) return res.json({ code: 401, message: '未登录' });
 
-    var jwt = require('jsonwebtoken');
-    var decoded = jwt.verify(token, process.env.JWT_SECRET || '114514');
+    var decoded = jwt.verify(token, JWT_SECRET);
     var [users] = await pool.execute('SELECT openid FROM users WHERE id = ?', [decoded.id]);
 
     res.json({ code: 200, data: { bound: !!users[0]?.openid } });
@@ -535,39 +788,58 @@ router.get('/status', async (req, res) => {
   }
 });
 
-// 生成绑定场景ID（订阅号适配：返回固定公众号二维码）
+// 生成绑定验证码（新老用户通用）
 router.post('/generate-bind', async (req, res) => {
   try {
     var token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.json({ code: 401, message: '未登录' });
 
-    var jwt = require('jsonwebtoken');
-    var decoded = jwt.verify(token, process.env.JWT_SECRET || '114514');
+    var decoded = jwt.verify(token, JWT_SECRET);
+    var userId = decoded.id;
 
-    // 生成唯一的场景ID（用于后续追踪）
-    var sceneId = 'bind_' + decoded.id + '_' + Date.now();
+    // 检查是否已绑定
+    var [users] = await pool.execute('SELECT openid FROM users WHERE id = ?', [userId]);
+    if (users[0]?.openid) {
+      return res.json({ code: 200, message: '已绑定', data: { bound: true } });
+    }
 
-    // 存入绑定记录（订阅号无法通过扫码追踪，但保留记录）
+    // 生成唯一验证码 bind_ + 4位随机数
+    var bindCode = 'BIND' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    var sceneId = 'bind_' + userId + '_' + Date.now();
+
     await pool.execute(
-      'INSERT INTO wechat_bindings (user_id, scene_id, created_at) VALUES (?, ?, NOW())',
-      [decoded.id, sceneId]
+      'INSERT INTO wechat_bindings (user_id, scene_id, bind_code, created_at) VALUES (?, ?, ?, NOW())',
+      [userId, sceneId, bindCode]
     );
 
-    // 订阅号返回固定的公众号二维码
     var wechatService = require('../services/wechat');
     var qrCodeUrl = wechatService.generateQRCode();
 
-    res.json({ 
-      code: 200, 
-      message: '请扫描下方二维码关注公众号，关注后系统将自动绑定（订阅号无法追踪扫码状态，请手动刷新页面确认）',
+    res.json({
+      code: 200,
       data: {
         qrCodeUrl: qrCodeUrl,
-        sceneId: sceneId
+        sceneId: sceneId,
+        bindCode: bindCode
       }
     });
   } catch (err) {
-    console.error('[WeChat] 生成绑定失败:', err.message);
+    console.error('[WeChat] 生成绑定验证码失败:', err.message);
     res.json({ code: 500, message: '生成失败' });
+  }
+});
+
+// 检查绑定状态（供前端轮询）
+router.get('/status', async (req, res) => {
+  try {
+    var token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.json({ code: 401, message: '未登录' });
+    var decoded = jwt.verify(token, JWT_SECRET);
+    var [users] = await pool.execute('SELECT openid FROM users WHERE id = ?', [decoded.id]);
+    var bound = !!users[0]?.openid;
+    res.json({ code: 200, data: { bound: bound } });
+  } catch (err) {
+    res.json({ code: 500, message: '查询失败' });
   }
 });
 
@@ -576,8 +848,7 @@ router.post('/unbind', async (req, res) => {
   try {
     var token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.json({ code: 401, message: '未登录' });
-    var jwt = require('jsonwebtoken');
-    var decoded = jwt.verify(token, process.env.JWT_SECRET || '114514');
+    var decoded = jwt.verify(token, JWT_SECRET);
     await pool.execute('UPDATE users SET openid = NULL WHERE id = ?', [decoded.id]);
     res.json({ code: 200, message: '已解绑' });
   } catch (err) {
@@ -585,55 +856,17 @@ router.post('/unbind', async (req, res) => {
   }
 });
 
-// 订阅号手动验证：用户关注后点击"我已关注"完成绑定
+// 检查绑定状态（兼容旧接口名）
 router.post('/verify-follow', async (req, res) => {
   try {
     var token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.json({ code: 401, message: '未登录' });
-
-    var jwt = require('jsonwebtoken');
-    var decoded = jwt.verify(token, process.env.JWT_SECRET || '114514');
-    var userId = decoded.id;
-
-    // 检查用户是否已绑定
-    var [users] = await pool.execute('SELECT openid FROM users WHERE id = ?', [userId]);
-    if (users[0]?.openid) {
-      return res.json({ code: 200, message: '已绑定', bound: true });
-    }
-
-    // 查找最近的关注记录（2分钟内）
-    var [follows] = await pool.execute(
-      'SELECT openid FROM wechat_pending_follows WHERE created_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE) ORDER BY created_at DESC LIMIT 1'
-    );
-
-    if (follows.length === 0) {
-      return res.json({ code: 400, message: '未检测到新的关注，请确认已关注公众号后重试', bound: false });
-    }
-
-    var openid = follows[0].openid;
-
-    // 检查这个openid是否已被其他用户绑定
-    var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
-    if (boundUsers.length > 0 && boundUsers[0].id !== userId) {
-      return res.json({ code: 400, message: '该微信已被其他账号绑定', bound: false });
-    }
-
-    // 绑定到当前用户
-    await pool.execute('UPDATE users SET openid = ? WHERE id = ?', [openid, userId]);
-
-    // 清理已使用的待绑定记录
-    await pool.execute('DELETE FROM wechat_pending_follows WHERE openid = ?', [openid]);
-
-    // 更新bindings表
-    await pool.execute(
-      'UPDATE wechat_bindings SET openid = ?, used = 1, bound_at = NOW() WHERE user_id = ?',
-      [openid, userId]
-    );
-
-    res.json({ code: 200, message: '绑定成功', bound: true });
+    var decoded = jwt.verify(token, JWT_SECRET);
+    var [users] = await pool.execute('SELECT openid FROM users WHERE id = ?', [decoded.id]);
+    var bound = !!users[0]?.openid;
+    res.json({ code: 200, message: bound ? '已绑定' : '未绑定', bound: bound });
   } catch (err) {
-    console.error('[WeChat] 验证绑定失败:', err.message);
-    res.json({ code: 500, message: '验证失败，请重试' });
+    res.json({ code: 500, message: '查询失败' });
   }
 });
 

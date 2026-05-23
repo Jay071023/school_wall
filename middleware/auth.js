@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
+const JWT_SECRET = require('../config/jwt-secret');
 
 const ROLES = {
   user: 0,
@@ -19,8 +20,8 @@ const ROLE_NAMES = {
 
 const ROLE_PERMISSIONS = {
   user: [],
-  reviewer: ['posts:review', 'posts:delete'],
-  radio_admin: ['songs:review', 'songs:delete', 'slots:manage'],
+  reviewer: ['posts:review', 'posts:delete', 'stats:view'],
+  radio_admin: ['songs:review', 'songs:delete', 'slots:manage', 'stats:view'],
   admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view'],
   super_admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'stats:view', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage']
 };
@@ -31,7 +32,7 @@ const auth = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({ code: 401, message: '请先登录' });
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || null);
+    const decoded = jwt.verify(token, JWT_SECRET);
     const [users] = await pool.execute('SELECT id, username, nickname, avatar, role, status FROM users WHERE id = ?', [decoded.id]);
     if (users.length === 0) {
       return res.status(401).json({ code: 401, message: '用户不存在' });
@@ -52,7 +53,7 @@ const optionalAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || null);
+      const decoded = jwt.verify(token, JWT_SECRET);
       const [users] = await pool.execute('SELECT id, username, nickname, avatar, role, status FROM users WHERE id = ?', [decoded.id]);
       if (users.length > 0 && users[0].status === 1) {
         req.user = users[0];

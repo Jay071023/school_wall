@@ -4,6 +4,7 @@ const https = require('https');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
+const compression = require('compression');
 // 先加载 .env（基础配置），再加载 .env.local（本地覆盖，含敏感信息）
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '.env.local'), override: true });
@@ -11,9 +12,11 @@ require('dotenv').config({ path: path.join(__dirname, '.env.local'), override: t
 // 全局异常保护，防止未捕获错误导致服务崩溃
 process.on('uncaughtException', function(err) {
   console.error('未捕获异常:', err.message);
+  process.exit(1);
 });
 process.on('unhandledRejection', function(err) {
   console.error('未处理Promise拒绝:', err && err.message || err);
+  process.exit(1);
 });
 
 const { pool, initDB } = require('./config/database');
@@ -22,11 +25,24 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中间件
+app.use(compression()); // 响应压缩
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// 安全头
+app.use(function(req, res, next) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
     // CSS/JS 不缓存，开发时每次都是最新的
@@ -74,7 +90,8 @@ app.get('/api/site-info', async (req, res) => {
         site_description: settings.site_description || '',
         anon_post: settings.anon_post === 'true',
         anon_comment: settings.anon_comment === 'true',
-        anon_song: settings.anon_song === 'true'
+        anon_song: settings.anon_song === 'true',
+        special_mode_520: settings.special_mode_520 === 'true'
       }
     });
   } catch (err) {

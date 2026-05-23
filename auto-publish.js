@@ -387,9 +387,10 @@ function buildStoryArticleHTML(storyData, weather, hitokoto, dateInfo, weeklySta
   for (var pi = 0; pi < paragraphs.length; pi++) {
     var para = paragraphs[pi].trim();
     if (!para) continue;
-    // 检测是否为对话（含冒号和引号）
-    if (para.includes('"') || para.includes('"') || para.includes('"')) {
-      html += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + escapeHtml(para) + '</p>';
+    // 检测是否为对话（含引号）
+    var isDialogue = para.includes('"') || para.includes('"') || para.includes('"');
+    if (isDialogue) {
+      html += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#6B4C3B;margin-top:0;letter-spacing:0.5px;background:#FFFBF8;padding:8px 14px;border-radius:8px;border-left:3px solid #FFD4B8;">' + escapeHtml(para) + '</p>';
     } else {
       html += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + escapeHtml(para) + '</p>';
     }

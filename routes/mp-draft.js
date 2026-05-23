@@ -249,7 +249,7 @@ function autoFormatContent(text) {
   }
 
   return blocks.filter(function(b) { return b.trim(); }).map(function(b) {
-    return '<p style="text-indent:2em;line-height:2;margin-bottom:16px;font-size:15px;color:#555;margin-top:0;">' + b.trim() + '</p>';
+    return '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + b.trim() + '</p>';
   }).join('\n');
 }
 
@@ -264,36 +264,51 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   html += '<div style="padding:6px 0;">';
 
   // ===== 头部 =====
-  html += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#FFF0F5;padding:22px 16px 18px;text-align:center;">';
-  html += '<div style="color:#FF69B4;font-size:24px;font-weight:bold;letter-spacing:2px;">🌸 今日校园精选</div>';
-  html += '<div style="color:#bbb;font-size:13px;margin-top:8px;">' + today + ' ' + week + '</div>';
-  html += '<div style="width:40px;height:3px;background:#FFB6C1;margin:14px auto 0;"></div>';
+  html += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
+  html += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 今日校园精选</div>';
+  html += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">🌸 今日校园精选</div>';
+  html += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + '</div>';
+  html += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
   html += '</td></tr></table>';
+
+  // ===== 阅读信息 =====
+  var totalChars = 0;
+  for (var pc = 0; pc < posts.length; pc++) {
+    totalChars += (posts[pc].content || '').replace(/\s/g, '').length;
+  }
+  var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFFFF0;padding:12px;border-radius:10px;">';
+  html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+  html += '<td style="text-align:center;width:50%;padding:4px;border-right:1px dashed #E8D5B5;">';
+  html += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div>';
+  html += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">' + totalChars.toLocaleString() + ' 字</div>';
+  html += '</td>';
+  html += '<td style="text-align:center;width:50%;padding:4px;">';
+  html += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div>';
+  html += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">约 ' + readMinutes + ' 分钟</div>';
+  html += '</td>';
+  html += '</tr></table></td></tr></table>';
 
   // ===== 天气卡片 =====
   if (weather && weather.temperature) {
-    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#E0F0FF;padding:16px;">';
-    // 标题栏
-    html += '<div style="font-size:13px;color:#999;margin-bottom:8px;">🌤️ 天气预报 · ' + (weather.city || '') + '</div>';
-    // 今天 + 明天并排
+    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:linear-gradient(135deg,#E8F4FD,#E0F0FF);padding:16px;">';
+    html += '<div style="font-size:13px;color:#888;margin-bottom:10px;font-weight:500;">🌤️ ' + (weather.city || '') + ' 天气预报</div>';
     html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
-    // 今天
-    html += '<td style="width:50%;text-align:center;padding:6px;border-right:1px dashed #B0D4F1;">';
-    html += '<div style="font-size:12px;color:#888;margin-bottom:4px;">今日</div>';
-    html += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
-    html += '<div style="font-size:13px;color:#555;margin-top:4px;">' + (weather.weather || '') + '</div>';
-    html += '<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">💨 ' + (weather.wind || '') + '<br>💧 ' + (weather.humidity || '') + '</div>';
+    html += '<td style="width:50%;text-align:center;padding:4px;border-right:1px dashed #B0D4F1;">';
+    html += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">今日</div>';
+    html += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
+    html += '<div style="font-size:12px;color:#666;margin-top:2px;">' + (weather.weather || '') + '</div>';
+    html += '<div style="font-size:11px;color:#999;margin-top:4px;">💨 ' + (weather.wind || '') + ' 💧 ' + (weather.humidity || '') + '</div>';
     html += '</td>';
-    // 明天
     if (weather.tomorrow) {
-      html += '<td style="width:50%;text-align:center;padding:6px;">';
-      html += '<div style="font-size:12px;color:#888;margin-bottom:4px;">' + (weather.tomorrow.week || '明日') + '</div>';
-      html += '<div style="font-size:22px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '🌤') + ' ' + (weather.tomorrow.tempRange || '') + '</div>';
-      html += '<div style="font-size:13px;color:#555;margin-top:4px;">' + (weather.tomorrow.weather || '') + '</div>';
-      html += '<div style="font-size:12px;color:#999;margin-top:4px;">📍 预报</div>';
+      html += '<td style="width:50%;text-align:center;padding:4px;">';
+      html += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">' + (weather.tomorrow.week || '周五') + '</div>';
+      html += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '☀️') + ' ' + (weather.tomorrow.tempRange || '') + '</div>';
+      html += '<div style="font-size:12px;color:#666;margin-top:2px;">' + (weather.tomorrow.weather || '') + '</div>';
+      html += '<div style="font-size:11px;color:#999;margin-top:4px;">📍 预报</div>';
       html += '</td>';
     } else {
-      html += '<td style="width:50%;text-align:center;padding:6px;color:#ccc;font-size:13px;">🌤️ 暂无预报</td>';
+      html += '<td style="width:50%;text-align:center;padding:4px;color:#ccc;font-size:13px;">🌤️ 暂无预报</td>';
     }
     html += '</tr></table>';
     html += '</td></tr></table>';
@@ -301,9 +316,9 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
 
   // ===== 一言卡片 =====
   if (hitokoto && hitokoto.text) {
-    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #FFB6C1;">';
-    html += '<p style="font-size:15px;color:#666;margin:0 0 8px 0;line-height:1.9;font-style:italic;">💕 "' + hitokoto.text + '"</p>';
-    html += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + (hitokoto.from_who || hitokoto.from || '') + '</p>';
+    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #A78BFA;">';
+    html += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + escapeHtml(hitokoto.text) + '"</p>';
+    html += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + escapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p>';
     html += '</td></tr></table>';
   }
 
@@ -331,9 +346,12 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
 
   // ===== 历史的今天 =====
   if (todayHistory && todayHistory.title) {
+    var htParts = (todayHistory.title || '').split(' ');
+    var datePart = htParts.length > 1 ? htParts[0] : '';
+    var eventPart = htParts.length > 1 ? htParts.slice(1).join(' ') : todayHistory.title;
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#F8F0FF;padding:12px 14px;">';
     html += '<div style="font-size:13px;color:#999;margin-bottom:5px;">📜 历史上的今天</div>';
-    html += '<div style="font-size:14px;color:#666;line-height:1.7;">' + todayHistory.title + '</div>';
+    html += '<div style="font-size:14px;color:#666;line-height:1.7;">' + (datePart ? '<span class="history-date">' + escapeHtml(datePart) + '</span> ' : '') + '<span class="history-event">' + escapeHtml(eventPart) + '</span></div>';
     html += '</td></tr></table>';
   }
 
@@ -376,7 +394,7 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   }
 
   // ===== 分割线 =====
-  html += '<div style="text-align:center;margin:22px 0;color:#e8e8e8;font-size:14px;">✨&nbsp;&nbsp;💕&nbsp;&nbsp;✨</div>';
+  html += '<div style="text-align:center;margin:18px 0;color:#e8e8e8;font-size:14px;">❀&nbsp;&nbsp;❁&nbsp;&nbsp;❀</div>';
 
   // ===== 帖子卡片 =====
   posts.forEach((p, i) => {
@@ -421,19 +439,18 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
 
   // ===== 尾部 =====
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
-  html += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🎉 更多校园精彩</div>';
-  html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
+  html += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 校园故事站</div>';
+  html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
   html += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
   html += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-  html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
+  html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
   html += '</td></tr></table>';
   html += '</td></tr></table>';
-  html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
+  html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
   html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
   html += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
   html += '</td></tr></table>';
-
-  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' 嘉二校园墙 · 💕</p>';
+  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 嘉二校园墙 ❀ ❀</p>';
   html += '</div>';
 
   return html;
@@ -581,10 +598,17 @@ router.post('/generate-content', async (req, res) => {
         const safeContent = (post.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         const safeTitle = (post.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         const safeAuthor = (post.author || '匿名').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var postChars = (post.content || '').replace(/\s/g, '').length;
+        var postReadMin = Math.max(1, Math.ceil(postChars / 300));
+        var readingCard = '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="background:#FFFFF0;padding:10px;border-radius:10px;"><table width="100%" cellpadding="0" cellspacing="0"><tr>' +
+          '<td style="text-align:center;width:50%;padding:4px;border-right:1px dashed #E8D5B5;"><div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div><div style="font-size:15px;font-weight:bold;color:#D4876A;">' + postChars.toLocaleString() + ' 字</div></td>' +
+          '<td style="text-align:center;width:50%;padding:4px;"><div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div><div style="font-size:15px;font-weight:bold;color:#D4876A;">约 ' + postReadMin + ' 分钟</div></td>' +
+          '</tr></table></td></tr></table>';
         const contentHtml = `
           <section style="padding: 20px; font-family: -apple-system, sans-serif;">
             <h2 style="color: #667eea; font-size: 22px;">${safeTitle}</h2>
             ${coverImg}
+            ${readingCard}
             ${autoFormatContent(safeContent)}
             <section style="margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; color: #999;">
               <span>👤 ${safeAuthor}</span>

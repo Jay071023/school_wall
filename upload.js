@@ -53,6 +53,8 @@ const ALL_FILES = [
     'services/ai.js',
     'routes/mp-draft.js',
     'public/js/detail.js',
+    'public/js/detail-replies.js',
+    'public/js/detail-emojis.js',
     'public/js/user-card.js',
     'public/js/home.js',
     'public/js/profile.js',
@@ -61,8 +63,14 @@ const ALL_FILES = [
     'public/js/messages.js',
     'public/css/user-card.css',
     'public/css/reservation.css',
+    'public/css/520.css',
     'public/css/style.css',
     'public/css/mobile-fix.css',
+    'public/css/variables.css',
+    'public/css/base.css',
+    'public/css/animations.css',
+    'public/css/responsive.css',
+    'public/css/performance.css',
     'public/css/messages.css',
     'public/sitemap.xml',
     'public/robots.txt',
@@ -80,14 +88,8 @@ const ALL_FILES = [
     'views/admin/index.html',
     'views/admin/mp-draft.html',
     'auto-publish.js',
-    'config/stories.json',
-    'config/auto-publish.json',
-    'config/stories/index.json',
-    'config/stories/0.json',
-    'config/stories/1.json',
-    'config/stories/2.json',
-    'config/stories/3.json',
-    'config/stories/4.json'
+    'config/novels.json',
+    'config/auto-publish.json'
 ];
 
 // 增量上传：只上传最近修改的文件（默认最近1小时内修改的）

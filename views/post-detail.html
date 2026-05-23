@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>嘉二の墙墙 - 帖子详情</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/user-card.css?v=2026050527">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -58,11 +62,35 @@
     <!-- 评论区 -->
     <div class="comment-section">
       <h3 class="comment-title">评论 <span class="comment-count" id="commentCount">0</span></h3>
+      <!-- 评论排序 -->
+      <div class="comment-sort-bar" id="commentSortBar" style="display:none;">
+        <span class="sort-label">排序：</span>
+        <button class="sort-btn active" data-sort="latest" onclick="switchCommentSort('latest')">最新</button>
+        <button class="sort-btn" data-sort="hot" onclick="switchCommentSort('hot')">最热</button>
+      </div>
       <div class="comment-input-wrapper">
+        <!-- 回复目标提示 -->
+        <div class="reply-target" id="replyTarget" style="display:none;">
+          <span class="reply-target-text"></span>
+          <button class="reply-cancel" onclick="cancelReply()">取消回复</button>
+        </div>
         <div class="comment-input-area">
           <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..." rows="3"></textarea>
+          <!-- 艾特下拉列表 -->
+          <div class="mention-dropdown" id="mentionDropdown" style="display:none;">
+            <div class="mention-loading" id="mentionLoading" style="display:none;">搜索中...</div>
+            <div class="mention-list" id="mentionList"></div>
+          </div>
+          <!-- 表情选择器 -->
+          <div class="emoji-picker" id="emojiPicker" style="display:none;">
+            <div class="emoji-grid" id="emojiGrid"></div>
+          </div>
         </div>
         <div class="comment-input-footer">
+          <div class="comment-tools">
+            <button class="tool-btn" id="btnEmoji" title="表情">😀</button>
+            <button class="tool-btn" id="btnMention" title="艾特用户" onclick="showMentionPicker()">@</button>
+          </div>
           <div class="anonymous-toggle" id="commentAnonymousOption" style="display: none;">
             <span>匿名</span>
             <label class="toggle-switch-sm">
@@ -80,7 +108,9 @@
 
   <script src="/js/app.js"></script>
   <script src="/js/user-card.js?v=2026050527"></script>
-  <script src="/js/detail.js?v=99997"></script>  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script src="/js/detail.js?v=99997"></script>
+  <script src="/js/detail-replies.js"></script>
+  <script src="/js/detail-emojis.js"></script>  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
     (function() {
       var defaultSiteName = '嘉二の墙墙';
@@ -106,6 +136,16 @@
         document.title = siteName + ' - 帖子详情';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
       }
     })();
   </script>

@@ -1,13 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const { pool } = require('../config/database');
 const { auth } = require('../middleware/auth');
+const JWT_SECRET = require('../config/jwt-secret');
 const router = express.Router();
 
-// 验证码存储（内存中）
+// 验证码存储（内存中，带上限）
 const captchaStore = new Map();
+const MAX_CAPTCHA_ENTRIES = 1000;
+setInterval(() => {
+  if (captchaStore.size > MAX_CAPTCHA_ENTRIES) {
+    const keys = [...captchaStore.keys()].slice(0, captchaStore.size - MAX_CAPTCHA_ENTRIES);
+    keys.forEach(k => captchaStore.delete(k));
+  }
+}, 60000);
 
 // 注册频率限制（内存中）
 const registerRateLimit = new Map();
@@ -159,7 +166,7 @@ router.post('/register', async (req, res) => {
       [username, hashedPassword, nickname, email || null]
     );
 
-    const token = jwt.sign({ id: result.insertId }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '7d' });
+    const token = jwt.sign({ id: result.insertId }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
       code: 200,
       message: '注册成功',
@@ -171,53 +178,240 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// 生成微信注册验证码
+router.post('/generate-reg-code', async (req, res) => {
+  try {
+    const { username, password, nickname, email } = req.body;
+    if (!username || !password || !nickname) {
+      return res.json({ code: 400, message: '请填写完整信息' });
+    }
+
+    const regCode = 'REG' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    await pool.execute(
+      'INSERT INTO wechat_reg_codes (code, form_data, created_at) VALUES (?, ?, NOW())',
+      [regCode, JSON.stringify({ username, password, nickname, email })]
+    );
+
+    res.json({ code: 200, data: { regCode } });
+  } catch (err) {
+    console.error('生成注册验证码失败:', err);
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 检查微信注册验证码并注册
+router.post('/register-wechat', async (req, res) => {
+  try {
+    const { regCode } = req.body;
+    if (!regCode) {
+      return res.json({ code: 400, message: '缺少验证码' });
+    }
+
+    const [codes] = await pool.execute(
+      'SELECT * FROM wechat_reg_codes WHERE code = ? AND verified = 1 AND used = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1',
+      [regCode]
+    );
+
+    if (codes.length === 0) {
+      return res.json({ code: 400, message: '验证码未验证或已过期，请先在微信公众号发送验证码' });
+    }
+
+    const record = codes[0];
+    const formData = JSON.parse(record.form_data);
+    const { username, password, nickname, email } = formData;
+    const openid = record.openid;
+
+    const [existing] = await pool.execute('SELECT id FROM users WHERE username = ?', [username]);
+    if (existing.length > 0) {
+      return res.json({ code: 400, message: '用户名已存在' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [result] = await pool.execute(
+      'INSERT INTO users (username, password, nickname, email, openid, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [username, hashedPassword, nickname, email || null, openid]
+    );
+
+    await pool.execute('UPDATE wechat_reg_codes SET used = 1 WHERE id = ?', [record.id]);
+
+    const token = jwt.sign({ id: result.insertId }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      code: 200,
+      message: '注册成功',
+      data: { token, user: { id: result.insertId, username, nickname, email: email || null, avatar: '/uploads/avatars/default.png', role: 'user', created_at: new Date().toISOString() } }
+    });
+  } catch (err) {
+    console.error('微信注册错误:', err);
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 检查微信注册验证码状态
+router.post('/check-reg-code-status', async (req, res) => {
+  try {
+    const { regCode } = req.body;
+    if (!regCode) return res.json({ code: 400, data: { verified: false } });
+
+    const [codes] = await pool.execute(
+      'SELECT verified, used FROM wechat_reg_codes WHERE code = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1',
+      [regCode]
+    );
+
+    if (codes.length === 0) {
+      return res.json({ code: 200, data: { verified: false, expired: true } });
+    }
+
+    res.json({ code: 200, data: { verified: !!codes[0].verified, expired: false } });
+  } catch (err) {
+    console.error('检查注册验证码状态失败:', err);
+    res.json({ code: 500, data: { verified: false } });
+  }
+});
+
+// 检查登录频率限制
+async function checkLoginRateLimit(ip, username) {
+  // 同一IP 15分钟内失败5次则限制
+  var [ipAttempts] = await pool.execute(
+    'SELECT COUNT(*) as cnt FROM login_attempts WHERE ip = ? AND success = 0 AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)',
+    [ip]
+  );
+  if (ipAttempts[0].cnt >= 5) {
+    return { blocked: true, reason: 'IP登录尝试过多，请15分钟后再试', needCaptcha: false };
+  }
+
+  // 同一账号 15分钟内失败5次则限制
+  var [userAttempts] = await pool.execute(
+    'SELECT COUNT(*) as cnt FROM login_attempts WHERE username = ? AND success = 0 AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)',
+    [username]
+  );
+  if (userAttempts[0].cnt >= 5) {
+    return { blocked: true, reason: '该账号登录尝试过多，已临时锁定15分钟', needCaptcha: false };
+  }
+
+  // 超过3次失败，下次登录需要验证码
+  var [failCount] = await pool.execute(
+    'SELECT COUNT(*) as cnt FROM login_attempts WHERE (ip = ? OR username = ?) AND success = 0 AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)',
+    [ip, username]
+  );
+  return { blocked: false, needCaptcha: failCount[0].cnt >= 3 };
+}
+
+async function recordLoginAttempt(ip, username, success) {
+  try {
+    await pool.execute(
+      'INSERT INTO login_attempts (ip, username, success, created_at) VALUES (?, ?, ?, NOW())',
+      [ip, username, success ? 1 : 0]
+    );
+  } catch (e) {}
+}
+
+// 获取登录状态（前端判断是否需要验证码）
+router.get('/login-status', async (req, res) => {
+  try {
+    const clientIp = (req.headers['x-forwarded-for'] || req.ip || '').replace(/^::ffff:/, '');
+    var ipAttempts = 0, userAttempts = 0;
+    try {
+      var [r1] = await pool.execute(
+        'SELECT COUNT(*) as cnt FROM login_attempts WHERE ip = ? AND success = 0 AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)', [clientIp]
+      );
+      ipAttempts = r1[0].cnt;
+    } catch(e) {}
+    res.json({
+      code: 200,
+      data: {
+        needCaptcha: ipAttempts >= 3,
+        attempts: ipAttempts
+      }
+    });
+  } catch (e) {
+    res.json({ code: 200, data: { needCaptcha: false, attempts: 0 } });
+  }
+});
+
 // 登录
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const clientIp = (req.headers['x-forwarded-for'] || req.ip || '').replace(/^::ffff:/, '');
+    const { username, password, captchaKey, captchaCode } = req.body;
+    
     if (!username || !password) {
       return res.json({ code: 400, message: '请填写用户名和密码' });
     }
 
+    // 检查频率限制
+    var limit = await checkLoginRateLimit(clientIp, username);
+    if (limit.blocked) {
+      return res.json({ code: 429, message: limit.reason });
+    }
+
+    // 如果需要验证码但没传或错误
+    if (limit.needCaptcha) {
+      if (!captchaKey || !captchaCode) {
+        return res.json({ code: 400, message: '请填写验证码', needCaptcha: true });
+      }
+      if (!verifyCaptcha(captchaKey, captchaCode)) {
+        return res.json({ code: 400, message: '验证码错误', needCaptcha: true });
+      }
+    }
+
     const [users] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
     if (users.length === 0) {
+      await recordLoginAttempt(clientIp, username, false);
       return res.json({ code: 400, message: '用户名或密码错误' });
     }
 
     const user = users[0];
     if (user.status === 0) {
+      await recordLoginAttempt(clientIp, username, false);
       return res.json({ code: 403, message: '账号已被禁用' });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
+      await recordLoginAttempt(clientIp, username, false);
       return res.json({ code: 400, message: '用户名或密码错误' });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '7d' });
-    
-    // 异步记录登录时间和IP归属地
+    // 登录成功，记录
+    await recordLoginAttempt(clientIp, username, true);
+
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+
+    // IP归属地查询
     try {
       const { getClientIp, getIpRegion } = require('../services/ip-lookup');
-      const clientIp = getClientIp(req);
-      const cleanIp = clientIp.replace(/^::ffff:/, '');
-      // 异步查询不阻塞登录
+      const cleanIp = getClientIp(req).replace(/^::ffff:/, '');
       getIpRegion(cleanIp).then(function(region) {
         pool.execute(
           'UPDATE users SET last_login_at = NOW(), last_login_ip = ?, last_login_region = ? WHERE id = ?',
           [cleanIp, region || cleanIp, user.id]
         ).catch(function() {});
       });
-    } catch (e) {
-      // IP查询失败不阻塞登录
-    }
-    
-    res.cookie('token', token, {
+    } catch (e) {}
+
+    var cookieOpts = {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: 'lax',
       path: '/'
-    });
+    };
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      cookieOpts.secure = true;
+    }
+    res.cookie('token', token, cookieOpts);
+
+    // 如果是管理员登录且IP不同，记录日志
+    if (['admin', 'super_admin', 'reviewer'].includes(user.role)) {
+      try {
+        var [lastLog] = await pool.execute(
+          'SELECT last_login_ip, last_login_region FROM users WHERE id = ?', [user.id]
+        );
+        if (lastLog[0] && lastLog[0].last_login_ip && lastLog[0].last_login_ip !== cleanIp) {
+          console.log('[安全] 管理员 ' + user.username + ' 从新IP登录: ' + cleanIp);
+        }
+      } catch(e) {}
+    }
+
     res.json({
       code: 200,
       message: '登录成功',

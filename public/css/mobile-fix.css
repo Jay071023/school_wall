@@ -1227,6 +1227,36 @@
     textarea,
     select {
         -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    /* 表情选择器移动端适配 */
+    .emoji-picker {
+        position: fixed !important;
+        bottom: 80px !important;
+        top: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%);
+        width: calc(100vw - 40px) !important;
+        max-width: 360px;
+        max-height: 45vh;
+        z-index: 1000 !important;
+    }
+
+    .emoji-grid {
+        grid-template-columns: repeat(7, 1fr) !important;
+    }
+
+    .emoji-item {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.6rem !important;
+    }
+
+    .comment-input-wrapper {
+        padding-bottom: 8px;
+    }
         appearance: none;
     }
     

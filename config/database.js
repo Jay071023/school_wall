@@ -58,26 +58,26 @@ async function initDB() {
     // 为已有 users 表添加登录追踪字段（忽略已存在的错误）
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP NULL COMMENT \'上次登录时间\' AFTER updated_at');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN last_login_ip VARCHAR(45) DEFAULT \'\' COMMENT \'上次登录IP\' AFTER last_login_at');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN last_login_region VARCHAR(100) DEFAULT \'\' COMMENT \'上次登录IP归属地\' AFTER last_login_ip');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     // 用户资料扩展字段（编辑资料功能）
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN birthday DATE NULL COMMENT \'生日\' AFTER last_login_region');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN mbti VARCHAR(10) DEFAULT \'\' COMMENT \'MBTI性格\' AFTER birthday');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN gender VARCHAR(10) DEFAULT \'\' COMMENT \'性别\' AFTER mbti');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN hobbies VARCHAR(500) DEFAULT \'\' COMMENT \'兴趣爱好\' AFTER gender');
-    } catch (e) {}
+    } catch (e) { console.error('[DB迁移]', e.message); }
 
     // 帖子表
     await connection.execute(`
@@ -121,6 +121,70 @@ async function initDB() {
     } catch (err) {
       // 字段可能已存在，忽略错误
     }
+
+    // 评论点赞表
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS comment_likes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        comment_id INT NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_comment_like (comment_id, user_id),
+        FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // 检查并添加评论点赞数字段（如果不存在）
+    try {
+      await connection.execute('ALTER TABLE comments ADD COLUMN likes_count INT DEFAULT 0 AFTER is_anonymous');
+    } catch (err) {
+      // 字段可能已存在，忽略错误
+    }
+
+    // 评论回复表
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS comment_replies (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        comment_id INT NOT NULL,
+        user_id INT NOT NULL,
+        content TEXT NOT NULL,
+        is_anonymous TINYINT DEFAULT 0,
+        ip_address VARCHAR(50),
+        ip_region VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+
+    // 检查并添加评论回复的IP字段（如果不存在）
+    try {
+      await connection.execute('ALTER TABLE comment_replies ADD COLUMN ip_address VARCHAR(50) AFTER is_anonymous');
+      await connection.execute('ALTER TABLE comment_replies ADD COLUMN ip_region VARCHAR(100) AFTER ip_address');
+    } catch (err) {
+      // 字段可能已存在，忽略错误
+    }
+
+    // 检查并添加评论回复的点赞数字段
+    try {
+      await connection.execute('ALTER TABLE comment_replies ADD COLUMN likes_count INT DEFAULT 0 AFTER is_anonymous');
+    } catch (err) {
+      // 字段可能已存在，忽略错误
+    }
+
+    // 回复点赞表
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS comment_reply_likes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        reply_id INT NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_reply_like (reply_id, user_id),
+        FOREIGN KEY (reply_id) REFERENCES comment_replies(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
 
     // 点赞表
     await connection.execute(`
@@ -475,6 +539,50 @@ async function initDB() {
     } catch (e) {
       if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
     }
+    // 兼容旧表缺少 bind_code 列
+    try { await connection.execute("SELECT bind_code FROM wechat_bindings LIMIT 0"); } catch (e) {
+      try { await connection.execute('ALTER TABLE wechat_bindings ADD COLUMN bind_code VARCHAR(20) DEFAULT NULL COMMENT \'验证码\' AFTER scene_id'); } catch (e2) { if (e2.code !== 'ER_DUP_FIELDNAME') throw e2; }
+    }
+
+    // 登录失败记录表（防暴力破解）
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS login_attempts (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          ip VARCHAR(45) NOT NULL COMMENT '登录IP',
+          username VARCHAR(50) NOT NULL COMMENT '尝试的用户名',
+          success TINYINT(1) DEFAULT 0 COMMENT '是否成功',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_ip (ip),
+          INDEX idx_username (username),
+          INDEX idx_created (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录尝试记录'
+      `);
+      console.log('✅ login_attempts 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+
+    // 微信注册验证码表（注册流程用）
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS wechat_reg_codes (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          code VARCHAR(20) NOT NULL COMMENT '验证码 REG_ 开头',
+          openid VARCHAR(64) DEFAULT NULL COMMENT '验证用户的微信openid',
+          form_data JSON COMMENT '注册表单数据',
+          verified TINYINT(1) DEFAULT 0 COMMENT '是否已验证（用户在微信发送了code）',
+          used TINYINT(1) DEFAULT 0 COMMENT '是否已用于注册',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          verified_at TIMESTAMP NULL COMMENT '微信验证时间',
+          INDEX idx_code (code),
+          INDEX idx_verified (verified)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信注册验证码'
+      `);
+      console.log('✅ wechat_reg_codes 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
 
     // 微信待关注队列（订阅号手动验证用）
     try {
@@ -508,6 +616,34 @@ async function initDB() {
     } catch (e) {
       if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
     }
+
+    // 微信投稿会话表
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS wechat_submit_sessions (
+          openid VARCHAR(64) PRIMARY KEY COMMENT '微信用户openid',
+          step VARCHAR(30) DEFAULT 'idle' COMMENT '状态: idle/awaiting_title/awaiting_content/awaiting_polish_choice/awaiting_polish/awaiting_image',
+          title VARCHAR(200) COMMENT '投稿标题',
+          content TEXT COMMENT '投稿内容（用户原文）',
+          polished_content TEXT COMMENT 'AI润色后的内容',
+          images TEXT COMMENT 'JSON数组: 已上传图片路径',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信投稿会话状态'
+      `);
+      console.log('✅ wechat_submit_sessions 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+    // 兼容旧表缺少 polished_content / images 列
+    try { await connection.execute("SELECT polished_content FROM wechat_submit_sessions LIMIT 0"); } catch (e) {
+      try { await connection.execute('ALTER TABLE wechat_submit_sessions ADD COLUMN polished_content TEXT COMMENT \'AI润色后的内容\' AFTER content'); } catch (e2) { if (e2.code !== 'ER_DUP_FIELDNAME') throw e2; }
+    }
+    try { await connection.execute("SELECT images FROM wechat_submit_sessions LIMIT 0"); } catch (e) {
+      try { await connection.execute('ALTER TABLE wechat_submit_sessions ADD COLUMN images TEXT COMMENT \'JSON数组: 已上传图片路径\' AFTER polished_content'); } catch (e2) { if (e2.code !== 'ER_DUP_FIELDNAME') throw e2; }
+    }
+    // 兼容旧表 step 列长度不足（需要 VARCHAR 30 以容纳 awaiting_polish_choice）
+    try { await connection.execute('ALTER TABLE wechat_submit_sessions MODIFY COLUMN step VARCHAR(30) DEFAULT \'idle\' COMMENT \'状态: idle/awaiting_title/awaiting_content/awaiting_polish_choice/awaiting_polish/awaiting_image\''); } catch (e) { console.error('[DB迁移]', e.message); }
 
     // 私信会话表
     try {

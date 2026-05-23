@@ -202,6 +202,79 @@ function escapeHtml(str) {
 }
 
 /**
+ * 转换内容中的链接（自动识别并添加风险提示）
+ * @param {string} content - 原始内容
+ * @param {string} currentHost - 当前网站域名
+ */
+function convertContentWithLinks(content, currentHost) {
+  if (!content) return '';
+  var escaped = escapeHtml(content).replace(/\n/g, '<br>');
+  var myHost = currentHost || window.location.hostname;
+  var linkPattern = /((https?:\/\/)[^\s<>"]+)/gi;
+  var converted = escaped.replace(linkPattern, function(match, url, protocol) {
+    var cleanUrl = url.replace(/^https?:\/\//, '').substring(0, 40);
+    var isExternal = !url.includes(myHost) && !url.includes('localhost') && !url.includes('127.0.0.1');
+    var onclick = isExternal ? " onclick=\"event.stopPropagation();showExternalLinkWarning('" + escapeHtml(url) + "')\"" : '';
+    var className = isExternal ? ' class="external-link"' : '';
+    return '<a href="' + escapeHtml(url) + '"' + className + onclick + ' target="_blank" rel="noopener noreferrer">' + escapeHtml(cleanUrl) + '</a>';
+  });
+  return converted;
+}
+
+/**
+ * 外部链接风险提示弹窗
+ * @param {string} url - 要访问的URL
+ */
+window.showExternalLinkWarning = function(url) {
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = '<div style="background:#FFF;border-radius:16px;padding:28px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
+    '<div style="font-size:48px;margin-bottom:12px">⚠️</div>' +
+    '<div style="font-size:1.1rem;font-weight:700;color:#1F2937;margin-bottom:8px">安全风险提示</div>' +
+    '<div style="font-size:0.9rem;color:#6B7280;margin-bottom:16px;word-break:break-all;text-align:left;padding:10px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">' + escapeHtml(url) + '</div>' +
+    '<div style="font-size:0.85rem;color:#EF4444;margin-bottom:20px;line-height:1.5">该链接指向外部网站，可能存在安全风险<br>请确认链接来源是否可信</div>' +
+    '<div style="display:flex;gap:10px;justify-content:center">' +
+      '<button onclick="document.body.removeChild(this.closest(\'div[style*="z-index:10000"]\'))" style="padding:10px 20px;border-radius:8px;border:1px solid #E5E7EB;background:#FFF;color:#6B7280;font-size:0.9rem;cursor:pointer;flex:1">取消</button>' +
+      '<button onclick="window.open(\'' + escapeHtml(url) + '\',\'_blank\');document.body.removeChild(this.closest(\'div[style*="z-index:10000"]\'))" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#EF4444,#F87171);color:#FFF;font-size:0.9rem;font-weight:600;cursor:pointer;flex:1;box-shadow:0 4px 12px rgba(239,68,68,0.3)">继续访问</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(modal);
+  modal.onclick = function(e) {
+    if (e.target === modal) modal.remove();
+  };
+};
+
+/**
+ * 缓存点赞状态（localStorage）
+ */
+var LIKE_CACHE_PREFIX = 'like_status_';
+var LIKE_CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7天
+
+function cacheLikeStatus(postId, liked) {
+  try {
+    var key = LIKE_CACHE_PREFIX + postId;
+    var data = { liked: liked, timestamp: Date.now() };
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {}
+}
+
+function getCachedLikeStatus(postId) {
+  try {
+    var key = LIKE_CACHE_PREFIX + postId;
+    var data = localStorage.getItem(key);
+    if (!data) return null;
+    var parsed = JSON.parse(data);
+    if (Date.now() - parsed.timestamp > LIKE_CACHE_EXPIRY) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return parsed.liked;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
  * 全屏图片预览
  * @param {string} src - 图片地址
  */
@@ -329,7 +402,7 @@ function initNavbarScroll() {
       } else {
         navbar.classList.remove('scrolled');
       }
-    });
+    }, { passive: true });
   }
 }
 

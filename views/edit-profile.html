@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>嘉二の墙墙 - 编辑资料</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
 </head>
 <body>
   <!-- 光晕效果背景 -->
@@ -334,6 +338,16 @@
         document.title = siteName + ' - 编辑资料';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
       }
     })();
   </script>

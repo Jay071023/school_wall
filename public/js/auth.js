@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
       var username = usernameEl.value.trim();
       var password = passwordEl.value;
 
-      // 简单验证
       if (!username) {
         showToast('请输入用户名', 'error');
         usernameEl.focus();
@@ -62,28 +61,31 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // 禁用提交按钮
       var submitBtn = loginForm.querySelector('button[type="submit"]');
       var originalText = submitBtn.textContent;
       submitBtn.disabled = true;
       submitBtn.textContent = '登录中...';
 
-      // 发送登录请求
+      // 如果验证码可见，带上验证码
+      var captchaGroup = document.getElementById('loginCaptchaGroup');
+      var hasCaptcha = captchaGroup && captchaGroup.style.display !== 'none';
+      var body = { username: username, password: password };
+      if (hasCaptcha) {
+        var captchaCodeEl = document.getElementById('captchaCode');
+        body.captchaKey = window.loginCaptchaKey || '';
+        body.captchaCode = captchaCodeEl ? captchaCodeEl.value.trim() : '';
+      }
+
       authFetch('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ username: username, password: password })
+        body: JSON.stringify(body)
       }).then(function(data) {
         if (data.code === 200) {
-          // 登录成功，根据「记住我」选择存储方式
           var rememberMe = document.getElementById('rememberMe');
           var remember = rememberMe ? rememberMe.checked : false;
-          
-          // 保存记住我的状态到 localStorage
           localStorage.setItem('lastRemember', remember ? 'true' : 'false');
-          
           saveAuth(data.data.token, data.data.user, remember);
           showToast('登录成功');
-          // 管理员角色跳转到管理后台
           var staffRoles = ['reviewer', 'radio_admin', 'admin', 'super_admin'];
           if (staffRoles.indexOf(data.data.user.role) !== -1) {
             window.location.href = '/admin';
@@ -91,8 +93,16 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/';
           }
         } else {
-          // 登录失败
-          showToast(data.message || '登录失败，请检查用户名和密码', 'error');
+          // 如果后端要求验证码，显示并刷新
+          if (data.needCaptcha) {
+            var captchaGroup = document.getElementById('loginCaptchaGroup');
+            if (captchaGroup) {
+              captchaGroup.style.display = 'flex';
+              var event = new Event('loginCaptchaRequired');
+              document.dispatchEvent(event);
+            }
+          }
+          showToast(data.message || '登录失败', 'error');
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;
         }
@@ -111,6 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
   var registerForm = document.getElementById('registerForm');
   if (registerForm) {
     registerForm.addEventListener('submit', function(e) {
+      // 如果页面中有微信验证方式且当前为微信模式，由页面处理
+      if (window.currentVerifyMethod === 'wechat' || document.getElementById('verifyWechat') && document.getElementById('verifyWechat').style.display !== 'none') {
+        return;
+      }
       e.preventDefault();
 
       var usernameEl = document.getElementById('username');

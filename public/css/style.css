@@ -2927,6 +2927,7 @@ select.form-input {
 /* 评论输入区域 */
 .comment-input-area {
   margin-bottom: 12px;
+  position: relative;
 }
 
 /* 评论输入框 */
@@ -3008,6 +3009,38 @@ select.form-input {
   background: var(--primary);
 }
 
+/* ---- 评论工具栏 ---- */
+.comment-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-card);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.tool-btn:hover {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(255,183,197,0.1));
+  transform: scale(1.08);
+}
+
+.tool-btn:active {
+  transform: scale(0.95);
+}
+
 /* 评论提交按钮 */
 .btn-comment-submit {
   padding: 8px 20px;
@@ -3027,6 +3060,47 @@ select.form-input {
 
 .btn-comment-submit:active {
   transform: scale(0.95);
+}
+
+/* ---- 表情选择器 ---- */
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  padding: 12px;
+  width: 320px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.emoji-item {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.emoji-item:hover {
+  background: var(--bg-hover);
+  transform: scale(1.15);
 }
 
 /* ---- 评论列表 ---- */
@@ -8116,53 +8190,52 @@ select.form-input {
    ============================================ */
 .side-cards-container {
   position: fixed;
-  top: 80px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   pointer-events: none;
   z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
 }
 
 .side-cards-group {
-  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 32px;
   pointer-events: auto;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .side-cards-left {
-  left: 20px;
   animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .side-cards-right {
-  right: 20px;
   animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
 }
 
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(-100px);
+    transform: translateX(-100px);
   }
   to {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateX(0);
   }
 }
 
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(100px);
+    transform: translateX(100px);
   }
   to {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateX(0);
   }
 }
 
@@ -8224,7 +8297,7 @@ select.form-input {
 
 /* 悬停效果 */
 .side-card:hover {
-  transform: translateY(-50%) scale(1.08);
+  transform: scale(1.08);
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.15),
     0 4px 12px rgba(0, 0, 0, 0.08),
@@ -8541,19 +8614,18 @@ select.form-input {
 
 .progress-text {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
+  line-height: 1;
   color: #D97706;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-  animation: countUp 2s ease-out forwards;
-}
-
-@keyframes countUp {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 /* 装饰元素 */

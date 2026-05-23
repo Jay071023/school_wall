@@ -18,38 +18,6 @@ var pageInitialized = false;
 var totalLoaded = 0; // 已加载的总条数
 var hasMore = true; // 是否还有更多数据
 
-// 转换内容中的链接（自动识别并添加风险提示）
-function convertContentWithLinks(content) {
-  if (!content) return '';
-  var escaped = escapeHtml(content).replace(/\n/g, '<br>');
-  var myHost = window.location.hostname;
-  var linkPattern = /((https?:\/\/)[^\s<>"]+)/gi;
-  return escaped.replace(linkPattern, function(match, url) {
-    var cleanUrl = url.replace(/^https?:\/\//, '').substring(0, 40);
-    var isExternal = !url.includes(myHost) && !url.includes('localhost') && !url.includes('127.0.0.1');
-    var onclick = isExternal ? " onclick=\"event.stopPropagation();showExternalLinkWarning('" + escapeHtml(url) + "')\"" : '';
-    var cls = isExternal ? ' class="external-link"' : '';
-    return '<a href="' + escapeHtml(url) + '"' + cls + onclick + ' target="_blank" rel="noopener noreferrer">' + escapeHtml(cleanUrl) + '</a>';
-  });
-}
-
-// 外部链接风险提示弹窗
-window.showExternalLinkWarning = function(url) {
-  var modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center';
-  modal.innerHTML = '<div style="background:#FFF;border-radius:16px;padding:28px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">' +
-    '<div style="font-size:48px;margin-bottom:12px">⚠️</div>' +
-    '<div style="font-size:1.1rem;font-weight:700;color:#1F2937;margin-bottom:8px">安全风险提示</div>' +
-    '<div style="font-size:0.9rem;color:#6B7280;margin-bottom:16px;word-break:break-all;text-align:left;padding:10px;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">' + escapeHtml(url) + '</div>' +
-    '<div style="font-size:0.85rem;color:#EF4444;margin-bottom:20px;line-height:1.5">该链接指向外部网站，可能存在安全风险<br>请确认链接来源是否可信</div>' +
-    '<div style="display:flex;gap:10px;justify-content:center">' +
-      '<button onclick="this.closest(\'div[style*="z-index:10000"]\').remove()" style="padding:10px 20px;border-radius:8px;border:1px solid #E5E7EB;background:#FFF;color:#6B7280;font-size:0.9rem;cursor:pointer;flex:1">取消</button>' +
-      '<button onclick="window.open(\'' + escapeHtml(url) + '\',\'_blank\');this.closest(\'div[style*="z-index:10000"]\').remove()" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#EF4444,#F87171);color:#FFF;font-size:0.9rem;font-weight:600;cursor:pointer;flex:1;box-shadow:0 4px 12px rgba(239,68,68,0.3)">继续访问</button>' +
-    '</div>' +
-  '</div>';
-  document.body.appendChild(modal);
-};
-
 // 骨架屏HTML - 简化版本，减少DOM操作
 function showSkeleton(count) {
   var postListEl = document.getElementById('postList');
@@ -71,22 +39,82 @@ function hideSkeleton() {
 // 更新分页信息显示 - 已删除（无限滚动模式不需要）
 
 /**
+ * 记录帖子浏览量（QQ空间风格）
+ * - 1分钟内同一帖子不重复计数
+ * - 兼容游客和登录用户
+ */
+function recordPostView(postId) {
+  var key = 'viewed_' + postId;
+  var lastView = localStorage.getItem(key);
+  var now = Date.now();
+
+  // 1分钟内不重复计数
+  if (lastView && (now - parseInt(lastView)) < 60000) {
+    return;
+  }
+
+  localStorage.setItem(key, now);
+  // 异步发送请求，不阻塞页面
+  fetch('/api/posts/' + postId + '/view', {
+    method: 'POST',
+    credentials: 'include'
+  }).catch(function() {});
+}
+
+/**
+ * 初始化浏览量观察器（滚动到可见即计数，QQ空间风格）
+ */
+var viewObserver = null;
+function initViewObserver() {
+  if (viewObserver) {
+    viewObserver.disconnect();
+  }
+
+  // 兼容移动端和PC端，观察所有帖子卡片
+  viewObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var postCard = entry.target.closest('.post-card[data-id]');
+        if (postCard) {
+          var postId = postCard.dataset.id;
+          if (postId) {
+            recordPostView(postId);
+            // 观察一次后取消，避免重复触发
+            viewObserver.unobserve(entry.target);
+          }
+        }
+      }
+    });
+  }, {
+    // 元素50%可见时触发
+    threshold: 0.5,
+    // 增加rootMargin，确保移动端也能正确触发
+    rootMargin: '0px 0px -50px 0px'
+  });
+
+  // 观察所有帖子卡片
+  document.querySelectorAll('.post-card[data-id]').forEach(function(card) {
+    viewObserver.observe(card);
+  });
+}
+
+// 页面滚动时动态观察新加载的帖子
+window.addEventListener('scroll', function() {
+  if (viewObserver) {
+    document.querySelectorAll('.post-card[data-id]:not([data-view-observed])').forEach(function(card) {
+      card.setAttribute('data-view-observed', 'true');
+      viewObserver.observe(card);
+    });
+  }
+}, { passive: true });
+
+/**
  * 加载帖子列表（无限滚动模式）
  * @param {boolean} append - 是否追加模式
  */
 async function loadPosts(append) {
-  console.log('[loadPosts] 调用：append=', append, 'totalLoaded=', totalLoaded, 'hasMore=', hasMore);
-  
-  if (isLoading) {
-    console.log('[loadPosts] 正在加载中，跳过');
-    return;
-  }
-  
-  if (!hasMore) {
-    console.log('[loadPosts] 没有更多数据了');
-    return;
-  }
-  
+  if (isLoading) return;
+  if (!hasMore) return;
   isLoading = true;
 
   var postListEl = document.getElementById('postList');
@@ -121,7 +149,16 @@ async function loadPosts(append) {
 
       if (emptyStateEl) emptyStateEl.style.display = 'none';
 
-      // 直接插入，不要动画，减少卡顿
+      // 预缓存images字段，减少重复JSON.parse和JSON.stringify
+      posts.forEach(function(post) {
+        if (typeof post.images === 'string') {
+          try { post._cachedImages = JSON.parse(post.images); } catch(e) { post._cachedImages = []; }
+        } else {
+          post._cachedImages = post.images || [];
+        }
+        post._cachedImagesJson = JSON.stringify(post._cachedImages).replace(/"/g, '&quot;');
+      });
+
       var html = '';
       posts.forEach(function(post) {
         html += renderPostCard(post);
@@ -130,21 +167,21 @@ async function loadPosts(append) {
       if (postListEl) {
         if (append) {
           // 追加模式：添加到现有内容后面
-          console.log('[无限滚动] 追加', posts.length, '条帖子，当前共', totalLoaded + posts.length, '条');
           postListEl.insertAdjacentHTML('beforeend', html);
         } else {
           // 首次加载：清空后插入
-          console.log('[加载帖子] 首次加载', posts.length, '条');
           postListEl.innerHTML = html;
         }
       }
 
       // 更新已加载总数
       totalLoaded += posts.length;
-      
+
+      // 初始化浏览量观察器（QQ空间风格：滚动到可见即计数）
+      initViewObserver();
+
       // 判断是否还有更多
       hasMore = (totalLoaded < data.data.total);
-      console.log('[加载完成] totalLoaded=', totalLoaded, 'total=', data.data.total, 'hasMore=', hasMore);
 
       // 控制加载更多按钮显示
       if (loadMoreWrapper) {
@@ -164,7 +201,6 @@ async function loadPosts(append) {
     console.error('加载帖子失败:', err);
     // 如果是追加模式（无限滚动），静默重试一次
     if (append && totalLoaded > 0) {
-      console.log('[无限滚动] 加载失败，2秒后自动重试...');
       setTimeout(function() {
         loadPosts(true);
       }, 2000);
@@ -220,94 +256,74 @@ function getUserTitlesHtml(titles) {
 }
 
 function renderPostCard(post) {
-  // 处理images字段（可能是JSON字符串）
-  var images = post.images || [];
+  // 处理images字段（可能是JSON字符串）- 缓存处理结果
+  var images = post._cachedImages || (post.images || []);
   if (typeof images === 'string') {
     try {
       images = JSON.parse(images);
     } catch (e) {
       images = [];
     }
+    post._cachedImages = images;
   }
 
   // 处理匿名用户
   var authorName = post.is_anonymous ? '匿名用户' : (post.author_name || '未知用户');
   var authorAvatar = post.is_anonymous ? '/uploads/avatars/default.png' : (post.author_avatar || '/uploads/avatars/default.png');
-  
+
   // 获取角色标签（匿名用户不显示）
   var roleBadge = post.is_anonymous ? '' : getRoleBadge(post.author_role);
-  
+
   // 获取头衔标签（匿名用户不显示）
   var titleBadges = post.is_anonymous ? '' : getUserTitlesHtml(post.author_titles);
 
   // 图片区域 HTML - 微信朋友圈风格
   var imageHtml = '';
   if (images.length > 0) {
-    // 限制最多显示 3 张图片，避免卡顿
     var displayImages = images.slice(0, 3);
     var imageCount = displayImages.length;
     var gridClass = 'image-count-' + (imageCount <= 3 ? imageCount : 'many');
     imageHtml = '<div class="post-images ' + gridClass + '">';
-    displayImages.forEach(function(img, index) {
-      // 传递所有图片数组和当前索引
-      var imagesJson = JSON.stringify(images).replace(/"/g, '&quot;');
-      imageHtml += '<div class="post-image-wrapper" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(img).replace(/'/g, "\\'") + '\', ' + imagesJson + ', ' + index + ')">' +
+    displayImages.forEach(function(img) {
+      imageHtml += '<div class="post-image-wrapper" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(img).replace(/'/g, "\\'") + '\', ' + post._cachedImagesJson + ', 0)">' +
         '<img class="post-image" src="' + escapeHtml(img) + '" loading="lazy">' +
       '</div>';
     });
-    // 如果图片超过 3 张，显示"更多"提示
     if (images.length > 3) {
-      imageHtml += '<div class="post-image-more" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(images[0]).replace(/'/g, "\\'") + '\', ' + JSON.stringify(images).replace(/"/g, '&quot;') + ', 0)">+' + (images.length - 3) + '</div>';
+      imageHtml += '<div class="post-image-more" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(images[0]).replace(/'/g, "\\'") + '\', ' + post._cachedImagesJson + ', 0)">+' + (images.length - 3) + '</div>';
     }
     imageHtml += '</div>';
   }
 
-  // 安全检查：确保 post.id 有效
   var safePostId = post.id || 0;
-  
-  // 应用缓存的点赞状态（优先使用缓存）
   var cachedLikeStatus = getCachedLikeStatus(safePostId);
   var isLiked = cachedLikeStatus !== null ? cachedLikeStatus : (post.is_liked || false);
-  
-// 评论预览区域 HTML（朋友圈风格）
-    var commentsPreviewHtml = '';
-    if (post.preview_comments && post.preview_comments.length > 0) {
-      commentsPreviewHtml = '<div class="post-comments-preview">';
-      post.preview_comments.forEach(function(comment) {
-        var commentAuthorName = comment.is_anonymous ? '匿名用户' : (comment.author_name || '未知用户');
-        var commentRoleBadge = comment.is_anonymous ? '' : getRoleBadge(comment.author_role);
-        var commentTitleBadges = comment.is_anonymous ? '' : getUserTitlesHtml(comment.author_titles);
-        var authorCardClass = !comment.is_anonymous && comment.author_id ? ' user-card-trigger' : '';
-        var authorCardAttr = !comment.is_anonymous && comment.author_id ? ' data-user-id="' + comment.author_id + '" style="cursor:pointer;"' : '';
-        commentsPreviewHtml += '<div class="comment-preview-item">' +
-          '<span class="comment-preview-author' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(commentAuthorName) + commentRoleBadge + commentTitleBadges + '</span>' +
-          '<span class="comment-preview-text">' + escapeHtml(comment.content) + '</span>' +
-        '</div>';
-      });
-    // 如果有更多评论，显示提示
+
+  // 评论预览
+  var commentsPreviewHtml = '';
+  if (post.preview_comments && post.preview_comments.length > 0) {
+    var commentItems = [];
+    post.preview_comments.forEach(function(comment) {
+      var cAuthor = comment.is_anonymous ? '匿名用户' : (comment.author_name || '未知用户');
+      var cRole = comment.is_anonymous ? '' : getRoleBadge(comment.author_role);
+      var cTitles = comment.is_anonymous ? '' : getUserTitlesHtml(comment.author_titles);
+      var cClass = !comment.is_anonymous && comment.author_id ? ' user-card-trigger' : '';
+      var cAttr = !comment.is_anonymous && comment.author_id ? ' data-user-id="' + comment.author_id + '" style="cursor:pointer;"' : '';
+      commentItems.push('<div class="comment-preview-item"><span class="comment-preview-author' + cClass + '"' + cAttr + '>' + escapeHtml(cAuthor) + cRole + cTitles + '</span><span class="comment-preview-text">' + escapeHtml(comment.content) + '</span></div>');
+    });
     if (post.comments_count > post.preview_comments.length) {
-      commentsPreviewHtml += '<div class="comment-preview-more">查看全部 ' + post.comments_count + ' 条评论</div>';
+      commentItems.push('<div class="comment-preview-more">查看全部 ' + post.comments_count + ' 条评论</div>');
     }
-    commentsPreviewHtml += '</div>';
+    commentsPreviewHtml = '<div class="post-comments-preview">' + commentItems.join('') + '</div>';
   }
-  
-  // 浏览次数
-  var viewsCount = post.views || 0;
-  
-  // 标题HTML
-  var titleHtml = '';
-  if (post.title) {
-    titleHtml = '<div class="post-title">' + escapeHtml(post.title) + '</div>';
-  }
-  
-// 帖子作者可点击
-    var authorCardClass = !post.is_anonymous && post.author_id ? ' user-card-trigger' : '';
-    var authorCardAttr = !post.is_anonymous && post.author_id ? ' data-user-id="' + post.author_id + '" style="cursor:pointer;"' : '';
-    
-    // 组装帖子卡片 HTML
-    return '<article class="post-card" onclick="openPostDetail(' + safePostId + ')">' +
-      '<div class="post-user">' +
-        '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '"' + authorCardAttr + '>' +
+
+  var titleHtml = post.title ? '<div class="post-title">' + escapeHtml(post.title) + '</div>' : '';
+  var authorCardClass = !post.is_anonymous && post.author_id ? ' user-card-trigger' : '';
+  var authorCardAttr = !post.is_anonymous && post.author_id ? ' data-user-id="' + post.author_id + '" style="cursor:pointer;"' : '';
+
+  return '<article class="post-card" data-id="' + safePostId + '" onclick="openPostDetail(' + safePostId + ')">' +
+    '<div class="post-user">' +
+      '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '"' + authorCardAttr + '>' +
       '<div class="user-info">' +
         '<div class="user-name' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(authorName) + roleBadge + titleBadges + '</div>' +
         '<div class="post-time">' + (post.time_ago || '') + (post.ip_region ? ' · 📍' + escapeHtml(post.ip_region) : '') + '</div>' +
@@ -328,7 +344,7 @@ function renderPostCard(post) {
       '</button>' +
       '<button class="action-btn" onclick="event.stopPropagation();openPostDetail(' + safePostId + ')">' +
         '<span class="action-icon">👁️</span>' +
-        '<span>' + viewsCount + '</span>' +
+        '<span>' + (post.views || 0) + '</span>' +
       '</button>' +
       '<button class="action-btn ' + (post.is_favorited ? 'favorited' : '') + '" onclick="event.stopPropagation();toggleFavorite(' + safePostId + ',this)">' +
         '<span class="action-icon">' + (post.is_favorited ? '⭐' : '☆') + '</span>' +
@@ -337,14 +353,8 @@ function renderPostCard(post) {
   '</article>';
 }
 
-// 打开帖子详情（先刷新浏览量）
-async function openPostDetail(postId) {
-  try {
-    // 先异步增加浏览量，不等待响应就跳转
-    authFetch('/api/posts/' + postId + '/view', { method: 'POST' }).catch(function() {});
-  } catch (err) {
-    // 忽略错误，继续跳转
-  }
+// 打开帖子详情
+function openPostDetail(postId) {
   window.location.href = '/post/' + postId;
 }
 
@@ -618,13 +628,6 @@ window.showUserProfileModal = async function(userId) {
   }
 };
 
-
-// 显示用户资料弹窗
-window.showUserProfileModal = function(userId) {
-  if (!userId) return;
-  alert('查看用户 ' + userId + ' 的资料');
-};
-
 // 页面初始化
 document.addEventListener('DOMContentLoaded', function() {
   // 初始化 emptyState 元素引用
@@ -722,18 +725,17 @@ document.addEventListener('DOMContentLoaded', function() {
       scrollTimer = null;
       if (isLoading) return;
       if (!hasMore) return;
-      
+
       var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       var windowHeight = window.innerHeight;
       var docHeight = document.documentElement.scrollHeight;
-      
+
       // 距离底部 300px 时触发加载
       if (scrollTop + windowHeight >= docHeight - 300) {
-        console.log('[无限滚动] 触发加载，totalLoaded=', totalLoaded);
         loadPosts(true);
       }
     }, 500);
-  });
+  }, { passive: true });
 
   // ===== 搜索功能 =====
   var searchInput = document.getElementById('searchInput');
@@ -882,3 +884,84 @@ function initPullToRefresh() {
     });
   }
 }
+
+// ===== 520飘落效果 - 惊艳版 =====
+(function() {
+  function initFalling() {
+    if (!document.body.classList.contains('mode-520')) return;
+
+    var container = document.getElementById('hearts-container');
+    if (container) container.innerHTML = '';
+    else {
+      container = document.createElement('div');
+      container.id = 'hearts-container';
+      container.className = 'hearts-container';
+      document.body.appendChild(container);
+    }
+
+    // 角落装饰
+    var corners = document.querySelectorAll('.deco-corner');
+    corners.forEach(function(c) { c.remove(); });
+
+    function addCorner(type, html) {
+      var deco = document.createElement('div');
+      deco.className = 'deco-corner ' + type;
+      deco.innerHTML = html;
+      document.body.appendChild(deco);
+    }
+
+    var heartSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF7A9A"/><stop offset="100%" style="stop-color:#FFB3C6"/></linearGradient></defs><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartGradient)"/></svg>';
+    addCorner('top-left', '<div class="deco-heart">' + heartSvg + '</div>');
+    addCorner('top-right', '<span class="deco-star">✦</span>');
+
+    var HEARTS = ['💕', '💗', '💖', '💘', '💓', '🌸', '🌷', '💐'];
+    var PETALS = ['🌸', '🩷', '🌺', '💮'];
+    var SPARKLES = ['✨', '⭐', '✦', '💫'];
+
+    function spawnHeart() {
+      if (!document.body.classList.contains('mode-520')) return;
+      var el = document.createElement('div');
+      el.className = 'heart';
+      var size = 20 + Math.random() * 18;
+      el.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random() * 90) + 'vw;animation-duration:' + (5 + Math.random() * 3) + 's;';
+      el.innerHTML = heartSvg;
+      container.appendChild(el);
+      setTimeout(function() { try { el.remove(); } catch(e) {} }, 9000);
+    }
+
+    function spawnPetal() {
+      if (!document.body.classList.contains('mode-520')) return;
+      var el = document.createElement('div');
+      el.className = 'petal';
+      el.textContent = PETALS[Math.floor(Math.random() * PETALS.length)];
+      el.style.cssText = 'font-size:' + (14 + Math.random() * 10) + 'px;left:' + (Math.random() * 88) + 'vw;animation-duration:' + (6 + Math.random() * 4) + 's;';
+      container.appendChild(el);
+      setTimeout(function() { try { el.remove(); } catch(e) {} }, 11000);
+    }
+
+    function spawnSparkle() {
+      if (!document.body.classList.contains('mode-520')) return;
+      var el = document.createElement('div');
+      el.className = 'sparkle';
+      el.textContent = SPARKLES[Math.floor(Math.random() * SPARKLES.length)];
+      el.style.cssText = 'font-size:' + (12 + Math.random() * 8) + 'px;left:' + (Math.random() * 92) + 'vw;animation-duration:' + (4 + Math.random() * 3) + 's;';
+      container.appendChild(el);
+      setTimeout(function() { try { el.remove(); } catch(e) {} }, 8000);
+    }
+
+    setTimeout(function() {
+      for (var i = 0; i < 5; i++) setTimeout(spawnHeart, i * 500);
+      for (var j = 0; j < 3; j++) setTimeout(spawnPetal, j * 800);
+      for (var k = 0; k < 4; k++) setTimeout(spawnSparkle, k * 400);
+    }, 1500);
+
+    setInterval(function() {
+      if (!document.body.classList.contains('mode-520')) return;
+      if (Math.random() > 0.4) spawnHeart();
+      if (Math.random() > 0.6) spawnPetal();
+      if (Math.random() > 0.5) spawnSparkle();
+    }, 1000);
+  }
+
+  setTimeout(initFalling, 1500);
+})();

@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>嘉二の墙墙 - 个人主页</title>
   <link rel="stylesheet" href="/css/style.css?v=2026050719">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css?v=2026050701">
   <link rel="stylesheet" href="/css/mobile-fix.css?v=2026050701">
   <link rel="stylesheet" href="/css/user-card.css?v=2026050712">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
   <style>
     .wechat-bind-card { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     .wechat-bind-header { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #333; }
@@ -415,6 +419,89 @@
     </div>
   </div>
 
+  <!-- 侧栏卡片 -->
+  <div class="side-cards-container">
+    <div class="side-cards-group side-cards-left">
+      <div class="side-card glass-effect" id="sideGaokao">
+        <div class="side-card-icon">📚</div>
+        <div class="side-card-title">高考倒计时</div>
+        <div class="side-card-countdown" id="sideGaokaoCountdown"></div>
+        <div class="side-card-progress">
+          <div class="progress-ring">
+            <svg class="progress-svg" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#F59E0B"/>
+                  <stop offset="50%" style="stop-color:#D97706"/>
+                  <stop offset="100%" style="stop-color:#B45309"/>
+                </linearGradient>
+              </defs>
+              <circle class="progress-bg" cx="50" cy="50" r="45"/>
+              <circle class="progress-bar" cx="50" cy="50" r="45" id="progressBar"/>
+            </svg>
+            <div class="progress-text" id="progressText">0%</div>
+          </div>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">✨</span>
+          <span class="float-element float-2">🌟</span>
+          <span class="float-element float-3">💫</span>
+        </div>
+      </div>
+      <div class="side-card glass-effect" id="sideWeather">
+        <div class="side-card-icon">⛅</div>
+        <div class="side-card-title">上海天气</div>
+        <div class="weather-main">
+          <span class="weather-temp" id="weatherTemp">--°</span>
+          <span class="weather-icon" id="weatherIcon">🌤️</span>
+        </div>
+        <div class="weather-info">
+          <div class="weather-item" id="weatherCondition">加载中...</div>
+          <div class="weather-detail">
+            <span>💧 <span id="weatherHumidity">--%</span></span>
+            <span>💨 <span id="weatherWind">--级</span></span>
+          </div>
+        </div>
+        <div class="weather-aqi" id="weatherAqi">
+          <span class="aqi-label">空气</span>
+          <span class="aqi-value" id="aqiValue">--</span>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">☁️</span>
+          <span class="float-element float-2">🌤️</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-cards-group side-cards-right">
+      <div class="side-card glass-effect" id="sideHitokoto">
+        <div class="side-card-icon">💬</div>
+        <div class="side-card-title">一言</div>
+        <div class="side-card-content" id="sideHitokotoText">加载中...</div>
+        <div class="side-card-meta">
+          <span class="hitokoto-author" id="hitokotoAuthor"></span>
+          <span class="hitokoto-from" id="hitokotoFrom"></span>
+        </div>
+        <button class="refresh-btn" id="refreshHitokoto">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">💭</span>
+          <span class="float-element float-2">✨</span>
+        </div>
+      </div>
+      <div class="side-card glass-effect" id="sideHotsearch">
+        <div class="side-card-icon">📜</div>
+        <div class="side-card-title"><span id="hotsearchTitle">历史上的今天</span></div>
+        <div class="hotsearch-list" id="hotsearchList">
+          <div class="hotsearch-item loading">加载中...</div>
+        </div>
+        <button class="refresh-btn" id="refreshHotsearch">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">📈</span>
+          <span class="float-element float-2">🔥</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/app.js"></script>
   <script src="/js/side-cards.js?v=2026050701"></script>
   <script src="/js/user-card.js?v=2026050712"></script>
@@ -435,6 +522,16 @@
         document.title = siteName + ' - 个人主页';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520', 'profile-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520', 'profile-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
       }
     })();
   </script>
@@ -506,7 +603,9 @@
     }
 
     // 创建微信绑定弹窗
-    function createWechatModal(qrCodeUrl) {
+    function createWechatModal(data) {
+      var qrCodeUrl = data.qrCodeUrl;
+      var bindCode = data.bindCode;
       var overlay = document.createElement('div');
       overlay.className = 'wechat-modal-overlay';
       overlay.id = 'wechatModal';
@@ -514,35 +613,36 @@
         '<div class="wechat-modal-card">' +
           '<button class="wechat-modal-close" onclick="closeWechatModal()">✕</button>' +
           '<div class="wechat-modal-title">🔗 绑定微信</div>' +
-          '<div class="wechat-modal-subtitle">扫描下方二维码关注公众号</div>' +
 
           '<div class="wechat-modal-steps">' +
             '<div class="wechat-modal-step" data-step="1">' +
               '<span class="wechat-modal-step-num">1</span>' +
-              '<span>使用微信扫描下方二维码关注</span>' +
+              '<span>将以下验证码发送到公众号</span>' +
             '</div>' +
             '<div class="wechat-modal-step" data-step="2">' +
               '<span class="wechat-modal-step-num">2</span>' +
-              '<span>关注后点击下方"我已关注"按钮</span>' +
-            '</div>' +
-            '<div class="wechat-modal-step" data-step="3" id="wechatStep3">' +
-              '<span class="wechat-modal-step-num">3</span>' +
-              '<span>系统自动完成绑定</span>' +
+              '<span>完成绑定后点击下方检查按钮</span>' +
             '</div>' +
           '</div>' +
 
-          '<div class="wechat-modal-qr-wrapper">' +
-            '<img class="wechat-modal-qr" src="' + qrCodeUrl + '" alt="公众号二维码">' +
+          '<div style="text-align:center;margin:16px 0;">' +
+            '<div style="font-size:14px;color:#666;margin-bottom:6px;">在公众号对话框发送验证码</div>' +
+            '<div style="font-size:32px;font-weight:bold;letter-spacing:4px;color:#07c160;background:#f0faf0;padding:12px 24px;border-radius:12px;display:inline-block;font-family:monospace;">' + bindCode + '</div>' +
+            '<button onclick="copyBindCode(\'' + bindCode + '\')" style="display:block;margin:10px auto 0;border:none;background:none;color:#07c160;cursor:pointer;font-size:13px;">📋 复制验证码</button>' +
+          '</div>' +
+
+          '<div style="border-top:1px solid #eee;padding:16px 0;margin:0 0 16px;text-align:center;">' +
+            '<div style="font-size:13px;color:#999;margin-bottom:10px;">还没关注？先扫码关注公众号</div>' +
+            '<img class="wechat-modal-qr" src="' + qrCodeUrl + '" alt="公众号二维码" style="width:140px;height:140px;border-radius:8px;">' +
           '</div>' +
 
           '<div style="display:flex;flex-direction:column;gap:10px;">' +
-            '<button class="btn-wechat-bind" id="btnVerifyFollow" onclick="verifyFollow()" style="width:100%;">✅ 我已关注，验证绑定</button>' +
-            '<button class="btn-wechat-unbind" id="btnRetry" onclick="closeWechatModal();bindWechat()" style="width:100%;margin-left:0;display:none;">🔄 重新扫码</button>' +
+            '<button class="btn-wechat-bind" id="btnVerifyFollow" onclick="verifyFollow()" style="width:100%;">✅ 检查绑定状态</button>' +
           '</div>' +
 
           '<div class="wechat-modal-loading" id="wechatModalLoading" style="display:none;">' +
             '<div class="wechat-modal-spinner"></div>' +
-            '<span>正在验证...</span>' +
+            '<span>正在检查...</span>' +
           '</div>' +
 
           '<div class="wechat-modal-success" id="wechatModalSuccess">' +
@@ -554,17 +654,23 @@
       document.body.appendChild(overlay);
       wechatModalEl = overlay;
 
-      // 点击背景关闭
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeWechatModal();
       });
     }
 
-    // 验证关注并绑定
+    function copyBindCode(code) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(code).then(function() {
+          showToast('已复制验证码，快去公众号发送吧~', 'success');
+        });
+      }
+    }
+
+    // 检查绑定状态
     async function verifyFollow() {
       var btn = document.getElementById('btnVerifyFollow');
       var loading = document.getElementById('wechatModalLoading');
-      var retry = document.getElementById('btnRetry');
       if (!btn) return;
 
       btn.style.display = 'none';
@@ -573,25 +679,21 @@
       try {
         var json = await authFetch('/api/wechat/verify-follow', { method: 'POST' });
         if (json.code === 200 && json.bound) {
-          // 绑定成功
           loading.style.display = 'none';
           var success = document.getElementById('wechatModalSuccess');
           if (success) success.style.display = 'flex';
           loadWechatBindStatus();
           showToast('🎉 微信绑定成功！', 'success');
-          // 2.5秒后关闭
           setTimeout(closeWechatModal, 2500);
         } else {
-          // 未检测到关注
           loading.style.display = 'none';
           btn.style.display = 'inline-block';
-          showToast(json.message || '未检测到关注，请确认已扫码关注', 'warning');
-          retry.style.display = 'inline-block';
+          showToast('还没绑定，请在公众号发送验证码后重试', 'warning');
         }
       } catch (e) {
         loading.style.display = 'none';
         btn.style.display = 'inline-block';
-        showToast('验证失败，请重试', 'error');
+        showToast('检查失败，请重试', 'error');
       }
     }
 
@@ -604,14 +706,19 @@
           return;
         }
 
-        var qrUrl = json.data && json.data.qrCodeUrl;
-        if (!qrUrl) {
-          showToast('获取二维码失败，请重试', 'error');
+        if (json.data && json.data.bound) {
+          showToast('已绑定', 'success');
+          loadWechatBindStatus();
+          return;
+        }
+
+        if (!json.data || !json.data.bindCode) {
+          showToast('获取验证码失败，请重试', 'error');
           return;
         }
 
         // 创建弹窗
-        createWechatModal(qrUrl);
+        createWechatModal(json.data);
         document.getElementById('btnWechatBind').style.display = 'none';
       } catch (e) { showToast('操作失败，请重试', 'error'); }
     }

@@ -246,6 +246,11 @@ router.get('/leaderboard', auth, async (req, res) => {
       default:
         orderBy = 'u.total_checkins DESC, u.checkin_streak DESC';
     }
+    // 白名单校验（防止注入）
+    const ORDER_BY_WHITELIST = ['u.checkin_streak DESC, u.total_checkins DESC', 'u.level DESC, u.exp DESC', 'u.total_checkins DESC, u.checkin_streak DESC'];
+    if (!ORDER_BY_WHITELIST.includes(orderBy)) {
+      orderBy = 'u.total_checkins DESC, u.checkin_streak DESC';
+    }
     
     const [leaderboard] = await pool.execute(
       `SELECT u.id, u.nickname, u.avatar, u.level, u.checkin_streak, u.total_checkins, u.exp,

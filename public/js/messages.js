@@ -137,7 +137,7 @@ function setupEventListeners() {
         if (dom.messagesList.parentElement.scrollTop === 0) loadMoreMessages();
       }, 200);
     }
-  });
+  }, { passive: true });
 }
 
 // 加载会话列表

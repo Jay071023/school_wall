@@ -772,7 +772,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var authorCardClass = (!post.is_anonymous && post.author_id) ? ' user-card-trigger' : '';
     var authorCardAttr = (!post.is_anonymous && post.author_id) ? ' data-user-id="' + post.author_id + '" style="cursor:pointer;"' : '';
     
-    return '<article class="post-card" onclick="window.location.href=\'/post/' + post.id + '\'">' +
+    return '<article class="post-card" data-id="' + post.id + '" onclick="window.location.href=\'/post/' + post.id + '\'">' +
       '<div class="post-user">' +
         '<img class="user-avatar' + authorCardClass + '"' + authorCardAttr + ' src="' + escapeHtml(authorAvatar) + '">' +
         '<div class="user-info">' +
@@ -974,7 +974,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     }, 300);
-  });
+  }, { passive: true });
 
   // ============================================
   // 初始化
@@ -1743,7 +1743,7 @@ async function loadOtherUser(userId) {
                 var title = p.title || '';
                 var txt = p.content || '';
                 if (txt.length > 80) txt = txt.substring(0,80) + '…';
-                return '<div class="post-card" onclick="window.location.href=\'/post/' + p.id + '\'" style="margin-bottom:10px;padding:14px;border:1px solid var(--border-color);border-radius:12px;cursor:pointer;background:var(--bg-card);">' +
+                return '<div class="post-card" data-id="' + p.id + '" onclick="window.location.href=\'/post/' + p.id + '\'" style="margin-bottom:10px;padding:14px;border:1px solid var(--border-color);border-radius:12px;cursor:pointer;background:var(--bg-card);">' +
                   (title ? '<div style="font-size:0.95rem;font-weight:600;color:var(--text-primary);margin-bottom:4px;">' + escapeHtml(title) + '</div>' : '') +
                   '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px;">' + escapeHtml(txt) + '</div>' +
                   '<div style="font-size:0.75rem;color:var(--text-light);">❤️ ' + (p.likes_count||0) + '  💬 ' + (p.comments_count||0) + '  👁️ ' + (p.views||0) + '</div>' +

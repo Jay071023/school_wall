@@ -707,115 +707,318 @@
             transition: background-color var(--transition-fast);
         }
 
-        /* ===== 美化：登录页 ===== */
+        /* ===== 💖 卡哇伊管理后台登录 ===== */
         #adminLogin {
-            background: linear-gradient(135deg, #1E1B4B 0%, #312E81 30%, #4338CA 60%, #6D28D9 100%) !important;
+            min-height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EE 30%, #F0E6FF 70%, #E6F7FF 100%);
             position: relative;
             overflow: hidden;
         }
-
-        #adminLogin::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 50%, rgba(255, 107, 157, 0.15) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 80%, rgba(167, 139, 250, 0.12) 0%, transparent 40%);
-            animation: loginBgFloat 15s ease-in-out infinite;
+        [data-theme="dark"] #adminLogin {
+            background: linear-gradient(135deg, #1a1423 0%, #2a1f33 30%, #1e1a30 70%, #141a2a 100%);
         }
 
-        @keyframes loginBgFloat {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(20px, -20px) rotate(1deg); }
-            66% { transform: translate(-10px, 10px) rotate(-1deg); }
+        /* 可爱星星装饰 */
+        .kawaii-star {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            animation: kawaiiFloat 6s ease-in-out infinite;
+        }
+        .kawaii-star:nth-child(1) { top: 8%; left: 10%; animation-delay: 0s; font-size: 1.5rem; }
+        .kawaii-star:nth-child(2) { top: 15%; right: 15%; animation-delay: 1s; }
+        .kawaii-star:nth-child(3) { bottom: 20%; left: 8%; animation-delay: 2s; font-size: 1rem; }
+        .kawaii-star:nth-child(4) { bottom: 10%; right: 12%; animation-delay: 0.5s; font-size: 1.8rem; }
+        .kawaii-star:nth-child(5) { top: 45%; left: 5%; animation-delay: 1.5s; }
+        .kawaii-star:nth-child(6) { top: 40%; right: 8%; animation-delay: 2.5s; font-size: 0.9rem; }
+        .kawaii-star:nth-child(7) { top: 70%; left: 50%; animation-delay: 3s; font-size: 1.1rem; }
+        @keyframes kawaiiFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
+            50% { transform: translateY(-15px) rotate(15deg); opacity: 0.7; }
+        }
+        [data-theme="dark"] .kawaii-star { opacity: 0.25; }
+
+        /* 浮动光晕 */
+        .admin-login-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .admin-login-orb:nth-child(8) {
+            width: 350px; height: 350px;
+            background: #FFB6C1;
+            top: -120px; right: -80px;
+            animation: adminOrbFloat1 12s ease-in-out infinite;
+        }
+        .admin-login-orb:nth-child(9) {
+            width: 280px; height: 280px;
+            background: #DDA0DD;
+            bottom: -100px; left: -60px;
+            animation: adminOrbFloat2 10s ease-in-out infinite;
+        }
+        .admin-login-orb:nth-child(10) {
+            width: 180px; height: 180px;
+            background: #87CEEB;
+            top: 30%; left: 55%;
+            animation: adminOrbFloat3 14s ease-in-out infinite;
+        }
+        [data-theme="dark"] .admin-login-orb:nth-child(8) { background: #8B3A62; }
+        [data-theme="dark"] .admin-login-orb:nth-child(9) { background: #553C7B; }
+        [data-theme="dark"] .admin-login-orb:nth-child(10) { background: #2C5F7A; }
+        @keyframes adminOrbFloat1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, 25px) scale(1.08); }
+        }
+        @keyframes adminOrbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, -30px) scale(1.12); }
+        }
+        @keyframes adminOrbFloat3 {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+            50% { transform: translate(15px, -15px) scale(1.15); opacity: 0.4; }
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 24px !important;
-            padding: 44px 36px !important;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 28px;
+            padding: 38px 34px;
+            box-shadow: 0 20px 60px rgba(255, 107, 157, 0.12), 0 0 0 1px rgba(255,255,255,0.5) inset;
             position: relative;
             z-index: 1;
+            animation: adminCardIn 0.5s ease-out;
+        }
+        [data-theme="dark"] .login-card {
+            background: rgba(30, 20, 40, 0.85);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        @keyframes adminCardIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        .login-card .login-title {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #1E293B;
+        .login-header { text-align: center; margin-bottom: 28px; }
+        .login-avatar {
+            width: 72px; height: 72px;
+            margin: 0 auto 14px;
+            position: relative;
+        }
+        .login-avatar img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,107,157,0.2);
+            box-shadow: 0 4px 20px rgba(255,107,157,0.15);
+        }
+        .login-avatar .badge {
+            position: absolute;
+            bottom: -2px; right: -2px;
+            font-size: 1.1rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+        .login-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin: 0 0 4px;
+            letter-spacing: 0.5px;
         }
-
-        .login-card .login-subtitle {
-            font-size: 0.85rem;
-            color: #94A3B8;
+        [data-theme="dark"] .login-title {
+            background: linear-gradient(135deg, #FF8FB1, #C4A5FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .login-subtitle {
+            font-size: 0.82rem;
+            color: #999;
             margin: 0;
         }
+        [data-theme="dark"] .login-subtitle { color: rgba(255,255,255,0.4); }
 
-        .login-card .login-input {
+        .login-form-group { margin-bottom: 14px; }
+        .login-input-wrap {
+            position: relative;
+        }
+        .login-input-wrap .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .login-input {
             width: 100%;
-            padding: 13px 16px;
-            border: 1.5px solid #E2E8F0;
+            padding: 13px 14px 13px 40px;
+            border: 1.5px solid #F0E6FF;
             border-radius: 14px;
             font-size: 0.938rem;
             outline: none;
             box-sizing: border-box;
-            background: rgba(255, 255, 255, 0.7);
-            transition: all var(--transition-fast);
-            font-family: var(--font-family);
+            background: rgba(255,255,255,0.7);
+            color: #333;
+            transition: all 0.25s;
+            font-family: inherit;
+        }
+        .login-input::placeholder { color: #ccc; }
+        .login-input:focus {
+            border-color: #D8B4FE;
+            box-shadow: 0 0 0 3px rgba(216,180,254,0.15);
+            background: #fff;
+        }
+        [data-theme="dark"] .login-input {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.1);
+            color: #eee;
+        }
+        [data-theme="dark"] .login-input::placeholder { color: rgba(255,255,255,0.25); }
+        [data-theme="dark"] .login-input:focus {
+            border-color: rgba(167,139,250,0.4);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+            background: rgba(255,255,255,0.1);
         }
 
-        .login-card .login-input:focus {
-            border-color: #A78BFA;
-            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
-            background: #FFFFFF;
-        }
-
-        .login-card .login-btn {
-            width: 100%;
-            padding: 13px;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(135deg, #FF6B9D, #A78BFA);
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            font-family: var(--font-family);
-            box-shadow: 0 4px 15px rgba(167, 139, 250, 0.3);
-        }
-
-        .login-card .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(167, 139, 250, 0.4);
-        }
-
-        .login-card .login-btn:active {
-            transform: translateY(0);
-        }
-
-        .login-card .login-remember {
+        .login-remember {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 18px;
             font-size: 0.85rem;
-            color: #64748B;
+            color: #aaa;
             cursor: pointer;
             user-select: none;
         }
-
-        .login-card .login-remember input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+        .login-remember input[type="checkbox"] {
+            width: 16px; height: 16px;
             accent-color: #A78BFA;
             cursor: pointer;
+        }
+        [data-theme="dark"] .login-remember { color: rgba(255,255,255,0.4); }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #FF9A9E, #FAD0C4, #A18CD1);
+            background-size: 200% 200%;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            min-height: 48px;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(161,140,209,0.35);
+        }
+        .login-btn:active { transform: translateY(0); }
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .login-btn .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: loginSpin 0.6s linear infinite;
+            margin: 0 auto;
+        }
+        .login-btn.loading .btn-text { display: none; }
+        .login-btn.loading .spinner { display: block; }
+        @keyframes loginSpin { to { transform: rotate(360deg); } }
+
+        .login-error {
+            display: none;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            background: rgba(255,107,157,0.08);
+            border: 1px solid rgba(255,107,157,0.15);
+            border-radius: 12px;
+            color: #FF6B9D;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        .login-error.show { display: block; }
+        [data-theme="dark"] .login-error {
+            background: rgba(255,107,157,0.1);
+            color: #FF8FB1;
+        }
+
+        .login-captcha-group {
+            display: none;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .login-captcha-group.show { display: flex; }
+        .login-captcha-input { flex: 1; }
+        .login-captcha-img {
+            height: 44px;
+            min-width: 100px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1.5px solid #F0E6FF;
+            transition: border-color 0.3s;
+        }
+        .login-captcha-img:hover { border-color: #D8B4FE; }
+        [data-theme="dark"] .login-captcha-img { border-color: rgba(255,255,255,0.1); }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 18px;
+        }
+        .login-back-link {
+            font-size: 0.82rem;
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .login-back-link:hover { color: #FF6B9D; }
+        [data-theme="dark"] .login-back-link { color: rgba(255,255,255,0.3); }
+        [data-theme="dark"] .login-back-link:hover { color: #FF8FB1; }
+
+        @media (max-width: 768px) {
+            #adminLogin { padding: 16px; }
+            .login-card { padding: 28px 24px; border-radius: 24px; }
+            .login-avatar { width: 64px; height: 64px; }
+            .login-title { font-size: 1.2rem; }
+        }
+        @media (max-width: 480px) {
+            .login-card { padding: 24px 20px; border-radius: 20px; }
+            .login-input { padding: 12px 14px 12px 38px; font-size: 16px; }
+            .login-btn { padding: 12px; }
         }
 
         /* ===== 新增面板通用样式 ===== */
@@ -2284,162 +2487,60 @@
             padding: 0 24px 20px;
         }
         
-        /* 管理后台登录页面 */
-        .admin-login-container {
-            display: none;
-            min-height: 100vh;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #FFF0F5 0%, #FFE4EE 50%, #FFD6E7 100%);
+        /* ===== 点歌表紧凑样式 ===== */
+        .songs-table { min-width: 520px; }
+        .songs-table thead th { padding: 8px !important; font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
+        .song-th-check { width: 28px; text-align: center; }
+        .song-th-check input { width: 15px; height: 15px; accent-color: #FF6B9D; cursor: pointer; vertical-align: middle; }
+        .song-th-id { width: 28px; text-align: center; }
+        .song-th-name { min-width: 160px; }
+        .song-th-msg { width: 100px; }
+        .song-th-hot { width: 50px; text-align: center; }
+        .song-th-status { width: 56px; text-align: center; }
+        .song-th-actions { width: 80px; text-align: center; }
+        .song-row td { padding: 6px 8px !important; vertical-align: middle; }
+        .song-cell-check { width: 28px; text-align: center; }
+        .song-cell-check input { width: 15px; height: 15px; cursor: pointer; accent-color: #FF6B9D; vertical-align: middle; }
+        .song-cell-id { width: 28px; text-align: center; color: #999; font-size: 0.75rem; }
+        .song-cell-name { min-width: 160px; }
+        .song-name-wrap { cursor: pointer; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+        .song-name-wrap:hover .song-name-text { color: var(--primary); }
+        .song-name-text { font-size: 0.9rem; color: var(--text-primary); }
+        .song-artist { font-size: 0.78rem; color: var(--text-light); }
+        .song-meta { font-size: 0.72rem; color: var(--text-light); margin-top: 2px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .song-meta-dot { color: #ddd; }
+        .song-cell-msg { max-width: 100px; }
+        .song-msg-preview { font-size: 0.75rem; color: var(--text-light); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .song-cell-hot { width: 50px; text-align: center; }
+        .song-hot-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .song-cell-status { width: 56px; text-align: center; }
+        .song-cell-status .status-badge { font-size: 0.7rem !important; padding: 2px 8px !important; }
+        .song-cell-actions { width: 80px; text-align: center; }
+        .table-actions-compact { display: flex; gap: 2px; align-items: center; justify-content: center; }
+        .table-actions-compact .action-btn-sm {
+            width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 6px; border: 1px solid transparent; font-size: 0.82rem; cursor: pointer;
+            background: transparent; color: var(--text-light); transition: all 0.15s;
         }
-        [data-theme="dark"] .admin-login-container {
-            background: linear-gradient(135deg, #1A1D2E 0%, #151829 50%, #121524 100%);
-        }
-        
-        .login-card {
-            width: 90%;
-            max-width: 400px;
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 32px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-        
-        .login-icon {
-            font-size: 3.2rem;
-            margin-bottom: 10px;
-        }
-        
-        .login-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0 0 8px;
-        }
-        
-        .login-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-        
-        .login-form-group {
-            margin-bottom: 14px;
-        }
-        
-        .login-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            transition: all 0.2s;
-            font-family: var(--font-family);
-        }
-        
-        .login-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
-        }
-        
-        .login-remember {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-        
-        .login-remember input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: var(--font-family);
-            min-height: 48px;
-        }
-        
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.3);
-        }
-        
-        .login-btn:active {
-            transform: translateY(0);
-        }
-        
-        .login-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 18px;
-        }
-        
-        .login-back-link {
-            font-size: 0.813rem;
-            color: #94A3B8;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        
-        .login-back-link:hover {
-            color: var(--primary);
-        }
-        
+        .table-actions-compact .action-btn-sm:hover { background: rgba(255,107,157,0.06); color: var(--text-primary); border-color: rgba(255,107,157,0.1); }
+        .table-actions-compact .action-approve:hover { background: rgba(16,185,129,0.08); color: #10B981; border-color: rgba(16,185,129,0.15); }
+        .table-actions-compact .action-reject:hover { background: rgba(239,68,68,0.08); color: #EF4444; border-color: rgba(239,68,68,0.15); }
+        .table-actions-compact .action-play:hover { background: rgba(59,130,246,0.08); color: #3B82F6; border-color: rgba(59,130,246,0.15); }
+        .table-actions-compact .action-delete:hover { background: rgba(239,68,68,0.08); color: #EF4444; border-color: rgba(239,68,68,0.15); }
+
         @media (max-width: 768px) {
-            .login-card {
-                padding: 24px;
-            }
-            .login-icon {
-                font-size: 2.8rem;
-            }
-            .login-title {
-                font-size: 1.3rem;
-            }
+            .songs-table { min-width: 420px; }
+            .song-th-name { min-width: 120px; }
+            .song-th-msg, .song-cell-msg { display: none; }
+            .song-cell-name { min-width: 120px; }
+            .song-th-hot, .song-cell-hot { width: 40px; }
+            .song-hot-badge { font-size: 0.7rem; padding: 1px 6px; }
+            .song-th-status, .song-cell-status { width: 44px; }
+            .song-cell-status .status-badge { font-size: 0.65rem !important; padding: 1px 6px !important; }
+            .song-th-actions, .song-cell-actions { width: 60px; }
+            .table-actions-compact .action-btn-sm { width: 24px; height: 24px; font-size: 0.75rem; }
         }
-        
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 20px;
-                border-radius: 16px;
-            }
-            .login-input {
-                padding: 12px 14px;
-                font-size: 16px;
-            }
-            .login-btn {
-                padding: 12px;
-            }
-        }
-        
+
         /* ===== 反馈管理界面样式 ===== */
         .feedbacks-count {
             display: inline-flex;
@@ -3415,12 +3516,30 @@
             }
         }
         
-        /* ===== 按钮统一美化 ===== */
-        .btn {
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
+/* ===== 按钮统一美化 ===== */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+.btn-loading::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
         
         .btn-primary {
             background: linear-gradient(135deg, #6366f1, #818cf8);
@@ -4165,26 +4284,54 @@
     </style>
 </head>
 <body>
-    <!-- 管理后台登录 -->
-    <div id="adminLogin" class="admin-login-container">
+    <!-- 💖 管理后台登录 -->
+    <div id="adminLogin">
+        <div class="kawaii-star">⭐</div>
+        <div class="kawaii-star">🌸</div>
+        <div class="kawaii-star">✨</div>
+        <div class="kawaii-star">💖</div>
+        <div class="kawaii-star">🌟</div>
+        <div class="kawaii-star">🦋</div>
+        <div class="kawaii-star">🎀</div>
+        <div class="admin-login-orb"></div>
+        <div class="admin-login-orb"></div>
+        <div class="admin-login-orb"></div>
         <div class="login-card">
             <div class="login-header">
-                <div class="login-icon">🔐</div>
-                <h2 class="login-title">管理后台登录</h2>
-                <p class="login-subtitle">请使用管理员账号登录</p>
+                <div class="login-avatar">
+                    <img src="/uploads/avatars/default.png" alt="" id="adminLoginAvatar">
+                    <span class="badge">👑</span>
+                </div>
+                <h2 class="login-title">管理后台</h2>
+                <p class="login-subtitle">欢迎回来，请登录你的账号 💕</p>
             </div>
             <form id="adminLoginForm" onsubmit="return false;">
             <div class="login-form-group">
-                <input type="text" id="adminUsername" placeholder="用户名" class="login-input" autocomplete="username">
+                <div class="login-input-wrap">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="adminUsername" placeholder="用户名" class="login-input" autocomplete="username">
+                </div>
             </div>
             <div class="login-form-group">
-                <input type="password" id="adminPassword" placeholder="密码" class="login-input" autocomplete="current-password">
+                <div class="login-input-wrap">
+                    <span class="input-icon">🔑</span>
+                    <input type="password" id="adminPassword" placeholder="密码" class="login-input" autocomplete="current-password">
+                </div>
             </div>
-            <label class="login-remember" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; cursor: pointer;">
-                <input type="checkbox" id="adminRemember" style="width: 18px; height: 18px; cursor: pointer; accent-color: #A78BFA;">
-                <span style="font-size: 0.9rem; color: #64748B;">记住我</span>
+            <!-- 验证码（多次失败后显示） -->
+            <div class="login-captcha-group" id="adminLoginCaptchaGroup">
+                <input type="text" id="adminCaptchaCode" class="login-input login-captcha-input" placeholder="验证码">
+                <img id="adminCaptchaImg" class="login-captcha-img" src="" alt="验证码" title="刷新" onclick="loadAdminCaptcha()">
+            </div>
+            <div class="login-error" id="adminLoginError"></div>
+            <label class="login-remember">
+                <input type="checkbox" id="adminRemember">
+                <span>记住我 💫</span>
             </label>
-            <button id="adminLoginBtn" class="login-btn" type="button">登 录</button>
+            <button id="adminLoginBtn" class="login-btn" type="button">
+                <span class="btn-text">🔓 登 录</span>
+                <span class="spinner"></span>
+            </button>
             </form>
             <div class="login-footer">
                 <a href="/" class="login-back-link">← 返回首页</a>
@@ -4443,12 +4590,16 @@
 
             <!-- ========== 面板2: 帖子管理 ========== -->
             <div class="admin-panel" id="panel-posts">
-                <!-- 筛选栏 -->
+                <!-- 筛选栏 / 批量操作 -->
                 <div class="filter-bar-admin">
                     <button class="filter-btn active" data-status="all">全部</button>
                     <button class="filter-btn" data-status="pending">待审核</button>
                     <button class="filter-btn" data-status="approved">已发布</button>
                     <button class="filter-btn" data-status="rejected">已拒绝</button>
+                    <span style="flex:1;"></span>
+                    <button class="filter-btn" id="post-batch-approve-btn" style="color:#059669;display:none;" onclick="batchPostAction('approved')">✓ 批量通过</button>
+                    <button class="filter-btn" id="post-batch-reject-btn" style="color:#DC2626;display:none;" onclick="batchPostAction('rejected')">✕ 批量拒绝</button>
+                    <span id="post-batch-count" style="font-size:0.78rem;color:var(--text-light);display:none;"></span>
                 </div>
 
                 <!-- 帖子表格 -->
@@ -4461,6 +4612,7 @@
                         <table class="admin-table">
                             <thead>
                                 <tr>
+                                    <th style="width:32px;"><input type="checkbox" id="posts-select-all" onchange="toggleAllPosts(this.checked)" style="accent-color:#FF6B9D;cursor:pointer;"></th>
                                     <th>ID</th>
                                     <th>标题</th>
                                     <th>作者</th>
@@ -4604,27 +4756,28 @@
                         <button class="filter-btn" data-status="rejected" onclick="filterSongsBtn(this)">已拒绝</button>
                         <button class="filter-btn" data-status="played" onclick="filterSongsBtn(this)">已播放</button>
                         <button class="filter-btn" data-status="trash" onclick="filterSongsBtn(this)" style="margin-left:auto;color:#DC2626;">🗑️ 回收站</button>
+                        <span style="flex:1;"></span>
+                        <button class="filter-btn" id="song-batch-approve-btn" style="color:#059669;display:none;" onclick="batchSongAction('approved')">✓ 批量通过</button>
+                        <button class="filter-btn" id="song-batch-reject-btn" style="color:#DC2626;display:none;" onclick="batchSongAction('rejected')">✕ 批量拒绝</button>
+                        <span id="song-batch-count" style="font-size:0.78rem;color:var(--text-light);display:none;"></span>
                     </div>
                     
                     <div style="overflow-x: auto;">
-                        <table class="admin-table">
+                        <table class="admin-table songs-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>歌曲名</th>
-                                    <th>歌手</th>
-                                    <th>点歌人</th>
-                                    <th>播放日期</th>
-                                    <th>播放时段</th>
-                                    <th>祝福语</th>
-                                    <th>热度</th>
-                                    <th>状态</th>
-                                    <th>操作</th>
+                                    <th class="song-th-check"></th>
+                                    <th class="song-th-id">#</th>
+                                    <th class="song-th-name">歌曲</th>
+                                    <th class="song-th-msg">祝福语</th>
+                                    <th class="song-th-hot">热度</th>
+                                    <th class="song-th-status">状态</th>
+                                    <th class="song-th-actions">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="songs-tbody">
                                 <tr>
-                                    <td colspan="10">
+                                    <td colspan="7">
                                         <div class="admin-empty">
                                             <span class="empty-emoji">📭</span>
                                             <span>暂无数据</span>
@@ -5047,11 +5200,15 @@
                     [data-theme="dark"] #panel-wechattest .wechat-test-result.error {
                         background: rgba(244,67,54,0.1); color: #ef5350;
                     }
-                    @media (max-width: 600px) {
-                        #panel-wechattest .openid-text { max-width: 120px; }
+                    @media (max-width: 768px) {
+                        #panel-wechattest .wechat-test-section { padding: 16px; }
+                        #panel-wechattest .wechat-user-table { font-size: 13px; }
                         #panel-wechattest .wechat-user-table th,
-                        #panel-wechattest .wechat-user-table td { padding: 8px 10px; font-size: 12px; }
-                        #panel-wechattest .wechat-user-table { font-size: 12px; }
+                        #panel-wechattest .wechat-user-table td { padding: 8px 10px; }
+                        #panel-wechattest .openid-text { max-width: 100px; }
+                        #panel-wechattest .wechat-user-table-wrap {
+                            overflow-x: auto; -webkit-overflow-scrolling: touch;
+                        }
                     }
                 </style>
                 <div class="wechat-test-section">
@@ -5065,7 +5222,7 @@
             <div class="admin-panel" id="panel-stories">
                 <style>
                     #panel-stories .stories-layout {
-                        display: flex; gap: 20px; align-items: flex-start;
+                        display: flex; gap: 20px; width: 100%;
                     }
                     #panel-stories .stories-sidebar {
                         width: 280px; flex-shrink: 0;
@@ -5137,6 +5294,9 @@
                     }
                     #panel-stories .stories-main-body {
                         padding: 20px;
+                    }
+                    #panel-stories .story-form-group textarea {
+                        min-height: 300px; resize: vertical;
                     }
                     #panel-stories .story-form-group {
                         margin-bottom: 16px;
@@ -5261,12 +5421,106 @@
                         #panel-stories .stories-sidebar {
                             width: 100%;
                         }
+                        #panel-stories .stories-sidebar-header {
+                            padding: 12px 14px;
+                        }
+                        #panel-stories .story-chapter-item {
+                            padding: 8px 14px;
+                        }
+                        #panel-stories .story-chapter-item .chap-title {
+                            font-size: 0.8rem;
+                        }
+                        #panel-stories .stories-main-header {
+                            flex-direction: column;
+                            gap: 10px;
+                            padding: 12px 14px;
+                        }
+                        #panel-stories .stories-main-header h3 {
+                            font-size: 0.9rem;
+                        }
+                        #panel-stories .story-nav-buttons {
+                            width: 100%;
+                            justify-content: center;
+                        }
+                        #panel-stories .story-nav-buttons button {
+                            flex: 1;
+                            padding: 8px 12px;
+                            font-size: 0.8rem;
+                        }
+                        #panel-stories .stories-main-body {
+                            padding: 14px;
+                        }
+                        #panel-stories .story-form-group {
+                            margin-bottom: 12px;
+                        }
+                        #panel-stories .story-form-group label {
+                            font-size: 0.8rem;
+                        }
+                        #panel-stories .story-form-group input,
+                        #panel-stories .story-form-group textarea {
+                            padding: 8px 12px;
+                            font-size: 0.85rem;
+                        }
+                        #panel-stories .story-form-group textarea {
+                            min-height: 200px;
+                        }
+                        #panel-stories .story-actions {
+                            flex-direction: column;
+                            gap: 8px;
+                        }
+                        #panel-stories .story-btn {
+                            width: 100%;
+                            text-align: center;
+                            padding: 10px 16px;
+                            font-size: 0.85rem;
+                        }
+                        #panel-stories .stories-prompt-area {
+                            margin-top: 14px;
+                            padding: 12px;
+                        }
+                        #panel-stories .stories-prompt-area textarea {
+                            min-height: 140px;
+                            font-size: 0.8rem;
+                        }
+                    }
+                    /* 超小屏幕 */
+                    @media (max-width: 480px) {
+                        #panel-stories .story-chapter-item .chap-num {
+                            width: 20px;
+                            height: 20px;
+                            font-size: 0.65rem;
+                        }
+                        #panel-stories .story-chapter-item .chap-current-badge {
+                            font-size: 0.55rem;
+                            padding: 1px 4px;
+                        }
+                        #panel-stories [style*="display:flex"][style*="gap:10px"] {
+                            flex-wrap: wrap !important;
+                        }
+                        #panel-stories select#novel-selector {
+                            max-width: 100% !important;
+                            width: 100%;
+                        }
+                        #panel-stories button[style*="padding:4px 12px"] {
+                            padding: 6px 10px !important;
+                            font-size: 0.7rem !important;
+                        }
                     }
                 </style>
                 <div class="admin-table-wrapper" style="border: none;">
                     <div class="admin-table-header">
                         <h3>📖 连载小说管理</h3>
                         <span style="font-size: 0.85rem; color: var(--text-light);" id="stories-status">已加载</span>
+                    </div>
+                    <!-- 小说切换 -->
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg-card,#fff);border-bottom:1px solid var(--border,#eee);">
+                        <span style="font-size:0.85rem;color:var(--text-light,#94a3b8);white-space:nowrap;">📖 当前小说：</span>
+                        <select id="novel-selector" style="flex:1;padding:6px 10px;border:1px solid var(--border,#ddd);border-radius:8px;font-size:0.85rem;max-width:300px;" onchange="switchNovel(this.value)"></select>
+                        <button class="story-btn" style="padding:4px 12px;font-size:0.75rem;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:white;border:none;border-radius:8px;cursor:pointer;" onclick="showCreateNovel()">➕ 新建小说</button>
+                        <button class="story-btn" style="padding:4px 12px;font-size:0.75rem;background:#f43f5e;color:white;border:none;border-radius:8px;cursor:pointer;" onclick="deleteCurrentNovel()">🗑 删除</button>
+                    </div>
+                    <div id="stories-loading" style="display:none; text-align:center; padding:20px; color:var(--text-light);">
+                        <div class="spinner"></div> 加载章节中…
                     </div>
                     <div class="stories-layout">
                         <!-- 章节列表 -->
@@ -5372,7 +5626,7 @@
                             <div>AI 正在构思下一章内容，请稍候...</div>
                             <div style="font-size:0.75rem;margin-top:6px;">可能需要 10-30 秒</div>
                         </div>
-                        <textarea id="stories-prompt-text" readonly placeholder="点击上方的"AI 生成章节"按钮，自动生成下一章内容..."></textarea>
+                        <textarea id="stories-prompt-text" placeholder="AI 生成的内容会出现在这里，你也可以手动输入或粘贴内容，然后点击上方的"AI 生成章节"按钮使用 AI 续写..."></textarea>
                     </div>
                 </div>
             </div>
@@ -5515,13 +5769,6 @@
                         </div>
                         <input type="text" class="settings-input" id="setting-site-name" placeholder="嘉二の墙墙" oninput="autoSaveSettings()">
                     </div>
-                    <div class="settings-row">
-                        <div>
-                            <div class="settings-label">站点描述</div>
-                            <div class="settings-desc">站点简介，用于 SEO 和页面展示</div>
-                        </div>
-                        <textarea class="settings-textarea" id="setting-site-desc" placeholder="一个温暖的校园社区" oninput="autoSaveSettings()"></textarea>
-                    </div>
                 </div>
                 <div class="settings-section">
                     <div class="section-title">🔧 功能开关</div>
@@ -5592,11 +5839,22 @@
                             <span class="switch-label" id="setting-anon-song-label">已关闭</span>
                         </div>
                     </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label">🎉 520特别模式</div>
+                            <div class="settings-desc">开启后前台变为粉色情人节主题</div>
+                        </div>
+                        <div class="switch-wrapper">
+                            <div class="switch" id="setting-520-switch"></div>
+                            <span class="switch-label" id="setting-520-label">已关闭</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 邮件配置 -->
                 <div class="settings-section">
                     <div class="section-title">📧 邮件通知配置</div>
+                    <form onsubmit="return false;">
                     <div class="settings-row">
                         <div>
                             <div class="settings-label">邮件通知开关</div>
@@ -5655,9 +5913,8 @@
                             <input type="email" class="settings-input" id="setting-test-email" placeholder="输入测试邮箱" style="max-width:220px;">
                             <button class="btn btn-sm btn-primary" id="setting-test-btn" onclick="testEmailSend()">✈️ 发送测试</button>
                         </div>
-                    </div>
+                    </form>
                 </div>
-
                 <div class="settings-save-hint">
                     <span id="settings-save-hint">✅ 设置已自动保存</span>
                 </div>
@@ -5991,10 +6248,12 @@
                 <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
             `;
             container.appendChild(toast);
-            
+            // 触发 CSS 过渡动画
+            requestAnimationFrame(() => toast.classList.add('show'));
             // 成功提示显示5秒，其他3秒
             const duration = type === 'success' ? 5000 : 3000;
             setTimeout(() => {
+                toast.classList.remove('show');
                 toast.classList.add('removing');
                 setTimeout(() => toast.remove(), 300);
             }, duration);
@@ -6002,6 +6261,22 @@
 
         // 暴露 showToast 到全局，供 IIFE 外部的函数使用
         window.showToast = showToast;
+
+        // 按钮 loading 辅助：防止重复点击
+        window.withLoading = async function(btn, fn) {
+            if (btn.classList.contains('btn-loading')) return;
+            var orig = btn.innerHTML;
+            btn.classList.add('btn-loading');
+            btn.disabled = true;
+            try {
+                await fn();
+            } catch(e) {
+                showToast(e.message || '操作失败', 'error');
+            } finally {
+                btn.classList.remove('btn-loading');
+                btn.disabled = false;
+            }
+        };
 
         // 自定义确认框（替代浏览器confirm，移动端更友好）
         window.showConfirmModal = function(message, onConfirm, onCancel) {
@@ -6051,7 +6326,6 @@
             _saveSettingsTimer = setTimeout(async function() {
                 var body = {
                     site_name: document.getElementById('setting-site-name').value.trim(),
-                    site_description: document.getElementById('setting-site-desc').value.trim(),
                     allow_register: document.getElementById('setting-register-switch').classList.contains('active') ? 1 : 0,
                     post_review: document.getElementById('setting-review-switch').classList.contains('active') ? 1 : 0,
                     song_enabled: document.getElementById('setting-song-switch').classList.contains('active') ? 1 : 0,
@@ -6064,7 +6338,8 @@
                     smtp_port: document.getElementById('setting-smtp-port').value.trim() || '587',
                     smtp_user: document.getElementById('setting-smtp-user').value.trim(),
                     smtp_pass: document.getElementById('setting-smtp-pass').value.trim(),
-                    smtp_from: document.getElementById('setting-smtp-from').value.trim()
+                    smtp_from: document.getElementById('setting-smtp-from').value.trim(),
+                    special_mode_520: document.getElementById('setting-520-switch').classList.contains('active') ? 1 : 0
                 };
                 try {
                     var res = await authFetch('/api/admin/settings', { method: 'PUT', body: JSON.stringify(body) });
@@ -6247,7 +6522,10 @@
             postviews: '浏览记录',
             settings: '系统设置',
             wechattest: '微信测试',
-            messages: '私信管理'
+            messages: '私信管理',
+            stories: '连载小说',
+            trash: '回收站',
+            email: '邮件群发'
         };
 
         function switchPanel(panelName) {
@@ -6457,6 +6735,7 @@
         // ===== 数据加载 =====
 
         let currentPanel = 'overview';
+        window.currentPanel = currentPanel;
         let postsPage = 1;
         let postsStatus = 'all';
         let usersPage = 1;
@@ -6466,6 +6745,7 @@
 
         function loadPanelData(panel) {
             currentPanel = panel;
+            window.currentPanel = panel;
             switch (panel) {
                 case 'overview': loadOverview(); break;
                 case 'posts': loadPosts(); break;
@@ -6595,6 +6875,9 @@
             const params = new URLSearchParams({ page: postsPage, limit: 15 });
             if (postsStatus !== 'all') params.set('status', postsStatus);
 
+            // 显示骨架屏
+            document.getElementById('posts-tbody').innerHTML = '<tr><td colspan="8"><div class="skeleton" style="height:320px;border-radius:8px;"></div></td></tr>';
+
             try {
                 const res = await authFetch('/api/admin/posts?' + params);
                 const json = await res.json();
@@ -6615,11 +6898,12 @@
         function renderPostsTable(posts) {
             const tbody = document.getElementById('posts-tbody');
             if (!posts || posts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
                 return;
             }
             tbody.innerHTML = posts.map((p, i) => `
                 <tr>
+                    <td><input type="checkbox" class="post-checkbox" value="${p.id}" onchange="updatePostBatchBtn()" style="accent-color:#FF6B9D;cursor:pointer;"></td>
                     <td data-label="序号">${i + 1}</td>
                     <td data-label="标题" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(p.title || '无标题')}</td>
                     <td data-label="作者">${escapeHtml(p.nickname || p.username || '匿名')}</td>
@@ -6639,6 +6923,56 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // 全选 / 取消全选
+        function toggleAllPosts(checked) {
+            document.querySelectorAll('.post-checkbox').forEach(cb => cb.checked = checked);
+            updatePostBatchBtn();
+        }
+
+        function updatePostBatchBtn() {
+            var ids = Array.from(document.querySelectorAll('.post-checkbox:checked')).map(cb => parseInt(cb.value));
+            var btn = document.getElementById('post-batch-approve-btn');
+            var count = document.getElementById('post-batch-count');
+            var rejectBtn = document.getElementById('post-batch-reject-btn');
+            if (ids.length > 0) {
+                btn.style.display = 'inline-block';
+                rejectBtn.style.display = 'inline-block';
+                count.style.display = 'inline-block';
+                count.textContent = '已选 ' + ids.length + ' 条';
+            } else {
+                btn.style.display = 'none';
+                rejectBtn.style.display = 'none';
+                count.style.display = 'none';
+            }
+        }
+
+        async function batchPostAction(status) {
+            var ids = Array.from(document.querySelectorAll('.post-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (ids.length === 0) { showToast('请先选择帖子', 'warning'); return; }
+            if (!confirm('确定' + (status === 'approved' ? '通过' : '拒绝') + '选中的 ' + ids.length + ' 条帖子？')) return;
+            var btn = document.getElementById(status === 'approved' ? 'post-batch-approve-btn' : 'post-batch-reject-btn');
+            if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+            try {
+                var token = localStorage.getItem("token") || sessionStorage.getItem("token");
+                var res = await fetch('/api/admin/posts/batch-status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ ids, status })
+                });
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast(json.message, 'success');
+                    loadPosts();
+                } else {
+                    showToast('操作失败: ' + json.message, 'error');
+                }
+            } catch(e) {
+                showToast('操作失败', 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+            }
         }
 
         // 帖子筛选
@@ -6981,7 +7315,7 @@
         // songsPage, songsStatus, songsKeyword 已在上面声明
         async function loadSongs() {
             const tbody = document.getElementById('songs-tbody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="10"><div class="loading-text"><span class="loading-spinner"></span>加载中...</div></td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="skeleton" style="height:320px;border-radius:8px;"></div></td></tr>';
             
             // 回收站使用不同的API
             if (songsStatus === 'trash') {
@@ -7112,48 +7446,105 @@
         function renderSongsTable(songs) {
             const tbody = document.getElementById('songs-tbody');
             if (!songs || songs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
                 return;
             }
             tbody.innerHTML = songs.map((s, i) => {
                 const hotScore = s.hot_score || 0;
                 const hotColor = hotScore > 50 ? '#EF4444' : hotScore > 20 ? '#F59E0B' : hotScore > 0 ? '#10B981' : '#9CA3AF';
                 const hotBg = hotScore > 50 ? 'rgba(239,68,68,0.1)' : hotScore > 20 ? 'rgba(245,158,11,0.1)' : hotScore > 0 ? 'rgba(16,185,129,0.08)' : 'rgba(156,163,175,0.05)';
+                // 状态对应的操作按钮
+                var actionBtns = '';
+                if (s.status === 'pending') {
+                    actionBtns = '<button class="action-btn action-btn-sm action-approve" title="通过" onclick="adminAction(\'approveSong\', ' + s.id + ')">✓</button>' +
+                                 '<button class="action-btn action-btn-sm action-reject" title="拒绝" onclick="adminAction(\'rejectSong\', ' + s.id + ')">✕</button>';
+                } else if (s.status === 'approved') {
+                    actionBtns = '<button class="action-btn action-btn-sm action-play" title="标记已播放" onclick="adminAction(\'playSong\', ' + s.id + ')">▶</button>';
+                } else if (s.status === 'rejected') {
+                    actionBtns = '<button class="action-btn action-btn-sm" title="恢复" onclick="window.restoreSong(' + s.id + ')">🔄</button>';
+                }
                 return `
-                <tr>
-                    <td data-label="序号">${i + 1}</td>
-                    <td data-label="歌曲名" style="max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(s.song_name)}</td>
-                    <td data-label="歌手" style="max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(s.artist)}</td>
-                    <td data-label="点歌人">${escapeHtml(s.nickname || s.username || '匿名')}</td>
-                    <td data-label="播放日期"><span class="tag tag-blue">${s.play_date || '-'}</span></td>
-                    <td data-label="播放时段"><span class="tag tag-purple">${s.slot_name || '-'}</span><br><small style="color:var(--text-light)">${s.start_time || '-'}~${s.end_time || '-'}</small></td>
-                    <td data-label="留言" style="max-width: 180px; min-width: 100px; white-space: normal; word-break: break-word; font-size: 0.8rem; color: var(--text-secondary);">${escapeHtml(s.message || '-')}</td>
-                    <td data-label="热度">
-                        <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:${hotBg};border-radius:8px;cursor:pointer;" onclick="window.editSongHot(${s.id}, ${hotScore})" title="点击修改热度">
-                            <span style="font-size:1rem;">🔥</span>
-                            <span style="font-weight:700;color:${hotColor};font-size:0.95rem;">${hotScore}</span>
+                <tr class="song-row">
+                    <td class="song-cell-check"><input type="checkbox" class="song-checkbox" value="${s.id}" onchange="updateSongBatchBtn()"></td>
+                    <td class="song-cell-id">${i + 1}</td>
+                    <td class="song-cell-name">
+                        <div class="song-name-wrap" onclick="window.viewSongDetail(${s.id})">
+                            <strong class="song-name-text">${escapeHtml(s.song_name)}</strong>
+                            ${s.artist ? '<span class="song-artist">— ' + escapeHtml(s.artist) + '</span>' : ''}
+                        </div>
+                        <div class="song-meta">
+                            <span>${escapeHtml(s.nickname || s.username || '匿名')}</span>
+                            <span class="song-meta-dot">·</span>
+                            <span>${s.play_date || '-'}</span>
+                            <span class="song-meta-dot">·</span>
+                            <span>${s.slot_name || '-'}</span>
                         </div>
                     </td>
-                    <td data-label="状态">${statusBadge(s.status)}</td>
-                    <td data-label="操作">
-                        <div class="table-actions">
-                            <button class="action-btn action-btn-text" title="查看" onclick="window.viewSongDetail(${s.id})">👁 查看</button>
-                            ${s.status === 'pending' ? `
-                                <button class="action-btn action-btn-text btn-approve" title="通过" onclick="adminAction('approveSong', ${s.id})">✓ 通过</button>
-                                <button class="action-btn action-btn-text btn-reject" title="拒绝" onclick="adminAction('rejectSong', ${s.id})">✕ 拒绝</button>
-                            ` : ''}
-                            ${s.status === 'approved' ? `
-                                <button class="action-btn action-btn-text btn-play" title="标记已播放" onclick="adminAction('playSong', ${s.id})">▶ 已播放</button>
-                            ` : ''}
-                            ${s.status === 'rejected' ? `
-                                <button class="action-btn action-btn-text btn-restore" title="恢复待审核" onclick="window.restoreSong(${s.id})">🔄 恢复</button>
-                            ` : ''}
-                            <button class="action-btn action-btn-text btn-delete" title="删除" onclick="adminAction('deleteSong', ${s.id})">🗑 删除</button>
+                    <td class="song-cell-msg">${s.message ? '<span class="song-msg-preview" title="' + escapeHtml(s.message) + '">' + escapeHtml(s.message).substring(0, 30) + (s.message.length > 30 ? '…' : '') + '</span>' : '<span style="color:#ccc">-</span>'}</td>
+                    <td class="song-cell-hot">
+                        <span class="song-hot-badge" style="background:${hotBg};color:${hotColor};" onclick="window.editSongHot(${s.id}, ${hotScore})">🔥 ${hotScore}</span>
+                    </td>
+                    <td class="song-cell-status">${statusBadge(s.status)}</td>
+                    <td class="song-cell-actions">
+                        <div class="table-actions-compact">
+                            <button class="action-btn action-btn-sm" title="查看" onclick="window.viewSongDetail(${s.id})">👁</button>
+                            ${actionBtns}
+                            <button class="action-btn action-btn-sm action-delete" title="删除" onclick="adminAction('deleteSong', ${s.id})">🗑</button>
                         </div>
                     </td>
                 </tr>
             `;
             }).join('');
+        }
+
+        // 点歌全选 / 批量
+        function toggleAllSongs(checked) {
+            document.querySelectorAll('.song-checkbox').forEach(cb => cb.checked = checked);
+            updateSongBatchBtn();
+        }
+
+        function updateSongBatchBtn() {
+            var ids = Array.from(document.querySelectorAll('.song-checkbox:checked')).map(cb => parseInt(cb.value));
+            var btn = document.getElementById('song-batch-approve-btn');
+            var rejectBtn = document.getElementById('song-batch-reject-btn');
+            var count = document.getElementById('song-batch-count');
+            if (ids.length > 0) {
+                btn.style.display = 'inline-block';
+                rejectBtn.style.display = 'inline-block';
+                count.style.display = 'inline-block';
+                count.textContent = '已选 ' + ids.length + ' 条';
+            } else {
+                btn.style.display = 'none';
+                rejectBtn.style.display = 'none';
+                count.style.display = 'none';
+            }
+        }
+
+        async function batchSongAction(status) {
+            var ids = Array.from(document.querySelectorAll('.song-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (ids.length === 0) { showToast('请先选择点歌', 'warning'); return; }
+            if (!confirm('确定' + (status === 'approved' ? '通过' : '拒绝') + '选中的 ' + ids.length + ' 条点歌？')) return;
+            var btn = document.getElementById(status === 'approved' ? 'song-batch-approve-btn' : 'song-batch-reject-btn');
+            if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+            try {
+                var token = localStorage.getItem("token") || sessionStorage.getItem("token");
+                var res = await fetch('/api/admin/songs/batch-status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ ids, status })
+                });
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast(json.message, 'success');
+                    loadSongs();
+                } else {
+                    showToast('操作失败: ' + json.message, 'error');
+                }
+            } catch(e) {
+                showToast('操作失败', 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+            }
         }
 
         // 点歌筛选
@@ -8987,7 +9378,6 @@
                 if (json.code === 200) {
                     const s = json.data;
                     document.getElementById('setting-site-name').value = s.site_name || '';
-                    document.getElementById('setting-site-desc').value = s.site_description || '';
 
                     const registerSwitch = document.getElementById('setting-register-switch');
                     const registerLabel = document.getElementById('setting-register-label');
@@ -9070,6 +9460,18 @@
                     document.getElementById('setting-smtp-user').value = s.smtp_user || '';
                     document.getElementById('setting-smtp-pass').value = s.smtp_pass || '';
                     document.getElementById('setting-smtp-from').value = s.smtp_from || '';
+
+                    // 520特别模式
+                    const mode520Switch = document.getElementById('setting-520-switch');
+                    const mode520Label = document.getElementById('setting-520-label');
+                    if (s.special_mode_520) {
+                        mode520Switch.classList.add('active');
+                        mode520Label.textContent = '已开启';
+                    } else {
+                        mode520Switch.classList.remove('active');
+                        mode520Label.textContent = '已关闭';
+                    }
+
                     _settingsLoaded = true; // 标记设置已加载
                 }
             } catch (err) {
@@ -9112,6 +9514,11 @@
             const isActive = this.classList.toggle('active');
             document.getElementById('setting-email-label').textContent = isActive ? '已开启' : '已关闭';
             saveEmailConfig();
+        });
+        document.getElementById('setting-520-switch').addEventListener('click', function() {
+            const isActive = this.classList.toggle('active');
+            document.getElementById('setting-520-label').textContent = isActive ? '已开启' : '已关闭';
+            autoSaveSettings();
         });
 
         // 邮件配置显式保存按钮（用户看到 + 点击确认）
@@ -9525,7 +9932,7 @@
                         list.innerHTML = '<div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无用户绑定微信</span></div>';
                         return;
                     }
-                    var html = '<table class="wechat-user-table"><thead><tr>' +
+                    var html = '<div class="wechat-user-table-wrap"><table class="wechat-user-table"><thead><tr>' +
                         '<th>ID</th><th>昵称</th><th>角色</th><th>OpenID</th><th>绑定时间</th><th>操作</th>' +
                         '</tr></thead><tbody>';
                     for (var i = 0; i < res.data.length; i++) {
@@ -9548,7 +9955,7 @@
                             '</td>' +
                             '</tr>';
                     }
-                    html += '</tbody></table>';
+                    html += '</tbody></table></div>';
                     list.innerHTML = html;
                     // 绑定测试推送按钮事件
                     list.querySelectorAll('.btn-test-msg').forEach(function(btn) {
@@ -9741,66 +10148,99 @@
         }
 
         // ===== 管理后台登录 =====
+        // 管理后台登录验证码
+        var adminCaptchaKey = '';
+        function loadAdminCaptcha() {
+            fetch('/api/auth/captcha').then(function(r) { return r.json(); }).then(function(data) {
+                if (data.code === 200) {
+                    adminCaptchaKey = data.data.key;
+                    var img = document.getElementById('adminCaptchaImg');
+                    if (img) img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data.data.captcha)));
+                }
+            }).catch(function() {});
+        }
+
         document.getElementById('adminLoginBtn').addEventListener('click', function() {
             const username = document.getElementById('adminUsername').value.trim();
             const password = document.getElementById('adminPassword').value;
             const remember = document.getElementById('adminRemember').checked;
+            const errorDiv = document.getElementById('adminLoginError');
+            errorDiv.classList.remove('show');
+
             if (!username || !password) {
-                showToast('请输入用户名和密码', 'warning');
+                errorDiv.textContent = '💦 请输入用户名和密码呀~';
+                errorDiv.classList.add('show');
                 return;
             }
+
             this.disabled = true;
-            this.textContent = '登录中...';
+            this.classList.add('loading');
+
+            var body = { username: username, password: password };
+            var captchaGroup = document.getElementById('adminLoginCaptchaGroup');
+            if (captchaGroup.classList.contains('show')) {
+                body.captchaKey = adminCaptchaKey;
+                body.captchaCode = document.getElementById('adminCaptchaCode').value.trim();
+            }
+
             fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            }).then(r => r.json()).then(data => {
-                this.disabled = false;
-                this.textContent = '登 录';
+                body: JSON.stringify(body)
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                var btn = document.getElementById('adminLoginBtn');
+                btn.disabled = false;
+                btn.classList.remove('loading');
+
                 if (data.code === 200) {
                     const storage = getStorage(remember);
                     storage.setItem('token', data.data.token);
                     storage.setItem('user', JSON.stringify(data.data.user));
-                    showToast('登录成功');
+                    showToast('🎉 登录成功！');
                     setTimeout(function() {
                         if (checkAuth()) {
                             const defaultPanel = ROLE_DEFAULT_PANELS[data.data.user.role] || 'overview';
-                            
-                            // 优先使用上次停留的面板
                             let lastPanel = null;
-                            try {
-                                lastPanel = localStorage.getItem('admin_last_panel');
-                            } catch (e) {}
-                            
-                            // 检查权限
+                            try { lastPanel = localStorage.getItem('admin_last_panel'); } catch (e) {}
                             if (lastPanel) {
-                                const menuLink = document.querySelector(`.sidebar-link[data-panel="${lastPanel}"]`);
+                                const menuLink = document.querySelector('.sidebar-link[data-panel="' + lastPanel + '"]');
                                 if (menuLink && menuLink.dataset.permission && !hasPermission(menuLink.dataset.permission)) {
                                     lastPanel = null;
                                 }
                             }
-                            
                             switchPanel(lastPanel || defaultPanel);
                         }
                     }, 300);
                 } else {
-                    showToast(data.message || '登录失败', 'error');
+                    if (data.needCaptcha) {
+                        document.getElementById('adminLoginCaptchaGroup').classList.add('show');
+                        loadAdminCaptcha();
+                    }
+                    errorDiv.textContent = '😅 ' + (data.message || '登录失败');
+                    errorDiv.classList.add('show');
                 }
             }).catch(function() {
-                this.disabled = false;
-                this.textContent = '登 录';
-                showToast('网络错误', 'error');
+                var btn = document.getElementById('adminLoginBtn');
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                errorDiv.textContent = '😱 网络错误，稍后再试试~';
+                errorDiv.classList.add('show');
             });
         });
 
-        // 回车登录
         document.getElementById('adminPassword').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') document.getElementById('adminLoginBtn').click();
         });
         document.getElementById('adminUsername').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') document.getElementById('adminPassword').focus();
         });
+        // 页面加载时检查是否需要验证码
+        fetch('/api/auth/login-status').then(function(r) { return r.json(); }).then(function(d) {
+            if (d.code === 200 && d.data.needCaptcha) {
+                document.getElementById('adminLoginCaptchaGroup').classList.add('show');
+                loadAdminCaptcha();
+            }
+        }).catch(function() {});
 
     })();
 
@@ -9924,27 +10364,171 @@
 
     // ===== 连载小说管理 =====
     var storiesData = { stories: [], currentIndex: 0, editingIndex: -1 };
-    
-    async function loadStories() {
+    var currentNovelId = '';
+    var novelsList = [];
+
+    // 从 localStorage 恢复上次选中的小说和章节
+    (function restoreNovelState() {
+        var saved = localStorage.getItem('novelState');
+        if (saved) {
+            try {
+                var state = JSON.parse(saved);
+                currentNovelId = state.novelId || '';
+            } catch(e) {}
+        }
+    })();
+
+    async function loadNovels() {
         try {
             var token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            var res = await fetch('/api/admin/stories', {
+            var res = await fetch('/api/admin/novels', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             var json = await res.json();
             if (json.code === 200) {
+                novelsList = json.data.novels || [];
+                currentNovelId = json.data.activeNovelId || '';
+                renderNovelSelector();
+                return novelsList;
+            }
+        } catch(e) {
+            console.warn('加载小说列表失败:', e.message);
+        }
+        return [];
+    }
+
+    function renderNovelSelector() {
+        var sel = document.getElementById('novel-selector');
+        if (!sel) return;
+        sel.innerHTML = '';
+        novelsList.forEach(function(n) {
+            var opt = document.createElement('option');
+            opt.value = n.id;
+            opt.textContent = n.title;
+            if (n.id === currentNovelId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    function switchNovel(novelId) {
+        currentNovelId = novelId;
+        localStorage.setItem('novelState', JSON.stringify({ novelId: novelId, chapterIndex: -1 }));
+        // 切换小说后重新加载章节
+        var loading = document.getElementById('stories-loading');
+        if (loading) loading.style.display = 'block';
+        document.getElementById('stories-chapter-list').innerHTML = '';
+        loadStoriesForNovel(novelId);
+    }
+
+    async function loadStoriesForNovel(novelId) {
+        try {
+            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            var url = '/api/admin/stories';
+            if (novelId) url += '?novelId=' + encodeURIComponent(novelId);
+            var res = await fetch(url, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var json = await res.json();
+            var loading = document.getElementById('stories-loading');
+            if (loading) loading.style.display = 'none';
+            if (json.code === 200) {
                 storiesData = json.data;
                 renderChapterList();
                 if (storiesData.stories.length > 0) {
-                    storySelect(storiesData.currentIndex);
+                    // 优先恢复上次选中的章节
+                    var savedState = localStorage.getItem('novelState');
+                    var savedIdx = -1;
+                    if (savedState) {
+                        try {
+                            var state = JSON.parse(savedState);
+                            if (state.novelId === novelId && state.chapterIndex >= 0 && state.chapterIndex < storiesData.stories.length) {
+                                savedIdx = state.chapterIndex;
+                            }
+                        } catch(e) {}
+                    }
+                    var idx = savedIdx >= 0 ? savedIdx : (storiesData.currentIndex >= 0 ? storiesData.currentIndex : 0);
+                    storySelectForNovel(idx, novelId);
                 }
                 return storiesData;
             } else {
                 showToast('加载小说失败: ' + (json.message || ''), 'error');
             }
         } catch(e) {
+            var loading = document.getElementById('stories-loading');
+            if (loading) loading.style.display = 'none';
             showToast('加载小说失败', 'error');
         }
+    }
+
+    function storySelectForNovel(index, novelId) {
+        storySelect(index);
+    }
+
+    function showCreateNovel() {
+        var title = prompt('请输入小说标题：');
+        if (!title) return;
+        var author = prompt('请输入作者（默认为嘉二校园墙编辑部）：') || '嘉二校园墙编辑部';
+        var desc = prompt('请输入简介（可选）：') || '';
+        createNovel(title, author, desc);
+    }
+
+    async function createNovel(title, author, desc) {
+        try {
+            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            var res = await fetch('/api/admin/novels/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ title: title, author: author, desc: desc })
+            });
+            var json = await res.json();
+            if (json.code === 200) {
+                showToast('✅ ' + (json.message || '创建成功'), 'success');
+                await loadNovels();
+                switchNovel(json.data.id);
+            } else {
+                showToast('创建失败: ' + (json.message || ''), 'error');
+            }
+        } catch(e) {
+            showToast('创建失败: ' + e.message, 'error');
+        }
+    }
+
+    async function deleteCurrentNovel() {
+        if (novelsList.length <= 1) {
+            showToast('至少保留一本小说', 'error');
+            return;
+        }
+        if (!confirm('确定删除当前小说及其所有章节？此操作不可恢复！')) return;
+        try {
+            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            var res = await fetch('/api/admin/novels/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({ novelId: currentNovelId })
+            });
+            var json = await res.json();
+            if (json.code === 200) {
+                showToast('已删除', 'success');
+                await loadNovels();
+                loadStoriesForNovel(currentNovelId);
+            } else {
+                showToast('删除失败: ' + (json.message || ''), 'error');
+            }
+        } catch(e) {
+            showToast('删除失败: ' + e.message, 'error');
+        }
+    }
+
+    async function loadStories() {
+        // 先加载小说列表（会自动加载章节）
+        await loadNovels();
+        return loadStoriesForNovel(currentNovelId);
     }
     
     function renderChapterList() {
@@ -9962,6 +10546,7 @@
             html += '<div class="chap-num">' + (i + 1) + '</div>';
             html += '<div class="chap-title">' + (s.title || '无标题') + '</div>';
             if (isCurrent) html += '<div class="chap-current-badge">连载中</div>';
+            if (s.published) html += '<div class="chap-current-badge" style="background:#43e97b;">已发布</div>';
             html += '</div>';
         }
         list.innerHTML = html;
@@ -9970,8 +10555,12 @@
     function storySelect(index) {
         if (index < 0 || index >= storiesData.stories.length) return;
         storiesData.editingIndex = index;
-        renderChapterList();
-        
+        // 保存选中的章节
+        try {
+            var state = JSON.parse(localStorage.getItem('novelState') || '{}');
+            state.chapterIndex = index;
+            localStorage.setItem('novelState', JSON.stringify(state));
+        } catch(e) {}
         var s = storiesData.stories[index];
         var body = document.getElementById('stories-editor-body');
         document.getElementById('stories-editor-title').textContent = '📝 编辑：第' + (index + 1) + '章 ' + (s.title || '');
@@ -9988,8 +10577,8 @@
             '</div>' +
             '<div class="story-form-group">' +
                 '<label>章节内容</label>' +
-                '<textarea id="story-edit-content" placeholder="正在加载章节内容..." oninput="document.getElementById(\'story-char-count\').textContent=this.value.length+\'字\'">⏳ 加载中...</textarea>' +
-                '<div class="char-count"><span id="story-char-count">加载中...</span></div>' +
+                '<textarea id="story-edit-content" placeholder="正在加载章节内容..." oninput="storyAutoSave()">⏳ 加载中...</textarea>' +
+                '<div class="char-count"><span id="story-char-count">加载中...</span><span id="story-auto-save-status" style="color:#bbb;font-size:12px;margin-left:8px;"></span></div>' +
             '</div>' +
             '<div class="story-actions">' +
                 '<button class="story-btn story-btn-primary" onclick="storySave()">💾 保存修改</button>' +
@@ -10009,7 +10598,7 @@
     async function loadChapterContent(index) {
         try {
             var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/chapter-content?index=' + index, {
+            var res = await fetch('/api/admin/stories/chapter-content?index=' + index + '&novelId=' + encodeURIComponent(currentNovelId), {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             var json = await res.json();
@@ -10033,14 +10622,80 @@
     }
     
     async function storySave() {
-        if (storiesData.editingIndex < 0) { showToast('请先选择一个章节', 'error'); return; }
         var title = document.getElementById('story-edit-title').value.trim();
         var content = document.getElementById('story-edit-content').value;
         var author = document.getElementById('story-edit-author').value.trim();
         
         if (!title) { showToast('请输入章节标题', 'error'); return; }
         if (!content) { showToast('请输入章节内容', 'error'); return; }
+        if (!author) author = '匿名';
         
+        try {
+            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
+            
+            if (storiesData.editingIndex < 0) {
+                // 没有选中章节 → 创建新章节
+                var addRes = await fetch('/api/admin/stories/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ title: title, content: content, author: author, novelId: currentNovelId })
+                });
+                var addJson = await addRes.json();
+                if (addJson.code === 200) {
+                    await loadStories();
+                    showToast('✅ 章节已创建并保存', 'success');
+                    storySelect(storiesData.stories.length - 1);
+                } else {
+                    showToast('创建失败: ' + addJson.message, 'error');
+                }
+            } else {
+                // 编辑已有章节
+                var res = await fetch('/api/admin/stories/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ index: storiesData.editingIndex, title: title, content: content, author: author, novelId: currentNovelId })
+                });
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast('✅ 第' + (storiesData.editingIndex + 1) + '章保存成功', 'success');
+                    storiesData.stories[storiesData.editingIndex] = { file: storiesData.stories[storiesData.editingIndex].file, title: title, content: content, author: author };
+                    renderChapterList();
+                } else {
+                    showToast('保存失败: ' + json.message, 'error');
+                }
+            }
+        } catch(e) {
+            showToast('保存失败', 'error');
+        }
+    }
+    
+    var storyAutoSaveTimer = null;
+    function storyAutoSave() {
+        var textarea = document.getElementById('story-edit-content');
+        var statusEl = document.getElementById('story-auto-save-status');
+        document.getElementById('story-char-count').textContent = textarea.value.length + '字';
+        if (statusEl) statusEl.textContent = '⏳ 自动保存...';
+        if (storyAutoSaveTimer) clearTimeout(storyAutoSaveTimer);
+        storyAutoSaveTimer = setTimeout(function() {
+            var title = document.getElementById('story-edit-title').value.trim();
+            if (!title || !textarea.value) {
+                if (statusEl) statusEl.textContent = '';
+                return;
+            }
+            storySaveSilent(title, textarea.value);
+        }, 2000);
+    }
+    
+    async function storySaveSilent(title, content) {
+        if (storiesData.editingIndex < 0) return;
+        var author = document.getElementById('story-edit-author').value.trim();
+        var statusEl = document.getElementById('story-auto-save-status');
         try {
             var token = localStorage.getItem("token") || sessionStorage.getItem("token");
             var res = await fetch('/api/admin/stories/save', {
@@ -10049,18 +10704,19 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ index: storiesData.editingIndex, title: title, content: content, author: author })
+                body: JSON.stringify({ index: storiesData.editingIndex, title: title, content: content, author: author, novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
-                showToast('✅ 第' + (storiesData.editingIndex + 1) + '章保存成功', 'success');
                 storiesData.stories[storiesData.editingIndex] = { file: storiesData.stories[storiesData.editingIndex].file, title: title, content: content, author: author };
                 renderChapterList();
+                if (statusEl) statusEl.textContent = '✅ 已自动保存';
+                setTimeout(function() { if (statusEl) statusEl.textContent = ''; }, 3000);
             } else {
-                showToast('保存失败: ' + json.message, 'error');
+                if (statusEl) statusEl.textContent = '❌ 保存失败';
             }
         } catch(e) {
-            showToast('保存失败', 'error');
+            if (statusEl) statusEl.textContent = '❌ 保存失败';
         }
     }
     
@@ -10081,7 +10737,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ title: title, content: '', author: '嘉二校园墙编辑部' })
+                body: JSON.stringify({ title: title, content: '', author: '嘉二校园墙编辑部', novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
@@ -10106,7 +10762,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ index: index })
+                body: JSON.stringify({ index: index, novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
@@ -10136,7 +10792,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ index: index })
+                body: JSON.stringify({ index: index, novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
@@ -10157,11 +10813,24 @@
             storySelect(newIndex);
         }
     }
+
+    // 键盘快捷键
+    document.addEventListener('keydown', function(e) {
+        if (window.currentPanel !== 'stories') return;
+        if (storiesData.editingIndex < 0) return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+            if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); storySave(); return; }
+            return;
+        }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); storyNavigate(-1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); storyNavigate(1); }
+        else if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); storySave(); }
+    });
     
     async function storyGeneratePrompt() {
         try {
             var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/next-prompt', {
+            var res = await fetch('/api/admin/stories/next-prompt?novelId=' + encodeURIComponent(currentNovelId), {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             var json = await res.json();
@@ -10197,14 +10866,27 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ chapterIndex: index })
+                body: JSON.stringify({ chapterIndex: index, novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
-                showToast('✅ 已成功同步到公众号草稿箱！请前往 mp.weixin.qq.com 查看', 'success');
+                showToast('✅ 已成功同步到公众号草稿箱！', 'success');
+                renderChapterList();
                 setTimeout(function() {
-                    showToast('💡 登录公众号 → 草稿箱 → 预览/发布', 'info');
-                }, 2500);
+                    // 用 modal 显示跳转链接
+                    var modalHtml = '<div class="modal-overlay show" id="wechat-push-modal" onclick="if(event.target===this)this.remove()">' +
+                        '<div class="modal" style="display:flex;max-width:420px;">' +
+                        '<div class="modal-header"><h3>✅ 推送成功</h3>' +
+                        '<button class="modal-close" onclick="document.getElementById(\'wechat-push-modal\').remove()">&times;</button></div>' +
+                        '<div class="modal-body" style="text-align:center;padding:32px 24px;">' +
+                        '<div style="font-size:48px;margin-bottom:16px;">🎉</div>' +
+                        '<div style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">第' + (index + 1) + '章已同步到公众号</div>' +
+                        '<div style="font-size:13px;color:var(--text-light);margin-bottom:20px;">media_id: ' + (json.data && json.data.media_id || '-') + '</div>' +
+                        '<a href="https://mp.weixin.qq.com/" target="_blank" style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#07C160,#06AD56);color:#fff;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;">📤 前往公众号草稿箱</a>' +
+                        '<div style="font-size:12px;color:#999;margin-top:12px;">登录后 → 草稿箱 → 预览/发布</div>' +
+                        '</div></div></div>';
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                }, 1000);
             } else {
                 showToast('❌ 推送失败: ' + json.message, 'error');
             }
@@ -10258,7 +10940,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ promptConfig: cfg })
+                body: JSON.stringify({ promptConfig: cfg, novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {
@@ -10272,59 +10954,131 @@
         }
     }
 
-    // AI 自动生成章节（生成后自动创建章节并选中）
+    // AI 自动生成章节（流式输出）
+    var storyStreamController = null;
     async function storyGenerateByAI() {
         var btn = document.getElementById('storyGenBtn');
         var loading = document.getElementById('storyGenLoading');
         var ta = document.getElementById('stories-prompt-text');
         btn.disabled = true;
-        btn.textContent = '⏳ 生成中...';
+        btn.textContent = '⏳ 连接 AI 中...';
         loading.style.display = 'block';
+        loading.innerHTML = '⏳ 正在连接 AI 服务...';
         ta.value = '';
         ta.style.display = 'none';
+        
         try {
             var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/generate-chapter', {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            var json = await res.json();
+            btn.textContent = '⏳ 生成中...';
+            loading.innerHTML = '🤖 AI 正在创作...<br><span id="streamContent" style="font-size:13px;color:var(--text-primary);display:block;margin-top:8px;text-align:left;background:rgba(255,255,255,0.5);padding:8px 12px;border-radius:6px;max-height:200px;overflow-y:auto;white-space:pre-wrap;"></span>';
+            
+            var streamDiv = document.getElementById('streamContent');
+            var fullText = '';
+            var doneMeta = null;
+            var url = '/api/admin/stories/generate-chapter-stream?token=' + encodeURIComponent(token) + '&novelId=' + encodeURIComponent(currentNovelId);
+            
+            // 用 fetch 读取 SSE 流
+            storyStreamController = new AbortController();
+            var res = await fetch(url, { signal: storyStreamController.signal });
+            if (!res.ok) {
+                loading.style.display = 'none';
+                ta.style.display = '';
+                showToast('❌ 服务器错误', 'error');
+                return;
+            }
+            
+            var reader = res.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = '';
+            var currentEvent = '';
+            
+            while (true) {
+                var result = await reader.read();
+                if (result.done) break;
+                
+                buffer += decoder.decode(result.value, { stream: true });
+                var lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (var li = 0; li < lines.length; li++) {
+                    var line = lines[li];
+                    if (line.startsWith('event: ')) {
+                        currentEvent = line.substring(7).trim();
+                    } else if (line.startsWith('data: ')) {
+                        var content = line.substring(6);
+                        if (currentEvent === 'done') {
+                            try { doneMeta = JSON.parse(content); } catch(e) {}
+                            currentEvent = '';
+                        } else if (currentEvent === 'error') {
+                            showToast('❌ 生成失败: ' + content, 'error');
+                            currentEvent = '';
+                        } else if (content !== '__DONE__') {
+                            var text = content.replace(/\\n/g, '\n');
+                            fullText += text;
+                            if (streamDiv) {
+                                streamDiv.textContent = fullText;
+                                streamDiv.scrollTop = streamDiv.scrollHeight;
+                            }
+                        }
+                        currentEvent = '';
+                    }
+                }
+            }
+            
+            // 解析标题（优先用 done 事件的元数据，否则从第一行提取）
+            var aiTitle = '';
+            var aiContent = fullText;
+            
+            if (doneMeta && doneMeta.title) {
+                aiTitle = doneMeta.title;
+                aiContent = doneMeta.content || fullText;
+            } else {
+                var contentLines = fullText.split('\n');
+                if (contentLines.length > 0) {
+                    var firstLine = contentLines[0].replace(/^#+\s*/, '').replace(/^第\d+章[：\s]*/, '').trim();
+                    if (firstLine.length > 0 && firstLine.length < 30) {
+                        aiTitle = firstLine;
+                        aiContent = contentLines.slice(1).join('\n').trim();
+                    }
+                }
+                if (!aiTitle) aiTitle = '第 ' + (parseInt(currentNovelChapterIndex || 0) + 1) + ' 章';
+            }
+            
+            // 加载到编辑器
             loading.style.display = 'none';
             ta.style.display = '';
-
-            if (json.code === 200) {
-                // 自动新增章节并填入生成的内容
-                var addRes = await fetch('/api/admin/stories/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({
-                        title: json.data.title,
-                        content: json.data.content,
-                        author: 'AI 辅助创作'
-                    })
-                });
-                var addJson = await addRes.json();
-                if (addJson.code === 200) {
-                    // 重新加载章节列表并选中新章节
-                    await loadStories();
-                    showToast('✅ AI 已生成第 ' + json.data.chapterNum + ' 章，可继续编辑', 'success');
-                    storySelect(storiesData.stories.length - 1);
-                } else {
-                    showToast('章节创建失败: ' + addJson.message, 'error');
+            ta.value = fullText;
+            
+            var titleInput = document.getElementById('story-edit-title');
+            var contentInput = document.getElementById('story-edit-content');
+            var authorInput = document.getElementById('story-edit-author');
+            if (titleInput) titleInput.value = aiTitle;
+            if (contentInput) contentInput.value = aiContent;
+            if (authorInput) authorInput.value = 'AI 辅助创作';
+            updateCharCount();
+            showToast('✨ AI 生成完成，请确认后手动保存', 'success');
+            
+            // 切换到编辑面板
+            var panelBtns = document.querySelectorAll('#panel-stories .tabs-header button');
+            for (var pi = 0; pi < panelBtns.length; pi++) {
+                if (panelBtns[pi].textContent.includes('编辑')) {
+                    panelBtns[pi].click(); break;
                 }
-            } else {
-                showToast('❌ 生成失败: ' + json.message, 'error');
             }
         } catch(e) {
-            loading.style.display = 'none';
-            ta.style.display = '';
-            showToast('❌ 网络错误: ' + e.message, 'error');
+            if (e.name === 'AbortError') {
+                showToast('已取消生成', 'info');
+            } else {
+                loading.style.display = 'none';
+                ta.style.display = '';
+                var errMsg = '❌ 生成失败: ' + e.message;
+                ta.value = errMsg;
+                showToast(errMsg, 'error');
+            }
         } finally {
             btn.disabled = false;
             btn.textContent = '✨ AI 生成章节';
+            storyStreamController = null;
         }
     }
     </script>

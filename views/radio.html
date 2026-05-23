@@ -19,9 +19,13 @@
   <meta property="og:site_name" content="嘉二の墙墙">
   <meta property="og:locale" content="zh_CN">
   <link rel="stylesheet" href="/css/style.css?v=2026052201">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css?v=2026052121">
   <link rel="stylesheet" href="/css/mobile-fix.css?v=2026052121">
   <link rel="stylesheet" href="/css/reservation.css?v=2026052121">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
 </head>
 <body>
   <!-- 光晕效果背景 -->
@@ -150,6 +154,92 @@
     </div>
   </div>
 
+  <div class="side-cards-container">
+    <div class="side-cards-group side-cards-left">
+      <!-- 高考倒计时 -->
+      <div class="side-card glass-effect" id="sideGaokao">
+        <div class="side-card-icon">📚</div>
+        <div class="side-card-title">高考倒计时</div>
+        <div class="side-card-countdown" id="sideGaokaoCountdown"></div>
+        <div class="side-card-progress">
+          <div class="progress-ring">
+            <svg class="progress-svg" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#F59E0B"/>
+                  <stop offset="50%" style="stop-color:#D97706"/>
+                  <stop offset="100%" style="stop-color:#B45309"/>
+                </linearGradient>
+              </defs>
+              <circle class="progress-bg" cx="50" cy="50" r="45"/>
+              <circle class="progress-bar" cx="50" cy="50" r="45" id="progressBar"/>
+            </svg>
+            <div class="progress-text" id="progressText">0%</div>
+          </div>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">✨</span>
+          <span class="float-element float-2">🌟</span>
+          <span class="float-element float-3">💫</span>
+        </div>
+      </div>
+      <!-- 天气卡片 -->
+      <div class="side-card glass-effect" id="sideWeather">
+        <div class="side-card-icon">⛅</div>
+        <div class="side-card-title">上海天气</div>
+        <div class="weather-main">
+          <span class="weather-temp" id="weatherTemp">--°</span>
+          <span class="weather-icon" id="weatherIcon">🌤️</span>
+        </div>
+        <div class="weather-info">
+          <div class="weather-item" id="weatherCondition">加载中...</div>
+          <div class="weather-detail">
+            <span>💧 <span id="weatherHumidity">--%</span></span>
+            <span>💨 <span id="weatherWind">--级</span></span>
+          </div>
+        </div>
+        <div class="weather-aqi" id="weatherAqi">
+          <span class="aqi-label">空气</span>
+          <span class="aqi-value" id="aqiValue">--</span>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">☁️</span>
+          <span class="float-element float-2">🌤️</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-cards-group side-cards-right">
+      <!-- 一言 -->
+      <div class="side-card glass-effect" id="sideHitokoto">
+        <div class="side-card-icon">💬</div>
+        <div class="side-card-title">一言</div>
+        <div class="side-card-content" id="sideHitokotoText">加载中...</div>
+        <div class="side-card-meta">
+          <span class="hitokoto-author" id="hitokotoAuthor"></span>
+          <span class="hitokoto-from" id="hitokotoFrom"></span>
+        </div>
+        <button class="refresh-btn" id="refreshHitokoto">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">💭</span>
+          <span class="float-element float-2">✨</span>
+        </div>
+      </div>
+      <!-- 历史上的今天 -->
+      <div class="side-card glass-effect" id="sideHotsearch">
+        <div class="side-card-icon">📜</div>
+        <div class="side-card-title"><span id="hotsearchTitle">历史上的今天</span></div>
+        <div class="hotsearch-list" id="hotsearchList">
+          <div class="hotsearch-item loading">加载中...</div>
+        </div>
+        <button class="refresh-btn" id="refreshHotsearch">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">📈</span>
+          <span class="float-element float-2">🔥</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/app.js?v=202604281"></script>
   <script src="/js/side-cards.js?v=20260502"></script>
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || 'null');</script>
@@ -188,6 +278,16 @@
           } else {
             anonSongEl.style.display = '';
           }
+        }
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
         }
       }
     })();
