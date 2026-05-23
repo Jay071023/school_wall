@@ -5,7 +5,6 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
 ![Express](https://img.shields.io/badge/express-4.x-lightgrey)
-![Vue](https://img.shields.io/badge/vue-3.x-4FC08D)
 
 ---
 
@@ -32,9 +31,10 @@
 
 ### 📝 1. 校园墙 (Social Wall)
 - **匿名/实名发帖**：支持纯文本、图文混排，用户可选择匿名发布保护隐私。
-- **互动社区**：点赞、评论、举报功能，营造健康的社区氛围。
-- **内容审核**：后台自动/人工审核机制，过滤敏感内容。
+- **互动社区**：点赞、评论、回复、收藏功能，营造健康的社区氛围。
+- **内容审核**：AI 智能辅助 + 人工审核机制，过滤敏感内容。
 - **热门榜单**：基于算法的热门帖子推荐，展示校园热点。
+- **QQ空间风格浏览量**：滚动可见即计数，1分钟内不重复记录。
 
 ### 🎵 2. 广播点歌台 (Radio & Songs)
 - **在线点歌**：用户可在线提交点歌申请，填写歌曲名、歌手及寄语。
@@ -42,29 +42,27 @@
 - **时段预约**：支持预约特定的广播时段，避免冲突。
 - **播放记录**：自动记录已播放歌曲，防止重复。
 
-###  3. 场地与活动预约 (Reservations)
-- **时段管理**：管理员可设置可预约的时间段（Slots）。
-- **冲突检测**：系统自动检测时间冲突，防止重复预约。
-- **预约审核**：支持自动通过或人工审核预约申请。
-- **状态通知**：预约成功/失败通过系统消息或邮件通知用户。
-
-### 📱 4. 微信公众号集成 (WeChat Integration)
+### 📱 3. 微信公众号集成 (WeChat Integration)
 - **素材管理**：后台直接管理公众号图文素材。
 - **草稿箱同步**：支持将平台内容一键同步至公众号草稿箱。
 - **自动发布**：配置定时任务，实现内容自动推送。
 - **粉丝互动**：通过微信接口接收用户消息和反馈。
 
-### 🛡 5. 用户与权限系统 (User & Auth)
-- **多角色管理**：支持普通用户、版主、管理员等多级权限。
-- **个人资料**：自定义头像、昵称、个性签名。
+### 🛡 4. 用户与权限系统 (User & Auth)
+- **多角色管理**：普通用户、审核员、广播管理员、管理员、超级管理员多级权限。
+- **个人资料**：自定义头像、昵称、生日、MBTI、兴趣爱好。
 - **消息中心**：系统通知、点赞提醒、评论回复实时推送。
-- **安全认证**：JWT Token 认证，密码加密存储，防止 XSS/CSRF 攻击。
+- **安全认证**：JWT Token 统一密钥、密码加密存储，防止 XSS/CSRF 攻击。
 
-### 📊 6. 管理后台 (Admin Dashboard)
-- **Vue 3 驱动**：基于 Vue 3 + Element Plus 构建的现代化管理界面。
-- **数据看板**：用户增长、帖子数量、活跃度等数据可视化。
-- **内容管理**：一键置顶、删除违规帖子、管理评论。
+### 📊 5. 管理后台 (Admin Dashboard)
+- **数据看板**：用户增长、帖子数量、活跃度、浏览量统计。
+- **内容管理**：一键置顶、删除违规帖子、管理评论、用户状态管理。
 - **系统配置**：动态修改站点信息、公告、邮件服务配置。
+
+### 🏆 6. 打卡排行榜 (Check-in Leaderboard)
+- **每日打卡**：用户每日签到积累连续打卡天数。
+- **排行榜**：按连续天数、总打卡次数、等级多维度排行。
+- **等级系统**：根据打卡次数自动升级，解锁不同称号。
 
 ---
 
@@ -73,12 +71,14 @@
 | 类别 | 技术 |
 |------|------|
 | **后端** | Node.js, Express.js |
-| **数据库** | MySQL, Sequelize ORM |
-| **前端** | Vue.js 3, Element Plus, EJS |
+| **数据库** | MySQL |
+| **前端** | 原生 JavaScript, EJS 模板 |
 | **认证** | JWT, bcrypt |
-| **文件处理** | Multer (上传), Sharp (图片压缩) |
+| **安全** | XSS 防护、SQL 白名单校验、passive event listener |
+| **性能** | Compression 响应压缩、IntersectionObserver 浏览计数 |
+| **文件处理** | Multer (上传) |
 | **部署** | PM2, Nginx |
-| **第三方** | 微信公众号 API, SMTP 邮件服务 |
+| **第三方** | 微信公众号 API, SMTP 邮件服务, AI 辅助审核 |
 
 ---
 
@@ -86,34 +86,47 @@
 
 ```
 school_wall/
-├── config/              # 配置文件
+├── config/
 │   ├── database.js      # 数据库连接配置
-│   └── stories/         # 故事/内容配置
-├── middleware/          # 中间件
-│   └── auth.js          # 权限验证中间件
-├── models/              # 数据库模型定义
-├── routes/              # API 路由
+│   ├── jwt-secret.js     # JWT 统一密钥
+│   └── auto-publish.json # 自动发布配置
+├── middleware/
+│   └── auth.js          # 权限验证中间件（多角色权限系统）
+├── routes/
 │   ├── admin.js         # 管理后台接口
 │   ├── auth.js          # 登录注册接口
 │   ├── posts.js         # 帖子相关接口
 │   ├── songs.js         # 点歌系统接口
-│   ├── reservations.js  # 预约系统接口
-│   └── wechat.js        # 微信接口
-├── services/            # 核心业务逻辑
+│   ├── checkin.js       # 打卡系统接口
+│   ├── leaderboard.js   # 排行榜接口
+│   ├── wechat.js        # 微信接口
+│   └── mp-draft.js      # 公众号草稿箱接口
+├── services/
 │   ├── ai.js            # AI 辅助服务
 │   ├── email.js         # 邮件发送服务
-│   ── wechat.js        # 微信 API 封装
-├── public/              # 静态资源
-│   ├── admin-vue/       # Vue 后台构建产物
-│   ├── css/             # 样式文件
-│   ├── js/              # 前端交互脚本
-│   └── uploads/         # 用户上传文件
-── views/               # EJS 模板页面
-│   ├── admin/           # 后台管理页面
-│   └── *.html           # 前台页面
-├── .env.example         # 环境变量模板
-├── server.js            # 程序入口
-└── package.json         # 项目依赖
+│   └── ip-lookup.js     # IP 归属地查询
+├── public/
+│   ├── css/
+│   │   ├── style.css        # 主样式
+│   │   ├── mobile-fix.css   # 移动端适配
+│   │   ├── 520.css         # 520特殊模式
+│   │   ├── variables.css    # CSS变量
+│   │   ├── base.css        # 基础样式
+│   │   └── animations.css  # 动画效果
+│   ├── js/
+│   │   ├── app.js           # 公共模块（含 escapeHtml 等工具函数）
+│   │   ├── home.js          # 首页模块
+│   │   ├── detail.js        # 帖子详情模块
+│   │   ├── detail-emojis.js # 表情选择器
+│   │   ├── detail-replies.js# 评论回复模块
+│   │   ├── profile.js       # 个人中心模块
+│   │   ├── radio.js         # 电台模块
+│   │   └── messages.js      # 消息模块
+│   └── uploads/             # 用户上传文件
+├── views/                   # EJS 模板页面
+├── server.js               # 程序入口
+├── upload.js               # 服务器部署脚本
+└── package.json            # 项目依赖
 ```
 
 ---
@@ -144,7 +157,7 @@ cp .env.example .env
 npm start
 
 # 生产模式 (推荐)
-pm2 start server.js --name school_wall
+pm2 start server.js --name campus-wall
 ```
 
 ---
@@ -152,13 +165,16 @@ pm2 start server.js --name school_wall
 ## 📚 API 接口说明
 
 ### 认证模块
-- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/register` - 用户注册（支持验证码防刷）
 - `POST /api/auth/login` - 用户登录
 - `GET /api/auth/profile` - 获取当前用户信息
 
 ### 帖子模块
-- `GET /api/posts` - 获取帖子列表 (支持分页、筛选)
+- `GET /api/posts` - 获取帖子列表（支持分页、分类筛选、排序）
 - `POST /api/posts` - 发布新帖子
+- `POST /api/posts/:id/like` - 点赞/取消点赞
+- `POST /api/posts/:id/favorite` - 收藏/取消收藏
+- `POST /api/posts/:id/view` - 记录浏览量（QQ空间风格）
 - `PUT /api/posts/:id` - 编辑帖子
 - `DELETE /api/posts/:id` - 删除帖子
 
@@ -167,17 +183,50 @@ pm2 start server.js --name school_wall
 - `POST /api/songs` - 提交点歌申请
 - `POST /api/songs/:id/vote` - 投票
 
+### 管理模块
+- `GET /api/admin/stats` - 数据概览（需管理员权限）
+- `GET /api/admin/posts` - 帖子管理
+- `PUT /api/admin/posts/:id/status` - 修改帖子状态
+
 ---
 
-##  部署指南
+## 📋 更新日志
+
+### v2.0.0 (2025-05-23)
+**代码质量与安全**
+- 新增 `config/jwt-secret.js` 统一 JWT 密钥，避免多模块独立生成导致 token 验证失败
+- `server.js` 全局异常添加 `process.exit(1)` 交给 PM2 重启
+- SQL ORDER BY 添加白名单校验，防止注入攻击
+- 内存 Map 限制上限（captchaStore 1000条、likeDebounce 5000条），防止内存泄漏
+- 数据库迁移错误添加日志输出
+
+**性能优化**
+- 新增 `compression` 响应压缩中间件，API 响应自动 gzip
+- 滚动事件添加 `{ passive: true }`，消除浏览器 Violation 警告
+- 清理全项目 `console.log` 调试日志
+
+**前端优化**
+- 公共函数集中到 `app.js`：`escapeHtml`、`showExternalLinkWarning`、`convertContentWithLinks`、`cacheLikeStatus`、`getCachedLikeStatus`
+- 表情选择器改为 8 列网格布局（移动端 6 列），优化视觉效果
+- 工具按钮改为圆形样式，hover 渐变背景
+- 详情页/首页浏览量改为 QQ 空间风格（IntersectionObserver 可见即计数 + 1分钟去重）
+- 删除 `home.js` 中被 alert 覆盖的 `showUserProfileModal` 死代码
+
+**权限系统**
+- `reviewer` 和 `radio_admin` 角色增加 `stats:view` 权限，可查看数据概览
+
+---
+
+## 部署指南
 
 详细部署步骤请参考 [DEPLOY.md](DEPLOY.md)。
 
 **简要步骤：**
 1. 配置 Nginx 反向代理到 `localhost:3000`。
 2. 配置 SSL 证书 (HTTPS)。
-3. 使用 PM2 守护进程。
+3. 使用 PM2 守护进程：`pm2 start server.js --name campus-wall`
 4. 配置 MySQL 数据库并导入数据。
+5. 运行 `node upload.js` 可一键部署到服务器
 
 ---
 
