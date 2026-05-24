@@ -1963,16 +1963,17 @@ router.post('/wechat/test-message', async (req, res) => {
 var AUTO_PUBLISH_CFG = require('path').join(__dirname, '..', 'config', 'auto-publish.json');
 
 function readPubCfg() {
-  try { var d = JSON.parse(require('fs').readFileSync(AUTO_PUBLISH_CFG, 'utf8')); return { hour: d.hour || 8, minute: d.minute || 0, enabled: d.enabled !== false, lastRun: d.lastRun || '' }; }
-  catch(e) { return { hour: 8, minute: 0, enabled: true, lastRun: '' }; }
+  try { var d = JSON.parse(require('fs').readFileSync(AUTO_PUBLISH_CFG, 'utf8')); return { hour: d.hour || 8, minute: d.minute || 0, enabled: d.enabled !== false, lastRun: d.lastRun || '', include_gaokao: d.include_gaokao !== false }; }
+  catch(e) { return { hour: 8, minute: 0, enabled: true, lastRun: '', include_gaokao: true }; }
 }
 
-function writePubCfg(hour, minute, enabled, lastRun) {
+function writePubCfg(hour, minute, enabled, lastRun, includeGaokao) {
   var cfg = readPubCfg();
   if (hour !== undefined) cfg.hour = hour;
   if (minute !== undefined) cfg.minute = minute;
   if (enabled !== undefined) cfg.enabled = enabled;
   if (lastRun !== undefined) cfg.lastRun = lastRun;
+  if (includeGaokao !== undefined) cfg.include_gaokao = includeGaokao;
   require('fs').writeFileSync(AUTO_PUBLISH_CFG, JSON.stringify(cfg), 'utf8');
 }
 
@@ -1988,9 +1989,10 @@ router.post('/auto-publish-config', (req, res) => {
   var hour = parseInt(req.body.hour);
   var minute = parseInt(req.body.minute);
   var enabled = req.body.enabled !== false;
+  var includeGaokao = req.body.include_gaokao !== false;
   if (isNaN(hour) || hour < 0 || hour > 23) return res.json({ code: 400, message: '小时范围0-23' });
   if (isNaN(minute) || minute < 0 || minute > 59) return res.json({ code: 400, message: '分钟范围0-59' });
-  writePubCfg(hour, minute, enabled);
+  writePubCfg(hour, minute, enabled, undefined, includeGaokao);
   res.json({ code: 200, message: enabled ? '已设置每天 ' + String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0') + ' 自动发布' : '已关闭自动发布' });
 });
 
@@ -2802,12 +2804,14 @@ router.get('/stories/generate-chapter-stream', async (req, res) => {
     var fullText = '';
 
     var aiService = require('../services/ai');
+    var pingTimer = setInterval(function() { res.write(': ping\n\n'); }, 25000);
     await aiService.generateChapterStream(aiPrompt, function(token) {
       fullText += token;
       // 发送 token（避免换行破坏 SSE）
       var safe = token.replace(/\n/g, '\\n').replace(/\r/g, '');
       res.write('data: ' + safe + '\n\n');
     });
+    clearInterval(pingTimer);
 
     // 生成完毕
     var lines = fullText.split('\n');
