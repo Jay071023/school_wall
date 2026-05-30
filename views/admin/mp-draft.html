@@ -997,12 +997,13 @@
                 // 介绍词
                 html += '<div style="margin-bottom:8px;">';
                 html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">介绍词</label>';
-                html += '<textarea style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;line-height:1.6;box-sizing:border-box;" placeholder="点击AI生成或手动输入..." onchange="updateSongIntro(' + idx + ', this.value)">' + escapeHtml(intro) + '</textarea>';
+                html += '<textarea id="songIntro_' + idx + '" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;line-height:1.6;box-sizing:border-box;" placeholder="点击AI生成或手动输入..." onchange="updateSongIntro(' + idx + ', this.value)">' + escapeHtml(intro) + '</textarea>';
+                html += '<div class="song-info-result" id="songInfoResult_' + idx + '" style="display:none;margin-top:6px;padding:8px 12px;background:#E8F5E9;border-radius:8px;font-size:12px;color:#2E7D32;"></div>';
                 html += '</div>';
                 // 歌词
                 html += '<div>';
                 html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">歌词</label>';
-                html += '<textarea style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;font-family:serif;line-height:1.8;box-sizing:border-box;" placeholder="搜索歌词或手动输入..." onchange="updateSongLyrics(' + idx + ', this.value)">' + escapeHtml(lyrics) + '</textarea>';
+                html += '<textarea id="songLyrics_' + idx + '" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;font-family:serif;line-height:1.8;box-sizing:border-box;" placeholder="搜索歌词或手动输入..." onchange="updateSongLyrics(' + idx + ', this.value)">' + escapeHtml(lyrics) + '</textarea>';
                 html += '</div>';
                 html += '</div>';
             });
@@ -1013,13 +1014,21 @@
             var song = selectedDailySongs[idx];
             if (!song) return;
             var textarea = document.getElementById('songIntro_' + idx);
-            if (!textarea) return;
+            if (!textarea) {
+                var allTextareas = document.querySelectorAll('#dailySongList textarea');
+                textarea = allTextareas[idx * 2];
+                if (!textarea) return;
+            }
             textarea.value = 'AI生成中...';
+            // 禁用整个列表中的AI按钮防止重复点击
+            var allGenBtns = document.querySelectorAll('#dailySongList button');
+            var genBtns = [];
+            allGenBtns.forEach(function(b) { if (b.textContent && b.textContent.indexOf('AI') >= 0) { b.disabled = true; b.style.opacity = '0.5'; genBtns.push(b); } });
 
             try {
                 var res = await fetch('/api/admin/generate-song-intro', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('adminToken') || '') },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
                     body: JSON.stringify({ song_name: song.song_name, artist: song.artist || '' })
                 });
                 var json = await res.json();
@@ -1028,10 +1037,19 @@
                     selectedDailySongs[idx].intro = json.data.intro || '';
                     if (json.data.lyrics) {
                         selectedDailySongs[idx].lyrics = json.data.lyrics;
+                        var lyricsTextarea = document.getElementById('songLyrics_' + idx);
+                        if (lyricsTextarea) lyricsTextarea.value = json.data.lyrics;
+                    }
+                    // 状态标签更新
+                    var statusArea = textarea.closest('[style*="padding:16px"]') || textarea.parentNode;
+                    var statusTag = statusArea.querySelector('[style*="border-radius:10px"]');
+                    if (statusTag) {
+                        statusTag.style.background = '#d1fae5';
+                        statusTag.style.color = '#059669';
+                        statusTag.textContent = '已填充';
                     }
                     showToast('介绍词生成成功' + (json.data.lyrics ? '（含歌词）' : ''), 'success');
                 } else if (json.data && json.data.prompt) {
-                    // AI不可用，显示提示词让用户手动生成
                     textarea.value = '';
                     var promptBox = document.getElementById('promptFallback_' + idx);
                     if (!promptBox) {
@@ -1051,6 +1069,8 @@
             } catch (e) {
                 textarea.value = '';
                 showToast('网络错误', 'error');
+            } finally {
+                genBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
             }
         }
 
@@ -1070,6 +1090,8 @@
         async function searchSongInfoInEditorFromList(idx) {
             var song = selectedDailySongs[idx];
             if (!song) return;
+            var infoResult = document.getElementById('songInfoResult_' + idx);
+            if (infoResult) { infoResult.style.display = 'block'; infoResult.innerHTML = '🔍 搜索中...'; infoResult.style.background = '#FFF8E1'; infoResult.style.color = '#E65100'; }
             try {
                 var res = await apiFetch(API_BASE + '/search-song-info', {
                     method: 'POST',
@@ -1081,13 +1103,26 @@
                     // 如果有专辑介绍且当前没有介绍词，自动填入
                     if (res.data.intro && (!song.intro || !song.intro.trim())) {
                         song.intro = res.data.intro;
-                        renderDailySongSelector();
+                        var ta = document.getElementById('songIntro_' + idx);
+                        if (ta) ta.value = res.data.intro;
+                    }
+                    if (infoResult) {
+                        var infoHtml = '✅ 搜索成功';
+                        if (res.data.album && res.data.album !== '-') infoHtml += ' · 专辑: ' + escapeHtml(res.data.album);
+                        if (res.data.duration && res.data.duration !== '-') infoHtml += ' · 时长: ' + res.data.duration;
+                        if (res.data.year && res.data.year !== '-') infoHtml += ' · ' + res.data.year;
+                        infoResult.innerHTML = infoHtml;
+                        infoResult.style.background = '#E8F5E9';
+                        infoResult.style.color = '#2E7D32';
+                        setTimeout(function() { infoResult.style.display = 'none'; }, 6000);
                     }
                     showToast('歌曲信息搜索成功', 'success');
                 } else {
+                    if (infoResult) { infoResult.innerHTML = '❌ 未找到歌曲信息'; infoResult.style.background = '#FFEBEE'; infoResult.style.color = '#C62828'; setTimeout(function() { infoResult.style.display = 'none'; }, 4000); }
                     showToast('搜索失败', 'error');
                 }
             } catch(e) {
+                if (infoResult) { infoResult.innerHTML = '❌ 网络错误'; infoResult.style.background = '#FFEBEE'; infoResult.style.color = '#C62828'; setTimeout(function() { infoResult.style.display = 'none'; }, 4000); }
                 showToast('网络错误', 'error');
             }
         }
@@ -1096,6 +1131,8 @@
         async function searchLyricsInEditorFromList(idx) {
             var song = selectedDailySongs[idx];
             if (!song) return;
+            var lyricsTextarea = document.getElementById('songLyrics_' + idx);
+            if (lyricsTextarea) { lyricsTextarea.placeholder = '搜索中...'; }
             try {
                 var res = await apiFetch(API_BASE + '/search-song-lyrics', {
                     method: 'POST',
@@ -1104,12 +1141,29 @@
                 });
                 if (res.code === 200 && res.data.lyrics) {
                     song.lyrics = res.data.lyrics;
-                    renderDailySongSelector();
+                    if (lyricsTextarea) lyricsTextarea.value = res.data.lyrics;
+                    // 状态标签更新
+                    var statusArea = (lyricsTextarea || document.body).closest('[style*="padding:16px"]') || (lyricsTextarea || document.body).parentNode;
+                    var statusTag = statusArea.querySelector('[style*="border-radius:10px"]');
+                    if (statusTag && statusTag.textContent !== '已填充') {
+                        var hasIntro = song.intro && song.intro.trim().length > 0;
+                        if (hasIntro) {
+                            statusTag.style.background = '#d1fae5';
+                            statusTag.style.color = '#059669';
+                            statusTag.textContent = '已填充';
+                        } else {
+                            statusTag.style.background = '#fef3c7';
+                            statusTag.style.color = '#d97706';
+                            statusTag.textContent = '缺歌词';
+                        }
+                    }
                     showToast('歌词搜索成功', 'success');
                 } else {
+                    if (lyricsTextarea) lyricsTextarea.placeholder = '未找到歌词，可手动输入';
                     showToast('未找到歌词', 'info');
                 }
             } catch(e) {
+                if (lyricsTextarea) lyricsTextarea.placeholder = '网络错误';
                 showToast('网络错误', 'error');
             }
         }
@@ -1528,12 +1582,33 @@
             html += '<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:6px;">' + selectedSongs.length + ' 位同学的私藏推荐</div>';
             html += '</div>';
 
-            // ===== 开场白 =====
+            // ===== 开场白（随机多样） =====
+            var openingQuotes = [
+                '每一首歌的背后，都藏着一段故事。<br>今天，我们把话筒交给你们——<br>听听这些被认真喜欢着的旋律。',
+                '有人说，喜欢一首歌<br>是因为歌里藏着某个人的影子。<br>今天，把这些藏在歌词里的心意，读给你听。',
+                '音乐是时间的容器。<br>一首歌，一段回忆，一个人。<br>今天的歌单，送给每一个心中有歌的你。',
+                '有些话说不出口，<br>但歌可以替你讲。<br>今天的推歌，是来自同学们的「我不敢说，但我敢唱」。',
+                '在学校的走廊、操场、教室角落<br>耳机里单曲循环的那首歌<br>今天，我们把它写成文字，分享给所有人。',
+                '音乐是最好的翻译官——<br>把说不出口的情绪，翻译成旋律。<br>今天，听听他们的「音乐日记」。',
+                '每一代人都有属于自己的校园BGM。<br>今天这些被用心推荐的歌曲，<br>或许也能成为你今天的背景音乐。',
+                '认真推荐一首歌的心情，<br>大概和写一封情书差不多。<br>希望读到这里的你，能感受到这份心意。'
+            ];
             html += '<div style="padding:28px 20px 12px;">';
-            html += '<div style="font-size:15px;color:#666;line-height:2.2;text-align:center;max-width:320px;margin:0 auto;">';
-            html += '每一首歌的背后，都藏着一段故事。<br>今天，我们把话筒交给你们——<br>听听这些被认真喜欢着的旋律。';
+            html += '<div style="font-size:15px;color:#666;line-height:2.2;text-align:center;max-width:340px;margin:0 auto;">';
+            html += openingQuotes[idx % openingQuotes.length];
             html += '</div>';
             html += '</div>';
+
+            // ===== 音乐小引言/知识点 =====
+            var musicFacts = [
+                '<span style="color:#FFB6C1;">🎵</span> 研究发现，听喜欢的音乐时大脑会释放多巴胺，和恋爱时的感觉一样呢。',
+                '<span style="color:#A78BFA;">🎵</span> 你今天推荐的歌，可能会成为某个人今天的单曲循环哦。',
+                '<span style="color:#64B5F6;">🎵</span> 你知道吗？同一首歌在不同年纪听，会有完全不同的感受。',
+                '<span style="color:#81C784;">🎵</span> 音乐是最短的社交距离——分享一首歌，比说一百句话都管用。',
+                '<span style="color:#FF8A65;">🎵</span> 有人说，歌单里最不起眼的那首歌，往往藏着最深的秘密。',
+                '<span style="color:#F06292;">🎵</span> 一个人安静听歌的时候，其实是内心最丰富的时候。'
+            ];
+            html += '<div style="padding:0 20px 12px;"><div style="padding:12px 16px;background:#F8F9FF;border-radius:12px;font-size:13px;color:#888;line-height:1.8;text-align:center;max-width:320px;margin:0 auto;border:1px dashed #E0E0FF;">' + musicFacts[idx % musicFacts.length] + '</div></div>';
 
             // ===== 目录区 =====
             html += '<div style="margin:16px 16px 0;background:#fff;border-radius:16px;padding:22px;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
@@ -1984,7 +2059,92 @@
                 return h;
             }
 
-            var templates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal, tplVinyl, tplPlayer, tplPostcard, tplCinematic, tplTimeline];
+            // 模板 K — 唱片店风（Record Store）
+            function tplRecordStore(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
+                // 唱片店招牌
+                h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
+                h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
+                h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
+                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">嘉二校园·音乐角</div></div>';
+                h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
+                h += '</div>';
+                // 黑胶展示区
+                h += '<div style="display:flex;padding:20px;gap:16px;align-items:center;">';
+                h += '<div style="width:60px;flex-shrink:0;position:relative;">';
+                h += '<div style="width:60px;height:60px;background:radial-gradient(circle at 30% 30%,' + c.accent + ',#333);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);">';
+                h += '<div style="width:24px;height:24px;background:linear-gradient(135deg,#eee,#ccc);border-radius:50%;display:flex;align-items:center;justify-content:center;">';
+                h += '<div style="width:8px;height:8px;background:' + c.accent + ';border-radius:50%;"></div></div></div>';
+                h += '<div style="width:18px;height:18px;background:' + c.accent + ';border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;"></div>';
+                h += '</div>';
+                h += '<div style="flex:1;min-width:0;">';
+                h += '<div style="font-size:18px;font-weight:800;color:#2c3e50;line-height:1.3;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-top:8px;">' + songTags(songInfo, c) + '</div>';
+                h += '</div></div>';
+                // 标签卡
+                if (intro) {
+                    h += '<div style="margin:0 20px 14px;padding:12px 16px;background:#f8f9fa;border-radius:10px;border-left:4px solid ' + c.accent + ';">';
+                    h += '<div style="font-size:14px;color:#555;line-height:2.2;">' + fmtIntro(intro) + '</div></div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin:0 20px 14px;padding:14px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:10px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:2px;margin-bottom:10px;opacity:0.4;">LYRICS</div>';
+                    h += fmtLyrics(lyrics, c);
+                    h += '</div>';
+                }
+                if (songMsg) {
+                    h += '<div style="margin:0 20px 14px;font-size:13px;color:#888;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
+                }
+                h += '<div style="margin:0 20px 14px;display:flex;justify-content:space-between;font-size:12px;color:#aaa;border-top:1px dashed #eee;padding-top:12px;">';
+                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
+                h += '<span style="font-size:10px;color:#ddd;">嘉二唱片角</span>';
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div>';
+                return h;
+            }
+
+            // 模板 L — 便签风（Sticky Note）
+            function tplStickyNote(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var rotation = (idx % 4 - 1.5) * 0.8; // -1.2° ~ 1.2° 小旋转
+                var tapeColors = ['rgba(255,183,77,0.5)', 'rgba(255,138,101,0.5)', 'rgba(165,214,167,0.5)', 'rgba(159,168,218,0.5)'];
+                var tapeColor = tapeColors[idx % tapeColors.length];
+                var h = '<div style="background:' + c.bg + ';border-radius:14px;padding:24px 20px;transform:rotate(' + rotation + 'deg);box-shadow:4px 4px 12px rgba(0,0,0,0.06);position:relative;margin:12px 4px;">';
+                // 胶带装饰
+                h += '<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:60px;height:18px;background:' + tapeColor + ';border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>';
+                // 便签头部
+                h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">';
+                h += '<div style="font-size:13px;font-weight:600;color:' + c.text + ';opacity:0.7;">♪ 今日推荐</div>';
+                h += '<div style="font-size:10px;color:' + c.border + ';">' + (idx+1) + '</div>';
+                h += '</div>';
+                // 歌名
+                h += '<div style="font-size:20px;font-weight:800;color:#2c3e50;line-height:1.4;letter-spacing:0.5px;margin-bottom:4px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#666;margin-bottom:8px;">— ' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-bottom:8px;">' + songTags(songInfo, c) + '</div>';
+                // 横线本样式
+                if (intro) {
+                    h += '<div style="margin:14px 0 12px;padding:10px 0;border-top:1px dashed ' + c.border + ';">';
+                    h += '<div style="font-size:14px;color:#555;line-height:2.4;background:repeating-linear-gradient(transparent,transparent 28px,#f0f0f0 28px,#f0f0f0 29px);padding:0 4px;">' + fmtIntro(intro) + '</div></div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin:12px 0;padding:14px 12px;background:rgba(255,255,255,0.5);border-radius:10px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:2px;margin-bottom:8px;opacity:0.4;">LYRICS</div>';
+                    h += '<div style="font-size:13px;color:#777;line-height:2;">' + fmtLyrics(lyrics, c) + '</div></div>';
+                }
+                if (songMsg) {
+                    h += '<div style="margin-top:12px;padding:8px 12px;background:#fff;border-radius:8px;font-size:13px;color:#888;font-style:italic;border:1px dashed ' + c.border + ';">💬 ' + escapeHtml(songMsg) + '</div>';
+                }
+                // 署名
+                h += '<div style="margin-top:16px;text-align:right;font-size:12px;color:' + c.border + ';">';
+                h += '✏️ ' + escapeHtml(submitter) + (toWhom ? ' — 给 ' + escapeHtml(toWhom) : '');
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div>';
+                return h;
+            }
+
+            var templates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal, tplVinyl, tplPlayer, tplPostcard, tplCinematic, tplTimeline, tplRecordStore, tplStickyNote];
             // 每次生成随机打乱模板顺序
             for (var i = templates.length - 1; i > 0; i--) {
                 var j = Math.floor(Math.random() * (i + 1));
@@ -2011,7 +2171,7 @@
                     '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">— ' + songNum + ' —</div><div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,' + c.accent + ',transparent);margin:6px auto 0;border-radius:1px;"></div></div>',
                     '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">NO.' + songNum + '</div><div style="width:6px;height:6px;background:' + c.accent + ';border-radius:50%;margin:6px auto 0;opacity:0.3;"></div></div>',
                     '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:8px;color:' + c.accent + ';letter-spacing:4px;opacity:0.4;">✦ TRACK ' + songNum + ' ✦</div><div style="width:30px;height:1px;background:' + c.accent + ';margin:8px auto 0;opacity:0.2;"></div></div>',
-                    '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:3px;">' + ['♪','♫','♬','♩','✦'][idx % 5] + ' ' + songNum + ' / 10 ' + ['♪','♫','♬','♩','✦'][idx % 5] + '</div><div style="width:24px;height:3px;background:' + c.bg + ';margin:6px auto 0;border-radius:2px;"></div></div>',
+                    '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:3px;">' + ['♪','♫','♬','♩','✦'][idx % 5] + ' ' + songNum + ' / ' + selectedSongs.length + ' ' + ['♪','♫','♬','♩','✦'][idx % 5] + '</div><div style="width:24px;height:3px;background:' + c.bg + ';margin:6px auto 0;border-radius:2px;"></div></div>',
                     '<div style="display:flex;align-items:center;gap:12px;padding:24px 16px 10px;"><div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,' + c.border + ');"></div><div style="font-size:8px;color:' + c.accent + ';letter-spacing:2px;opacity:0.5;">' + songNum + '</div><div style="flex:1;height:1px;background:linear-gradient(90deg,' + c.border + ',transparent);"></div></div>'
                 ];
                 html += '<div style="margin:28px 16px 0;">';
@@ -2023,13 +2183,18 @@
                 html += '</div>'; // 章节结束
             });
 
-            // ===== 结尾 =====
+            // ===== 结尾（多样化） =====
+            var closingQuotes = [
+                '今天的歌单就到这里<br>如果哪首歌触动了你<br>也许可以把这篇文章转发给那个<br><b style="color:#FF6B9D;">你也想让 TA 听到这首歌的人</b>',
+                '每一首歌都是一封没有地址的信<br>写的人知道要寄给谁<br>读的人知道是谁写的<br>希望你今天也找到了那首「属于自己的歌」',
+                '歌单会翻到底<br>但喜欢的歌会一直单曲循环<br>希望你今天推荐的这首歌<br>也住进了某个人的耳机里',
+                '有人说，听懂一首歌是需要阅历的。<br>但我觉得，<br>喜欢一首歌只需要一瞬间的心动。<br>今天，你心动了吗？',
+                '音乐是时光机<br>现在听的歌，以后会成为某段回忆的钥匙<br>这期的歌单里，<br>有没有一首会成为你未来的「那年今日」？',
+                '以上就是今天的全部推荐。<br>感谢每一位认真推荐歌曲的同学。<br>如果你也有想分享的歌，<br>记得来公众号回复「推歌」！'
+            ];
             html += '<div style="margin:32px 16px 0;padding:28px 20px;background:#fff;border-radius:16px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
             html += '<div style="font-size:15px;color:#666;line-height:2.2;">';
-            html += '今天的歌单就到这里<br>';
-            html += '如果哪首歌触动了你<br>';
-            html += '也许可以把这篇文章转发给那个<br>';
-            html += '<b style="color:#FF6B9D;">你也想让 TA 听到这首歌的人</b>';
+            html += closingQuotes[selectedSongs.length % closingQuotes.length];
             html += '</div>';
             html += '<div style="margin:16px auto 0;width:30px;height:2px;background:#FFB6C1;border-radius:1px;"></div>';
             // 求赞求收藏
