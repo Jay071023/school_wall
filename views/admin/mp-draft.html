@@ -1574,6 +1574,15 @@
                 });
                 return h;
             }
+            // 音乐卡片占位（同步后手动插入）
+            function musicPlaceholder(s, c) {
+                return '<div style="margin:16px 0 8px;padding:12px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border:1px dashed ' + c.border + ';border-radius:12px;display:flex;align-items:center;gap:10px;">'
+                    + '<div style="width:36px;height:36px;background:' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;color:#fff;">▶</span></div>'
+                    + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(s.song_name || '') + (s.artist ? ' - ' + escapeHtml(s.artist) : '') + '</div>'
+                    + '<div style="font-size:10px;color:#aaa;margin-top:2px;">🔄 同步后在此插入音乐卡片</div></div>'
+                    + '<div style="flex-shrink:0;width:20px;height:20px;border:2px solid ' + c.border + ';border-radius:50;display:flex;align-items:center;justify-content:center;"><span style="font-size:8px;color:' + c.accent + ';font-weight:700;">♪</span></div>'
+                    + '</div>';
+            }
 
             // ===== 10种卡片模板 =====
 
@@ -1608,7 +1617,9 @@
                 h += '<div style="padding:12px 20px;border-top:1px solid #f5f5f5;font-size:12px;color:#999;display:flex;justify-content:space-between;align-items:center;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
                 h += '<span style="font-size:11px;color:#ccc;">🎧 佩戴耳机食用更佳</span>';
-                h += '</div></div>';
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div>';
                 return h;
             }
 
@@ -1641,6 +1652,7 @@
                     h += '<div style="margin-top:14px;font-size:13px;color:#888;font-style:italic;position:relative;z-index:1;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
                 h += '<div style="margin-top:16px;text-align:right;font-size:11px;color:' + c.border + ';">— ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
+                h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
@@ -1675,6 +1687,7 @@
                     h += '<div style="padding:0 20px 16px;">';
                     h += '<div style="padding:10px 14px;background:' + c.bg + ';border-radius:10px;font-size:13px;color:#555;line-height:1.8;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div></div>';
                 }
+                h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
@@ -1707,7 +1720,9 @@
                 }
                 h += '<div style="padding:16px 24px;text-align:right;">';
                 h += '<div style="font-size:12px;color:#B8A88A;font-style:italic;">P.S. 🎧 建议戴上耳机听~</div>';
-                h += '</div></div>';
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div>';
                 return h;
             }
 
@@ -1730,6 +1745,7 @@
                     h += '<div style="margin-top:10px;font-size:13px;color:#999;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
                 h += '<div style="margin-top:12px;font-size:11px;color:#ccc;">— ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
+                h += musicPlaceholder(s, c);
                 h += '<div style="margin-top:16px;border-top:1px solid #f0f0f0;"></div>';
                 h += '</div>';
                 return h;
@@ -1762,6 +1778,7 @@
                     h += '<div style="margin-top:12px;text-align:center;font-size:13px;color:#888;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
                 h += '<div style="margin-top:14px;text-align:center;font-size:11px;color:' + c.border + ';">♪ ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
+                h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
@@ -1805,7 +1822,13 @@
                 h += '<div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;opacity:0.5;position:relative;z-index:1;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
                 h += '<span>🎧</span>';
-                h += '</div></div>';
+                h += '</div>';
+                h += '<div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
+                h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
+                h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
+                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+                h += '</div>';
+                h += '</div>';
                 return h;
             }
 
@@ -1845,7 +1868,9 @@
                 h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
                 h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
                 h += '<div style="font-size:10px;color:#ddd;">📮 嘉二の墙墙</div>';
-                h += '</div></div>';
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div>';
                 return h;
             }
 
@@ -1881,7 +1906,13 @@
                 h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
                 h += '<span>嘉二の墙墙</span>';
-                h += '</div></div>';
+                h += '</div>';
+                h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
+                h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
+                h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
+                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+                h += '</div>';
+                h += '</div>';
                 return h;
             }
 
@@ -1917,7 +1948,9 @@
                 }
                 h += '<div style="margin:14px 0 4px 40px;padding-top:10px;border-top:1px dashed #f0f0f0;font-size:11px;color:#ccc;">';
                 h += escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '');
-                h += '</div></div></div>';
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div></div>';
                 return h;
             }
 
