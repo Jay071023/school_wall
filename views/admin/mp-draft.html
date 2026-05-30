@@ -1950,16 +1950,19 @@
             html += '</div>';
 
             previewArea.innerHTML = html;
-            // 动态标题：歌曲名拼接，无特殊字符
+            // 规范化标题
             var songTitles = selectedSongs.map(function(s) { return s.song_name || ''; }).filter(Boolean);
-            var titleStr = '今日推歌 | ' + songTitles.join(' / ');
-            // 微信标题限制64字符，超出则截断
-            if (titleStr.length > 60) {
-                titleStr = titleStr.substring(0, 56) + '...';
-            }
-            // 摘要：取第一首歌名 + 推荐人
+            var songCount = selectedSongs.length;
+            // 格式：今日推歌 vol.XX · 歌名1 等N首
+            var volNum = new Date().getDate().toString().padStart(2, '0');
             var firstSong = selectedSongs[0];
-            var digestStr = firstSong ? ('「' + (firstSong.song_name || '') + '」' + (firstSong.artist ? ' - ' + firstSong.artist : '') + ' 等' + selectedSongs.length + '首推荐') : '今日精选歌曲推荐';
+            var firstTitle = firstSong ? (firstSong.song_name || '') : '';
+            var titleStr = '今日推歌 vol.' + volNum + ' · ' + firstTitle + ' 等' + songCount + '首';
+            if (titleStr.length > 64) {
+                titleStr = '今日推歌 vol.' + volNum + ' · ' + firstTitle.substring(0, 10) + ' 等' + songCount + '首';
+            }
+            // 摘要
+            var digestStr = firstSong ? ('「' + firstTitle + '」' + (firstSong.artist ? ' - ' + firstSong.artist : '') + ' · 更多好歌等你发现') : '今日精选歌曲推荐';
 
             generatedArticles = [{
                 title: titleStr,
