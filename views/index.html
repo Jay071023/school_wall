@@ -79,7 +79,7 @@
           <span class="notification-icon">🔔</span>
           <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
         </button>
-        <button class="nav-logout" id="navLogout" title="退出登录">🚪</button>
+        <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
       <button class="theme-switch" id="themeSwitch" title="切换主题">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
@@ -351,7 +351,7 @@
     </div>
   </div>
 
-  <script src="/js/app.js?v=20260501"></script>
+  <script src="/js/app.js?v=202605232"></script>
   <script src="/js/user-card.js?v=2026050527"></script>
   <script src="/js/home.js?v=2026050221"></script>
   <script>
@@ -1261,7 +1261,7 @@
           var today = new Date();
           var month = today.getMonth() + 1;
           var day = today.getDate();
-          titleEl.textContent = '历史上的今天 · ' + month + '月' + day + '日';
+          titleEl.innerHTML = '📜 <span>' + month + '月' + day + '日</span>';
         }
       }
       updateTitleWithDate();

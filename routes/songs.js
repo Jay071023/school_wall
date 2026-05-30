@@ -3,6 +3,22 @@ const { pool } = require('../config/database');
 const { auth, optionalAuth } = require('../middleware/auth');
 const router = express.Router();
 
+// 获取用户今日剩余点歌次数
+router.get('/remaining', auth, async (req, res) => {
+  try {
+    const [settingsRows] = await pool.execute('SELECT config_value FROM settings WHERE config_key = "daily_song_limit"');
+    const dailyLimit = settingsRows.length > 0 ? parseInt(settingsRows[0].config_value) || 3 : 3;
+    const [userSongCount] = await pool.execute(
+      'SELECT COUNT(*) as cnt FROM song_requests WHERE user_id = ? AND DATE(created_at) = CURDATE()',
+      [req.user.id]
+    );
+    const remaining = Math.max(0, dailyLimit - (userSongCount[0].cnt || 0));
+    res.json({ code: 200, data: { remaining, limit: dailyLimit } });
+  } catch (err) {
+    res.json({ code: 200, data: { remaining: 3, limit: 3 } });
+  }
+});
+
 // 自动补充未来日期（当天~7天后）
 async function ensureFutureDates(pool) {
   try {

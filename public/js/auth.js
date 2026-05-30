@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }).then(function(data) {
         if (data.code === 400 && data.message.includes('验证码')) {
           // 验证码错误，重新加载
-          loadCaptcha();
+          if (window.loadCaptcha) window.loadCaptcha();
         }
         if (data.code === 200) {
           // 注册成功

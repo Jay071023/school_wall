@@ -1,7 +1,8 @@
 /**
- * 嘉二の墙墙 - 发帖模块 (post.js)
+ * 嘉二人の墙墙 - 发帖模块 (post.js)
  * 功能：图片上传（拖拽+点击）、图片预览和删除、分类选择、匿名开关、表单提交
  * 后端API返回格式：{ code: 200, message: '...', data: {...} }
+ * 新增：草稿箱、内容预览、富文本编辑、字数统计
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -27,6 +28,232 @@ document.addEventListener('DOMContentLoaded', function() {
   var fileInput = document.getElementById('fileInput');
   var imagePreviewList = document.getElementById('imagePreviewList');
   var postForm = document.getElementById('postForm');
+  var contentArea = document.getElementById('postContent');
+  var charCount = document.getElementById('charCount');
+
+  // ============================================
+  // 字数统计
+  // ============================================
+  if (contentArea && charCount) {
+    function updateCharCount() {
+      var len = contentArea.value.length;
+      charCount.textContent = len;
+      if (len > 1800) {
+        charCount.parentElement.classList.add('warning');
+      } else {
+        charCount.parentElement.classList.remove('warning');
+      }
+    }
+    contentArea.addEventListener('input', updateCharCount);
+    updateCharCount();
+  }
+
+  // ============================================
+  // emoji选择器
+  // ============================================
+  var EMOJIS = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😱','😨','😰','😥','😢','😭','😱','😩','😬','🤯','💔','💖','💗','💘','💝','💞','💟','❣️','💕','❤️','🧡','💛','💚','💙','💜','🤍','🤎','💯','🔥','⭐','🌟','✨','💫','💥','💢','💣','💦','💨','🌀','🌈','☀️','🌤️','⛅','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','💨','🎉','🎊','🎈','🎁','🎀','🎫','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎟️','🎫','💎','💍','👑','🎩','🧢','👒','🎓','👑','💄','💋','👄','💋','🔥','💯','👍','👎','👏','🙌','🤝','🙏','💪','🤘','🤙','👌','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','👇','☝️','✋','🤚','🖐','🖖','✍','🤲','🙏','💪'];
+
+  window.showEmojiPicker = function() {
+    var picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+
+    if (picker.classList.contains('show')) {
+      picker.classList.remove('show');
+      return;
+    }
+
+    picker.innerHTML = EMOJIS.map(function(e) {
+      return '<span class="emoji-item" onclick="insertEmoji(\'' + e + '\')">' + e + '</span>';
+    }).join('');
+    picker.classList.add('show');
+  };
+
+  window.insertEmoji = function(emoji) {
+    if (contentArea) {
+      var start = contentArea.selectionStart;
+      var end = contentArea.selectionEnd;
+      var text = contentArea.value;
+      contentArea.value = text.substring(0, start) + emoji + text.substring(end);
+      contentArea.selectionStart = contentArea.selectionEnd = start + emoji.length;
+      contentArea.focus();
+      if (charCount) charCount.textContent = contentArea.value.length;
+    }
+    var picker = document.getElementById('emojiPicker');
+    if (picker) picker.classList.remove('show');
+  };
+
+  document.addEventListener('click', function(e) {
+    var picker = document.getElementById('emojiPicker');
+    if (picker && !picker.contains(e.target) && e.target.tagName !== 'TEXTAREA') {
+      picker.classList.remove('show');
+    }
+  });
+
+  // ============================================
+  // 富文本格式化（简易）
+  // ============================================
+  window.insertFormat = function(type) {
+    if (!contentArea) return;
+    var start = contentArea.selectionStart;
+    var end = contentArea.selectionEnd;
+    var text = contentArea.value;
+    var selected = text.substring(start, end);
+
+    if (type === 'bold') {
+      var formatted = '**' + selected + '**';
+      contentArea.value = text.substring(0, start) + formatted + text.substring(end);
+      contentArea.selectionStart = start + 2;
+      contentArea.selectionEnd = start + 2 + selected.length;
+    } else if (type === 'italic') {
+      var formatted = '_' + selected + '_';
+      contentArea.value = text.substring(0, start) + formatted + text.substring(end);
+      contentArea.selectionStart = start + 1;
+      contentArea.selectionEnd = start + 1 + selected.length;
+    }
+    contentArea.focus();
+    if (charCount) charCount.textContent = contentArea.value.length;
+  };
+
+  // ============================================
+  // 草稿箱
+  // ============================================
+  var DRAFT_KEY = 'post_draft';
+
+  window.saveDraft = function() {
+    var title = document.getElementById('postTitle').value.trim();
+    var content = contentArea ? contentArea.value.trim() : '';
+    var selectedCategory = document.querySelector('.category-tag.selected');
+    var category = selectedCategory ? selectedCategory.getAttribute('data-value') : '';
+    var anonymousToggle = document.getElementById('anonymousToggle');
+    var isAnonymous = anonymousToggle ? anonymousToggle.checked : false;
+
+    if (!title && !content) {
+      showToast('内容为空，无需保存', 'warning');
+      return;
+    }
+
+    var draft = {
+      title: title,
+      content: content,
+      category: category,
+      isAnonymous: isAnonymous,
+      images: uploadedImages.slice(),
+      savedAt: Date.now()
+    };
+
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      showToast('草稿已保存', 'success');
+    } catch (e) {
+      showToast('草稿保存失败', 'error');
+    }
+  };
+
+  window.loadDraft = function() {
+    try {
+      var saved = localStorage.getItem(DRAFT_KEY);
+      if (!saved) return;
+
+      var draft = JSON.parse(saved);
+      var titleInput = document.getElementById('postTitle');
+      if (titleInput && draft.title) titleInput.value = draft.title;
+      if (contentArea && draft.content) {
+        contentArea.value = draft.content;
+        if (charCount) charCount.textContent = draft.content.length;
+      }
+      if (draft.category) {
+        var catTag = document.querySelector('.category-tag[data-value="' + draft.category + '"]');
+        if (catTag) {
+          document.querySelectorAll('.category-tag').forEach(function(t) { t.classList.remove('selected'); });
+          catTag.classList.add('selected');
+        }
+      }
+      if (draft.isAnonymous && anonymousToggle) {
+        anonymousToggle.checked = true;
+      }
+      if (draft.images && draft.images.length > 0) {
+        uploadedImages = draft.images;
+        renderImagePreviews();
+      }
+
+      if (Date.now() - draft.savedAt > 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(DRAFT_KEY);
+        showToast('草稿已过期，已自动清除', 'warning');
+        return;
+      }
+
+      showToast('草稿已恢复', 'success');
+    } catch (e) {
+      console.error('加载草稿失败:', e);
+    }
+  };
+
+  setTimeout(loadDraft, 500);
+
+  window.clearDraft = function() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch (e) {}
+  };
+
+  // ============================================
+  // 内容预览
+  // ============================================
+  window.showPreview = function() {
+    var title = document.getElementById('postTitle').value.trim();
+    var content = contentArea ? contentArea.value.trim() : '';
+    var selectedCategory = document.querySelector('.category-tag.selected');
+    var category = selectedCategory ? selectedCategory.textContent.trim() : '日常';
+
+    if (!content) {
+      showToast('请输入内容后再预览', 'warning');
+      return;
+    }
+
+    var previewModal = document.getElementById('previewModal');
+    var previewContent = document.getElementById('previewContent');
+    if (!previewModal || !previewContent) return;
+
+    var htmlContent = escapeHtml(content)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/_(.+?)_/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+
+    var imagesHtml = '';
+    if (uploadedImages.length > 0) {
+      imagesHtml = '<div class="preview-images">';
+      uploadedImages.forEach(function(img) {
+        imagesHtml += '<img src="' + escapeHtml(img) + '" onclick="previewImage(\'' + escapeHtml(img).replace(/'/g, "\\'") + '\')">';
+      });
+      imagesHtml += '</div>';
+    }
+
+    previewContent.innerHTML =
+      '<span class="preview-category-tag">' + escapeHtml(category) + '</span>' +
+      (title ? '<div class="preview-title">' + escapeHtml(title) + '</div>' : '') +
+      '<div class="preview-content">' + htmlContent + '</div>' +
+      imagesHtml;
+
+    previewModal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closePreview = function() {
+    var previewModal = document.getElementById('previewModal');
+    if (previewModal) {
+      previewModal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePreview();
+  });
+
+  document.addEventListener('click', function(e) {
+    var previewModal = document.getElementById('previewModal');
+    if (previewModal && e.target === previewModal) closePreview();
+  });
 
   // ============================================
   // 图片上传区域初始化
@@ -248,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         });
         renderImagePreviews();
-        
+
         // 显示压缩效果
         if (originalSize && file.size < originalSize) {
           var saved = Math.round((originalSize - file.size) / 1024);
@@ -322,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ============================================
   var anonymousOption = document.getElementById('anonymousOption');
   var anonymousToggle = document.getElementById('anonymousToggle');
-  
+
   authFetch('/api/site-info').then(function(data) {
     if (data && data.code === 200 && data.data.anon_post) {
       if (anonymousOption) {
@@ -332,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }).catch(function() {
     console.log('无法获取站点设置，隐藏匿名选项');
   });
-  
+
   if (anonymousToggle) {
     anonymousToggle.addEventListener('change', function() {
       // toggle状态自动更新，无需额外处理
@@ -410,6 +637,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (data.code === 200) {
+          // 发布成功后清除草稿
+          clearDraft();
+
           // 检查是否需要审核
           if (data.message && data.message.includes('等待审核')) {
             showToast('发布成功，请等待审核通过');

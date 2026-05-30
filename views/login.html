@@ -314,13 +314,13 @@
   <script src="/js/auth.js"></script>
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
-    var loginCaptchaKey = '';
-    async function loadLoginCaptcha() {
+    window.loginCaptchaKey = '';
+    window.loadLoginCaptcha = async function() {
       try {
         var res = await fetch('/api/auth/captcha');
         var data = await res.json();
         if (data.code === 200) {
-          loginCaptchaKey = data.data.key;
+          window.loginCaptchaKey = data.data.key;
           document.getElementById('captchaImg').src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data.data.captcha)));
         }
       } catch (err) { console.error('加载验证码失败:', err); }

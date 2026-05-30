@@ -184,7 +184,7 @@
           <span class="notification-icon">🔔</span>
           <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
         </button>
-        <button class="nav-logout" id="navLogout" title="退出登录">🚪</button>
+        <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
       <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
@@ -228,7 +228,7 @@
       <div class="profile-detail-info" id="profileDetailInfo"></div>
       
       <button class="btn-edit-profile" onclick="window.location.href='/edit-profile'">✏️ 编辑资料</button>
-      <button class="btn-edit-profile btn-secondary" id="changePasswordBtn">🔒 修改密码</button>
+      <button class="btn-edit-profile btn-secondary" id="changePasswordBtn">⚙️ 修改密码</button>
       <button class="btn-edit-profile btn-admin" id="adminPanelBtn" onclick="window.location.href='/admin'">⚙️ 管理后台</button>
     </div>
 
@@ -367,7 +367,7 @@
       <form id="passwordForm" class="password-panel-body" onsubmit="return false;">
         <div class="password-field">
           <label class="password-field-label">
-            <span class="field-icon">🔒</span>
+            <span class="field-icon">⚙️</span>
             <span>当前密码</span>
           </label>
           <div class="password-field-input-wrap">

@@ -190,18 +190,6 @@ function formatTime(dateStr) {
 }
 
 /**
- * HTML转义，防止XSS攻击
- * @param {string} str - 需要转义的字符串
- * @returns {string} 转义后的安全字符串
- */
-function escapeHtml(str) {
-  if (!str) return '';
-  var div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-/**
  * 转换内容中的链接（自动识别并添加风险提示）
  * @param {string} content - 原始内容
  * @param {string} currentHost - 当前网站域名
@@ -274,24 +262,7 @@ function getCachedLikeStatus(postId) {
   }
 }
 
-/**
- * 全屏图片预览
- * @param {string} src - 图片地址
- */
-function previewImage(src) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
-  var img = document.createElement('img');
-  img.src = src;
-  img.style.cssText = 'max-width:90%;max-height:90%;border-radius:12px;object-fit:contain';
-  overlay.appendChild(img);
-  overlay.onclick = function() { overlay.remove(); };
-  document.body.appendChild(overlay);
-}
-
-/**
- * 更新导航栏的登录/用户状态显示
- */
+// ===== 图片灯箱预览 =====
 function updateNavbar() {
   var user = getCurrentUser();
   var navAuth = document.getElementById('navAuth');
@@ -416,75 +387,36 @@ document.addEventListener('DOMContentLoaded', function() {
   var navLogout = document.getElementById('navLogout');
   if (navLogout) {
     navLogout.addEventListener('click', function() {
-      if (!confirm('确定要退出登录吗？')) return;
-      
-      // 清除登录状态
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('user');
-      
-      showToast('已退出登录', 'success');
-      
-      // 刷新页面
-      window.location.href = '/';
+      // 显示自定义确认弹窗 - 卡哇伊风格
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+      overlay.innerHTML = '<div class="logout-confirm-modal">' +
+        '<div class="logout-modal-stars">✦ ✧ ★ ✦ ✧</div>' +
+        '<div class="logout-modal-icon">👋</div>' +
+        '<div class="logout-modal-title">确定要退出登录吗？</div>' +
+        '<div class="logout-modal-desc">退出后将返回首页哦～</div>' +
+        '<div class="logout-modal-btns">' +
+        '<button class="logout-btn-cancel">再想想</button>' +
+        '<button class="logout-btn-confirm">确定退出</button>' +
+        '</div></div>';
+      overlay.className = 'logout-overlay';
+      document.body.appendChild(overlay);
+
+      // 绑定按钮事件
+      overlay.querySelector('.logout-btn-cancel').addEventListener('click', function() { overlay.remove(); });
+      overlay.querySelector('.logout-btn-confirm').addEventListener('click', function() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        overlay.remove();
+        window.location.href = '/';
+      });
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
     });
   }
 });
 
-// ===== 图片灯箱预览 =====
-function previewImage(src) {
-  // 创建灯箱遮罩
-  var overlay = document.createElement('div');
-  overlay.id = 'lightbox-overlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.25s ease;cursor:zoom-out;';
-
-  // 创建图片
-  var img = document.createElement('img');
-  img.style.cssText = 'max-width:92vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5);transform:scale(0.9);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);';
-  img.src = src;
-  img.onclick = function(e) { e.stopPropagation(); };
-
-  // 关闭按钮
-  var closeBtn = document.createElement('div');
-  closeBtn.style.cssText = 'position:absolute;top:16px;right:16px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);border-radius:50%;color:white;font-size:1.4rem;cursor:pointer;backdrop-filter:blur(10px);transition:background 0.2s;';
-  closeBtn.textContent = '✕';
-  closeBtn.onclick = function() { closeLightbox(); };
-
-  overlay.appendChild(img);
-  overlay.appendChild(closeBtn);
-  document.body.appendChild(overlay);
-
-  // 动画显示
-  requestAnimationFrame(function() {
-    overlay.style.opacity = '1';
-    img.style.transform = 'scale(1)';
-  });
-
-  // 点击遮罩关闭
-  overlay.onclick = function() { closeLightbox(); };
-
-  // ESC关闭
-  document.addEventListener('keydown', handleLightboxEsc);
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-  var overlay = document.getElementById('lightbox-overlay');
-  if (!overlay) return;
-  overlay.style.opacity = '0';
-  var img = overlay.querySelector('img');
-  if (img) img.style.transform = 'scale(0.9)';
-  setTimeout(function() {
-    overlay.remove();
-    document.body.style.overflow = '';
-  }, 250);
-  document.removeEventListener('keydown', handleLightboxEsc);
-}
-
-function handleLightboxEsc(e) {
-  if (e.key === 'Escape') closeLightbox();
-}
 
 // ===== 移动端输入框防键盘遮挡 =====
 (function() {
@@ -501,3 +433,181 @@ function handleLightboxEsc(e) {
     }
   });
 })();
+// ===== 图片灯箱预览 =====
+var lightboxImages = [];
+var lightboxIndex = 0;
+var touchStartX = 0;
+var touchStartY = 0;
+
+function previewImage(src, images, index) {
+  var existing = document.getElementById('lightbox-overlay');
+  if (existing) closeLightbox(true);
+
+  if (images) {
+    // 支持 JSON 字符串或数组
+    var parsed = typeof images === 'string' ? JSON.parse(images) : images;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      lightboxImages = parsed;
+      lightboxIndex = index !== undefined ? index : parsed.indexOf(src);
+      if (lightboxIndex < 0) lightboxIndex = 0;
+    } else {
+      lightboxImages = [src];
+      lightboxIndex = 0;
+    }
+  } else {
+    lightboxImages = [src];
+    lightboxIndex = 0;
+  }
+
+  var overlay = document.createElement('div');
+  overlay.id = 'lightbox-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.97);z-index:9999;opacity:0;transition:opacity 0.25s;';
+
+  var header = document.createElement('div');
+  header.style.cssText = 'position:absolute;top:0;left:0;right:0;padding:max(16px, env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between;z-index:10;background:linear-gradient(to bottom,rgba(0,0,0,0.6),transparent);';
+
+  var counter = document.createElement('div');
+  counter.id = 'lightbox-counter';
+  counter.style.cssText = 'font-size:0.9rem;color:rgba(255,255,255,0.9);font-weight:500;';
+
+  var closeBtn = document.createElement('div');
+  closeBtn.style.cssText = 'width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:50%;color:white;font-size:1.2rem;cursor:pointer;';
+  closeBtn.innerHTML = '✕';
+  closeBtn.onclick = function(e) { e.stopPropagation(); closeLightbox(); };
+
+  header.appendChild(counter);
+  header.appendChild(closeBtn);
+
+  var imgContainer = document.createElement('div');
+  imgContainer.id = 'lightbox-container';
+  imgContainer.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;';
+
+  var img = document.createElement('img');
+  img.id = 'lightbox-img';
+  img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;transition:opacity 0.2s;';
+  img.src = lightboxImages[lightboxIndex];
+
+  var loading = document.createElement('div');
+  loading.id = 'lightbox-loading';
+  loading.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border:3px solid rgba(255,255,255,0.2);border-top-color:white;border-radius:50%;animation:lbSpin 0.8s linear infinite;';
+
+  imgContainer.appendChild(img);
+  imgContainer.appendChild(loading);
+  overlay.appendChild(header);
+  overlay.appendChild(imgContainer);
+
+  var footer = document.createElement('div');
+  footer.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:12px 16px max(20px, env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:24px;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);';
+
+  var prevBtn = document.createElement('div');
+  prevBtn.id = 'lightbox-prev';
+  prevBtn.style.cssText = 'width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:50%;color:white;font-size:1.5rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);';
+  prevBtn.innerHTML = '‹';
+  prevBtn.onclick = function(e) { e.stopPropagation(); lightboxGo(-1); };
+
+  var nextBtn = document.createElement('div');
+  nextBtn.id = 'lightbox-next';
+  nextBtn.style.cssText = 'width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:50%;color:white;font-size:1.5rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);';
+  nextBtn.innerHTML = '›';
+  nextBtn.onclick = function(e) { e.stopPropagation(); lightboxGo(1); };
+
+  var saveBtn = document.createElement('div');
+  saveBtn.id = 'lightbox-save';
+  saveBtn.style.cssText = 'width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.15);border-radius:50%;color:white;font-size:1.2rem;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);';
+  saveBtn.innerHTML = '↓';
+  saveBtn.onclick = function(e) { e.stopPropagation(); saveImage(); };
+
+  footer.appendChild(prevBtn);
+  footer.appendChild(nextBtn);
+  footer.appendChild(saveBtn);
+  overlay.appendChild(footer);
+
+  var sp = document.createElement('style');
+  sp.textContent = '@keyframes lbSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}';
+  overlay.appendChild(sp);
+
+  document.body.appendChild(overlay);
+
+  img.onload = function() { loading.style.display = 'none'; };
+  img.onerror = function() { loading.style.display = 'none'; };
+
+  overlay.onclick = function(e) {
+    if (e.target === overlay || e.target === imgContainer) closeLightbox();
+  };
+
+  overlay.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  overlay.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+      lightboxGo(dx < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  requestAnimationFrame(function() { overlay.style.opacity = '1'; });
+
+  document.body.style.overflow = 'hidden';
+  updateLightboxUI();
+}
+
+function lightboxGo(dir) {
+  if (lightboxImages.length <= 1) return;
+  lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+  var img = document.getElementById('lightbox-img');
+  var loading = document.getElementById('lightbox-loading');
+  if (img) {
+    img.style.opacity = '0';
+    if (loading) loading.style.display = 'block';
+    setTimeout(function() {
+      img.src = lightboxImages[lightboxIndex];
+      img.onload = function() {
+        if (loading) loading.style.display = 'none';
+        img.style.opacity = '1';
+      };
+    }, 150);
+  }
+  updateLightboxUI();
+}
+
+function updateLightboxUI() {
+  var prevBtn = document.getElementById('lightbox-prev');
+  var nextBtn = document.getElementById('lightbox-next');
+  var counter = document.getElementById('lightbox-counter');
+  if (prevBtn) prevBtn.style.opacity = lightboxImages.length > 1 ? '1' : '0.3';
+  if (nextBtn) nextBtn.style.opacity = lightboxImages.length > 1 ? '1' : '0.3';
+  if (counter) counter.textContent = (lightboxIndex + 1) + ' / ' + lightboxImages.length;
+}
+
+function saveImage() {
+  var img = document.getElementById('lightbox-img');
+  if (!img || !img.src) return;
+  var a = document.createElement('a');
+  a.href = img.src;
+  a.download = 'image_' + lightboxIndex + '.jpg';
+  a.target = '_blank';
+  a.click();
+}
+
+function closeLightbox(immediate) {
+  var overlay = document.getElementById('lightbox-overlay');
+  if (!overlay) return;
+  if (immediate) { overlay.remove(); }
+  else {
+    overlay.style.opacity = '0';
+    setTimeout(function() { overlay.remove(); }, 200);
+  }
+  document.body.style.overflow = '';
+  lightboxImages = [];
+  lightboxIndex = 0;
+}
+
+document.addEventListener('keydown', function(e) {
+  var overlay = document.getElementById('lightbox-overlay');
+  if (!overlay) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lightboxGo(-1);
+  if (e.key === 'ArrowRight') lightboxGo(1);
+});

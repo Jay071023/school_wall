@@ -65,7 +65,14 @@
         <!-- 内容 -->
         <div class="form-group">
           <label class="form-label">内容 <span class="required-tag">必填</span></label>
-          <textarea id="postContent" class="form-textarea" placeholder="说点什么..." rows="4"></textarea>
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" title="粗体" onclick="insertFormat('bold')"><b>B</b></button>
+            <button type="button" class="editor-btn" title="斜体" onclick="insertFormat('italic')"><i>I</i></button>
+            <button type="button" class="editor-btn" title="插入表情" onclick="showEmojiPicker()">😀</button>
+            <div class="word-counter"><span id="charCount">0</span> / 2000</div>
+          </div>
+          <textarea id="postContent" class="form-textarea" placeholder="说点什么..." rows="4" maxlength="2000"></textarea>
+          <div class="emoji-picker" id="emojiPicker"></div>
         </div>
         <!-- 图片上传 -->
         <div class="form-group">
@@ -103,9 +110,22 @@
         </div>
         <!-- 提交按钮 -->
         <div class="form-actions">
+          <button type="button" class="btn-preview" id="previewBtn" onclick="showPreview()">预览效果</button>
+          <button type="button" class="btn-save-draft" id="saveDraftBtn" onclick="saveDraft()">保存草稿</button>
           <button type="submit" class="btn-publish" id="publishBtn">发布动态</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 预览弹窗 -->
+  <div class="preview-modal" id="previewModal">
+    <div class="preview-modal-content">
+      <div class="preview-modal-header">
+        <span>内容预览</span>
+        <button class="preview-modal-close" onclick="closePreview()">✕</button>
+      </div>
+      <div class="preview-modal-body" id="previewContent"></div>
     </div>
   </div>
 
@@ -178,5 +198,230 @@
     <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
+
+  <style>
+    .post-form-card {
+      padding: 32px !important;
+    }
+    .post-form-header {
+      margin-bottom: 28px !important;
+    }
+    .form-group {
+      margin-bottom: 24px !important;
+    }
+    .form-label {
+      margin-bottom: 10px !important;
+    }
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      margin-bottom: -1px;
+    }
+    .editor-btn {
+      padding: 6px 12px;
+      border: 1px solid #dee2e6;
+      background: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .editor-btn:hover {
+      background: #e9ecef;
+      border-color: #ced4da;
+    }
+    .word-counter {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: #6c757d;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 4px;
+    }
+    .word-counter.warning { color: #dc3545; background: rgba(220,53,69,0.1); }
+    .form-textarea {
+      border-radius: 0 0 10px 10px !important;
+      padding: 14px !important;
+      line-height: 1.6 !important;
+    }
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 100;
+      max-width: 320px;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+    .emoji-picker.show { display: flex; }
+    .emoji-item {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .emoji-item:hover {
+      background: #f0f0f0;
+      transform: scale(1.15);
+    }
+    .form-group { position: relative; }
+    .btn-preview, .btn-save-draft {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-preview {
+      background: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+    .btn-preview:hover {
+      background: #e9ecef;
+      transform: translateY(-1px);
+    }
+    .btn-save-draft {
+      background: linear-gradient(135deg, #fff3cd, #ffeeba);
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .btn-save-draft:hover {
+      background: linear-gradient(135deg, #ffeeba, #ffeaa7);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 234, 167, 0.5);
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .btn-publish {
+      padding: 14px 32px !important;
+      margin-left: auto;
+    }
+    .preview-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-modal.show { display: flex; }
+    .preview-modal-content {
+      background: #fff;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .preview-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .preview-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #999;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .preview-modal-close:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+    .preview-modal-body { padding: 24px; }
+    .preview-category-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #FF6B9D, #FF8E53);
+      color: #fff;
+      font-weight: 500;
+    }
+    .preview-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #333;
+    }
+    .preview-content {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #495057;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .preview-images {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .preview-images img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .preview-images img:hover {
+      transform: scale(1.03);
+    }
+    @media (max-width: 768px) {
+      .post-form-card { padding: 20px !important; }
+      .form-actions { flex-direction: column; }
+      .btn-preview, .btn-save-draft, .btn-publish { width: 100%; }
+      .btn-publish { margin-left: 0; }
+      .form-group { margin-bottom: 20px !important; }
+      .preview-modal-content { border-radius: 16px 16px 0 0; }
+    }
+  </style>
 </body>
 </html>

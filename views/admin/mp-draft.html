@@ -125,16 +125,16 @@
 
         /* ===== 预览区域 ===== */
         .preview-area {
-            border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px;
-            max-height: 600px; overflow-y: auto; background: #fafafa;
+            border: 2px dashed #FFD1DC; border-radius: 20px; padding: 24px;
+            max-height: 600px; overflow-y: auto; background: linear-gradient(135deg, #FFF5F8, #F8F0FF, #F0F8FF);
             font-size: 14px; line-height: 1.6;
         }
         [data-theme="dark"] .preview-area { background: #1a1a2e; border-color: #333; }
         .preview-area .placeholder {
-            text-align: center; padding: 60px 20px; color: #bbb;
+            text-align: center; padding: 60px 20px; color: #ccc;
         }
-        .preview-area .placeholder .icon { font-size: 48px; margin-bottom: 16px; }
-        .preview-area .placeholder .text { font-size: 15px; }
+        .preview-area .placeholder .icon { font-size: 56px; margin-bottom: 16px; }
+        .preview-area .placeholder .text { font-size: 15px; color: #999; }
         .preview-toolbar {
             display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
         }
@@ -503,13 +503,40 @@
                 <div class="card-title">🎨 图文预览</div>
                 <div class="card-desc">预览生成的公众号图文卡片效果，确认后复制内容到公众号后台发布。</div>
 
+                <!-- 今日推歌选择区 -->
+                <div id="dailySongSelector" style="margin-bottom:20px;padding:24px;background:linear-gradient(135deg,#FFF5F8,#F8F0FF);border-radius:16px;border:1px solid rgba(255,107,157,0.15);">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                        <div style="width:48px;height:48px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                            <span style="font-size:24px;">🎵</span>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-weight:700;font-size:18px;color:#FF6B9D;">今日推歌选择</div>
+                            <div style="font-size:13px;color:#999;margin-top:4px;">选择今天要推送的歌曲，可以编辑介绍词</div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:#666;cursor:pointer;background:#fff;padding:6px 12px;border-radius:20px;border:1px solid #eee;">
+                                <input type="checkbox" id="selectAllDailySongs" onchange="toggleSelectAllDailySongs(this.checked)" style="accent-color:#FF6B9D;"> 全选
+                            </label>
+                        </div>
+                    </div>
+                    <div id="dailySongList" style="max-height:300px;overflow-y:auto;background:#fff;border-radius:12px;padding:12px;">
+                        <div style="text-align:center;padding:40px;color:#ccc;">
+                            <div style="font-size:40px;margin-bottom:12px;">🎶</div>
+                            <div style="font-size:14px;">点击下方按钮加载推歌</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="loadDailySongSelector()" style="margin-top:14px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(255,107,157,0.3);">🔄 加载推歌</button>
+                </div>
+
                 <div class="preview-toolbar">
                     <div class="toggle-group">
                         <label><input type="checkbox" id="cbWeather" checked> 🌤️ 包含天气</label>
                         <label><input type="checkbox" id="cbHitokoto" checked> 📝 包含一言</label>
                         <label><input type="checkbox" id="cbWeeklyStar" checked> ⭐ 包含每周之星</label>
+                        <label><input type="checkbox" id="cbGaokao" checked> 📚 包含高考倒计时</label>
                     </div>
                     <button class="btn btn-outline btn-sm" onclick="generatePreview()">🔄 刷新预览</button>
+                    <button class="btn btn-warning btn-sm" onclick="generateSongOnly()">🎵 推送歌曲</button>
                     <button class="btn btn-success btn-sm" onclick="copyContent()" id="btnCopy">
                         📋 复制内容
                     </button>
@@ -869,6 +896,207 @@
             }).join('\n');
         }
 
+        // ===== 每日推歌选择器 =====
+        var selectedDailySongs = [];
+
+        async function loadDailySongSelector() {
+            var listEl = document.getElementById('dailySongList');
+            if (!listEl) return;
+            listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">加载中...</div>';
+
+            try {
+                var json = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
+                if (json.code === 200 && json.data.songs && json.data.songs.length > 0) {
+                    selectedDailySongs = json.data.songs;
+                    renderDailySongSelector();
+                } else {
+                    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无已发布的推歌</div>';
+                }
+            } catch (e) {
+                listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">加载失败</div>';
+            }
+        }
+
+        function renderDailySongSelector() {
+            var listEl = document.getElementById('dailySongList');
+            if (!listEl || selectedDailySongs.length === 0) return;
+
+            var html = '';
+            selectedDailySongs.forEach(function(song, idx) {
+                var intro = song.intro || '';
+                var lyrics = song.lyrics || '';
+                var hasIntro = intro.trim().length > 0;
+                var hasLyrics = lyrics.trim().length > 0;
+
+                html += '<div style="padding:16px;background:#fff;border-radius:14px;border:1px solid rgba(255,107,157,0.15);box-shadow:0 2px 10px rgba(0,0,0,0.03);margin-bottom:10px;">';
+                // 歌曲标题行
+                html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+                html += '<input type="checkbox" class="daily-song-select" value="' + idx + '" checked onchange="updateSelectedSongs()" style="width:18px;height:18px;accent-color:#FF6B9D;flex-shrink:0;">';
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="font-weight:700;font-size:15px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(song.song_name || '') + '</div>';
+                html += '<div style="font-size:12px;color:#999;margin-top:2px;">' + escapeHtml(song.artist || '未知歌手') + ' · ' + escapeHtml(song.submitter || '匿名') + '</div>';
+                html += '</div>';
+                // 状态标签
+                if (hasIntro && hasLyrics) {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#d1fae5;color:#059669;border-radius:10px;flex-shrink:0;">已填充</span>';
+                } else if (hasIntro) {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#fef3c7;color:#d97706;border-radius:10px;flex-shrink:0;">缺歌词</span>';
+                } else {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#fee2e2;color:#dc2626;border-radius:10px;flex-shrink:0;">待生成</span>';
+                }
+                html += '</div>';
+                // 操作按钮行
+                html += '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">';
+                html += '<button onclick="generateSongIntro(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🤖 AI生成</button>';
+                html += '<button onclick="searchSongInfoInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#64B5F6,#42A5F5);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🔍 歌曲信息</button>';
+                html += '<button onclick="searchLyricsInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#81C784,#66BB6A);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">📝 搜索歌词</button>';
+                html += '</div>';
+                // 介绍词
+                html += '<div style="margin-bottom:8px;">';
+                html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">介绍词</label>';
+                html += '<textarea style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;line-height:1.6;box-sizing:border-box;" placeholder="点击AI生成或手动输入..." onchange="updateSongIntro(' + idx + ', this.value)">' + escapeHtml(intro) + '</textarea>';
+                html += '</div>';
+                // 歌词
+                html += '<div>';
+                html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">歌词</label>';
+                html += '<textarea style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;font-family:serif;line-height:1.8;box-sizing:border-box;" placeholder="搜索歌词或手动输入..." onchange="updateSongLyrics(' + idx + ', this.value)">' + escapeHtml(lyrics) + '</textarea>';
+                html += '</div>';
+                html += '</div>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        async function generateSongIntro(idx) {
+            var song = selectedDailySongs[idx];
+            if (!song) return;
+            var textarea = document.getElementById('songIntro_' + idx);
+            if (!textarea) return;
+            textarea.value = 'AI生成中...';
+
+            try {
+                var res = await fetch('/api/admin/generate-song-intro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('adminToken') || '') },
+                    body: JSON.stringify({ song_name: song.song_name, artist: song.artist || '' })
+                });
+                var json = await res.json();
+                if (json.code === 200 && (json.data.intro || json.data.lyrics)) {
+                    textarea.value = json.data.intro || '';
+                    selectedDailySongs[idx].intro = json.data.intro || '';
+                    showToast('介绍词生成成功', 'success');
+                } else if (json.data && json.data.prompt) {
+                    // AI不可用，显示提示词让用户手动生成
+                    textarea.value = '';
+                    var promptBox = document.getElementById('promptFallback_' + idx);
+                    if (!promptBox) {
+                        promptBox = document.createElement('div');
+                        promptBox.id = 'promptFallback_' + idx;
+                        promptBox.style.cssText = 'margin-top:8px;padding:12px;background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;font-size:12px;color:#E65100;';
+                        textarea.parentNode.insertBefore(promptBox, textarea.nextSibling);
+                    }
+                    promptBox.innerHTML = '<div style="margin-bottom:8px;font-weight:600;">⚠️ AI不可用，请复制提示词到 <a href="https://chat.deepseek.com" target="_blank">DeepSeek</a> 手动生成：</div>' +
+                        '<textarea readonly style="width:100%;min-height:120px;padding:8px;border:1px solid #FFCC80;border-radius:6px;font-size:11px;background:#FFF8E1;resize:vertical;">' + json.data.prompt + '</textarea>' +
+                        '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value);showToast(\'已复制\',\'success\')" style="margin-top:6px;padding:4px 12px;border:none;background:#FF9800;color:#fff;border-radius:6px;font-size:12px;cursor:pointer;">📋 复制提示词</button>';
+                    showToast('请复制提示词手动生成', 'info');
+                } else {
+                    textarea.value = '';
+                    showToast('生成失败', 'error');
+                }
+            } catch (e) {
+                textarea.value = '';
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function updateSongIntro(idx, value) {
+            if (selectedDailySongs[idx]) {
+                selectedDailySongs[idx].intro = value;
+            }
+        }
+
+        function updateSongLyrics(idx, value) {
+            if (selectedDailySongs[idx]) {
+                selectedDailySongs[idx].lyrics = value;
+            }
+        }
+
+        // 从列表直接搜索歌曲信息（不打开编辑器）
+        async function searchSongInfoInEditorFromList(idx) {
+            var song = selectedDailySongs[idx];
+            if (!song) return;
+            try {
+                var res = await apiFetch(API_BASE + '/search-song-info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ song_name: song.song_name, artist: song.artist || '' })
+                });
+                if (res.code === 200 && res.data) {
+                    song.song_info = res.data;
+                    // 如果有专辑介绍且当前没有介绍词，自动填入
+                    if (res.data.intro && (!song.intro || !song.intro.trim())) {
+                        song.intro = res.data.intro;
+                        renderDailySongSelector();
+                    }
+                    showToast('歌曲信息搜索成功', 'success');
+                } else {
+                    showToast('搜索失败', 'error');
+                }
+            } catch(e) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        // 从列表直接搜索歌词（不打开编辑器）
+        async function searchLyricsInEditorFromList(idx) {
+            var song = selectedDailySongs[idx];
+            if (!song) return;
+            try {
+                var res = await apiFetch(API_BASE + '/search-song-lyrics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ song_name: song.song_name, artist: song.artist || '' })
+                });
+                if (res.code === 200 && res.data.lyrics) {
+                    song.lyrics = res.data.lyrics;
+                    renderDailySongSelector();
+                    showToast('歌词搜索成功', 'success');
+                } else {
+                    showToast('未找到歌词', 'info');
+                }
+            } catch(e) {
+                showToast('网络错误', 'error');
+            }
+        }
+
+        function toggleSelectAllDailySongs(checked) {
+            document.querySelectorAll('.daily-song-select').forEach(function(cb) {
+                cb.checked = checked;
+            });
+            selectedDailySongs.forEach(function(s) {
+                s._selected = checked;
+            });
+        }
+
+        function updateSelectedSongs() {
+            var checkboxes = document.querySelectorAll('.daily-song-select');
+            checkboxes.forEach(function(cb) {
+                var idx = parseInt(cb.value);
+                if (selectedDailySongs[idx]) {
+                    selectedDailySongs[idx]._selected = cb.checked;
+                }
+            });
+            // 同步全选checkbox状态
+            var selectAllCb = document.getElementById('selectAllDailySongs');
+            if (selectAllCb) {
+                var allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(function(cb) { return cb.checked; });
+                selectAllCb.checked = allChecked;
+            }
+        }
+
+        function getSelectedDailySongs() {
+            return selectedDailySongs.filter(s => s._selected !== false);
+        }
+
         // ===== 生成图文预览 =====
         async function generatePreview() {
             var ids = getSelectedPostIds();
@@ -877,7 +1105,17 @@
             var includeWeather = document.getElementById('cbWeather').checked;
             var includeHitokoto = document.getElementById('cbHitokoto').checked;
             var includeWeeklyStar = document.getElementById('cbWeeklyStar').checked;
-            setStatus('正在生成图文...', 'loading');
+            var includeGaokaoEl = document.getElementById('cbGaokao');
+            var includeGaokao = includeGaokaoEl ? includeGaokaoEl.checked : true;
+            console.log('高考倒计时:', includeGaokao, 'checkbox:', includeGaokaoEl);
+            setStatus('正在生成图文... (含高考:' + includeGaokao + ')...', 'loading');
+
+            var selectedSongs = getSelectedDailySongs().map(s => ({
+                song_name: s.song_name,
+                artist: s.artist,
+                submitter: s.submitter,
+                intro: s.intro || ''
+            }));
 
             var res = await apiFetch(API_BASE + '/generate-content', {
                 method: 'POST',
@@ -886,7 +1124,9 @@
                     includeWeather: includeWeather,
                     includeHitokoto: includeHitokoto,
                     includeWeeklyStar: includeWeeklyStar,
-                    weeklyStarUserIds: includeWeeklyStar ? selectedWeeklyStarIds : []
+                    includeGaokao: includeGaokao,
+                    weeklyStarUserIds: includeWeeklyStar ? selectedWeeklyStarIds : [],
+                    dailySongs: selectedSongs
                 })
             });
 
@@ -1025,7 +1265,7 @@
                 previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:6px;">🎵 最近点歌</div>';
                 for (var si = 0; si < songs.length; si++) {
                     var song = songs[si];
-                    var authorStr = song.is_anonymous ? '匿名同学' : (song.nickname || song.username || '同学');
+                    var authorStr = song.is_anonymous ? '匿名用户' : (song.nickname || song.username || '同学');
                     previewHtml += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:8px 0;">';
                     previewHtml += '<div style="font-size:14px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(song.song_name || '') + '</strong>' + (song.artist ? ' - <span style="color:#aaa;">' + escapeHtml(song.artist) + '</span>' : '') + '</div>';
                     previewHtml += '<div style="font-size:12px;color:#bbb;margin-top:3px;line-height:1.5;">';
@@ -1033,6 +1273,22 @@
                     if (song.message) previewHtml += ' &nbsp;💬 ' + escapeHtml(song.message.length > 25 ? song.message.substring(0, 25) + '...' : song.message);
                     if (song.to_whom) previewHtml += ' &nbsp;💝 ' + escapeHtml(song.to_whom);
                     previewHtml += ' &nbsp;👤 ' + escapeHtml(authorStr);
+                    previewHtml += '</div></div>';
+                }
+                previewHtml += '</td></tr></table>';
+            }
+
+            // 每日推歌
+            var dailySongs = res.data.dailySongs || [];
+            if (dailySongs && dailySongs.length > 0) {
+                previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:14px;">';
+                previewHtml += '<div style="font-size:13px;color:#999;margin-bottom:10px;">🎵 每日推歌</div>';
+                for (var si = 0; si < dailySongs.length; si++) {
+                    var s = dailySongs[si];
+                    previewHtml += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:10px 0;">';
+                    previewHtml += '<div style="font-size:15px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#aaa;">' + escapeHtml(s.artist) + '</span>' : '') + '</div>';
+                    previewHtml += '<div style="font-size:12px;color:#bbb;margin-top:4px;line-height:1.5;">';
+                    previewHtml += '👤 ' + escapeHtml(s.submitter || '匿名用户');
                     previewHtml += '</div></div>';
                 }
                 previewHtml += '</td></tr></table>';
@@ -1083,6 +1339,15 @@
             previewHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
             previewHtml += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 校园故事站</div>';
             previewHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
+
+            // 求赞求收藏求分享
+            previewHtml += '<div style="margin:0 auto 20px;padding:16px;background:linear-gradient(135deg,#FFF5F8,#FFF0FF);border-radius:12px;max-width:320px;text-align:center;">';
+            previewHtml += '<div style="font-size:14px;color:#666;line-height:2;">';
+            previewHtml += '如果你喜欢这篇内容<br>';
+            previewHtml += '<b style="color:#FF6B9D;">点赞</b> · <b style="color:#FF6B9D;">收藏</b> · <b style="color:#FF6B9D;">分享</b> 给朋友<br>';
+            previewHtml += '<span style="font-size:12px;color:#999;">你的支持是我们持续更新的动力</span>';
+            previewHtml += '</div>';
+            previewHtml += '</div>';
             previewHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
             previewHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
             previewHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
@@ -1100,6 +1365,390 @@
             switchTab('preview');
             showMsg('previewMsg', '✅ 图文生成成功，共 ' + postData.length + ' 篇帖子' + (weather ? ' + 天气' : '') + (hitokoto ? ' + 一言' : ''));
             setStatus('✅ 图文生成成功');
+        }
+
+        // ===== 推送歌曲（独立于帖子） =====
+        async function generateSongOnly() {
+            setStatus('正在生成歌曲推送...', 'loading');
+
+            // 重新从数据库加载歌曲列表（获取最新数据）
+            try {
+                var refreshRes = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
+                if (refreshRes.code === 200 && refreshRes.data.songs) {
+                    selectedDailySongs = refreshRes.data.songs;
+                    renderDailySongSelector();
+                }
+            } catch(e) {}
+
+            var selectedSongs = getSelectedDailySongs();
+
+            if (selectedSongs.length === 0) {
+                showMsg('previewMsg', '请先在上方"今日推歌选择"中勾选要推送的歌曲', 'error');
+                setStatus('❌ 未选择歌曲', 'error');
+                return;
+            }
+
+            var previewArea = document.getElementById('previewArea');
+            var dateInfo = {};
+            try {
+                var dateRes = await apiFetch(API_BASE + '/extra-info');
+                if (dateRes.code === 200) dateInfo = dateRes.data || {};
+            } catch(e) {}
+
+            var dateStr = dateInfo.date || new Date().toLocaleDateString('zh-CN');
+            var weekStr = dateInfo.week || '';
+
+            var palette = [
+                { accent: '#FF6B9D', bg: '#FFF5F8', light: '#FFE4EE', border: '#FFD1E0', text: '#C44569' },
+                { accent: '#5B9BD5', bg: '#F0F5FF', light: '#E0EEFF', border: '#C8DFF5', text: '#3A6FA0' },
+                { accent: '#4CAF7D', bg: '#F0FFF5', light: '#E0FFE8', border: '#C8F0D8', text: '#2E7D52' },
+                { accent: '#9575CD', bg: '#F5F0FF', light: '#EDE4FF', border: '#DDD1F5', text: '#6A4C9C' },
+                { accent: '#E8943A', bg: '#FFF8F0', light: '#FFF0D8', border: '#F5E0C0', text: '#9A6B20' }
+            ];
+
+            // 辅助：格式化介绍词
+            function fmtIntro(raw) {
+                var fi = escapeHtml(raw);
+                fi = fi.replace(/\n+/g, '|||BR|||');
+                fi = fi.replace(/。/g, '。|||BR|||');
+                fi = fi.replace(/？/g, '？|||BR|||');
+                fi = fi.replace(/！/g, '！|||BR|||');
+                fi = fi.replace(/；/g, '；<br>');
+                fi = fi.replace(/(\|\|\|BR\|\|\|){2,}/g, '|||BR|||');
+                fi = fi.replace(/^\|\|\|BR\|\|\|/, '').replace(/\|\|\|BR\|\|\|$/, '');
+                return fi.replace(/\|\|\|BR\|\|\|/g, '<br><br>');
+            }
+
+            // 获取QQ热歌榜（通过后端代理）
+            var hotChart = [];
+            try {
+                var chartRes = await apiFetch('/api/admin/hot-chart');
+                if (chartRes.code === 200 && chartRes.data) hotChart = chartRes.data;
+            } catch(e) {}
+
+            var html = '<div style="padding:0;background:#F7F8FA;">';
+
+            // ===== 顶部大标题区 =====
+            html += '<div style="background:linear-gradient(135deg,#FF91A4 0%,#C89AFF 50%,#7EB6FF 100%);padding:40px 20px 32px;text-align:center;position:relative;overflow:hidden;">';
+            html += '<div style="position:absolute;top:16px;left:24px;width:8px;height:8px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
+            html += '<div style="position:absolute;top:32px;right:36px;width:12px;height:12px;background:rgba(255,255,255,0.15);border-radius:50%;"></div>';
+            html += '<div style="position:absolute;bottom:20px;left:45%;width:6px;height:6px;background:rgba(255,255,255,0.25);border-radius:50%;"></div>';
+            html += '<div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:10px;margin-bottom:8px;">✦ DAILY MUSIC COLUMN ✦</div>';
+            html += '<div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:4px;text-shadow:0 2px 12px rgba(0,0,0,0.15);">🎵 今日推歌</div>';
+            html += '<div style="margin:12px auto 0;width:60px;height:2px;background:rgba(255,255,255,0.4);border-radius:1px;"></div>';
+            html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:12px;letter-spacing:2px;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(weekStr) + '</div>';
+            html += '<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:6px;">' + selectedSongs.length + ' 位同学的私藏推荐</div>';
+            html += '</div>';
+
+            // ===== 开场白 =====
+            html += '<div style="padding:28px 20px 12px;">';
+            html += '<div style="font-size:15px;color:#666;line-height:2.2;text-align:center;max-width:320px;margin:0 auto;">';
+            html += '每一首歌的背后，都藏着一段故事。<br>今天，我们把话筒交给你们——<br>听听这些被认真喜欢着的旋律。';
+            html += '</div>';
+            html += '</div>';
+
+            // ===== 目录区 =====
+            html += '<div style="margin:16px 16px 0;background:#fff;border-radius:16px;padding:22px;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
+            html += '<div style="text-align:center;margin-bottom:16px;">';
+            html += '<div style="font-size:11px;color:#bbb;letter-spacing:6px;">CONTENTS</div>';
+            html += '<div style="font-size:16px;font-weight:700;color:#333;margin-top:4px;">今日歌单</div>';
+            html += '<div style="width:30px;height:2px;background:#FFB6C1;margin:8px auto 0;border-radius:1px;"></div>';
+            html += '</div>';
+            selectedSongs.forEach(function(s, idx) {
+                var c = palette[idx % palette.length];
+                html += '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;' + (idx < selectedSongs.length - 1 ? 'border-bottom:1px dashed #f0f0f0;' : '') + '">';
+                html += '<div style="width:28px;height:28px;background:' + c.bg + ';border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:12px;font-weight:700;color:' + c.accent + ';">' + (idx + 1) + '</span></div>';
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="font-size:15px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(s.song_name || '') + '</div>';
+                html += '<div style="font-size:12px;color:#aaa;margin-top:1px;">' + escapeHtml(s.artist || '未知歌手') + '</div>';
+                html += '</div>';
+                html += '<div style="font-size:11px;color:#ccc;flex-shrink:0;">♪</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+
+            // ===== 辅助：生成标签 =====
+            function songTags(songInfo, c) {
+                var tags = [];
+                if (songInfo && songInfo.album && songInfo.album !== '-') tags.push('💿 ' + songInfo.album);
+                if (songInfo && songInfo.year && songInfo.year !== '-') tags.push('📅 ' + songInfo.year);
+                if (songInfo && songInfo.duration && songInfo.duration !== '-') tags.push('⏱ ' + songInfo.duration);
+                if (tags.length === 0) return '';
+                var h = '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+                tags.forEach(function(tg) {
+                    h += '<span style="font-size:10px;padding:3px 10px;background:' + c.bg + ';color:' + c.text + ';border-radius:20px;border:1px solid ' + c.border + ';">' + tg + '</span>';
+                });
+                return h + '</div>';
+            }
+            function fmtLyrics(lyrics, c, maxLines) {
+                var lines = lyrics.split('\n').filter(function(l) { return l.trim(); });
+                if (maxLines) lines = lines.slice(0, maxLines);
+                var h = '';
+                lines.forEach(function(line, i) {
+                    h += '<div style="font-size:15px;color:' + (i < 2 ? c.text : '#666') + ';line-height:2.6;font-weight:' + (i < 2 ? '700' : '400') + ';letter-spacing:0.5px;">' + escapeHtml(line.trim()) + '</div>';
+                });
+                return h;
+            }
+
+            // ===== 5种卡片模板 =====
+            function tplMagazine(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,0.05);border:1px solid ' + c.border + ';">';
+                h += '<div style="height:3px;background:linear-gradient(90deg,' + c.accent + ',' + c.light + ');"></div>';
+                h += '<div style="padding:24px 20px 8px;display:flex;align-items:baseline;gap:12px;">';
+                h += '<span style="font-size:42px;font-weight:900;color:' + c.accent + ';opacity:0.15;line-height:1;">' + (idx+1) + '</span>';
+                h += '<div><div style="font-size:19px;font-weight:700;color:#222;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:3px;">' + escapeHtml(s.artist) + '</div></div></div>';
+                if (songInfo) { h += '<div style="padding:0 20px 12px;">' + songTags(songInfo, c) + '</div>'; }
+                if (intro) {
+                    var firstChar = escapeHtml(intro.charAt(0));
+                    var restIntro = escapeHtml(intro.substring(1));
+                    h += '<div style="padding:8px 20px 16px;">';
+                    h += '<div style="font-size:15px;color:#444;line-height:2.6;text-align:justify;letter-spacing:0.5px;">';
+                    h += '<span style="float:left;font-size:40px;font-weight:700;color:' + c.accent + ';line-height:1;padding:4px 8px 0 0;">' + firstChar + '</span>' + restIntro;
+                    h += '</div></div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin:0 16px 16px;padding:20px;background:' + c.bg + ';border-radius:14px;text-align:center;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:14px;opacity:0.6;">LYRICS</div>';
+                    h += fmtLyrics(lyrics, c);
+                    h += '<div style="margin-top:14px;"><span style="font-size:9px;color:' + c.accent + ';opacity:0.3;letter-spacing:3px;">· · · · ·</span></div>';
+                    h += '</div>';
+                }
+                h += '<div style="padding:12px 20px;border-top:1px solid #f5f5f5;font-size:12px;color:#999;display:flex;justify-content:space-between;align-items:center;">';
+                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
+                h += '<span style="font-size:11px;color:#ccc;">🎧 佩戴耳机食用更佳</span>';
+                h += '</div></div>';
+                return h;
+            }
+
+            function tplQuote(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:' + c.bg + ';border-radius:16px;padding:28px 24px;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:12px;right:20px;font-size:60px;color:' + c.accent + ';opacity:0.06;line-height:1;font-family:serif;">"</div>';
+                if (intro) {
+                    var q = intro.split(/[。！？]/)[0] || intro;
+                    h += '<div style="font-size:18px;color:' + c.text + ';line-height:2.2;font-style:italic;font-weight:500;position:relative;z-index:1;">"' + escapeHtml(q) + (q.endsWith('。') ? '' : '。') + '"</div>';
+                }
+                h += '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed ' + c.border + ';">';
+                h += '<div style="font-size:17px;font-weight:700;color:#222;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:12px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-top:8px;">' + songTags(songInfo, c) + '</div>';
+                h += '</div>';
+                if (intro) {
+                    var remaining = intro.replace(/^[^。！？]*[。！？]/, '');
+                    if (remaining.trim()) {
+                        h += '<div style="margin-top:16px;font-size:14px;color:#666;line-height:2;">' + fmtIntro(remaining) + '</div>';
+                    }
+                }
+                if (lyrics) {
+                    h += '<div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.6);border-radius:10px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.5;">LYRICS</div>';
+                    h += '<div style="font-size:13px;color:#999;line-height:2;">' + fmtLyrics(lyrics, c, 3) + '</div></div>';
+                }
+                h += '</div>';
+                return h;
+            }
+
+            function tplSplit(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,0.05);border:1px solid ' + c.border + ';">';
+                h += '<div style="display:flex;">';
+                // 左栏 40%
+                h += '<div style="width:40%;padding:20px 14px;border-right:1px solid #f5f5f5;background:' + c.bg + ';">';
+                h += '<div style="width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;border:1px solid ' + c.border + ';"><span style="font-size:16px;">🎵</span></div>';
+                h += '<div style="text-align:center;font-size:16px;font-weight:700;color:#222;line-height:1.4;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="text-align:center;font-size:11px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                h += '<div style="margin-top:14px;padding-top:12px;border-top:1px dashed ' + c.border + ';text-align:center;">';
+                h += '<div style="font-size:10px;color:' + c.accent + ';font-weight:600;">推荐人</div>';
+                h += '<div style="font-size:12px;color:#666;margin-top:4px;">' + escapeHtml(submitter) + '</div>';
+                if (toWhom) h += '<div style="font-size:10px;color:#aaa;margin-top:2px;">→ ' + escapeHtml(toWhom) + '</div>';
+                h += '</div>';
+                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
+                h += '</div>';
+                // 右栏 60%
+                h += '<div style="width:60%;padding:20px 16px;">';
+                if (lyrics) {
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:12px;opacity:0.6;">LYRICS</div>';
+                    h += fmtLyrics(lyrics, c);
+                }
+                h += '</div></div>';
+                if (intro) {
+                    h += '<div style="padding:16px 20px;border-top:1px solid #f5f5f5;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.6;">EDITOR\'S NOTE</div>';
+                    h += '<div style="font-size:14px;color:#444;line-height:2.2;text-align:justify;">' + fmtIntro(intro) + '</div></div>';
+                }
+                h += '</div>';
+                return h;
+            }
+
+            function tplLetter(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#FFFEF8;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid #EDE8D8;">';
+                h += '<div style="padding:20px 24px 14px;border-bottom:1px dashed #E8E0C8;">';
+                h += '<div style="font-size:11px;color:#B8A88A;letter-spacing:1px;">Dear friend,</div>';
+                h += '<div style="font-size:12px;color:#8A7A60;margin-top:6px;">来自 <b>' + escapeHtml(submitter) + '</b> 的一首歌' + (toWhom ? '，送给 <b style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
+                h += '</div>';
+                h += '<div style="padding:24px 24px 16px;text-align:center;">';
+                h += '<div style="font-size:24px;font-weight:800;color:#333;line-height:1.4;letter-spacing:1px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:6px;">' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
+                h += '</div>';
+                if (intro) {
+                    h += '<div style="padding:0 24px 16px;">';
+                    h += '<div style="font-size:15px;color:#555;line-height:2.4;text-indent:2em;text-align:justify;">' + fmtIntro(intro) + '</div></div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin:0 20px;padding:16px;border-top:1px dashed #E8E0C8;border-bottom:1px dashed #E8E0C8;">';
+                    h += '<div style="font-size:9px;color:#B8A88A;letter-spacing:4px;text-align:center;margin-bottom:12px;">LYRICS</div>';
+                    h += '<div style="text-align:center;">' + fmtLyrics(lyrics, c) + '</div></div>';
+                }
+                h += '<div style="padding:16px 24px;text-align:right;">';
+                h += '<div style="font-size:12px;color:#B8A88A;font-style:italic;">P.S. 🎧 建议戴上耳机听~</div>';
+                h += '</div></div>';
+                return h;
+            }
+
+            function tplMinimal(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="padding:8px 0;">';
+                h += '<div style="font-size:22px;font-weight:800;color:#222;letter-spacing:0.5px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                if (intro) {
+                    var q = intro.split(/[。！？]/)[0] || intro;
+                    h += '<div style="margin-top:14px;font-size:15px;color:' + c.text + ';line-height:2;font-style:italic;">「' + escapeHtml(q) + '。」</div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin-top:12px;font-size:13px;color:#bbb;line-height:2;">' + fmtLyrics(lyrics, c, 3) + '</div>';
+                }
+                h += '<div style="margin-top:12px;font-size:11px;color:#ccc;">— ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
+                h += '<div style="margin-top:16px;border-top:1px solid #f0f0f0;"></div>';
+                h += '</div>';
+                return h;
+            }
+
+            var templates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal];
+
+            // ===== 每首歌的深度内容区 =====
+            selectedSongs.forEach(function(s, idx) {
+                var c = palette[idx % palette.length];
+                var songNum = idx + 1;
+                var intro = s.intro || '';
+                var lyrics = s.lyrics || '';
+                var submitter = s.submitter || '匿名同学';
+                var toWhom = s.to_whom || '';
+                var songMsg = s.message || '';
+                var songInfo = null;
+                if (s.song_info) {
+                    try { songInfo = typeof s.song_info === 'string' ? JSON.parse(s.song_info) : s.song_info; } catch(e) {}
+                }
+
+                // --- 章节分隔（多样化） ---
+                var dividerStyles = [
+                    '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">· CHAPTER ' + songNum + ' ·</div><div style="width:40px;height:2px;background:linear-gradient(90deg,' + c.accent + ',transparent);margin:6px auto 0;border-radius:1px;"></div></div>',
+                    '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">— ' + songNum + ' —</div><div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,' + c.accent + ',transparent);margin:6px auto 0;border-radius:1px;"></div></div>',
+                    '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">NO.' + songNum + '</div><div style="width:6px;height:6px;background:' + c.accent + ';border-radius:50%;margin:6px auto 0;opacity:0.3;"></div></div>'
+                ];
+                html += '<div style="margin:28px 16px 0;">';
+                html += dividerStyles[idx % dividerStyles.length];
+
+                // --- 选择模板渲染卡片 ---
+                html += templates[idx % templates.length](s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg);
+
+                html += '</div>'; // 章节结束
+            });
+
+            // ===== 结尾 =====
+            html += '<div style="margin:32px 16px 0;padding:28px 20px;background:#fff;border-radius:16px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
+            html += '<div style="font-size:15px;color:#666;line-height:2.2;">';
+            html += '今天的歌单就到这里<br>';
+            html += '如果哪首歌触动了你<br>';
+            html += '也许可以把这篇文章转发给那个<br>';
+            html += '<b style="color:#FF6B9D;">你也想让 TA 听到这首歌的人</b>';
+            html += '</div>';
+            html += '<div style="margin:16px auto 0;width:30px;height:2px;background:#FFB6C1;border-radius:1px;"></div>';
+            // 求赞求收藏
+            html += '<div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,#FFF5F8,#FFF0FF);border-radius:12px;">';
+            html += '<div style="font-size:14px;color:#666;line-height:1.8;">';
+            html += '如果你喜欢这期推歌<br>';
+            html += '<b style="color:#FF6B9D;">点赞</b> · <b style="color:#FF6B9D;">收藏</b> · <b style="color:#FF6B9D;">分享</b> 给朋友<br>';
+            html += '<span style="font-size:12px;color:#999;">你的支持是我们持续更新的动力</span>';
+            html += '</div>';
+            html += '</div>';
+            // 关注校墙
+            html += '<div style="margin-top:14px;padding:16px;background:#FAFBFC;border-radius:12px;text-align:center;">';
+            html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注嘉二校园墙</div>';
+            html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:160px;display:block;border-radius:8px;margin:0 auto;" alt="公众号二维码">';
+            html += '<div style="font-size:11px;color:#bbb;margin-top:8px;">微信扫一扫 · 获取更多精彩</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // ===== 推歌教程 =====
+            html += '<div style="margin:20px 16px 0;padding:24px 20px;background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #f0f0f0;">';
+            html += '<div style="text-align:center;margin-bottom:16px;">';
+            html += '<div style="font-size:11px;color:#ccc;letter-spacing:6px;">HOW TO JOIN</div>';
+            html += '<div style="font-size:16px;font-weight:700;color:#FF6B9D;margin-top:4px;">你也想推荐一首歌？</div>';
+            html += '</div>';
+            var steps = [
+                { num: '1', title: '关注公众号', desc: '搜索「嘉二校园墙」关注' },
+                { num: '2', title: '发送指令', desc: '回复「推歌」或「每日推歌」' },
+                { num: '3', title: '发送歌名', desc: '直接发送歌曲名（可加歌手名）' },
+                { num: '4', title: '确认提交', desc: '回复「确认」完成推歌' }
+            ];
+            steps.forEach(function(step, i) {
+                html += '<div style="display:flex;align-items:center;gap:12px;' + (i < steps.length - 1 ? 'padding-bottom:10px;margin-bottom:10px;border-bottom:1px dashed #f5f5f5;' : '') + '">';
+                html += '<div style="width:24px;height:24px;background:' + palette[i % palette.length].bg + ';border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+                html += '<span style="font-size:11px;font-weight:700;color:' + palette[i % palette.length].accent + ';">' + step.num + '</span></div>';
+                html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#444;">' + step.title + '</div>';
+                html += '<div style="font-size:11px;color:#aaa;margin-top:1px;">' + step.desc + '</div></div>';
+                html += '</div>';
+            });
+            html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:#ddd;letter-spacing:1px;">嘉二の墙墙 · 让音乐连接你我</div>';
+            html += '</div>';
+
+            // ===== QQ热歌榜 =====
+            if (hotChart.length > 0) {
+                html += '<div style="margin:24px 16px 0;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
+                html += '<div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:18px 20px;">';
+                html += '<div style="font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:6px;">TRENDING NOW</div>';
+                html += '<div style="font-size:17px;font-weight:700;color:#fff;margin-top:4px;">🔥 今日热歌榜</div>';
+                html += '<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;">QQ音乐实时热歌 TOP 10</div>';
+                html += '</div>';
+                html += '<div style="padding:4px 0;">';
+                hotChart.forEach(function(h, hi) {
+                    var rankColor = hi < 3 ? '#FF6B6B' : (hi < 6 ? '#FFA94D' : '#ADB5BD');
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;' + (hi < hotChart.length - 1 ? 'border-bottom:1px solid #f8f8f8;' : '') + '">';
+                    // 排名
+                    html += '<div style="width:22px;text-align:center;flex-shrink:0;"><span style="font-size:14px;font-weight:800;color:' + rankColor + ';">' + (hi + 1) + '</span></div>';
+                    // 歌名 + 歌手
+                    html += '<div style="flex:1;min-width:0;">';
+                    html += '<div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(h.name) + '</div>';
+                    html += '<div style="font-size:11px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(h.artist) + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+            html += '<div style="height:24px;"></div>';
+            html += '</div>';
+
+            previewArea.innerHTML = html;
+            // 动态标题：歌曲名拼接，无特殊字符
+            var songTitles = selectedSongs.map(function(s) { return s.song_name || ''; }).filter(Boolean);
+            var titleStr = '今日推歌 | ' + songTitles.join(' / ');
+            // 摘要：取第一首歌名 + 推荐人
+            var firstSong = selectedSongs[0];
+            var digestStr = firstSong ? ('「' + (firstSong.song_name || '') + '」' + (firstSong.artist ? ' - ' + firstSong.artist : '') + ' 等' + selectedSongs.length + '首推荐') : '今日精选歌曲推荐';
+
+            generatedArticles = [{
+                title: titleStr,
+                author: '嘉二校园墙',
+                digest: digestStr,
+                content: html,
+                content_source_url: 'https://wall.jay23.cn',
+                show_cover_pic: 1,
+                need_open_comment: 1,
+                only_fans_can_comment: 0
+            }];
+
+            setStatus('✅ 歌曲推送生成成功');
         }
 
         // ===== 复制内容（富文本粘贴） =====
@@ -1169,6 +1818,15 @@
             el.className = 'msg ' + type;
             el.innerHTML = text;
             setTimeout(function() { el.className = 'msg'; }, 6000);
+        }
+
+        function showToast(text, type) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;color:#fff;font-size:14px;z-index:9999;animation:fadeIn 0.3s;';
+            toast.style.background = type === 'success' ? 'linear-gradient(135deg,#10b981,#34d399)' : type === 'error' ? 'linear-gradient(135deg,#ef4444,#f87171)' : 'linear-gradient(135deg,#3b82f6,#60a5fa)';
+            toast.textContent = text;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
         }
 
         function formatTime(unixTs) {

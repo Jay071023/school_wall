@@ -20,7 +20,7 @@ const ROLE_NAMES = {
 
 const ROLE_PERMISSIONS = {
   user: [],
-  reviewer: ['posts:review', 'posts:delete', 'stats:view'],
+  reviewer: ['posts:review', 'posts:delete', 'songs:review', 'stats:view'],
   radio_admin: ['songs:review', 'songs:delete', 'slots:manage', 'stats:view'],
   admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view'],
   super_admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'stats:view', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage']

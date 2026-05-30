@@ -514,7 +514,10 @@ async function loadHomePlaylist() {
       if (song.status === 'approved' && song.start_time && song.end_time) {
         isPlaying = currentTime >= song.start_time && currentTime <= song.end_time;
       }
-      
+
+      // 隐藏已播放的歌曲
+      if (song.status === 'played') return;
+
       var statusText, statusClass;
       if (song.status === 'played') {
         statusText = '已播放';

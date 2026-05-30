@@ -655,6 +655,241 @@ router.put('/trash/songs/:id/restore', requirePermission('songs:delete'), async 
   }
 });
 
+// ===== 每日推歌管理 =====
+router.get('/daily-songs', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, keyword } = req.query;
+    const offset = (page - 1) * limit;
+
+    var sql = 'SELECT * FROM daily_song_recs WHERE 1=1';
+    var params = [];
+
+    if (status) {
+      sql += ' AND status = ?';
+      params.push(status);
+    }
+
+    if (keyword) {
+      sql += ' AND (song_name LIKE ? OR artist LIKE ? OR submitter LIKE ?)';
+      params.push('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%');
+    }
+
+    const [countResult] = await pool.execute(sql.replace('SELECT *', 'SELECT COUNT(*) as total'), params);
+    const total = countResult[0]?.total || 0;
+
+    sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+
+    const [songs] = await pool.execute(sql, params);
+
+    res.json({
+      code: 200,
+      data: {
+        songs,
+        page: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (err) {
+    res.json({ code: 500, message: '查询失败: ' + err.message });
+  }
+});
+
+// 手动添加推歌
+router.post('/daily-songs', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { song_name, artist, to_whom, message } = req.body;
+    if (!song_name) {
+      return res.json({ code: 400, message: '请填写歌曲名' });
+    }
+    await pool.execute(
+      'INSERT INTO daily_song_recs (song_name, artist, to_whom, message, source, submitter, status, created_at) VALUES (?, ?, ?, ?, "manual", "管理员", "pending", NOW())',
+      [song_name, artist || '', to_whom || '', message || '']
+    );
+    res.json({ code: 200, message: '添加成功' });
+  } catch (err) {
+    res.json({ code: 500, message: '添加失败: ' + err.message });
+  }
+});
+
+router.post('/daily-songs/:id/publish', requirePermission('songs:review'), async (req, res) => {
+  try {
+    await pool.execute(
+      'UPDATE daily_song_recs SET status = "published", published_at = NOW() WHERE id = ?',
+      [req.params.id]
+    );
+    res.json({ code: 200, message: '已发布到每日推歌' });
+  } catch (err) {
+    res.json({ code: 500, message: '操作失败: ' + err.message });
+  }
+});
+
+router.post('/daily-songs/:id/unpublish', requirePermission('songs:review'), async (req, res) => {
+  try {
+    await pool.execute(
+      'UPDATE daily_song_recs SET status = "pending", published_at = NULL WHERE id = ?',
+      [req.params.id]
+    );
+    res.json({ code: 200, message: '已撤回发布' });
+  } catch (err) {
+    res.json({ code: 500, message: '操作失败: ' + err.message });
+  }
+});
+
+router.delete('/daily-songs/:id', requirePermission('songs:delete'), async (req, res) => {
+  try {
+    await pool.execute('DELETE FROM daily_song_recs WHERE id = ?', [req.params.id]);
+    res.json({ code: 200, message: '已删除' });
+  } catch (err) {
+    res.json({ code: 500, message: '删除失败: ' + err.message });
+  }
+});
+
+// 保存歌曲介绍和歌词
+router.put('/daily-songs/:id/intro', requirePermission('songs:review'), async (req, res) => {
+  try {
+    var { intro, lyrics, song_info } = req.body;
+    // 自动清理：如果 intro 是 JSON 字符串，解析它
+    if (intro && typeof intro === 'string' && intro.startsWith('{')) {
+      try {
+        var parsed = JSON.parse(intro);
+        if (parsed.intro) intro = parsed.intro;
+        if (parsed.lyrics && !lyrics) lyrics = parsed.lyrics;
+      } catch(e) {}
+    }
+    // 清理 Markdown 格式
+    if (intro) {
+      intro = intro.replace(/^#{1,6}\s+/gm, '').replace(/\*\*/g, '').replace(/^>\s*/gm, '').replace(/【介绍】/g, '').replace(/【歌词】/g, '').trim();
+    }
+    await pool.execute('UPDATE daily_song_recs SET intro = ?, lyrics = ?, song_info = ? WHERE id = ?', [intro || '', lyrics || '', song_info ? JSON.stringify(song_info) : null, req.params.id]);
+    res.json({ code: 200, message: '已保存' });
+  } catch (err) {
+    res.json({ code: 500, message: '保存失败: ' + err.message });
+  }
+});
+
+// 搜索歌曲信息（用于音乐卡片）
+router.post('/search-song-info', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { song_name, artist } = req.body;
+    if (!song_name) {
+      return res.json({ code: 400, message: '请提供歌曲名' });
+    }
+    const aiService = require('../services/ai');
+    const info = await aiService.searchSongInfo(song_name, artist || '');
+    if (info) {
+      res.json({ code: 200, data: info });
+    } else {
+      res.json({ code: 500, message: '搜索失败' });
+    }
+  } catch (err) {
+    res.json({ code: 500, message: '搜索失败: ' + err.message });
+  }
+});
+
+// 搜索歌曲歌词
+router.post('/search-song-lyrics', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { song_name, artist } = req.body;
+    if (!song_name) {
+      return res.json({ code: 400, message: '请提供歌曲名' });
+    }
+    const aiService = require('../services/ai');
+    const lyrics = await aiService.searchSongLyrics(song_name, artist || '');
+    if (lyrics) {
+      res.json({ code: 200, data: { lyrics } });
+    } else {
+      res.json({ code: 500, message: '搜索失败' });
+    }
+  } catch (err) {
+    res.json({ code: 500, message: '搜索失败: ' + err.message });
+  }
+});
+
+// 生成歌曲介绍
+router.post('/generate-song-intro', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const { song_name, artist } = req.body;
+    if (!song_name) {
+      return res.json({ code: 400, message: '请提供歌曲名' });
+    }
+    const aiService = require('../services/ai');
+    const result = await aiService.generateSongIntro(song_name, artist || '');
+    if (result.intro || result.lyrics) {
+      res.json({ code: 200, data: { intro: result.intro || '', lyrics: result.lyrics || '' } });
+    } else if (result.prompt) {
+      res.json({ code: 200, data: { intro: '', lyrics: '', prompt: result.prompt, message: 'AI不可用，请复制提示词手动生成' } });
+    } else {
+      res.json({ code: 500, message: '生成失败' });
+    }
+  } catch (err) {
+    res.json({ code: 500, message: '生成失败: ' + err.message });
+  }
+});
+
+// QQ热歌榜
+router.get('/hot-chart', requirePermission('songs:review'), async (req, res) => {
+  try {
+    var https = require('https');
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var url = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?tpl=3&page=detail&date=' + dateStr + '&topid=26&type=top&song_begin=0&song_num=10&format=json';
+    var data = await new Promise(function(resolve, reject) {
+      https.get(url, { headers: { 'Referer': 'https://y.qq.com/' } }, function(resp) {
+        var body = '';
+        resp.on('data', function(c) { body += c; });
+        resp.on('end', function() { try { resolve(JSON.parse(body)); } catch(e) { reject(e); } });
+      }).on('error', reject);
+    });
+    var songs = (data.songlist || []).slice(0, 10).map(function(item) {
+      var d = item.data || {};
+      return { name: d.songname || '', artist: (d.singer || []).map(function(s) { return s.name; }).join(' / '), albummid: d.albummid || '' };
+    });
+    res.json({ code: 200, data: songs });
+  } catch (err) {
+    res.json({ code: 500, message: '获取热歌榜失败: ' + err.message });
+  }
+});
+
+// 搜索歌曲封面
+router.get('/song-cover', requirePermission('songs:review'), async (req, res) => {
+  try {
+    var q = req.query.q || '';
+    if (!q) return res.json({ code: 400, data: { albummid: '' } });
+    var https = require('https');
+    // 搜索多条结果，匹配歌手名提高准确度
+    var url = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?w=' + encodeURIComponent(q) + '&format=json&n=5&p=1';
+    var data = await new Promise(function(resolve, reject) {
+      https.get(url, { headers: { 'Referer': 'https://y.qq.com/' } }, function(resp) {
+        var body = '';
+        resp.on('data', function(c) { body += c; });
+        resp.on('end', function() { try { resolve(JSON.parse(body)); } catch(e) { reject(e); } });
+      }).on('error', reject);
+    });
+    var mid = '';
+    if (data.data && data.data.song && data.data.song.list && data.data.song.list.length > 0) {
+      var list = data.data.song.list;
+      // 尝试匹配歌手名（从搜索词中提取歌手部分）
+      var parts = q.split(/\s+/);
+      var artistPart = parts.length > 1 ? parts[parts.length - 1] : '';
+      var best = list[0];
+      if (artistPart) {
+        for (var i = 0; i < list.length; i++) {
+          var singers = (list[i].singer || []).map(function(s) { return s.name || ''; }).join(' ');
+          if (singers.toLowerCase().indexOf(artistPart.toLowerCase()) !== -1) {
+            best = list[i];
+            break;
+          }
+        }
+      }
+      mid = best.albummid || '';
+    }
+    res.json({ code: 200, data: { albummid: mid } });
+  } catch (err) {
+    res.json({ code: 500, data: { albummid: '' } });
+  }
+});
+
 // ===== 时段管理（需要 slots:manage 权限）=====
 
 // 获取时段列表（包含日期）

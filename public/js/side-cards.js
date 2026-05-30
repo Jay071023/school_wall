@@ -306,7 +306,7 @@
         var titleEl = sideHotsearch ? sideHotsearch.querySelector('.side-card-title') : null;
         if (titleEl) {
           var today = new Date();
-          titleEl.textContent = '历史上的今天 · ' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
+          titleEl.innerHTML = '📜 <span>' + (today.getMonth() + 1) + '月' + today.getDate() + '日</span>';
         }
       }
       updateTitleDate();

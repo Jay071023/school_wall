@@ -432,7 +432,8 @@ router.post('/callback', async (req, res) => {
         } else if (text === '帮助' || text === 'help' || text === '菜单' || text === '功能') {
           replyText = '🌸 嘉二校园墙 · 帮助菜单\n\n' +
             '📝 投稿：对我说"投稿"可直接发帖\n' +
-            '🎵 点歌：在网站点歌给TA\n' +
+            '🎵 校园点歌：去网站广播站点歌给TA\n' +
+            '🎶 每日推歌：分享你喜欢的歌到每日图文\n' +
             '🔗 绑定：回复"绑定"获取绑定教程\n' +
             '🌤️ 天气：回复"天气"查看今日天气\n' +
             '💡 更多：访问 https://wall.jay23.cn\n\n' +
@@ -449,14 +450,237 @@ router.post('/callback', async (req, res) => {
             '方法一：直接对我说"投稿"，按提示操作就能在微信里直接发帖啦！📱\n' +
             '方法二：打开 https://wall.jay23.cn → 点击"发布"按钮\n\n' +
             '审核通过后就能在墙上看到啦~';
-        } else if (text === '点歌' || text === '怎么点歌' || text === '点歌') {
-          replyText = '🎵 点歌指南\n\n' +
+        } else if (text === '校园点歌' || text === '怎么点歌' || text === '点歌') {
+          replyText = '🎵 校园点歌指南\n\n' +
             '1️⃣ 打开 https://wall.jay23.cn\n' +
             '2️⃣ 进入"广播站"页面\n' +
             '3️⃣ 选择可点歌的时段\n' +
             '4️⃣ 填写歌曲名和祝福语\n' +
             '5️⃣ 提交等待播放\n\n' +
             '校广播站会定时播放哦~';
+        } else if (text === '取消' || text === 'cancel') {
+          // 处理会话取消
+          try {
+            var [existingSession] = await pool.execute(
+              'SELECT step FROM wechat_song_recs WHERE openid = ? AND step != "idle" AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)',
+              [openid]
+            );
+            if (existingSession.length > 0) {
+              await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
+              replyText = '好的，已取消~';
+            }
+          } catch(e) {}
+        } else if (text === '确认' || text === '是的') {
+          // 处理会话确认
+          console.log('[每日推歌] 收到确认消息, openid:', openid.substring(0, 10));
+          try {
+            var [confirmSession] = await pool.execute(
+              'SELECT step, song_name, artist, to_whom, message, intro, display_name FROM wechat_song_recs WHERE openid = ? AND step = "song_confirm" AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+              [openid]
+            );
+            console.log('[每日推歌] 查询确认会话:', confirmSession.length > 0 ? '找到' : '未找到', 'step:', confirmSession[0]?.step || 'N/A');
+            if (confirmSession.length > 0) {
+              var sess = confirmSession[0];
+              var submitterName = '匿名用户';
+              try {
+                if (sess.display_name) {
+                  submitterName = sess.display_name;
+                } else {
+                  var [boundUsers] = await pool.execute('SELECT id, nickname FROM users WHERE openid = ?', [openid]);
+                  if (boundUsers.length > 0 && boundUsers[0].nickname) {
+                    submitterName = boundUsers[0].nickname;
+                  }
+                }
+              } catch(e) {}
+
+              var userIntro = sess.intro || '';
+              // 保存歌曲，如果用户写了推荐语就用用户的，否则AI后台生成
+              await pool.execute(
+                'INSERT INTO daily_song_recs (song_name, artist, to_whom, message, source, submitter, openid, status, intro, created_at) VALUES (?, ?, ?, ?, "wechat", ?, ?, "pending", ?, NOW())',
+                [sess.song_name, sess.artist || '', sess.to_whom || '', sess.message || '', submitterName, openid, userIntro]
+              );
+              await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
+
+              var info = '🎵 ' + sess.song_name + (sess.artist ? ' - ' + sess.artist : '');
+              replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 https://wall.jay23.cn';
+
+              // 后台自动生成：介绍词 + 歌词 + 歌曲信息
+              (async function() {
+                try {
+                  // 获取刚插入的记录ID
+                  var [newRecord] = await pool.execute('SELECT id FROM daily_song_recs WHERE openid = ? AND song_name = ? ORDER BY id DESC LIMIT 1', [openid, sess.song_name]);
+                  var recordId = newRecord.length > 0 ? newRecord[0].id : null;
+                  if (!recordId) return;
+
+                  // 生成介绍词
+                  if (!userIntro) {
+                    try {
+                      var introResult = await aiService.generateSongIntro(sess.song_name, sess.artist || '');
+                      if (introResult && introResult.intro) {
+                        await pool.execute('UPDATE daily_song_recs SET intro = ? WHERE id = ?', [introResult.intro, recordId]);
+                        console.log('[每日推歌] AI生成介绍词成功');
+                      }
+                      if (introResult && introResult.lyrics) {
+                        await pool.execute('UPDATE daily_song_recs SET lyrics = ? WHERE id = ?', [introResult.lyrics, recordId]);
+                        console.log('[每日推歌] AI生成歌词成功');
+                      }
+                    } catch(e) { console.warn('[每日推歌] AI生成介绍失败:', e.message); }
+                  }
+
+                  // 搜索歌曲信息
+                  try {
+                    var songInfo = await aiService.searchSongInfo(sess.song_name, sess.artist || '');
+                    if (songInfo) {
+                      await pool.execute('UPDATE daily_song_recs SET song_info = ? WHERE id = ?', [JSON.stringify(songInfo), recordId]);
+                      console.log('[每日推歌] 歌曲信息搜索成功');
+                    }
+                  } catch(e) { console.warn('[每日推歌] 歌曲信息搜索失败:', e.message); }
+
+                  // 如果没有歌词，单独搜索
+                  if (!userIntro) {
+                    try {
+                      var lyricsResult = await aiService.searchSongLyrics(sess.song_name, sess.artist || '');
+                      if (lyricsResult && lyricsResult.lyrics) {
+                        await pool.execute('UPDATE daily_song_recs SET lyrics = ? WHERE id = ?', [lyricsResult.lyrics, recordId]);
+                        console.log('[每日推歌] 歌词搜索成功');
+                      }
+                    } catch(e) { console.warn('[每日推歌] 歌词搜索失败:', e.message); }
+                  }
+                } catch(e) { console.error('[每日推歌] 后台生成失败:', e.message); }
+              })();
+            }
+          } catch(e) {
+            console.error('[每日推歌] 确认失败:', e.message);
+          }
+        } else if (text === '每日推歌' || text === '推歌' || text === '分享歌曲' || text === '每日推' || text === '推个歌') {
+          // ===== 每日推歌问答流程 =====
+          var songSession = null;
+          try {
+            var [songSess] = await pool.execute(
+              'SELECT step, song_name, artist, to_whom, message FROM wechat_song_recs WHERE openid = ? AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+              [openid]
+            );
+            songSession = songSess.length > 0 ? songSess[0] : null;
+          } catch(e) { console.error('[每日推歌] 查询会话失败:', e.message); }
+
+          // 处理问答流程
+          if (songSession && songSession.step !== 'idle' && songSession.step !== 'song_name') {
+            // 只有在已有会话（且不是等待歌曲名的状态）才处理取消
+            if (text === '取消') {
+              await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
+              replyText = '好的，已取消~';
+            } else if (songSession.step === 'song_artist') {
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_intro", artist = "", updated_at = NOW() WHERE openid = ?', [openid]);
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_intro", artist = ?, updated_at = NOW() WHERE openid = ?', [text, openid]);
+              }
+              replyText = '✍️ 写一段推荐语吧~\n\n用几句话说说你为什么推荐这首歌，或者这首歌让你想到了什么。\n\n（回复"跳过"跳过，AI会自动生成）';
+            } else if (songSession.step === 'song_intro') {
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = "", updated_at = NOW() WHERE openid = ?', [openid]);
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = ?, updated_at = NOW() WHERE openid = ?', [text.substring(0, 500), openid]);
+              }
+              replyText = '😊 最后一步！你希望显示的名字是什么？\n\n（如"小明"、"学姐"等，回复"跳过"使用默认昵称）';
+            } else if (songSession.step === 'song_nickname') {
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_confirm", display_name = "", updated_at = NOW() WHERE openid = ?', [openid]);
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_confirm", display_name = ?, updated_at = NOW() WHERE openid = ?', [text.substring(0, 30), openid]);
+              }
+              var info = '🎵 ' + songSession.song_name;
+              if (songSession.artist) info += ' - ' + songSession.artist;
+              replyText = '━━━━━━━━━━━━━━\n' + info + '\n━━━━━━━━━━━━━━\n\n确认推荐这首歌曲吗？\n✅ 回复"确认"发布\n❌ 回复"取消"重填';
+            } else if (songSession.step === 'song_confirm') {
+              if (text === '确认' || text === '是的') {
+                try {
+                  // 优先使用用户自己填的昵称
+                  var submitterName = '匿名同学';
+                  try {
+                    var [nickRec] = await pool.execute('SELECT display_name FROM wechat_song_recs WHERE openid = ? AND step = "song_confirm" AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1', [openid]);
+                    if (nickRec.length > 0 && nickRec[0].display_name) {
+                      submitterName = nickRec[0].display_name;
+                    } else {
+                      var [boundUsers2] = await pool.execute('SELECT id, nickname FROM users WHERE openid = ?', [openid]);
+                      if (boundUsers2.length > 0 && boundUsers2[0].nickname) {
+                        submitterName = boundUsers2[0].nickname;
+                      }
+                    }
+                  } catch(e) {}
+
+                  // 获取推荐语
+                  var userIntro2 = '';
+                  try {
+                    var [introRec] = await pool.execute('SELECT intro FROM wechat_song_recs WHERE openid = ? AND step = "song_confirm" AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1', [openid]);
+                    if (introRec.length > 0) userIntro2 = introRec[0].intro || '';
+                  } catch(e) {}
+
+                  await pool.execute(
+                    'INSERT INTO daily_song_recs (song_name, artist, to_whom, message, source, submitter, openid, status, intro, created_at) VALUES (?, ?, ?, ?, "wechat", ?, ?, "pending", ?, NOW())',
+                    [songSession.song_name, songSession.artist || '', songSession.to_whom || '', songSession.message || '', submitterName, openid, userIntro2]
+                  );
+                  await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
+                  var info = '🎵 ' + songSession.song_name + (songSession.artist ? ' - ' + songSession.artist : '');
+                  replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 https://wall.jay23.cn';
+
+                  // 后台自动生成：介绍词 + 歌词 + 歌曲信息
+                  (async function() {
+                    try {
+                      var [newRecord2] = await pool.execute('SELECT id FROM daily_song_recs WHERE openid = ? AND song_name = ? ORDER BY id DESC LIMIT 1', [openid, songSession.song_name]);
+                      var rid = newRecord2.length > 0 ? newRecord2[0].id : null;
+                      if (!rid) return;
+                      if (!userIntro2) {
+                        try {
+                          var ir = await aiService.generateSongIntro(songSession.song_name, songSession.artist || '');
+                          if (ir && ir.intro) await pool.execute('UPDATE daily_song_recs SET intro = ? WHERE id = ?', [ir.intro, rid]);
+                          if (ir && ir.lyrics) await pool.execute('UPDATE daily_song_recs SET lyrics = ? WHERE id = ?', [ir.lyrics, rid]);
+                        } catch(e) {}
+                      }
+                      try {
+                        var si = await aiService.searchSongInfo(songSession.song_name, songSession.artist || '');
+                        if (si) await pool.execute('UPDATE daily_song_recs SET song_info = ? WHERE id = ?', [JSON.stringify(si), rid]);
+                      } catch(e) {}
+                      try {
+                        var lr = await aiService.searchSongLyrics(songSession.song_name, songSession.artist || '');
+                        if (lr && lr.lyrics) await pool.execute('UPDATE daily_song_recs SET lyrics = ? WHERE id = ?', [lr.lyrics, rid]);
+                      } catch(e) {}
+                    } catch(e) { console.error('[每日推歌] 后台生成失败:', e.message); }
+                  })();
+                } catch(e) {
+                  console.error('[每日推歌] 保存失败:', e.message);
+                  replyText = '😅 提交失败了，稍后再试试？';
+                }
+              } else {
+                replyText = '😅 请回复"确认"发布，或"取消"重填\n\n🎵 ' + songSession.song_name + (songSession.artist ? ' - ' + songSession.artist : '');
+              }
+            }
+          } else {
+            // 启动新的问答流程
+            await pool.execute(
+              'INSERT INTO wechat_song_recs (openid, step, created_at, updated_at) VALUES (?, "song_name", NOW(), NOW()) ON DUPLICATE KEY UPDATE step = "song_name", song_name = NULL, artist = NULL, to_whom = NULL, message = NULL, intro = NULL, display_name = NULL, updated_at = NOW()',
+              [openid]
+            );
+            replyText = '🎶 每日推歌\n\n你想推荐一首喜欢的歌吗？\n\n请告诉我想推荐的**歌曲名**是什么？🎵';
+          }
+        } else if (text === '跳过') {
+          // 处理跳过当前步骤
+          try {
+            var [skipSession] = await pool.execute(
+              'SELECT step, song_name, artist FROM wechat_song_recs WHERE openid = ? AND step IN ("song_artist", "song_intro") AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+              [openid]
+            );
+            if (skipSession.length > 0) {
+              var skipStep = skipSession[0].step;
+              if (skipStep === 'song_artist') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_intro", artist = "", updated_at = NOW() WHERE openid = ?', [openid]);
+                replyText = '✍️ 写一段推荐语吧~\n\n用几句话说说你为什么推荐这首歌，或者这首歌让你想到了什么。\n\n（回复"跳过"跳过，AI会自动生成）';
+              } else if (skipStep === 'song_intro') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = "", updated_at = NOW() WHERE openid = ?', [openid]);
+                replyText = '😊 最后一步！你希望显示的名字是什么？\n\n（如"小明"、"学姐"等，回复"跳过"使用默认昵称）';
+              }
+            }
+          } catch(e) {}
         } else if (text === '天气' || text === '今日天气' || text === 'weather') {
           // 回复天气信息（异步获取）
           try {
@@ -473,103 +697,83 @@ router.post('/callback', async (req, res) => {
           } catch(e) {
             replyText = '🌤️ 天气服务暂时不可用~';
           }
-        } else if (text === '你好' || text === 'hi' || text === 'hello' || text === '在吗' || text === '在不在') {
-          replyText = '👋 你好呀！我是嘉二校园墙的小助手~\n\n' +
-            '有什么想了解的可以回复关键词：\n' +
-            '🔹 "帮助" - 查看所有功能\n' +
-            '🔹 "天气" - 今日天气\n' +
-            '🔹 "绑定" - 微信绑定\n\n' +
-            '也可以直接访问 https://wall.jay23.cn 看看~';
-        } else if (text === '版本' || text === 'version' || text === '关于') {
-          replyText = '🌸 嘉二校园墙 · 更新日志\n\n' +
-            '━━ V2.0（当前）━━\n' +
-            '📌 微信公众号 + 网页联动版本\n' +
-            '✅ 校园投稿/帖子墙\n' +
-            '✅ 广播站点歌系统\n' +
-            '✅ 微信扫码绑定 + 实时通知\n' +
-            '✅ 公众号每日图文推送\n' +
-            '✅ 天气/一言/每周之星\n' +
-            '✅ 评论/点赞/收藏互动\n' +
-            '✅ 反馈/公告/管理员后台\n' +
-            '✅ 邮箱通知系统\n\n' +
-            '━━ V1.0（已停用）━━\n' +
-            '🤖 QQ机器人版本\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '学校' || text === '嘉定二中' || text === '嘉二') {
-          replyText = '🏫 上海市嘉定区第二中学\n\n' +
-            '📍 地址：上海市嘉定区德华路388号\n' +
-            '🌐 校园墙：https://wall.jay23.cn';
-        } else if (text === '老婆' || text === '老公' || text === '女朋友' || text === '男朋友') {
-          replyText = '😳 啊这。。我也想有啊！\n\n' +
-            '要不你去校园墙发个帖碰碰运气？\n' +
-            '说不定你的那个TA正在等你呢~ 💕\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '晚安' || text === '晚安啦' || text === '睡了') {
-          var h = new Date().getHours();
-          replyText = '🌙 晚安呀~ 做个好梦！\n\n' +
-            (h < 3 ? '这么晚还不睡，小心明天上课打瞌睡哦~😴' : '') +
-            (h >= 3 && h < 6 ? '天都快亮了，快睡吧！🌅' : '') +
-            (h >= 6 && h < 12 ? '呃... 现在说晚安是不是有点早？🙈' : '') +
-            (h >= 12 && h < 18 ? '下午好！午安午安~☀️' : '') +
-            (h >= 18 && h < 22 ? '天还早着呢，再玩会儿~✨' : '') +
-            '\n\n🌐 https://wall.jay23.cn';
-        } else if (text === '早安' || text === '早上好' || text === '早') {
-          replyText = '☀️ 早安呀！新的一天又开始啦~\n\n' +
-            '今天也要好好学习，开心生活！\n' +
-            '💪 加油嘉二人！\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '饿' || text === '饿了' || text === '吃饭' || text === '食堂') {
-          replyText = '🍚 饿了就去食堂干饭！\n\n' +
-            '德华路上的小吃街也不错哦~😋\n' +
-            '不过别上课迟到啦！\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '666' || text === '牛逼' || text === '厉害' || text === '大佬') {
-          var tips = [
-            '大佬带带我！🙇',
-            '太强了太强了！👏',
-            '这就是嘉二的实力吗！🔥',
-            '膜拜大佬！🧎'
-          ];
-          replyText = '🎉 ' + tips[Math.floor(Math.random() * tips.length)] + '\n\n🌐 https://wall.jay23.cn';
-        } else if (text === '无聊' || text === '好无聊' || text === '闲') {
-          replyText = '😴 无聊的话...\n\n' +
-            '📝 去校园墙发个帖找人聊天？\n' +
-            '🎵 点首歌听听？\n' +
-            '💬 看看其他人在聊什么？\n\n' +
-            '来 https://wall.jay23.cn 逛逛吧~';
-        } else if (text === '开心' || text === '好开心' || text === '哈哈哈') {
-          replyText = '😄 开心就好呀！\n' +
-            '笑容会传染的，把快乐传递给更多人吧~🌈\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '伤心' || text === '难过' || text === '不开心' || text === '哭了') {
-          replyText = '🥺 抱抱~ 不开心的事总会过去的！\n\n' +
-            '去校园墙看看大家的帖子，\n' +
-            '或者发个帖倾诉一下？\n' +
-            '这里有很多温暖的同学~💕\n\n' +
-            '🌐 https://wall.jay23.cn';
-        } else if (text === '今天星期几' || text === '今天是周几') {
-          var days = ['日', '一', '二', '三', '四', '五', '六'];
-          var today = '周' + days[new Date().getDay()];
-          replyText = '📅 今天是' + today + '~\n\n' +
-            (new Date().getDay() === 0 || new Date().getDay() === 6 ? '周末啦！好好放松一下吧~🎉' : '今天也要加油呀！💪') +
-            '\n\n🌐 https://wall.jay23.cn';
         } else if (text.length > 200) {
           // 长消息不走 AI，避免微信 5 秒超时
           replyText = '📝 太长了我有点看不过来😅\n' +
             '有什么想说的可以简化一下，或者直接说"投稿"来发帖哦~\n\n' +
             '🌐 https://wall.jay23.cn';
         } else {
-          // 未匹配关键词 → 调用 AI 智能回复
+          // 未匹配关键词 → 先检查是否在推歌流程中
+          var isInSongFlow = false;
           try {
-            console.log('[WeChat] 调用AI回复,用户:', openid.substring(0, 10), '消息:', text.substring(0, 30));
-            replyText = await aiService.getAIReply(text, openid);
-            console.log('[WeChat] AI回复成功:', replyText.substring(0, 50));
+            var [nameSession] = await pool.execute(
+              'SELECT step FROM wechat_song_recs WHERE openid = ? AND step IN ("song_name", "song_artist", "song_intro", "song_nickname", "song_confirm") AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+              [openid]
+            );
+            if (nameSession.length > 0 && nameSession[0].step === 'song_name') {
+              // 用户输入了歌曲名
+              if (text.length > 0 && text.length < 100) {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_artist", song_name = ?, updated_at = NOW() WHERE openid = ?', [text, openid]);
+                replyText = '🎵 收到！《' + text + '》\n\n接下来请告诉我是谁演唱的？\n（回复"跳过"可不填）';
+                isInSongFlow = true;
+              } else {
+                replyText = '😅 歌曲名太长了，请简化一下~';
+                isInSongFlow = true;
+              }
+            } else if (nameSession.length > 0 && nameSession[0].step === 'song_artist') {
+              // 用户输入了歌手
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_intro", artist = "", updated_at = NOW() WHERE openid = ?', [openid]);
+                replyText = '✍️ 写一段推荐语吧~\n\n用几句话说说你为什么推荐这首歌，或者这首歌让你想到了什么。\n\n（回复"跳过"跳过，AI会自动生成）';
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_intro", artist = ?, updated_at = NOW() WHERE openid = ?', [text, openid]);
+                replyText = '✍️ 写一段推荐语吧~\n\n用几句话说说你为什么推荐这首歌，或者这首歌让你想到了什么。\n\n（回复"跳过"跳过，AI会自动生成）';
+              }
+              isInSongFlow = true;
+            } else if (nameSession.length > 0 && nameSession[0].step === 'song_intro') {
+              // 用户输入了推荐语
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = "", updated_at = NOW() WHERE openid = ?', [openid]);
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = ?, updated_at = NOW() WHERE openid = ?', [text.substring(0, 500), openid]);
+              }
+              replyText = '😊 最后一步！你希望显示的名字是什么？\n\n（如"小明"、"学姐"等，回复"跳过"使用默认昵称）';
+              isInSongFlow = true;
+            } else if (nameSession.length > 0 && nameSession[0].step === 'song_nickname') {
+              // 用户输入了昵称
+              if (text === '跳过') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_confirm", display_name = "", updated_at = NOW() WHERE openid = ?', [openid]);
+              } else {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_confirm", display_name = ?, updated_at = NOW() WHERE openid = ?', [text.substring(0, 30), openid]);
+              }
+              var [sess] = await pool.execute('SELECT song_name, artist FROM wechat_song_recs WHERE openid = ? AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) LIMIT 1', [openid]);
+              var info = '🎵 ' + (sess[0]?.song_name || '') + (sess[0]?.artist ? ' - ' + sess[0].artist : '');
+              replyText = '━━━━━━━━━━━━━━\n' + info + '\n━━━━━━━━━━━━━━\n\n✅ 回复"确认"发布\n❌ 回复"取消"重填';
+              isInSongFlow = true;
+            } else if (nameSession.length > 0 && nameSession[0].step === 'song_confirm') {
+              // 用户在确认步骤发了其他内容
+              var [sess] = await pool.execute('SELECT song_name, artist FROM wechat_song_recs WHERE openid = ? AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) LIMIT 1', [openid]);
+              var info = '🎵 ' + (sess[0]?.song_name || '') + (sess[0]?.artist ? ' - ' + sess[0].artist : '');
+              replyText = '😅 请回复"确认"发布，或"取消"重填\n\n' + info;
+              isInSongFlow = true;
+            }
           } catch(e) {
-            console.error('[WeChat] AI回复异常:', e.message);
-            replyText = '不好意思，我现在有点卡卡的😅 有什么可以帮你？\n' +
-              '📝 发"投稿"可以发帖\n' +
-              '📖 发"帮助"查看所有功能\n' +
-              '🌐 https://wall.jay23.cn';
+            console.error('[每日推歌] 处理输入失败:', e.message);
+          }
+
+          // 不在推歌流程中，走AI回复
+          if (!isInSongFlow) {
+            try {
+              console.log('[WeChat] 调用AI回复,用户:', openid.substring(0, 10), '消息:', text.substring(0, 30));
+              replyText = await aiService.getAIReply(text, openid);
+              console.log('[WeChat] AI回复成功:', replyText.substring(0, 50));
+            } catch(e) {
+              console.error('[WeChat] AI回复异常:', e.message);
+              replyText = '不好意思，我现在有点卡卡的😅 有什么可以帮你？\n' +
+                '📝 发"投稿"可以发帖\n' +
+                '📖 发"帮助"查看所有功能\n' +
+                '🌐 https://wall.jay23.cn';
+            }
           }
         }
 

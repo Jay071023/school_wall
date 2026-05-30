@@ -54,10 +54,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // 加载今日剩余点歌次数
+  async function loadRemainingCount() {
+    var token = localStorage.getItem('token') || '';
+    if (!token) return;
+    try {
+      var data = await apiFetch('/api/songs/remaining');
+      if (data.code === 200 && data.data) {
+        var el = document.getElementById('remainingCount');
+        if (el) {
+          el.textContent = '今日剩余 ' + data.data.remaining + ' / ' + data.data.limit + ' 次';
+          el.style.display = 'block';
+        }
+      }
+    } catch (err) {}
+  }
+
   loadTimeSlots();
   loadPlaylist();
   loadMySongs(); // 加载我的点歌记录
   loadHotSongs(); // 加载热门排行榜
+  loadRemainingCount(); // 加载今日剩余次数
 
   var hint = document.getElementById('availableDatesHint');
   if (hint) hint.style.display = 'none';
@@ -156,12 +173,16 @@ document.addEventListener('DOMContentLoaded', function() {
           var displayDate = dateStr ? dateStr.replace(/-/g, '/') : '未知日期';
           var timeStr = s.slot_name || '';
           var authorStr = s.is_anonymous ? '匿名用户' : (s.author_name || '用户');
-          
+
           // 判断状态：played=已播放，其他判断是否已过时
           var isPlayed = s.status === 'played';
           var isPast = dateStr < todayStr || (dateStr === todayStr && s.end_time && currentTime > s.end_time);
           var isToday = dateStr === todayStr;
-          var statusClass = isPlayed ? 'played' : (isToday ? 'waiting' : 'waiting');
+
+          // 隐藏已播放的歌曲
+          if (isPlayed) return;
+
+          var statusClass = isToday ? 'waiting' : 'waiting';
           
           var tagsHtml = '';
           if (s.to_whom) tagsHtml += '<span class="song-tag to-whom">💝 ' + escapeHtml(s.to_whom) + '</span>';
@@ -181,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
               '</div>' +
             '</div>' +
             '<div class="song-status-area">' +
-              '<span class="song-status">' + (isPlayed ? '✅ 已播放' : (isToday ? '🔔 待播放' : '⏳ 待播放')) + '</span>' +
+              '<span class="song-status">' + (isToday ? '🔔 待播放' : '⏳ 待播放') + '</span>' +
             '</div>' +
           '</div>';
         });

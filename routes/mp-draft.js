@@ -256,7 +256,7 @@ function autoFormatContent(text) {
 /**
  * 生成精美卡片HTML（卡哇伊风，兼容微信编辑器）
  */
-function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost) {
+function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs) {
   const today = dateInfo.date;
   const week = dateInfo.week;
 
@@ -319,6 +319,34 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #A78BFA;">';
     html += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + escapeHtml(hitokoto.text) + '"</p>';
     html += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + escapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p>';
+    html += '</td></tr></table>';
+  }
+
+  // ===== 高考倒计时卡片 =====
+  console.log('DEBUG includeGaokao:', includeGaokao, typeof includeGaokao);
+  if (includeGaokao === true) {
+    var gaokaoDate = new Date();
+    gaokaoDate.setMonth(5); // 6月
+    gaokaoDate.setDate(7);
+    gaokaoDate.setHours(9, 0, 0);
+    if (gaokaoDate < new Date()) {
+      gaokaoDate.setFullYear(gaokaoDate.getFullYear() + 1);
+    }
+    var gaokaoDiff = Math.ceil((gaokaoDate - new Date()) / (1000 * 60 * 60 * 24));
+    var gaokaoPercent = Math.round((365 - gaokaoDiff) / 365 * 100);
+    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:linear-gradient(135deg,#FFF8E1,#FFE4B5);padding:16px;">';
+    html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
+    html += '<td style="text-align:center;padding:4px;border-right:1px dashed #E8D5B5;">';
+    html += '<div style="font-size:11px;color:#888;margin-bottom:4px;">📚 距离高考</div>';
+    html += '<div style="font-size:24px;font-weight:bold;color:#FF8C00;">' + gaokaoDiff + '</div>';
+    html += '<div style="font-size:12px;color:#666;">天</div>';
+    html += '</td>';
+    html += '<td style="text-align:center;padding:4px;">';
+    html += '<div style="font-size:11px;color:#888;margin-bottom:4px;">⏳ 进度</div>';
+    html += '<div style="font-size:20px;font-weight:bold;color:#FF8C00;">' + gaokaoPercent + '%</div>';
+    html += '<div style="font-size:12px;color:#666;">已完成</div>';
+    html += '</td>';
+    html += '</tr></table>';
     html += '</td></tr></table>';
   }
 
@@ -393,6 +421,29 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     html += '</tr></table></td></tr></table>';
   }
 
+  // ===== 每日推歌卡片 =====
+  if (dailySongs && dailySongs.length > 0) {
+    html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:14px;">';
+    html += '<div style="font-size:13px;color:#999;margin-bottom:10px;">🎵 每日推歌</div>';
+    for (var si = 0; si < dailySongs.length; si++) {
+      var s = dailySongs[si];
+      html += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:10px 0;">';
+      html += '<div style="font-size:15px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#aaa;">' + escapeHtml(s.artist) + '</span>' : '') + '</div>';
+      html += '<div style="font-size:12px;color:#bbb;margin-top:4px;line-height:1.5;">';
+      if (s.to_whom) html += '💝 送给 ' + escapeHtml(s.to_whom) + ' &nbsp;';
+      if (s.message) html += '💬 ' + escapeHtml(s.message) + ' &nbsp;';
+      html += '👤 ' + escapeHtml(s.submitter || '同学');
+      html += '</div>';
+      if (s.intro) {
+        html += '<div style="font-size:12px;color:#888;margin-top:6px;padding:8px 10px;background:#FFF9F5;border-radius:8px;border-left:3px solid #FFB7C5;line-height:1.5;">';
+        html += '📖 ' + escapeHtml(s.intro);
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</td></tr></table>';
+  }
+
   // ===== 分割线 =====
   html += '<div style="text-align:center;margin:18px 0;color:#e8e8e8;font-size:14px;">❀&nbsp;&nbsp;❁&nbsp;&nbsp;❀</div>';
 
@@ -462,7 +513,7 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
  */
 router.post('/generate-content', async (req, res) => {
   try {
-    const { postIds, template = 'daily-summary', includeWeather = true, includeHitokoto = true, includeWeeklyStar = true, weeklyStarUserIds = [] } = req.body;
+    const { postIds, template = 'daily-summary', includeWeather = true, includeHitokoto = true, includeWeeklyStar = true, includeGaokao = true, weeklyStarUserIds = [] } = req.body;
 
     if (!postIds || !Array.isArray(postIds)) {
       return res.json({ code: 400, message: '请提供帖子ID列表' });
@@ -576,7 +627,17 @@ router.post('/generate-content', async (req, res) => {
     const articles = [];
 
     if (template === 'daily-summary') {
-      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost);
+      // 使用用户选择的推歌，或获取所有已发布推歌
+      var dailySongs = req.body.dailySongs || [];
+      if (dailySongs.length === 0) {
+        try {
+          dailySongs = await pool.execute(
+            'SELECT * FROM daily_song_recs WHERE status = "published" ORDER BY published_at DESC LIMIT 10'
+          ).then(r => r[0]);
+        } catch(e) {}
+      }
+
+      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs);
 
       articles.push({
         title: `今日校园精选 | ${dateInfo.date}`,
@@ -633,7 +694,7 @@ router.post('/generate-content', async (req, res) => {
 
     res.json({
       code: 200,
-      data: { articles, posts, weather, hitokoto, dateInfo, stats, categories, songs: songReq, todayHistory, weeklyStar, commentsByPost },
+      data: { articles, posts, weather, hitokoto, dateInfo, stats, categories, songs: songReq, todayHistory, weeklyStar, commentsByPost, dailySongs: dailySongs || [] },
       message: '生成成功'
     });
   } catch (err) {
@@ -710,6 +771,31 @@ router.post('/create-draft', async (req, res) => {
 });
 
 /**
+ * 获取每日推歌列表
+ * GET /api/mp/daily-songs
+ */
+router.get('/daily-songs', async (req, res) => {
+  try {
+    const { status, limit = 20 } = req.query;
+    let sql = 'SELECT * FROM daily_song_recs WHERE 1=1';
+    const params = [];
+
+    if (status) {
+      sql += ' AND status = ?';
+      params.push(status);
+    }
+
+    sql += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(parseInt(limit));
+
+    const [songs] = await pool.execute(sql, params);
+    res.json({ code: 200, data: songs });
+  } catch (err) {
+    res.json({ code: 500, message: '获取失败: ' + err.message });
+  }
+});
+
+/**
  * 一键生成并发布今日精选（增强版）
  * POST /api/mp/publish-daily
  */
@@ -747,8 +833,16 @@ router.post('/publish-daily', async (req, res) => {
       Promise.resolve(mpDraftService.getDateInfo())
     ]);
 
+    // 获取每日推歌数据
+    var dailySongs = [];
+    try {
+      dailySongs = await pool.execute(
+        'SELECT * FROM daily_song_recs WHERE status = "published" ORDER BY published_at DESC LIMIT 10'
+      ).then(r => r[0]);
+    } catch(e) {}
+
     // 3. 生成精美卡片内容
-    const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo);
+    const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, null, null, [], null, [], {}, true, dailySongs);
 
     const articles = [{
       title: `📚 今日校园精选 | ${dateInfo.date}`,

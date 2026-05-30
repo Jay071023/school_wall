@@ -2,6 +2,8 @@
  * detail-emojis.js - Emoji picker and mention functionality
  */
 
+var mentionedUsersList = []; // 艾特用户列表
+
 /**
  * 初始化表情选择器
  */

@@ -696,7 +696,7 @@
   };
 
   // 显示协议弹窗
-  function showAgreement(type) {
+  window.showAgreement = function(type) {
     var modal = document.getElementById('agreementModal');
     var title = document.getElementById('agreementTitle');
     var body = document.getElementById('agreementBody');
@@ -710,7 +710,7 @@
   }
 
   // 关闭协议弹窗
-  function closeAgreement() {
+  window.closeAgreement = function() {
     var modal = document.getElementById('agreementModal');
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
@@ -726,7 +726,7 @@
   
   // 验证方式切换
   var currentVerifyMethod = 'captcha';
-  function switchVerifyMethod(method) {
+  window.switchVerifyMethod = function(method) {
     currentVerifyMethod = method;
     document.querySelectorAll('.verify-tab').forEach(function(t) {
       t.classList.toggle('active', t.dataset.method === method);
@@ -736,13 +736,13 @@
   }
 
   // 加载验证码
-  var captchaKey = '';
-  async function loadCaptcha() {
+  window.captchaKey = '';
+  window.loadCaptcha = async function() {
     try {
       var res = await fetch('/api/auth/captcha');
       var data = await res.json();
       if (data.code === 200) {
-        captchaKey = data.data.key;
+        window.captchaKey = data.data.key;
         var captchaImg = document.getElementById('captchaImg');
         if (captchaImg) {
           captchaImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data.data.captcha)));
@@ -753,8 +753,8 @@
     }
   }
   
-  // 页面加载时自动加载验证码
-  loadCaptcha();
+  // 页面加载时自动加载验证码（脚本在body末尾，DOM已就绪）
+  setTimeout(function() { window.loadCaptcha(); }, 100);
 
   // 微信注册验证码
   var currentRegCode = '';
@@ -853,7 +853,7 @@
     setTimeout(pollRegCodeStatus, 3000);
   }
 
-  function copyRegCode() {
+  window.copyRegCode = function() {
     var input = document.getElementById('regCodeDisplay');
     input.select();
     input.setSelectionRange(0, 99999);
@@ -890,56 +890,30 @@
     }
   }
 
-  // 表单验证增强
+  // 表单验证增强 - 只处理微信验证模式的注册
   document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('registerForm');
     var agreeCheckbox = document.getElementById('agreeTerms');
-    
+
     if (form && agreeCheckbox) {
       form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // 检查是否同意协议
-        if (!agreeCheckbox.checked) {
-          showToast('请先阅读并同意《用户协议》和《隐私政策》', 'error');
-          return;
-        }
-        
-        // 如果是微信验证方式，走微信注册流程
-        if (currentVerifyMethod === 'wechat') {
+        // 微信验证模式由页面内处理，图片验证码模式由auth.js处理
+        if (window.currentVerifyMethod === 'wechat' || (document.getElementById('verifyWechat') && document.getElementById('verifyWechat').style.display !== 'none')) {
+          e.preventDefault();
+
+          if (!agreeCheckbox.checked) {
+            showToast('请先阅读并同意《用户协议》和《隐私政策》', 'error');
+            return;
+          }
+
           if (!currentRegCode) {
             showToast('请先获取微信验证码', 'error');
-          } else {
-            wechatRegister();
+            return;
           }
-          return;
+
+          wechatRegister();
         }
-        
-        // 调用原来的注册逻辑
-        var username = document.getElementById('username').value.trim();
-        var nickname = document.getElementById('nickname').value.trim();
-        var password = document.getElementById('password').value;
-        var confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (!username || !nickname || !password) {
-          showToast('请填写所有必填项', 'error');
-          return;
-        }
-        
-        if (password !== confirmPassword) {
-          showToast('两次输入的密码不一致', 'error');
-          return;
-        }
-        
-        if (password.length < 6) {
-          showToast('密码至少需要6个字符', 'error');
-          return;
-        }
-        
-        // 调用auth.js中的注册函数
-        if (typeof register === 'function') {
-          register();
-        }
+        // 图片验证码模式：auth.js 会处理
       });
     }
   });

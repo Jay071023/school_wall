@@ -48,12 +48,18 @@ async function initDB() {
         nickname VARCHAR(50) NOT NULL,
         avatar VARCHAR(255) DEFAULT '/uploads/avatars/default.png',
         email VARCHAR(100),
+        openid VARCHAR(64) DEFAULT NULL COMMENT '微信openid，用于微信登录',
         role ENUM('user', 'admin', 'reviewer', 'radio_admin', 'super_admin') DEFAULT 'user' COMMENT 'user普通用户/reviewer审核员/radio_admin广播管理员/admin普通管理员/super_admin超级管理员',
         status TINYINT DEFAULT 1 COMMENT '1正常 0禁用',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    // 为已有 users 表添加 openid 字段
+    try {
+      await connection.execute('ALTER TABLE users ADD COLUMN openid VARCHAR(64) DEFAULT NULL COMMENT \'微信openid\' AFTER email');
+    } catch (e) { console.error('[DB迁移]', e.message); }
     
     // 为已有 users 表添加登录追踪字段（忽略已存在的错误）
     try {
@@ -642,8 +648,91 @@ async function initDB() {
     try { await connection.execute("SELECT images FROM wechat_submit_sessions LIMIT 0"); } catch (e) {
       try { await connection.execute('ALTER TABLE wechat_submit_sessions ADD COLUMN images TEXT COMMENT \'JSON数组: 已上传图片路径\' AFTER polished_content'); } catch (e2) { if (e2.code !== 'ER_DUP_FIELDNAME') throw e2; }
     }
-    // 兼容旧表 step 列长度不足（需要 VARCHAR 30 以容纳 awaiting_polish_choice）
+    // 兼容旧表 step 列长度不足
     try { await connection.execute('ALTER TABLE wechat_submit_sessions MODIFY COLUMN step VARCHAR(30) DEFAULT \'idle\' COMMENT \'状态: idle/awaiting_title/awaiting_content/awaiting_polish_choice/awaiting_polish/awaiting_image\''); } catch (e) { console.error('[DB迁移]', e.message); }
+
+    // 微信点歌会话表（每日推歌专用）
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS wechat_song_recs (
+          openid VARCHAR(64) PRIMARY KEY COMMENT '微信用户openid',
+          step VARCHAR(30) DEFAULT 'idle' COMMENT '状态: idle/song_awaiting_song/song_awaiting_artist/song_awaiting_to_whom/song_awaiting_message/song_awaiting_confirm',
+          song_name VARCHAR(200),
+          artist VARCHAR(200),
+          to_whom VARCHAR(100),
+          message TEXT,
+          intro TEXT,
+          display_name VARCHAR(30) DEFAULT '' COMMENT '用户自选显示昵称',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信推歌会话状态'
+      `);
+      console.log('✅ wechat_song_recs 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+
+    // 每日推歌推荐表（和校墙电台点歌完全独立）
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS daily_song_recs (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          song_name VARCHAR(200) NOT NULL COMMENT '歌曲名',
+          artist VARCHAR(200) COMMENT '歌手',
+          to_whom VARCHAR(100) COMMENT '送给谁',
+          message TEXT COMMENT '祝福语',
+          source ENUM('wechat','manual') DEFAULT 'wechat' COMMENT '来源',
+          submitter VARCHAR(100) COMMENT '提交者昵称',
+          openid VARCHAR(64) COMMENT '微信openid',
+          status ENUM('pending','published') DEFAULT 'pending' COMMENT '状态',
+          published_at TIMESTAMP NULL COMMENT '发布时间',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日推歌推荐'
+      `);
+      console.log('✅ daily_song_recs 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+
+    // 添加 intro 字段
+    try {
+      await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN intro TEXT COMMENT 'AI生成的歌曲介绍' AFTER published_at");
+      console.log('✅ daily_song_recs 表已添加 intro 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+
+    // 添加 intro 字段到 wechat_song_recs
+    try {
+      await connection.execute("ALTER TABLE wechat_song_recs ADD COLUMN intro TEXT COMMENT '用户自定义推荐语' AFTER message");
+      console.log('✅ wechat_song_recs 表已添加 intro 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+
+    // 添加 display_name 字段到 wechat_song_recs
+    try {
+      await connection.execute("ALTER TABLE wechat_song_recs ADD COLUMN display_name VARCHAR(30) DEFAULT '' COMMENT '用户自选显示昵称' AFTER intro");
+      console.log('✅ wechat_song_recs 表已添加 display_name 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+
+    // 添加 lyrics 字段
+    try {
+      await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN lyrics TEXT COMMENT '歌曲歌词' AFTER intro");
+      console.log('✅ daily_song_recs 表已添加 lyrics 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+
+    // 添加 song_info 字段
+    try {
+      await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN song_info JSON COMMENT '歌曲详细信息(专辑/年份/曲风等)' AFTER lyrics");
+      console.log('✅ daily_song_recs 表已添加 song_info 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
 
     // 私信会话表
     try {

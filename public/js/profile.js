@@ -1131,18 +1131,26 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('昵称不能超过20个字符', 'error');
         return;
       }
+      if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+        showToast('邮箱格式不正确', 'error');
+        return;
+      }
       editSaveBtn.disabled = true;
       editSaveBtn.textContent = '保存中...';
+      var updateData = {
+        nickname: newNickname
+      };
+      // 只在用户填写了邮箱时才传 email 字段，避免清空现有邮箱
+      if (newEmail) {
+        updateData.email = newEmail;
+      }
+      if (newBirthday) updateData.birthday = newBirthday;
+      if (newMbti) updateData.mbti = newMbti;
+      if (newGender) updateData.gender = newGender;
+      if (newHobbies) updateData.hobbies = newHobbies;
       authFetch('/api/auth/profile', {
         method: 'PUT',
-        body: JSON.stringify({ 
-          nickname: newNickname,
-          email: newEmail || null,
-          birthday: newBirthday || null,
-          mbti: newMbti || null,
-          gender: newGender || null,
-          hobbies: newHobbies || null
-        })
+        body: JSON.stringify(updateData)
       }).then(function(data) {
         editSaveBtn.disabled = false;
         editSaveBtn.textContent = '💾 保存';

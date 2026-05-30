@@ -26,9 +26,11 @@ router.get('/captcha', async (req, res) => {
     const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
     let code = '';
     for (let i = 0; i < 6; i++) {
-      code += chars[crypto.randomInt(0, chars.length)];
+      const idx = Math.floor(Math.random() * chars.length);
+      code += chars[idx];
     }
-    const key = crypto.randomBytes(16).toString('hex');
+    // 生成随机key
+    const key = Date.now().toString(36) + Math.random().toString(36).substring(2, 18);
     
     // 存储验证码（5分钟过期）
     captchaStore.set(key, code);
@@ -392,7 +394,7 @@ router.post('/login', async (req, res) => {
     var cookieOpts = {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
+      sameSite: 'strict',
       path: '/'
     };
     if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
@@ -459,18 +461,18 @@ router.get('/me', auth, async (req, res) => {
 router.put('/profile', auth, async (req, res) => {
   try {
     const { nickname, email, birthday, mbti, gender, hobbies } = req.body;
-    
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
+    if (email !== undefined && email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.json({ code: 400, message: '邮箱格式不正确' });
     }
-    
-    if (email) {
+
+    if (email !== undefined && email !== '' && email !== null) {
       const [existing] = await pool.execute('SELECT id FROM users WHERE email = ? AND id != ? AND email IS NOT NULL AND email != ""', [email, req.user.id]);
       if (existing.length > 0) {
         return res.json({ code: 400, message: '该邮箱已被使用' });
       }
     }
-    
+
     // 校验生日格式
     let validBirthday = null;
     if (birthday) {
@@ -483,14 +485,25 @@ router.put('/profile', auth, async (req, res) => {
           validBirthday = birthday;
         }
       }
-      // 如果格式不对，忽略该字段
     }
-    
-    // 更新所有字段
-    await pool.execute(
-      'UPDATE users SET nickname = ?, email = ?, birthday = ?, mbti = ?, gender = ?, hobbies = ? WHERE id = ?',
-      [nickname || null, email || null, validBirthday, mbti || null, gender || null, hobbies || null, req.user.id]
-    );
+
+    // 只更新传了的字段，不清空空字段
+    var updates = ['nickname = ?'];
+    var values = [nickname || null];
+
+    // 只有明确传了 email 且不为空才更新邮箱
+    if (email !== undefined) {
+      updates.push('email = ?');
+      values.push(email === '' ? null : email);
+    }
+
+    if (birthday) { updates.push('birthday = ?'); values.push(validBirthday); }
+    if (mbti !== undefined) { updates.push('mbti = ?'); values.push(mbti || null); }
+    if (gender !== undefined) { updates.push('gender = ?'); values.push(gender || null); }
+    if (hobbies !== undefined) { updates.push('hobbies = ?'); values.push(hobbies || null); }
+
+    values.push(req.user.id);
+    await pool.execute('UPDATE users SET ' + updates.join(', ') + ' WHERE id = ?', values);
     
     // 返回更新后的用户信息
     const [users] = await pool.execute(

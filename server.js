@@ -5,6 +5,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
 const compression = require('compression');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 // 先加载 .env（基础配置），再加载 .env.local（本地覆盖，含敏感信息）
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '.env.local'), override: true });
@@ -26,12 +28,44 @@ const PORT = process.env.PORT || 3000;
 
 // 中间件
 app.use(compression()); // 响应压缩
-app.use(cors());
+// CORS：仅允许指定域名
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://wall.jay23.cn').split(',');
+app.use(cors({
+  origin: function(origin, callback) {
+    // 允许没有 origin 的请求（postman、curl 等）
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-// 安全头
+
+// 安全头（helmet 提供 CSP、X-Content-Type-Options 等）
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://v1.hitokoto.cn'],
+      fontSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// 手动补充的安全头
 app.use(function(req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -42,6 +76,26 @@ app.use(function(req, res, next) {
   }
   next();
 });
+
+// 全局限流（通用）
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000, // 15分钟
+  max: 500, // 最多500请求
+  standardHeaders: true,
+  legacyHeaders: false
+}));
+
+// 登录注册限流（更严格）
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // 15分钟内最多20次
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 429, message: '请求过于频繁，请稍后再试' }
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
@@ -356,6 +410,10 @@ app.get('/admin', (req, res) => {
 
 // 公众号推送管理
 app.get('/admin/mp-draft', (req, res) => {
+  if (!req.query.v) {
+    var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
+    return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
+  }
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
