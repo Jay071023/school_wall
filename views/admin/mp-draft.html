@@ -1840,6 +1840,11 @@
             }
 
             var templates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal, tplVinyl, tplPlayer, tplPostcard, tplCinematic, tplTimeline];
+            // 每次生成随机打乱模板顺序
+            for (var i = templates.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = templates[i]; templates[i] = templates[j]; templates[j] = tmp;
+            }
 
             // ===== 每首歌的深度内容区 =====
             selectedSongs.forEach(function(s, idx) {
