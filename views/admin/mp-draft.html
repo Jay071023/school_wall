@@ -1026,7 +1026,10 @@
                 if (json.code === 200 && (json.data.intro || json.data.lyrics)) {
                     textarea.value = json.data.intro || '';
                     selectedDailySongs[idx].intro = json.data.intro || '';
-                    showToast('介绍词生成成功', 'success');
+                    if (json.data.lyrics) {
+                        selectedDailySongs[idx].lyrics = json.data.lyrics;
+                    }
+                    showToast('介绍词生成成功' + (json.data.lyrics ? '（含歌词）' : ''), 'success');
                 } else if (json.data && json.data.prompt) {
                     // AI不可用，显示提示词让用户手动生成
                     textarea.value = '';
@@ -1753,23 +1756,50 @@
 
             // 模板 F — 黑胶唱片风
             function tplVinyl(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:' + c.bg + ';border-radius:16px;padding:24px 20px;position:relative;overflow:hidden;">';
-                h += '<div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:' + c.accent + ';opacity:0.05;border-radius:50%;"></div>';
-                h += '<div style="position:absolute;bottom:-20px;left:-20px;width:60px;height:60px;background:' + c.accent + ';opacity:0.04;border-radius:50%;"></div>';
-                // 唱片圆形装饰
-                h += '<div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(' + c.accent + ' 0deg,' + c.light + ' 90deg,' + c.accent + ' 180deg,' + c.light + ' 270deg,' + c.accent + ' 360deg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 3px 12px rgba(0,0,0,0.1);">';
-                h += '<div style="width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid ' + c.accent + ';display:flex;align-items:center;justify-content:center;"><div style="width:4px;height:4px;border-radius:50%;background:' + c.accent + ';"></div></div>';
+                var h = '<div style="background:' + c.bg + ';border-radius:18px;padding:20px 18px;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:' + c.accent + ';opacity:0.04;border-radius:50%;"></div>';
+                // 磁带外壳
+                h += '<div style="background:#fff;border-radius:14px;padding:16px 14px;border:1.5px solid ' + c.border + ';box-shadow:0 2px 10px rgba(0,0,0,0.04);">';
+                // 磁带顶部标签区
+                h += '<div style="background:linear-gradient(135deg,' + c.accent + ',' + c.light + ');border-radius:8px;padding:10px 12px;margin-bottom:12px;">';
+                h += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+                h += '<div style="flex:1;min-width:0;"><div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:2px;">SIDE A · TRACK ' + (idx+1) + '</div>';
+                h += '<div style="font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:1px;">' + escapeHtml(s.artist) + '</div>';
                 h += '</div>';
-                h += '<div style="text-align:center;">';
-                h += '<div style="font-size:19px;font-weight:700;color:#222;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:12px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                h += '<div style="width:36px;height:36px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:10px;">';
+                h += '<div style="width:8px;height:8px;border:1.5px solid rgba(255,255,255,0.5);border-radius:50%;"></div></div>';
+                h += '</div></div>';
+                // 磁带双轮区
+                h += '<div style="display:flex;justify-content:center;gap:40px;padding:6px 0 10px;">';
+                // 左轮
+                h += '<div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 30deg,' + c.bg + ' 60deg,' + c.border + ' 90deg,' + c.bg + ' 120deg,' + c.border + ' 150deg,' + c.bg + ' 180deg,' + c.border + ' 210deg,' + c.bg + ' 240deg,' + c.border + ' 270deg,' + c.bg + ' 300deg,' + c.border + ' 330deg,' + c.bg + ' 360deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;position:relative;">';
+                h += '<div style="width:16px;height:16px;background:#fff;border-radius:50%;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;border:1px solid ' + c.accent + ';border-radius:50%;"></div></div>';
                 h += '</div>';
-                if (songInfo) h += '<div style="margin-top:10px;">' + songTags(songInfo, c) + '</div>';
+                // 磁带窗（带磁带纹理）
+                h += '<div style="flex:1;margin:8px 4px;border:1px solid ' + c.border + ';border-radius:6px;background:linear-gradient(180deg,' + c.bg + ' 0%,#f8f8f8 50%,' + c.bg + ' 100%);position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:' + c.border + ';"></div>';
+                h += '<div style="position:absolute;top:30%;left:5%;right:5%;height:0.5px;background:' + c.border + ';opacity:0.5;"></div>';
+                h += '<div style="position:absolute;bottom:30%;left:5%;right:5%;height:0.5px;background:' + c.border + ';opacity:0.5;"></div>';
+                h += '</div>';
+                // 右轮
+                h += '<div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 45deg,' + c.bg + ' 90deg,' + c.border + ' 135deg,' + c.bg + ' 180deg,' + c.border + ' 225deg,' + c.bg + ' 270deg,' + c.border + ' 315deg,' + c.bg + ' 360deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;">';
+                h += '<div style="width:16px;height:16px;background:#fff;border-radius:50%;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;border:1px solid ' + c.accent + ';border-radius:50%;"></div></div>';
+                h += '</div>';
+                h += '</div>';
+                // 磁带底部螺丝装饰
+                h += '<div style="display:flex;justify-content:space-between;padding:0 20px;">';
+                h += '<div style="width:6px;height:6px;background:' + c.border + ';border-radius:50%;opacity:0.5;"></div>';
+                h += '<div style="width:6px;height:6px;background:' + c.border + ';border-radius:50%;opacity:0.5;"></div>';
+                h += '</div>';
+                h += '</div>'; // 磁带外壳结束
+                // 信息区
+                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
                 if (intro) {
-                    h += '<div style="margin-top:14px;font-size:14px;color:#555;line-height:2.2;text-align:center;padding:0 8px;">' + fmtIntro(intro) + '</div>';
+                    h += '<div style="margin-top:12px;font-size:14px;color:#555;line-height:2.2;text-align:center;padding:0 8px;">' + fmtIntro(intro) + '</div>';
                 }
                 if (lyrics) {
-                    h += '<div style="margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.7);border-radius:12px;text-align:center;">';
+                    h += '<div style="margin-top:14px;padding:14px 16px;background:rgba(255,255,255,0.7);border-radius:12px;text-align:center;">';
                     h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.5;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
                     h += '</div>';

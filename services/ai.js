@@ -185,17 +185,29 @@ function cleanAIOutput(text) {
   t = t.replace(/^-\s+[^\n]*\n?/gm, '');
   // 去掉解释性行
   t = t.replace(/^(?:实际上|说实话|坦白说|其实|具体来说|简单来说|总的来说|这样我们|这样可以|我们需要|我们可以|这意味着|也就是说)[^\n]*\n?/gm, '');
+  // 去掉AI分析/检查行
+  t = t.replace(/^(?:检查|验证|确认|需要|要求|去掉|精简|控制在|保留|去掉多余|确保)[^\n]*\n?/gm, '');
+  // 去掉"文案："前缀和重复的文案内容
+  t = t.replace(/^文案[：:]\s*/gm, '');
+  // 去掉包含"要求："或"步骤"的行
+  t = t.replace(/^(?:\d+[.、]?\s*)?(?:要求|步骤|分析|注意|总结|说明)[：:][^\n]*\n?/gm, '');
   // 去掉空的Markdown标题
   t = t.replace(/^#{1,6}\s*$/gm, '');
   t = t.replace(/\*\*/g, '');
   t = t.replace(/^>\s*/gm, '');
   t = t.replace(/^---+$/gm, '');
-  // 清理异常Unicode字符（零宽字符、替换字符、乱码字符等）
+  // 清理异常Unicode字符
   t = t.replace(/[​‌‍﻿�￾￿]/g, '');
-  // 清理控制字符（保留换行和制表符）
+  // 清理控制字符
   t = t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
   t = t.replace(/\n{3,}/g, '\n\n');
   t = t.trim();
+  // 如果清理后内容过短或看起来不像文案，取最后一个完整段落
+  var lines = t.split('\n').filter(function(l) { return l.trim().length > 10; });
+  if (lines.length > 3) {
+    // 取最后几行（通常是最终文案）
+    t = lines.slice(-3).join('\n').trim();
+  }
   return t;
 }
 
@@ -645,10 +657,10 @@ async function generateSongIntro(songName, artist) {
     lyricSnippet = lines.slice(0, 20).join('\n');
   }
 
-  var prompt = '以下是歌曲《' + songName + '》的歌词：\n\n' + (lyricSnippet || '（无歌词）') + '\n\n根据上面的歌词写一段150字的推荐文案。要求：自然地融入1-2句歌词（不要生硬地加引号，像聊天时随口提到一样），不要编造歌词，不要用Markdown，不要输出思考过程，直接输出文案。';
+  var prompt = '歌曲《' + songName + '》的歌词：\n\n' + (lyricSnippet || '（无歌词）') + '\n\n请根据歌词写一段150字左右的推荐文案。要求：\n1. 自然融入1-2句歌词（不加引号，像聊天随口提到）\n2. 不要编造歌词，不要用Markdown\n3. 只输出最终文案，不要标题、不要编号、不要分析过程\n4. 直接开始写文案内容';
 
   var messages = [{ role: 'user', content: [{ type: 'text', text: prompt }] }];
-  var systemMsg = '你是校园公众号编辑。只输出最终文案，不输出任何分析、推理、思考过程。不要编造歌词。';
+  var systemMsg = '你是校园公众号编辑，只写推荐文案。绝对不要输出分析、推理、思考过程、步骤说明或歌词原文列表。只输出一段流畅的推荐文字。';
 
   try {
     var reply = null;
@@ -689,7 +701,7 @@ async function generateSongIntro(songName, artist) {
           intro = reply.replace(/【介绍】/g, '').replace(/【歌词】/g, '').trim();
         }
       }
-      return { intro: intro, lyrics: lyrics, prompt: null };
+      return { intro: intro, lyrics: lyrics || realLyrics || '', prompt: null };
     }
   } catch(e) {
     console.error('[AI] 生成歌曲介绍失败:', e.message);

@@ -2301,7 +2301,14 @@
                 font-size: 0.7rem;
             }
             #panel-users .admin-table {
-                min-width: 800px;
+                min-width: 700px;
+            }
+            #panel-users .admin-table th:last-child,
+            #panel-users .admin-table td:last-child {
+                white-space: nowrap;
+                position: sticky;
+                right: 0;
+                background: inherit;
             }
             /* 手机端用户表格隐藏登录IP列，hover时title可见 */
             #panel-users .admin-table th:nth-child(8),
@@ -4891,7 +4898,7 @@
                         <th>状态</th>
                         <th>注册时间 / IP</th>
                         <th>上次登录</th>
-                        <th>操作</th>
+                        <th style="white-space:nowrap;">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="users-tbody">

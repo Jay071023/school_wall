@@ -644,4 +644,45 @@ router.put('/notify-settings', auth, async (req, res) => {
   }
 });
 
+// ===== 密码重置（通过微信验证码） =====
+// 验证重置码
+router.post('/verify-reset-code', async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.json({ code: 400, message: '请输入验证码' });
+    const [tokens] = await pool.execute(
+      'SELECT user_id, expires_at FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [code.toUpperCase()]
+    );
+    if (tokens.length === 0) {
+      return res.json({ code: 400, message: '验证码无效或已过期' });
+    }
+    res.json({ code: 200, message: '验证成功', data: { user_id: tokens[0].user_id } });
+  } catch (err) {
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// 使用验证码重置密码
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { code, newPassword } = req.body;
+    if (!code || !newPassword) return res.json({ code: 400, message: '请填写完整' });
+    if (newPassword.length < 6) return res.json({ code: 400, message: '新密码至少6个字符' });
+    const [tokens] = await pool.execute(
+      'SELECT id, user_id FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+      [code.toUpperCase()]
+    );
+    if (tokens.length === 0) {
+      return res.json({ code: 400, message: '验证码无效或已过期' });
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.execute('UPDATE users SET password = ? WHERE id = ?', [hashed, tokens[0].user_id]);
+    await pool.execute('UPDATE password_reset_tokens SET used = 1 WHERE id = ?', [tokens[0].id]);
+    res.json({ code: 200, message: '密码重置成功，请重新登录' });
+  } catch (err) {
+    res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
 module.exports = router;

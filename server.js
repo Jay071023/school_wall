@@ -400,6 +400,10 @@ app.get('/privacy', noCache, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'privacy.html'));
 });
 
+app.get('/reset-password', noCache, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'reset-password.html'));
+});
+
 // 管理后台（HTML版本）
 app.get('/admin', (req, res) => {
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');

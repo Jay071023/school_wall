@@ -435,6 +435,7 @@ router.post('/callback', async (req, res) => {
             '🎵 校园点歌：去网站广播站点歌给TA\n' +
             '🎶 每日推歌：分享你喜欢的歌到每日图文\n' +
             '🔗 绑定：回复"绑定"获取绑定教程\n' +
+            '🔑 找回密码：回复"找回密码"重置密码\n' +
             '🌤️ 天气：回复"天气"查看今日天气\n' +
             '💡 更多：访问 https://wall.jay23.cn\n\n' +
             '✨ 回复对应关键词获取帮助~';
@@ -458,6 +459,37 @@ router.post('/callback', async (req, res) => {
             '4️⃣ 填写歌曲名和祝福语\n' +
             '5️⃣ 提交等待播放\n\n' +
             '校广播站会定时播放哦~';
+        } else if (text === '找回密码' || text === '重置密码' || text === '忘记密码' || text === '改密码') {
+          // 找回密码：通过微信重置
+          try {
+            var [boundUsers] = await pool.execute('SELECT id, username, nickname FROM users WHERE openid = ?', [openid]);
+            if (boundUsers.length === 0) {
+              replyText = '❌ 你的微信未绑定任何账号哦~\n\n请先在网站上登录后，在"个人中心"→"绑定微信"完成绑定~\n🌐 https://wall.jay23.cn';
+            } else {
+              var user = boundUsers[0];
+              // 生成6位重置码
+              var resetCode = '';
+              var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+              for (var ci = 0; ci < 6; ci++) resetCode += chars.charAt(Math.floor(Math.random() * chars.length));
+              // 清除该用户之前的旧码
+              await pool.execute('DELETE FROM password_reset_tokens WHERE user_id = ? AND used = 0', [user.id]);
+              // 存入数据库，token字段直接存6位验证码
+              await pool.execute(
+                'INSERT INTO password_reset_tokens (user_id, token, openid, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))',
+                [user.id, resetCode, openid]
+              );
+              replyText = '🔑 密码重置验证\n\n' +
+                '你好 ' + (user.nickname || user.username) + '！\n' +
+                '你的重置验证码是：\n\n' +
+                '📌 ' + resetCode + '\n\n' +
+                '⚠️ 请在10分钟内使用\n\n' +
+                '👇 打开下方链接，输入验证码重置密码：\n' +
+                '🌐 https://wall.jay23.cn/reset-password?code=' + resetCode;
+            }
+          } catch (e) {
+            console.error('[WeChat] 找回密码失败:', e.message);
+            replyText = '😅 操作出了点问题，请稍后再试~';
+          }
         } else if (text === '取消' || text === 'cancel') {
           // 处理会话取消
           try {

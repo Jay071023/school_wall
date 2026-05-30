@@ -802,6 +802,27 @@ async function initDB() {
       if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
     }
 
+    // 密码重置令牌表
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          token VARCHAR(64) NOT NULL UNIQUE,
+          openid VARCHAR(64) DEFAULT NULL COMMENT '微信openid',
+          expires_at TIMESTAMP NOT NULL,
+          used TINYINT DEFAULT 0,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_token (token),
+          INDEX idx_user (user_id),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='密码重置令牌'
+      `);
+      console.log('✅ password_reset_tokens 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+
     for (var i = 0; i < migrateFields.length; i++) {
       try {
         await pool.execute(migrateFields[i]);
