@@ -526,6 +526,46 @@
                         </div>
                     </div>
                     <button class="btn btn-outline btn-sm" onclick="loadDailySongSelector()" style="margin-top:14px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(255,107,157,0.3);">🔄 加载推歌</button>
+                    <button class="btn btn-outline btn-sm" onclick="toggleManualSongForm()" style="margin-top:14px;background:linear-gradient(135deg,#5B9BD5,#7EB8F0);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(91,155,213,0.3);">✏️ 手动添加歌曲</button>
+
+                    <!-- 手动添加歌曲表单 -->
+                    <div id="manualSongForm" style="display:none;margin-top:16px;padding:20px;background:#fff;border-radius:14px;border:1px dashed #ddd;">
+                        <div style="font-size:15px;font-weight:700;color:#5B9BD5;margin-bottom:14px;">✏️ 手动添加歌曲</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <div>
+                                <div style="font-size:12px;color:#666;margin-bottom:4px;">歌名 *</div>
+                                <input id="manual_song_name" placeholder="歌曲名称" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <div style="font-size:12px;color:#666;margin-bottom:4px;">歌手</div>
+                                <input id="manual_artist" placeholder="歌手名" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <div style="font-size:12px;color:#666;margin-bottom:4px;">推荐人</div>
+                                <input id="manual_submitter" placeholder="推荐人昵称" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <div style="font-size:12px;color:#666;margin-bottom:4px;">送给谁</div>
+                                <input id="manual_to_whom" placeholder="可选" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:4px;">介绍词</div>
+                            <textarea id="manual_intro" rows="2" placeholder="推荐理由或歌曲介绍..." style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:4px;">歌词</div>
+                            <textarea id="manual_lyrics" rows="2" placeholder="可选，粘贴歌词..." style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <div style="font-size:12px;color:#666;margin-bottom:4px;">留言</div>
+                            <input id="manual_message" placeholder="可选，给读者的一句话" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
+                        </div>
+                        <div style="margin-top:14px;display:flex;gap:10px;">
+                            <button onclick="addManualSong()" style="padding:8px 20px;background:#5B9BD5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">✓ 添加到列表</button>
+                            <button onclick="toggleManualSongForm()" style="padding:8px 16px;background:#f5f5f5;color:#666;border:1px solid #eee;border-radius:10px;font-size:13px;cursor:pointer;">取消</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="preview-toolbar">
@@ -950,6 +990,9 @@
                 html += '<button onclick="generateSongIntro(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🤖 AI生成</button>';
                 html += '<button onclick="searchSongInfoInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#64B5F6,#42A5F5);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🔍 歌曲信息</button>';
                 html += '<button onclick="searchLyricsInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#81C784,#66BB6A);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">📝 搜索歌词</button>';
+                if (song._manual) {
+                    html += '<button onclick="removeManualSong(' + idx + ')" style="padding:5px 14px;font-size:12px;background:#f5f5f5;color:#999;border:1px solid #eee;border-radius:10px;cursor:pointer;white-space:nowrap;">🗑 删除</button>';
+                }
                 html += '</div>';
                 // 介绍词
                 html += '<div style="margin-bottom:8px;">';
@@ -1075,6 +1118,44 @@
             selectedDailySongs.forEach(function(s) {
                 s._selected = checked;
             });
+        }
+
+        // 手动添加歌曲
+        function toggleManualSongForm() {
+            var form = document.getElementById('manualSongForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addManualSong() {
+            var songName = document.getElementById('manual_song_name').value.trim();
+            if (!songName) { showToast('请填写歌名', 'error'); return; }
+            var entry = {
+                id: 'manual_' + Date.now(),
+                song_name: songName,
+                artist: document.getElementById('manual_artist').value.trim(),
+                submitter: document.getElementById('manual_submitter').value.trim() || '匿名同学',
+                to_whom: document.getElementById('manual_to_whom').value.trim(),
+                intro: document.getElementById('manual_intro').value.trim(),
+                lyrics: document.getElementById('manual_lyrics').value.trim(),
+                message: document.getElementById('manual_message').value.trim(),
+                _selected: true,
+                _manual: true
+            };
+            selectedDailySongs.push(entry);
+            renderDailySongSelector();
+            // 清空表单
+            ['manual_song_name','manual_artist','manual_submitter','manual_to_whom','manual_intro','manual_lyrics','manual_message'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el.tagName === 'TEXTAREA') el.value = '';
+                else el.value = '';
+            });
+            toggleManualSongForm();
+            showToast('已添加「' + songName + '」', 'success');
+        }
+
+        function removeManualSong(idx) {
+            selectedDailySongs.splice(idx, 1);
+            renderDailySongSelector();
         }
 
         function updateSelectedSongs() {
@@ -1371,11 +1452,12 @@
         async function generateSongOnly() {
             setStatus('正在生成歌曲推送...', 'loading');
 
-            // 重新从数据库加载歌曲列表（获取最新数据）
+            // 重新从数据库加载歌曲列表（获取最新数据），保留手动添加的歌曲
+            var manualSongs = selectedDailySongs.filter(function(s) { return s._manual; });
             try {
                 var refreshRes = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
                 if (refreshRes.code === 200 && refreshRes.data.songs) {
-                    selectedDailySongs = refreshRes.data.songs;
+                    selectedDailySongs = refreshRes.data.songs.concat(manualSongs);
                     renderDailySongSelector();
                 }
             } catch(e) {}
