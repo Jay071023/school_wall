@@ -2291,7 +2291,7 @@
                 display: none;
             }
 
-            /* 用户表格：手机端精简列 */
+            /* 用户表格：手机端ID列缩小 */
             #panel-users .admin-table th:nth-child(1),
             #panel-users .admin-table td:nth-child(1) {
                 width: 40px;
@@ -2302,19 +2302,9 @@
                 padding: 8px 4px !important;
             }
             #panel-users .admin-table {
-                min-width: 600px;
+                min-width: 700px;
             }
-            /* 隐藏昵称列 */
-            #panel-users .admin-table th:nth-child(3),
-            #panel-users .admin-table td:nth-child(3) {
-                display: none;
-            }
-            /* 隐藏上次登录列 */
-            #panel-users .admin-table th:nth-child(7),
-            #panel-users .admin-table td:nth-child(7) {
-                display: none;
-            }
-            /* 操作列不收缩 */
+            /* 操作列不换行不收缩 */
             #panel-users .admin-table th:last-child,
             #panel-users .admin-table td:last-child {
                 white-space: nowrap;
@@ -3256,6 +3246,10 @@
             border: 1px solid #e8ecf4;
             background: #fff;
             -webkit-overflow-scrolling: touch;
+        }
+        /* 去掉内部多余的 overflow-x 容器，避免嵌套滚动冲突 */
+        .admin-table-wrapper > div[style*="overflow-x"] {
+            overflow: visible !important;
         }
         
         [data-theme="dark"] .admin-table-wrapper {
@@ -4891,32 +4885,30 @@
                         </div>
                     </div>
                     
-                    <div style="overflow-x: auto;">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                        <th>ID</th>
-                        <th>用户名</th>
-                        <th>昵称</th>
-                        <th>角色</th>
-                        <th>状态</th>
-                        <th>注册时间 / IP</th>
-                        <th>上次登录</th>
-                        <th style="white-space:nowrap;">操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-tbody">
-                                <tr>
-                                    <td colspan="7">
-                                        <div class="admin-empty">
-                                            <span class="empty-emoji">📭</span>
-                                            <span>暂无数据</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>昵称</th>
+                    <th>角色</th>
+                    <th>状态</th>
+                    <th>注册时间 / IP</th>
+                    <th>上次登录</th>
+                    <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="admin-empty">
+                                        <span class="empty-emoji">📭</span>
+                                        <span>暂无数据</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <!-- 分页 -->
