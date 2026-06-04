@@ -134,8 +134,7 @@ async function showUserCard(userId, event) {
     
     if (data.code === 200 && data.data) {
       var user = data.data;
-      console.log('[UserCard] 用户数据:', user);
-      
+
       // 更新头像
       var avatarEl = document.getElementById('userCardAvatar');
       if (avatarEl) avatarEl.src = user.avatar || '/uploads/avatars/default.png';
@@ -167,13 +166,10 @@ async function showUserCard(userId, event) {
       
       // 更新统计
       var postEl = document.getElementById('userCardPostCount');
-      console.log('[UserCard] postEl:', postEl, '值:', user.post_count);
       if (postEl) postEl.textContent = user.post_count != null ? user.post_count : 0;
       var commentEl = document.getElementById('userCardCommentCount');
-      console.log('[UserCard] commentEl:', commentEl, '值:', user.comment_count);
       if (commentEl) commentEl.textContent = user.comment_count != null ? user.comment_count : 0;
       var likeEl = document.getElementById('userCardLikeCount');
-      console.log('[UserCard] likeEl:', likeEl, '值:', user.likes_count);
       if (likeEl) likeEl.textContent = user.likes_count != null ? user.likes_count : 0;
 
       // 更新粉丝/关注数
@@ -228,7 +224,6 @@ async function showUserCard(userId, event) {
       loading.style.display = 'none';
       stats.style.display = 'flex';
       actions.style.display = 'flex';
-      console.log('[UserCard] 已显示: loading=', loading.style.display, 'stats=', stats.style.display);
     } else {
       if (loading) {
         loading.innerHTML = '<div style="font-size:2rem;margin-bottom:10px;">❌</div><div>' + (data.message || '加载失败') + '</div>';

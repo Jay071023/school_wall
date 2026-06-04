@@ -8,8 +8,11 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const jwt = require('jsonwebtoken');
+const siteConfig = require('../lib/site-config');
+const SITE_NAME = siteConfig.siteName;
+const SITE_URL = siteConfig.siteUrl;
 const { pool } = require('../config/database');
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = require('../config/jwt-secret');
 const mpDraftService = require('../services/mp-draft');
 const aiService = require('../services/ai');
 const wechatService = require('../services/wechat');
@@ -192,8 +195,8 @@ router.post('/callback', async (req, res) => {
       // 构建回复消息的函数
       function buildNewsReply(title, description, picUrl, linkUrl) {
         var timestamp = Math.floor(Date.now() / 1000);
-        if (!picUrl) picUrl = 'https://wall.jay23.cn/images/show.png';
-        if (!linkUrl) linkUrl = 'https://wall.jay23.cn';
+        if (!picUrl) picUrl = '' + SITE_URL + '/images/show.png';
+        if (!linkUrl) linkUrl = '' + SITE_URL + '';
         return '<xml>' +
           '<ToUserName><![CDATA[' + openid + ']]></ToUserName>' +
           '<FromUserName><![CDATA[' + accountId + ']]></FromUserName>' +
@@ -253,7 +256,7 @@ router.post('/callback', async (req, res) => {
             if (boundUsers.length === 0) {
               await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
               replyText = '🔗 发帖前需要先绑定账号哦~\n\n' +
-                '1️⃣ 打开 https://wall.jay23.cn\n' +
+                '1️⃣ 打开 ' + SITE_URL + '\n' +
                 '2️⃣ 登录你的账号\n' +
                 '3️⃣ 进入"个人中心"→"绑定微信"\n' +
                 '4️⃣ 完成绑定后对我说"投稿"就可以啦！';
@@ -267,7 +270,7 @@ router.post('/callback', async (req, res) => {
             }
           } else if (text === '取消' || text === '算了' || text === '不发了' || text === 'cancel') {
             await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
-            replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 https://wall.jay23.cn';
+            replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 ' + SITE_URL + '';
           } else if (session.step === 'awaiting_title') {
             // 用户输入了标题
             await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_content", title = ?, updated_at = NOW() WHERE openid = ?', [text, openid]);
@@ -342,18 +345,18 @@ router.post('/callback', async (req, res) => {
                 );
                 await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
                 replyText = needReview
-                  ? '🎉 投稿成功！已提交审核~\n\n审核通过后就能在墙上看到你的帖子啦！\n去 https://wall.jay23.cn 看看吧~'
-                  : '🎉 投稿成功！帖子已直接发布~\n去 https://wall.jay23.cn 看看吧！';
+                  ? '🎉 投稿成功！已提交审核~\n\n审核通过后就能在墙上看到你的帖子啦！\n去 ' + SITE_URL + ' 看看吧~'
+                  : '🎉 投稿成功！帖子已直接发布~\n去 ' + SITE_URL + ' 看看吧！';
               } catch (e) {
                 console.error('[WeChat] 创建帖子失败:', e.message);
-                replyText = '😅 投稿时出了点问题，稍后再试试？\n或者去 https://wall.jay23.cn 直接发帖~';
+                replyText = '😅 投稿时出了点问题，稍后再试试？\n或者去 ' + SITE_URL + ' 直接发帖~';
               }
             } else if (text === '重写' || text === '重新' || text === '重新开始' || text === '再来') {
               await pool.execute('UPDATE wechat_submit_sessions SET step = "awaiting_title", title = NULL, content = NULL, images = NULL, updated_at = NOW() WHERE openid = ?', [openid]);
               replyText = '好的，重新开始！请告诉我**标题**是什么？📝';
             } else if (text === '取消' || text === '算了' || text === 'cancel') {
               await pool.execute('DELETE FROM wechat_submit_sessions WHERE openid = ?', [openid]);
-              replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 https://wall.jay23.cn';
+              replyText = '好的，已取消投稿~ 想发的时候随时找我！😊\n\n🌐 ' + SITE_URL + '';
             } else {
               replyText = '📸 发张图片吧（可发多张），或者回复"跳过"/"确认"直接发布~\n📌 标题：' + session.title + ' 🆗 回复"确认"完成';
             }
@@ -363,7 +366,7 @@ router.post('/callback', async (req, res) => {
           var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
           if (boundUsers.length === 0) {
             replyText = '🔗 发帖前需要先绑定账号哦~\n\n' +
-              '1️⃣ 打开 https://wall.jay23.cn\n' +
+              '1️⃣ 打开 ' + SITE_URL + '\n' +
               '2️⃣ 登录你的账号\n' +
               '3️⃣ 进入"个人中心"→"绑定微信"\n' +
               '4️⃣ 扫码或输入验证码完成绑定\n\n' +
@@ -385,7 +388,7 @@ router.post('/callback', async (req, res) => {
               [code]
             );
             if (bindings.length === 0) {
-              replyText = '❌ 验证码无效或已过期，请登录网站重新获取绑定验证码~\n🌐 https://wall.jay23.cn';
+              replyText = '❌ 验证码无效或已过期，请登录网站重新获取绑定验证码~\n🌐 ' + SITE_URL + '';
             } else {
               var binding = bindings[0];
               // 检查openid是否已被其他账号绑定
@@ -395,7 +398,7 @@ router.post('/callback', async (req, res) => {
               } else {
                 await pool.execute('UPDATE users SET openid = ? WHERE id = ?', [openid, binding.user_id]);
                 await pool.execute('UPDATE wechat_bindings SET openid = ?, used = 1, bound_at = NOW() WHERE id = ?', [openid, binding.id]);
-                replyText = '✅ 绑定成功！🎉\n\n现在你可以直接对我说"投稿"发帖啦~\n或者去 https://wall.jay23.cn 逛逛吧~';
+                replyText = '✅ 绑定成功！🎉\n\n现在你可以直接对我说"投稿"发帖啦~\n或者去 ' + SITE_URL + ' 逛逛吧~';
               }
             }
           } catch (e) {
@@ -411,18 +414,18 @@ router.post('/callback', async (req, res) => {
               [regCode]
             );
             if (codes.length === 0) {
-              replyText = '❌ 注册验证码无效或已过期，请登录网站重新获取~\n🌐 https://wall.jay23.cn';
+              replyText = '❌ 注册验证码无效或已过期，请登录网站重新获取~\n🌐 ' + SITE_URL + '';
             } else {
               // 检查openid是否已有账号
               var [boundUsers] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
               if (boundUsers.length > 0) {
-                replyText = '❌ 这个微信已绑定其他账号了，无需重新注册哦~\n直接去 https://wall.jay23.cn 登录吧~';
+                replyText = '❌ 这个微信已绑定其他账号了，无需重新注册哦~\n直接去 ' + SITE_URL + ' 登录吧~';
               } else {
                 await pool.execute(
                   'UPDATE wechat_reg_codes SET verified = 1, openid = ?, verified_at = NOW() WHERE id = ?',
                   [openid, codes[0].id]
                 );
-                replyText = '✅ 验证码已确认！🎉\n\n请回到注册页面点击"验证并注册"即可完成注册~\n🌐 https://wall.jay23.cn/register';
+                replyText = '✅ 验证码已确认！🎉\n\n请回到注册页面点击"验证并注册"即可完成注册~\n🌐 ' + SITE_URL + '/register';
               }
             }
           } catch (e) {
@@ -430,18 +433,18 @@ router.post('/callback', async (req, res) => {
             replyText = '😅 验证码处理出了点问题，请重新获取试试~';
           }
         } else if (text === '帮助' || text === 'help' || text === '菜单' || text === '功能') {
-          replyText = '🌸 嘉二校园墙 · 帮助菜单\n\n' +
+          replyText = '🌸 ' + SITE_NAME + ' · 帮助菜单\n\n' +
             '📝 投稿：对我说"投稿"可直接发帖\n' +
             '🎵 校园点歌：去网站广播站点歌给TA\n' +
             '🎶 每日推歌：分享你喜欢的歌到每日图文\n' +
             '🔗 绑定：回复"绑定"获取绑定教程\n' +
             '🔑 找回密码：回复"找回密码"重置密码\n' +
             '🌤️ 天气：回复"天气"查看今日天气\n' +
-            '💡 更多：访问 https://wall.jay23.cn\n\n' +
+            '💡 更多：访问 ' + SITE_URL + '\n\n' +
             '✨ 回复对应关键词获取帮助~';
         } else if (text === '绑定' || text === '绑定账号') {
           replyText = '🔗 微信绑定教程\n\n' +
-            '1️⃣ 打开 https://wall.jay23.cn\n' +
+            '1️⃣ 打开 ' + SITE_URL + '\n' +
             '2️⃣ 登录你的账号\n' +
             '3️⃣ 进入"个人中心"→"绑定微信"\n' +
             '4️⃣ 扫码即可完成绑定\n\n' +
@@ -449,11 +452,11 @@ router.post('/callback', async (req, res) => {
         } else if (text === '怎么投稿') {
           replyText = '📝 投稿指南\n\n' +
             '方法一：直接对我说"投稿"，按提示操作就能在微信里直接发帖啦！📱\n' +
-            '方法二：打开 https://wall.jay23.cn → 点击"发布"按钮\n\n' +
+            '方法二：打开 ' + SITE_URL + ' → 点击"发布"按钮\n\n' +
             '审核通过后就能在墙上看到啦~';
         } else if (text === '校园点歌' || text === '怎么点歌' || text === '点歌') {
           replyText = '🎵 校园点歌指南\n\n' +
-            '1️⃣ 打开 https://wall.jay23.cn\n' +
+            '1️⃣ 打开 ' + SITE_URL + '\n' +
             '2️⃣ 进入"广播站"页面\n' +
             '3️⃣ 选择可点歌的时段\n' +
             '4️⃣ 填写歌曲名和祝福语\n' +
@@ -464,7 +467,7 @@ router.post('/callback', async (req, res) => {
           try {
             var [boundUsers] = await pool.execute('SELECT id, username, nickname FROM users WHERE openid = ?', [openid]);
             if (boundUsers.length === 0) {
-              replyText = '❌ 你的微信未绑定任何账号哦~\n\n请先在网站上登录后，在"个人中心"→"绑定微信"完成绑定~\n🌐 https://wall.jay23.cn';
+              replyText = '❌ 你的微信未绑定任何账号哦~\n\n请先在网站上登录后，在"个人中心"→"绑定微信"完成绑定~\n🌐 ' + SITE_URL + '';
             } else {
               var user = boundUsers[0];
               // 生成6位重置码
@@ -484,7 +487,7 @@ router.post('/callback', async (req, res) => {
                 '📌 ' + resetCode + '\n\n' +
                 '⚠️ 请在10分钟内使用\n\n' +
                 '👇 打开下方链接，输入验证码重置密码：\n' +
-                '🌐 https://wall.jay23.cn/reset-password?code=' + resetCode;
+                '🌐 ' + SITE_URL + '/reset-password?code=' + resetCode;
             }
           } catch (e) {
             console.error('[WeChat] 找回密码失败:', e.message);
@@ -534,7 +537,7 @@ router.post('/callback', async (req, res) => {
               await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
 
               var info = '🎵 ' + sess.song_name + (sess.artist ? ' - ' + sess.artist : '');
-              replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 https://wall.jay23.cn';
+              replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 ' + SITE_URL + '';
 
               // 后台自动生成：介绍词 + 歌词 + 歌曲信息
               (async function() {
@@ -654,7 +657,7 @@ router.post('/callback', async (req, res) => {
                   );
                   await pool.execute('DELETE FROM wechat_song_recs WHERE openid = ?', [openid]);
                   var info = '🎵 ' + songSession.song_name + (songSession.artist ? ' - ' + songSession.artist : '');
-                  replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 https://wall.jay23.cn';
+                  replyText = '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 ' + SITE_URL + '';
 
                   // 后台自动生成：介绍词 + 歌词 + 歌曲信息
                   (async function() {
@@ -724,7 +727,7 @@ router.post('/callback', async (req, res) => {
                 '💨 风力：' + (weather.wind || '') + '\n' +
                 '💧 湿度：' + (weather.humidity || '') + '';
             } else {
-              replyText = '🌤️ 当前天气暂时获取不到，去 https://wall.jay23.cn 看看吧~';
+              replyText = '🌤️ 当前天气暂时获取不到，去 ' + SITE_URL + ' 看看吧~';
             }
           } catch(e) {
             replyText = '🌤️ 天气服务暂时不可用~';
@@ -733,7 +736,7 @@ router.post('/callback', async (req, res) => {
           // 长消息不走 AI，避免微信 5 秒超时
           replyText = '📝 太长了我有点看不过来😅\n' +
             '有什么想说的可以简化一下，或者直接说"投稿"来发帖哦~\n\n' +
-            '🌐 https://wall.jay23.cn';
+            '🌐 ' + SITE_URL + '';
         } else {
           // 未匹配关键词 → 先检查是否在推歌流程中
           var isInSongFlow = false;
@@ -804,7 +807,7 @@ router.post('/callback', async (req, res) => {
               replyText = '不好意思，我现在有点卡卡的😅 有什么可以帮你？\n' +
                 '📝 发"投稿"可以发帖\n' +
                 '📖 发"帮助"查看所有功能\n' +
-                '🌐 https://wall.jay23.cn';
+                '🌐 ' + SITE_URL + '';
             }
           }
         }
@@ -814,7 +817,7 @@ router.post('/callback', async (req, res) => {
         return res.send(replyXml);
         } catch (err) {
           console.error('[WeChat] 文本处理异常:', err.message, err.stack);
-          var replyXml = buildTextReply('😅 出了点小问题 (' + err.message.substring(0, 80) + ')，再试一次？或者去 https://wall.jay23.cn 看看吧~');
+          var replyXml = buildTextReply('😅 出了点小问题 (' + err.message.substring(0, 80) + ')，再试一次？或者去 ' + SITE_URL + ' 看看吧~');
           res.set('Content-Type', 'application/xml; charset=utf-8');
           return res.send(replyXml);
         }
@@ -874,7 +877,7 @@ router.post('/callback', async (req, res) => {
           '不过我现在还看不懂图片内容😅\n' +
           '发文字跟我聊天吧~\n\n' +
           '🔹 回复"帮助"查看所有功能\n' +
-          '📤 或者去 https://wall.jay23.cn 发帖');
+          '📤 或者去 ' + SITE_URL + ' 发帖');
         res.set('Content-Type', 'application/xml; charset=utf-8');
         return res.send(replyXml);
       }
@@ -897,13 +900,13 @@ router.post('/callback', async (req, res) => {
       if (msgType === 'location') {
         var locTips = [
           '就知道你在那儿！🧐',
-          '收到定位！我闻到了嘉二的气息~🏫',
+          '收到定位！我闻到了' + (process.env.SCHOOL_NAME || '学校') + '的气息~🏫',
           '原来你在这里呀！🗺️'
         ];
         var replyXml = buildTextReply('📍 ' + locTips[Math.floor(Math.random() * locTips.length)] + '\n\n' +
           '不过我不会追踪你的位置啦，放心~😄\n' +
           '回复关键词跟我聊天吧！\n\n' +
-          '🌐 https://wall.jay23.cn');
+          '🌐 ' + SITE_URL + '');
         res.set('Content-Type', 'application/xml; charset=utf-8');
         return res.send(replyXml);
       }
@@ -919,7 +922,7 @@ router.post('/callback', async (req, res) => {
           '我暂时不能自动打开链接啦😅\n' +
           '你可以自己去看看哦~\n\n' +
           '🔹 回复"帮助"查看所有功能\n' +
-          '🌐 或者来 https://wall.jay23.cn 逛逛');
+          '🌐 或者来 ' + SITE_URL + ' 逛逛');
         res.set('Content-Type', 'application/xml; charset=utf-8');
         return res.send(replyXml);
       }
@@ -956,7 +959,7 @@ router.post('/callback', async (req, res) => {
           }
         }
         // AI 生成欢迎语
-        var welcomeReply = '👋 欢迎来到墙墙~ 我是嘉二校园墙的小助手！\n\n可以直接跟我聊天，或者去 https://wall.jay23.cn 逛逛哦~\n投稿、点歌、吃瓜都行~ 有什么想问的尽管说！';
+        var welcomeReply = '👋 欢迎来到墙墙~ 我是' + SITE_NAME + '的小助手！\n\n可以直接跟我聊天，或者去 ' + SITE_URL + ' 逛逛哦~\n投稿、点歌、吃瓜都行~ 有什么想问的尽管说！';
         try {
           var aiReply = await aiService.getAIReply('新同学关注了校园墙，帮我欢迎ta！简短热情一点~');
           if (aiReply && aiReply.length > 5 && aiReply.length < 200) {

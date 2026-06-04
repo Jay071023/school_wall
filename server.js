@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 3000;
 // 中间件
 app.use(compression()); // 响应压缩
 // CORS：仅允许指定域名
-var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://wall.jay23.cn').split(',');
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://' + (process.env.SITE_DOMAIN || 'your-domain.com')).split(',');
 app.use(cors({
   origin: function(origin, callback) {
     // 允许没有 origin 的请求（postman、curl 等）
@@ -97,6 +97,44 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
+// 资料/密码修改限流（更宽松）
+const profileLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 429, message: '操作过于频繁，请稍后再试' }
+});
+app.use('/api/auth/profile', profileLimiter);
+app.use('/api/auth/password', profileLimiter);
+app.use('/api/auth/reset-password', authLimiter);
+
+// 给 HTML 注入站点配置（前端 JS 可直接用 window.SITE_NAME 等）
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html') || req.path === '/') {
+    var origSendFile = res.sendFile.bind(res);
+    res.sendFile = function(filePath, options, callback) {
+      // 直接调原始 sendFile，再包装一层
+      var chunks = [];
+      var _write = res.write.bind(res);
+      var _end = res.end.bind(res);
+      var _send = res.send.bind(res);
+      var injected = false;
+      res.write = function(chunk) {
+        if (!injected && chunk && /<head/i.test(chunk.toString())) {
+          injected = true;
+          var inject = '<script>window.SITE_NAME=' + JSON.stringify(siteConfig.siteName) + ';window.SCHOOL_NAME=' + JSON.stringify(siteConfig.schoolName) + ';window.SITE_URL=' + JSON.stringify(siteConfig.siteUrl) + ';</script>';
+          chunk = chunk.toString().replace(/<head[^>]*>/i, function(m) { return m + inject; });
+          chunk = Buffer.from(chunk);
+        }
+        return _write(chunk);
+      };
+      return origSendFile(filePath, options, callback);
+    };
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
     // CSS/JS 不缓存，开发时每次都是最新的
@@ -130,6 +168,9 @@ app.use('/api/mp', require('./routes/mp-draft'));
 
 
 // 公开的站点设置API（无需登录）
+// 加载站点配置
+const siteConfig = require('./lib/site-config');
+
 app.get('/api/site-info', async (req, res) => {
   try {
     const [rows] = await pool.execute('SELECT config_key, config_value FROM settings');
@@ -140,8 +181,8 @@ app.get('/api/site-info', async (req, res) => {
     res.json({
       code: 200,
       data: {
-        site_name: settings.site_name || '嘉二の墙墙',
-        site_description: settings.site_description || '',
+        site_name: settings.site_name || siteConfig.siteName,
+        site_description: settings.site_description || (siteConfig.schoolName + '校园信息交流平台'),
         anon_post: settings.anon_post === 'true',
         anon_comment: settings.anon_comment === 'true',
         anon_song: settings.anon_song === 'true',
@@ -152,8 +193,8 @@ app.get('/api/site-info', async (req, res) => {
     res.json({
       code: 200,
       data: {
-        site_name: '嘉二の墙墙',
-        site_description: '',
+        site_name: siteConfig.siteName,
+        site_description: siteConfig.schoolName + '校园信息交流平台',
         anon_post: false,
         anon_comment: false,
         anon_song: false
@@ -406,6 +447,14 @@ app.get('/reset-password', noCache, (req, res) => {
 
 // 管理后台（HTML版本）
 app.get('/admin', (req, res) => {
+  if (!req.query.v) {
+    try {
+      var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'index.html'));
+      return res.redirect(302, '/admin?v=' + stat.mtimeMs);
+    } catch(e) {
+      return res.redirect(302, '/admin?v=' + Date.now());
+    }
+  }
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
@@ -415,8 +464,12 @@ app.get('/admin', (req, res) => {
 // 公众号推送管理
 app.get('/admin/mp-draft', (req, res) => {
   if (!req.query.v) {
-    var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
-    return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
+    try {
+      var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
+      return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
+    } catch(e) {
+      return res.redirect(302, '/admin/mp-draft?v=' + Date.now());
+    }
   }
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
   res.set('Pragma', 'no-cache');
@@ -477,7 +530,7 @@ async function start() {
     await initDB();
     app.listen(PORT, process.env.HOST || '0.0.0.0', () => {
       console.log(`
-  🎉 嘉二の墙墙网站启动成功！
+  🎉 ${siteConfig.siteName} 网站启动成功！
   📡 访问地址: http://localhost:${PORT}
   🔧 管理后台: http://localhost:${PORT}/admin
       `);

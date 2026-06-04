@@ -3,32 +3,6 @@ var timeSlots = [];
 var selectedSlotId = null;
 var selectedDateId = null;
 
-function apiFetch(url, options = {}) {
-  var token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
-  var headers = { 'Authorization': 'Bearer ' + token };
-  if (options.headers) Object.assign(headers, options.headers);
-  return fetch(url, Object.assign({ headers }, options)).then(r => r.json());
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showToast(msg, type = 'info') {
-  var toast = document.createElement('div');
-  toast.className = 'toast toast-' + type;
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  requestAnimationFrame(function() {
-    toast.classList.add('show');
-  });
-  setTimeout(function() {
-    toast.classList.remove('show');
-    setTimeout(function() { toast.remove(); }, 300);
-  }, 3000);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   var radioForm = document.getElementById('radioForm');
   var playlist = document.getElementById('playlist');

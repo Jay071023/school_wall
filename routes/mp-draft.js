@@ -8,9 +8,11 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const mpDraftService = require('../services/mp-draft');
+const siteConfig = require('../lib/site-config');
 const { auth, isStaff } = require('../middleware/auth');
+const aiService = require('../services/ai');
 // 站点域名（用于补齐相对路径的图片URL）
-const SITE_URL = 'https://wall.jay23.cn';
+const SITE_URL = siteConfig.siteUrl;
 
 function escapeHtml(text) {
   if (!text) return '';
@@ -494,14 +496,14 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
   html += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
   html += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-  html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
+  html += '<img src="' + SITE_URL + '/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
   html += '</td></tr></table>';
   html += '</td></tr></table>';
   html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
-  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
+  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">' + SITE_URL + '</p>';
   html += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
   html += '</td></tr></table>';
-  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 嘉二校园墙 ❀ ❀</p>';
+  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' ${siteConfig.mpAuthor} ❀ ❀</p>';
   html += '</div>';
 
   return html;
@@ -641,10 +643,10 @@ router.post('/generate-content', async (req, res) => {
 
       articles.push({
         title: `今日校园精选 | ${dateInfo.date}`,
-        author: '嘉二校园墙',
+        author: '${siteConfig.mpAuthor}',
         digest: `今日${posts.length}条热门帖子精选，含天气、一言等丰富内容`,
         content: contentHtml,
-        content_source_url: 'https://wall.jay23.cn',
+        content_source_url: '' + SITE_URL + '',
         show_cover_pic: 1,
         need_open_comment: 1,
         only_fans_can_comment: 0
@@ -684,7 +686,7 @@ router.post('/generate-content', async (req, res) => {
           author: post.author || '匿名',
           digest: post.content, // 使用完整内容作为摘要
           content: contentHtml,
-          content_source_url: `https://wall.jay23.cn/post/${post.id}`,
+          content_source_url: `' + SITE_URL + '/post/${post.id}`,
           show_cover_pic: 1,
           need_open_comment: 1,
           only_fans_can_comment: 0
@@ -846,10 +848,10 @@ router.post('/publish-daily', async (req, res) => {
 
     const articles = [{
       title: `📚 今日校园精选 | ${dateInfo.date}`,
-      author: '嘉二校园墙',
+      author: '${siteConfig.mpAuthor}',
       digest: `今日${posts.length}条热门帖子精选，含天气、一言等丰富内容`,
       content: contentHtml,
-      content_source_url: 'https://wall.jay23.cn',
+      content_source_url: '' + SITE_URL + '',
       show_cover_pic: 1,
       need_open_comment: 1,
       only_fans_can_comment: 0
@@ -913,6 +915,38 @@ router.delete('/draft/:mediaId', async (req, res) => {
   } catch (err) {
     console.error('[MP素材] 删除草稿失败:', err.message);
     res.json({ code: 500, message: '删除失败: ' + err.message });
+  }
+});
+
+/**
+ * 搜索歌曲信息
+ * POST /api/mp/search-song-info
+ */
+router.post('/search-song-info', async (req, res) => {
+  try {
+    const { song_name, artist } = req.body;
+    if (!song_name) return res.json({ code: 400, message: '请提供歌曲名' });
+    const data = await aiService.searchSongInfo(song_name, artist);
+    res.json({ code: 200, data: data || null });
+  } catch (err) {
+    console.error('[MP] 搜索歌曲信息失败:', err.message);
+    res.json({ code: 500, message: err.message });
+  }
+});
+
+/**
+ * 搜索歌词
+ * POST /api/mp/search-song-lyrics
+ */
+router.post('/search-song-lyrics', async (req, res) => {
+  try {
+    const { song_name, artist } = req.body;
+    if (!song_name) return res.json({ code: 400, message: '请提供歌曲名' });
+    const lyrics = await aiService.searchSongLyrics(song_name, artist);
+    res.json({ code: 200, data: { lyrics: lyrics || '' } });
+  } catch (err) {
+    console.error('[MP] 搜索歌词失败:', err.message);
+    res.json({ code: 500, message: err.message });
   }
 });
 

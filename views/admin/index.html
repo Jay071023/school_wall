@@ -2307,7 +2307,11 @@
             /* 操作列不换行不收缩 */
             #panel-users .admin-table th:last-child,
             #panel-users .admin-table td:last-child {
-                white-space: nowrap;
+                white-space: normal;
+            }
+            #panel-users .admin-table .table-actions { gap: 4px; }
+            #panel-users .admin-table .table-actions .action-btn-text {
+                font-size: 0.7rem !important; padding: 4px 8px !important;
             }
 
             /* 日志表格：手机端隐藏ID列 */
@@ -2383,12 +2387,17 @@
             .table-actions {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 4px;
+                gap: 6px;
             }
             .table-actions .action-btn-text {
-                font-size: 0.72rem !important;
-                padding: 3px 6px !important;
+                font-size: 0.75rem !important;
+                padding: 6px 10px !important;
                 white-space: nowrap;
+            }
+            /* 点歌管理手机端操作按钮 */
+            #panel-songs .table-actions-compact { gap: 4px !important; }
+            #panel-songs .table-actions-compact .action-btn-sm {
+                width: 30px !important; height: 30px !important; font-size: 0.75rem !important;
             }
 
             /* 面板内边距 */
@@ -2695,7 +2704,7 @@
         
         /* ===== 点歌表紧凑样式 ===== */
         .songs-table { min-width: 520px; }
-        .songs-table thead th { padding: 8px !important; font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
+        .songs-table thead th { padding: 12px 16px !important; font-size: 0.78rem; color: #5b6abf; background: #f8f9ff; border-bottom: 1px solid #e0e6f6; white-space: nowrap; }
         .song-th-check { width: 28px; text-align: center; }
         .song-th-check input { width: 15px; height: 15px; accent-color: #FF6B9D; cursor: pointer; vertical-align: middle; }
         .song-th-id { width: 28px; text-align: center; }
@@ -3568,67 +3577,121 @@
         }
         
         /* ===== 分页美化 ===== */
+        .pagination,
         .admin-pagination {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             margin-top: 20px;
-            padding-top: 16px;
+            padding: 16px 0;
         }
-        
-        .admin-pagination .page-btn,
-        .admin-pagination button {
-            min-width: 36px;
-            height: 36px;
-            padding: 0 10px;
-            border-radius: 10px;
-            border: 1px solid #e0e6f6;
-            background: #fff;
-            color: #5b6abf;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .admin-pagination .page-btn {
+            min-width: 36px; height: 36px; padding: 0 10px;
+            border-radius: 10px; border: 1px solid #e0e6f6;
+            background: #fff; color: #5b6abf;
+            font-size: 0.85rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease;
+            display: inline-flex; align-items: center; justify-content: center;
         }
-        
-        [data-theme="dark"] .admin-pagination .page-btn,
-        [data-theme="dark"] .admin-pagination button {
-            border-color: #2d3348;
-            background: #1e2235;
-            color: #a0b0e0;
+        .admin-pagination .page-btn:hover {
+            border-color: #FF6B9D; color: #FF6B9D;
         }
-        
-        .admin-pagination .page-btn:hover,
-        .admin-pagination button:hover {
-            border-color: #7b8fd4;
-            background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+        .admin-pagination .page-btn.active {
+            background: linear-gradient(135deg, #FF6B9D, #C084FC);
+            border-color: transparent; color: #fff;
+            box-shadow: 0 2px 8px rgba(255,107,157,0.3);
         }
-        
-        [data-theme="dark"] .admin-pagination .page-btn:hover,
-        [data-theme="dark"] .admin-pagination button:hover {
-            border-color: #5a6aaa;
-            background: linear-gradient(135deg, #2a2f4a, #252a40);
+        .admin-pagination .page-btn.disabled,
+        .admin-pagination .page-btn[disabled] {
+            opacity: 0.4; cursor: not-allowed; pointer-events: none;
         }
-        
-        .admin-pagination .page-btn.active,
-        .admin-pagination button.active {
-            background: linear-gradient(135deg, #6366f1, #818cf8);
-            border-color: #6366f1;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        .admin-pagination .page-ellipsis {
+            display: inline-flex; align-items: center;
+            padding: 0 4px; color: #ccc; font-size: 0.85rem; letter-spacing: 1px;
         }
-        
-        .admin-pagination .page-btn:disabled,
-        .admin-pagination button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+        [data-theme="dark"] .admin-pagination .page-btn {
+            border-color: #2d3348; background: #1e2235; color: #a0b0e0;
         }
-        
-        /* ===== 用户管理搜索工具栏 ===== */
+        [data-theme="dark"] .admin-pagination .page-btn:hover {
+            border-color: #FF6B9D; color: #FF6B9D;
+        }
+        [data-theme="dark"] .admin-pagination .page-btn.active {
+            background: linear-gradient(135deg, #FF6B9D, #C084FC); color: #fff; border-color: transparent;
+        }
+        [data-theme="dark"] .admin-pagination .page-btn.disabled,
+        [data-theme="dark"] .admin-pagination .page-btn[disabled] { opacity: 0.3; }
+        [data-theme="dark"] .admin-pagination .page-ellipsis { color: #555; }
+
+        /* ===== 批量操作按钮美化 ===== */
+        .batch-btn {
+            padding: 6px 14px; border-radius: 8px; border: none;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; font-family: inherit;
+        }
+        .batch-btn:hover { transform: translateY(-1px); }
+        .batch-approve { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+        .batch-approve:hover { background: rgba(16,185,129,0.2); box-shadow: 0 2px 8px rgba(16,185,129,0.2); }
+        .batch-reject { background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.2); }
+        .batch-reject:hover { background: rgba(239,68,68,0.2); box-shadow: 0 2px 8px rgba(239,68,68,0.2); }
+
+        /* ===== 帖子管理操作列 ===== */
+        #panel-posts .table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        #panel-posts .table-actions .action-btn-text {
+            padding: 5px 12px; border-radius: 8px; border: none;
+            font-size: 0.78rem; font-weight: 500; cursor: pointer;
+            transition: all 0.15s; background: #f3f4f6; color: #666; white-space: nowrap;
+        }
+        #panel-posts .table-actions .action-btn-text:hover { transform: translateY(-1px); }
+        #panel-posts .table-actions .btn-approve { background: rgba(16,185,129,0.1); color: #059669; }
+        #panel-posts .table-actions .btn-approve:hover { background: rgba(16,185,129,0.2); }
+        #panel-posts .table-actions .btn-reject { background: rgba(239,68,68,0.1); color: #dc2626; }
+        #panel-posts .table-actions .btn-reject:hover { background: rgba(239,68,68,0.2); }
+        #panel-posts .table-actions .btn-delete { background: rgba(239,68,68,0.08); color: #dc2626; }
+        #panel-posts .table-actions .btn-delete:hover { background: rgba(239,68,68,0.18); }
+        #panel-posts .table-actions .action-btn-text[title="置顶"],
+        #panel-posts .table-actions .action-btn-text[title="取消置顶"] { background: rgba(99,102,241,0.08); color: #6366f1; }
+        #panel-posts .table-actions .action-btn-text[title="置顶"]:hover,
+        #panel-posts .table-actions .action-btn-text[title="取消置顶"]:hover { background: rgba(99,102,241,0.18); }
+
+        /* ===== 用户管理操作列 ===== */
+        #panel-users .table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        #panel-users .table-actions .action-btn-text {
+            padding: 5px 12px; border-radius: 8px; border: none;
+            font-size: 0.78rem; font-weight: 500; cursor: pointer;
+            transition: all 0.15s; background: #f3f4f6; color: #666; white-space: nowrap;
+        }
+        #panel-users .table-actions .action-btn-text:hover { transform: translateY(-1px); }
+        #panel-users .table-actions .btn-disable { background: rgba(245,158,11,0.1); color: #d97706; }
+        #panel-users .table-actions .btn-disable:hover { background: rgba(245,158,11,0.2); }
+        #panel-users .table-actions .btn-enable { background: rgba(16,185,129,0.1); color: #059669; }
+        #panel-users .table-actions .btn-enable:hover { background: rgba(16,185,129,0.2); }
+        #panel-users .table-actions .btn-play { background: rgba(99,102,241,0.1); color: #6366f1; }
+        #panel-users .table-actions .btn-play:hover { background: rgba(99,102,241,0.2); }
+        #panel-users .table-actions .btn-delete { background: rgba(239,68,68,0.08); color: #dc2626; }
+        #panel-users .table-actions .btn-delete:hover { background: rgba(239,68,68,0.18); }
+        #panel-users .table-actions .action-btn-text[title~="头衔"] { background: rgba(139,92,246,0.08); color: #7C3AED; }
+        #panel-users .table-actions .action-btn-text[title~="头衔"]:hover { background: rgba(139,92,246,0.18); }
+
+        /* ===== 点歌管理操作列 ===== */
+        #panel-songs .table-actions-compact { display: flex; gap: 6px; flex-wrap: wrap; }
+        #panel-songs .table-actions-compact .action-btn-sm {
+            width: 30px; height: 30px; padding: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 8px; border: none; font-size: 0.85rem; cursor: pointer;
+            background: #f3f4f6; color: #666; transition: all 0.2s;
+        }
+        #panel-songs .table-actions-compact .action-btn-sm:hover { transform: scale(1.1); }
+        #panel-songs .table-actions-compact .action-approve { background: rgba(16,185,129,0.1); color: #059669; }
+        #panel-songs .table-actions-compact .action-approve:hover { background: rgba(16,185,129,0.2); }
+        #panel-songs .table-actions-compact .action-reject { background: rgba(239,68,68,0.1); color: #dc2626; }
+        #panel-songs .table-actions-compact .action-reject:hover { background: rgba(239,68,68,0.2); }
+        #panel-songs .table-actions-compact .action-play { background: rgba(99,102,241,0.1); color: #6366f1; }
+        #panel-songs .table-actions-compact .action-play:hover { background: rgba(99,102,241,0.2); }
+        #panel-songs .table-actions-compact .action-delete { background: rgba(239,68,68,0.08); color: #dc2626; }
+        #panel-songs .table-actions-compact .action-delete:hover { background: rgba(239,68,68,0.18); }
+
+        /* ===== 用户管理搜索工具栏美化 ===== */
         .users-toolbar {
             display: flex;
             align-items: center;
@@ -4493,6 +4556,7 @@
             }
         }
     </style>
+    <script src="/js/novel.js"></script>
 </head>
 <body>
     <!-- 💖 管理后台登录 -->
@@ -5370,7 +5434,7 @@
                         
                         <div class="email-form-group">
                             <label class="email-form-label"> 跳转链接（可选）</label>
-                            <input type="url" class="email-input" id="emailLink" placeholder="https://wall.jay23.cn（邮件底部按钮的跳转地址）">
+                            <input type="url" class="email-input" id="emailLink" placeholder="（邮件底部按钮的跳转地址）">
                         </div>
                         
                         <div class="email-actions">
@@ -5563,6 +5627,21 @@
                         color: var(--text-primary, #1a1a2e);
                         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                     }
+                    #panel-stories .story-chapter-item .chap-preview {
+                        font-size: 0.7rem; color: var(--text-light, #94a3b8);
+                        margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                        max-width: 150px;
+                    }
+                    #panel-stories .story-chapter-item .chap-meta {
+                        display: flex; align-items: center; gap: 6px; margin-top: 4px;
+                    }
+                    #panel-stories .story-chapter-item .chap-meta span {
+                        font-size: 0.6rem; color: var(--text-light, #94a3b8);
+                        background: var(--bg-section, #f1f5f9); padding: 1px 5px; border-radius: 4px;
+                    }
+                    #panel-stories .story-chapter-item .chap-wordcount {
+                        color: #667eea; font-weight: 500;
+                    }
                     #panel-stories .story-chapter-item .chap-current-badge {
                         font-size: 0.6rem;
                         background: #FF6B9D; color: white;
@@ -5698,6 +5777,60 @@
                     }
                     #panel-stories .stories-empty .empty-icon {
                         font-size: 3rem; margin-bottom: 12px;
+                    }
+                    #panel-stories .stories-empty .empty-icon {
+                        font-size: 3rem; margin-bottom: 12px;
+                    }
+                    /* 保存状态指示器 */
+                    #panel-stories .save-status {
+                        display: inline-flex; align-items: center; gap: 4px;
+                        font-size: 0.75rem; padding: 3px 10px; border-radius: 12px;
+                    }
+                    #panel-stories .save-status.saved { background: #d1fae5; color: #059669; }
+                    #panel-stories .save-status.unsaved { background: #fef3c7; color: #d97706; }
+                    #panel-stories .save-status.saving { background: #dbeafe; color: #2563eb; }
+                    /* 字数进度条 */
+                    #panel-stories .word-progress {
+                        margin: 8px 0; padding: 8px 12px; background: var(--bg-section, #f1f5f9);
+                        border-radius: 8px; font-size: 0.75rem;
+                    }
+                    #panel-stories .word-progress-bar {
+                        height: 6px; background: #e2e8f0; border-radius: 3px; margin: 6px 0;
+                        overflow: hidden;
+                    }
+                    #panel-stories .word-progress-fill {
+                        height: 100%; background: linear-gradient(90deg,#667eea,#764ba2);
+                        border-radius: 3px; transition: width 0.3s;
+                    }
+                    #panel-stories .word-progress-text {
+                        display: flex; justify-content: space-between; color: var(--text-light);
+                    }
+                    /* 阅读时间 */
+                    #panel-stories .read-time {
+                        font-size: 0.7rem; color: var(--text-light);
+                        display: flex; align-items: center; gap: 4px;
+                    }
+                    /* AI生成模式选择 */
+                    #panel-stories .ai-mode-selector {
+                        display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+                    }
+                    #panel-stories .ai-mode-btn {
+                        padding: 6px 14px; font-size: 0.75rem; border: 1px solid var(--border);
+                        border-radius: 20px; background: var(--bg-card); color: var(--text-secondary);
+                        cursor: pointer; transition: all 0.2s;
+                    }
+                    #panel-stories .ai-mode-btn:hover { border-color: #667eea; color: #667eea; }
+                    #panel-stories .ai-mode-btn.active {
+                        background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; border-color: transparent;
+                    }
+                    /* 快捷键提示 */
+                    #panel-stories .shortcuts-hint {
+                        font-size: 0.65rem; color: var(--text-light); margin-top: 8px;
+                        display: flex; gap: 12px; flex-wrap: wrap;
+                    }
+                    #panel-stories .shortcuts-hint kbd {
+                        background: var(--bg-section); padding: 1px 5px; border-radius: 3px;
+                        font-family: inherit; border: 1px solid var(--border);
                     }
                     @media (max-width: 768px) {
                         #panel-stories .stories-layout {
@@ -5897,11 +6030,20 @@
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
                             <div>
                                 <strong style="color:var(--text-primary,#1a1a2e);font-size:0.9rem;">🤖 AI 自动生成下一章</strong>
-                                <span style="font-size:0.75rem;color:var(--text-light,#94a3b8);margin-left:8px;">基于已有章节，AI 续写新章节</span>
                             </div>
                             <button class="story-btn story-btn-success" style="padding:6px 16px;font-size:0.8rem;" onclick="storyGenerateByAI()" id="storyGenBtn">
-                                ✨ AI 生成章节
+                                ✨ AI 生成
                             </button>
+                        </div>
+                        <!-- AI生成模式选择 -->
+                        <div class="ai-mode-selector">
+                            <button class="ai-mode-btn active" data-mode="continue" onclick="setAIGenMode(this)">📖 续写</button>
+                            <button class="ai-mode-btn" data-mode="expand" onclick="setAIGenMode(this)">📝 扩写</button>
+                            <button class="ai-mode-btn" data-mode="rewrite" onclick="setAIGenMode(this)">🔄 改写</button>
+                            <button class="ai-mode-btn" data-mode="summary" onclick="setAIGenMode(this)">📋 概括</button>
+                        </div>
+                        <div id="aiModeDesc" style="font-size:0.7rem;color:var(--text-light);margin-bottom:8px;">
+                            续写：基于当前章节内容，AI 续写下一章故事情节
                         </div>
                         <div style="margin-bottom:8px;font-size:0.75rem;color:var(--text-light,#94a3b8);">
                             生成后可直接编辑，然后点击"保存章节"
@@ -5911,8 +6053,25 @@
                             <div>AI 正在构思下一章内容，请稍候...</div>
                             <div style="font-size:0.75rem;margin-top:6px;">可能需要 10-30 秒</div>
                         </div>
-                        <textarea id="stories-prompt-text" placeholder="AI 生成的内容会出现在这里，你也可以手动输入或粘贴内容，然后点击上方的"AI 生成章节"按钮使用 AI 续写..."></textarea>
+                        <textarea id="stories-prompt-text" placeholder="AI 生成的内容会出现在这里，你也可以手动输入或粘贴内容，然后点击上方的"AI 生成"按钮使用 AI 续写..."></textarea>
                     </div>
+
+                    <script>
+                    // AI生成模式
+                    var currentAIGenMode = 'continue';
+                    var aiModeDescs = {
+                        continue: '续写：基于当前章节内容，AI 续写下一章故事情节',
+                        expand: '扩写：对已有内容进行细节补充和场景扩展',
+                        rewrite: '改写：用不同的表达方式重写当前章节',
+                        summary: '概括：生成当前章节的内容摘要或章节要点'
+                    };
+                    function setAIGenMode(btn) {
+                        document.querySelectorAll('.ai-mode-btn').forEach(function(b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        currentAIGenMode = btn.dataset.mode;
+                        document.getElementById('aiModeDesc').textContent = aiModeDescs[currentAIGenMode];
+                    }
+                    </script>
                 </div>
             </div>
             
@@ -7040,7 +7199,7 @@
         const bellBtn = document.getElementById('topbar-bell');
         if (bellBtn) {
             bellBtn.addEventListener('click', function() {
-                console.log('🔔 铃声按钮被点击');
+                ;
                 const postsBadge = document.getElementById('badge-pending-posts');
                 const songsBadge = document.getElementById('badge-pending-songs');
                 
@@ -7048,40 +7207,40 @@
                 const hasPendingSongs = songsBadge && songsBadge.style.display !== 'none' && parseInt(songsBadge.textContent) > 0;
                 
                 if (hasPendingPosts) {
-                    console.log('✅ 有待审核帖子，跳转到帖子管理');
+                    ;
                     // 有待审核帖子，跳转到帖子管理并筛选待审核
                     switchPanel('posts');
                     // 点击待审核筛选按钮（增加延迟确保面板已切换）
                     setTimeout(() => {
                         const pendingBtn = document.querySelector('#panel-posts .filter-btn[data-status="pending"]');
                         if (pendingBtn) {
-                            console.log('✅ 找到待审核按钮，点击它');
+                            ;
                             pendingBtn.click();
                         } else {
-                            console.error('❌ 找不到待审核按钮');
+                            ;
                         }
                     }, 300);
                 } else if (hasPendingSongs) {
-                    console.log('✅ 有待审核点歌，跳转到点歌管理');
+                    ;
                     // 有待审核点歌，跳转到点歌管理并筛选待审核
                     switchPanel('songs');
                     setTimeout(() => {
                         const pendingBtn = document.querySelector('#panel-songs .filter-btn[data-status="pending"]');
                         if (pendingBtn) {
-                            console.log('✅ 找到待审核按钮，点击它');
+                            ;
                             pendingBtn.click();
                         } else {
-                            console.error('❌ 找不到待审核按钮');
+                            ;
                         }
                     }, 300);
                 } else {
-                    console.log('ℹ️ 暂无新通知');
+                    ;
                     showToast('暂无新通知', 'info');
                 }
             });
-            console.log('✅ 铃声按钮事件监听器已添加');
+            ;
         } else {
-            console.error('❌ 找不到铃声按钮元素 #topbar-bell');
+            ;
         }
 
         // ===== 退出登录 =====
@@ -7123,7 +7282,7 @@
                 case 'email': loadEmailPanel(); break;
                 case 'wechattest': loadWechatTest(); break;
                 case 'messages': loadAdminMessages(); break;
-                case 'stories': loadStories().then(function() { loadPromptConfig(); }); break;
+                case 'stories': loadStories().then(function() { if (typeof loadPromptConfig === 'function') loadPromptConfig(); }); break;
             }
         }
 
@@ -7161,11 +7320,11 @@
                             <span class="item-index">${i + 1}</span>
                             <div class="item-content">
                                 <div class="item-title">${escapeHtml(p.title || '无标题')}</div>
-                                <div class="item-meta">${escapeHtml(p.nickname || p.username || '匿名')} · ${formatTime(p.created_at)}</div>
+                                <div class="item-meta">${p.is_anonymous == 1 ? '<span title="匿名发布（仅管理员可见）" style="background:linear-gradient(135deg,#9F7AEA,#805AD5);color:#fff;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:1px;margin-right:4px;">🎭 匿名</span><span style="color:#9F7AEA;font-weight:600;">' + escapeHtml(p.nickname || p.username || '未知') + '</span>' : escapeHtml(p.nickname || p.username || '匿名')} · ${formatTime(p.created_at)}</div>
                             </div>
                             <div class="item-actions">
-                                <button class="btn btn-sm btn-primary" onclick="adminAction('approvePost', ${p.id})">通过</button>
-                                <button class="btn btn-sm btn-ghost" style="color: #DC2626;" onclick="adminAction('rejectPost', ${p.id})">拒绝</button>
+                                <button class="btn btn-sm btn-primary" onclick="adminAction('approvePost', ${p.id})" class="btn-primary">通过</button>
+                                <button class="btn btn-sm btn-ghost" style="color: #DC2626;" onclick="adminAction('rejectPost', ${p.id})" class="btn-ghost" style="color:#DC2626">拒绝</button>
                             </div>
                         </div>
                     `).join('');
@@ -7190,8 +7349,8 @@
                                 <div class="item-meta">点歌人：${escapeHtml(s.nickname || s.username || '匿名')} · ${formatTime(s.created_at)}</div>
                             </div>
                             <div class="item-actions">
-                                <button class="btn btn-sm btn-primary" onclick="adminAction('approveSong', ${s.id})">通过</button>
-                                <button class="btn btn-sm btn-ghost" style="color: #DC2626;" onclick="adminAction('rejectSong', ${s.id})">拒绝</button>
+                                <button class="btn btn-sm btn-primary" onclick="adminAction('approveSong', ${s.id})" class="btn-primary">通过</button>
+                                <button class="btn btn-sm btn-ghost" style="color: #DC2626;" onclick="adminAction('rejectSong', ${s.id})" class="btn-ghost" style="color:#DC2626">拒绝</button>
                             </div>
                         </div>
                     `).join('');
@@ -7240,7 +7399,7 @@
             if (postsStatus !== 'all') params.set('status', postsStatus);
 
             // 显示骨架屏
-            document.getElementById('posts-tbody').innerHTML = '<tr><td colspan="8"><div class="skeleton" style="height:320px;border-radius:8px;"></div></td></tr>';
+            document.getElementById('posts-tbody').innerHTML = '<tr><td colspan="8"><div class="loading-text"><span class="loading-spinner"></span>加载中...</div></td></tr>';
 
             try {
                 const res = await authFetch('/api/admin/posts?' + params);
@@ -7268,9 +7427,9 @@
             tbody.innerHTML = posts.map((p, i) => `
                 <tr>
                     <td><input type="checkbox" class="post-checkbox" value="${p.id}" onchange="updatePostBatchBtn()" style="accent-color:#FF6B9D;cursor:pointer;"></td>
-                    <td data-label="序号">${i + 1}</td>
+                    <td data-label="ID">${i + 1}</td>
                     <td data-label="标题" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(p.title || '无标题')}</td>
-                    <td data-label="作者">${escapeHtml(p.nickname || p.username || '匿名')}</td>
+                    <td data-label="作者">${p.is_anonymous == 1 ? '<span style="display:inline-flex;align-items:center;gap:4px;"><span title="匿名发布（仅管理员可见）" style="background:linear-gradient(135deg,#9F7AEA,#805AD5);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;">🎭 匿名</span><span style="color:#9F7AEA;font-weight:600;font-size:11px;">' + escapeHtml(p.nickname || p.username || '未知') + '</span></span>' : escapeHtml(p.nickname || p.username || '匿名')}</td>
                     <td data-label="分类"><span class="tag tag-default">${categoryName(p.category)}</span></td>
                     <td data-label="状态">${statusBadge(p.status)}</td>
                     <td data-label="时间" style="white-space: nowrap; font-size: 0.8rem; color: var(--text-light);">${formatTime(p.created_at)}${p.ip_region ? '<br><span style="color:var(--text-secondary);font-size:0.75rem;">📍 ' + escapeHtml(p.ip_region) + '</span>' : ''}</td>
@@ -7377,8 +7536,8 @@
                                         <strong>状态：</strong>${statusBadge(p.status)}
                                     </div>
                                     <div style="margin-bottom: 16px;">
-                                        <strong>作者：</strong>${escapeHtml(p.nickname || p.username || '匿名')}
-                                    </div>
+                                        <strong>作者：</strong>${p.is_anonymous == 1 ? '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:4px;"><span title="匿名发布（仅管理员可见）" style="background:linear-gradient(135deg,#9F7AEA,#805AD5);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;">🎭 匿名</span><span style="color:#9F7AEA;font-weight:600;">' + escapeHtml(p.nickname || p.username || '未知') + '</span></span>' : escapeHtml(p.nickname || p.username || '匿名')}
+                                    </div>${p.is_anonymous == 1 ? '<div style="margin-bottom:16px;padding:10px 14px;background:linear-gradient(135deg,#F3E8FF,#E9D5FF);border-left:4px solid #9F7AEA;border-radius:8px;font-size:12px;color:#6B46C1;line-height:1.6;">🎭 <strong>匿名帖</strong> · 对外显示为「<strong>匿名</strong>」，但<strong>管理员可见真实作者</strong>：' + escapeHtml(p.nickname || p.username || '未知') + ' (UID: ' + (p.user_id || '-') + ')' + (p.ip_region ? ' · 📍 ' + escapeHtml(p.ip_region) : '') + '</div>' : ''}
                                     <div style="margin-bottom: 16px;">
                                         <strong>发布时间：</strong>${formatTime(p.created_at)}
                                     </div>
@@ -7679,7 +7838,7 @@
         // songsPage, songsStatus, songsKeyword 已在上面声明
         async function loadSongs() {
             const tbody = document.getElementById('songs-tbody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="skeleton" style="height:320px;border-radius:8px;"></div></td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="7"><div class="loading-text"><span class="loading-spinner"></span>加载中...</div></td></tr>';
             
             // 回收站使用不同的API
             if (songsStatus === 'trash') {
@@ -9532,7 +9691,7 @@
                 <tr>
                     <td data-label="序号">${i + 1}</td>
                     <td data-label="标题" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(p.title || '无标题')}</td>
-                    <td data-label="作者">${escapeHtml(p.nickname || p.username || '匿名')}</td>
+                    <td data-label="作者">${p.is_anonymous == 1 ? '<span style="display:inline-flex;align-items:center;gap:4px;"><span title="匿名发布（仅管理员可见）" style="background:linear-gradient(135deg,#9F7AEA,#805AD5);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;">🎭 匿名</span><span style="color:#9F7AEA;font-weight:600;font-size:11px;">' + escapeHtml(p.nickname || p.username || '未知') + '</span></span>' : escapeHtml(p.nickname || p.username || '匿名')}</td>
                     <td data-label="删除时间" style="white-space: nowrap;">${formatTime(p.deleted_at)}</td>
                     <td data-label="操作">
                         <div class="table-actions">
@@ -9601,8 +9760,8 @@
                                         <strong>分类：</strong><span class="tag tag-default">${categoryName(p.category)}</span>
                                     </div>
                                     <div style="margin-bottom: 16px;">
-                                        <strong>作者：</strong>${escapeHtml(p.nickname || p.username || '匿名')}
-                                    </div>
+                                        <strong>作者：</strong>${p.is_anonymous == 1 ? '<span style="display:inline-flex;align-items:center;gap:4px;margin-left:4px;"><span title="匿名发布（仅管理员可见）" style="background:linear-gradient(135deg,#9F7AEA,#805AD5);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:1px;">🎭 匿名</span><span style="color:#9F7AEA;font-weight:600;">' + escapeHtml(p.nickname || p.username || '未知') + '</span></span>' : escapeHtml(p.nickname || p.username || '匿名')}
+                                    </div>${p.is_anonymous == 1 ? '<div style="margin-bottom:16px;padding:10px 14px;background:linear-gradient(135deg,#F3E8FF,#E9D5FF);border-left:4px solid #9F7AEA;border-radius:8px;font-size:12px;color:#6B46C1;line-height:1.6;">🎭 <strong>匿名帖</strong> · 对外显示为「<strong>匿名</strong>」，但<strong>管理员可见真实作者</strong>：' + escapeHtml(p.nickname || p.username || '未知') + ' (UID: ' + (p.user_id || '-') + ')' + (p.ip_region ? ' · 📍 ' + escapeHtml(p.ip_region) : '') + '</div>' : ''}
                                     <div style="margin-bottom: 16px;">
                                         <strong>发布时间：</strong>${formatTime(p.created_at)}
                                     </div>
@@ -11353,725 +11512,6 @@
         }
     };
 
-    // ===== 连载小说管理 =====
-    var storiesData = { stories: [], currentIndex: 0, editingIndex: -1 };
-    var currentNovelId = '';
-    var novelsList = [];
-
-    // 从 localStorage 恢复上次选中的小说和章节
-    (function restoreNovelState() {
-        var saved = localStorage.getItem('novelState');
-        if (saved) {
-            try {
-                var state = JSON.parse(saved);
-                currentNovelId = state.novelId || '';
-            } catch(e) {}
-        }
-    })();
-
-    async function loadNovels() {
-        try {
-            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            var res = await fetch('/api/admin/novels', {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                novelsList = json.data.novels || [];
-                currentNovelId = json.data.activeNovelId || '';
-                renderNovelSelector();
-                return novelsList;
-            }
-        } catch(e) {
-            console.warn('加载小说列表失败:', e.message);
-        }
-        return [];
-    }
-
-    function renderNovelSelector() {
-        var sel = document.getElementById('novel-selector');
-        if (!sel) return;
-        sel.innerHTML = '';
-        novelsList.forEach(function(n) {
-            var opt = document.createElement('option');
-            opt.value = n.id;
-            opt.textContent = n.title;
-            if (n.id === currentNovelId) opt.selected = true;
-            sel.appendChild(opt);
-        });
-    }
-
-    function switchNovel(novelId) {
-        currentNovelId = novelId;
-        localStorage.setItem('novelState', JSON.stringify({ novelId: novelId, chapterIndex: -1 }));
-        // 切换小说后重新加载章节
-        var loading = document.getElementById('stories-loading');
-        if (loading) loading.style.display = 'block';
-        document.getElementById('stories-chapter-list').innerHTML = '';
-        loadStoriesForNovel(novelId);
-    }
-
-    async function loadStoriesForNovel(novelId) {
-        try {
-            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            var url = '/api/admin/stories';
-            if (novelId) url += '?novelId=' + encodeURIComponent(novelId);
-            var res = await fetch(url, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            var json = await res.json();
-            var loading = document.getElementById('stories-loading');
-            if (loading) loading.style.display = 'none';
-            if (json.code === 200) {
-                storiesData = json.data;
-                renderChapterList();
-                if (storiesData.stories.length > 0) {
-                    // 优先恢复上次选中的章节
-                    var savedState = localStorage.getItem('novelState');
-                    var savedIdx = -1;
-                    if (savedState) {
-                        try {
-                            var state = JSON.parse(savedState);
-                            if (state.novelId === novelId && state.chapterIndex >= 0 && state.chapterIndex < storiesData.stories.length) {
-                                savedIdx = state.chapterIndex;
-                            }
-                        } catch(e) {}
-                    }
-                    var idx = savedIdx >= 0 ? savedIdx : (storiesData.currentIndex >= 0 ? storiesData.currentIndex : 0);
-                    storySelectForNovel(idx, novelId);
-                }
-                return storiesData;
-            } else {
-                showToast('加载小说失败: ' + (json.message || ''), 'error');
-            }
-        } catch(e) {
-            var loading = document.getElementById('stories-loading');
-            if (loading) loading.style.display = 'none';
-            showToast('加载小说失败', 'error');
-        }
-    }
-
-    function storySelectForNovel(index, novelId) {
-        storySelect(index);
-    }
-
-    function showCreateNovel() {
-        var title = prompt('请输入小说标题：');
-        if (!title) return;
-        var author = prompt('请输入作者（默认为嘉二校园墙编辑部）：') || '嘉二校园墙编辑部';
-        var desc = prompt('请输入简介（可选）：') || '';
-        createNovel(title, author, desc);
-    }
-
-    async function createNovel(title, author, desc) {
-        try {
-            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            var res = await fetch('/api/admin/novels/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ title: title, author: author, desc: desc })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ ' + (json.message || '创建成功'), 'success');
-                await loadNovels();
-                switchNovel(json.data.id);
-            } else {
-                showToast('创建失败: ' + (json.message || ''), 'error');
-            }
-        } catch(e) {
-            showToast('创建失败: ' + e.message, 'error');
-        }
-    }
-
-    async function deleteCurrentNovel() {
-        if (novelsList.length <= 1) {
-            showToast('至少保留一本小说', 'error');
-            return;
-        }
-        if (!confirm('确定删除当前小说及其所有章节？此操作不可恢复！')) return;
-        try {
-            var token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            var res = await fetch('/api/admin/novels/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('已删除', 'success');
-                await loadNovels();
-                loadStoriesForNovel(currentNovelId);
-            } else {
-                showToast('删除失败: ' + (json.message || ''), 'error');
-            }
-        } catch(e) {
-            showToast('删除失败: ' + e.message, 'error');
-        }
-    }
-
-    async function loadStories() {
-        // 先加载小说列表（会自动加载章节）
-        await loadNovels();
-        return loadStoriesForNovel(currentNovelId);
-    }
-    
-    function renderChapterList() {
-        var list = document.getElementById('stories-chapter-list');
-        if (!storiesData.stories || storiesData.stories.length === 0) {
-            list.innerHTML = '<div class="stories-empty"><div class="empty-icon">📭</div><div>暂无章节，点击"+ 新建"开始</div></div>';
-            return;
-        }
-        var html = '';
-        for (var i = 0; i < storiesData.stories.length; i++) {
-            var s = storiesData.stories[i];
-            var isActive = i === storiesData.editingIndex;
-            var isCurrent = i === storiesData.currentIndex;
-            html += '<div class="story-chapter-item' + (isActive ? ' active' : '') + '" onclick="storySelect(' + i + ')">';
-            html += '<div class="chap-num">' + (i + 1) + '</div>';
-            html += '<div class="chap-title">' + (s.title || '无标题') + '</div>';
-            if (isCurrent) html += '<div class="chap-current-badge">连载中</div>';
-            if (s.published) html += '<div class="chap-current-badge" style="background:#43e97b;">已发布</div>';
-            html += '</div>';
-        }
-        list.innerHTML = html;
-    }
-    
-    function storySelect(index) {
-        if (index < 0 || index >= storiesData.stories.length) return;
-        storiesData.editingIndex = index;
-        // 保存选中的章节
-        try {
-            var state = JSON.parse(localStorage.getItem('novelState') || '{}');
-            state.chapterIndex = index;
-            localStorage.setItem('novelState', JSON.stringify(state));
-        } catch(e) {}
-        var s = storiesData.stories[index];
-        var body = document.getElementById('stories-editor-body');
-        document.getElementById('stories-editor-title').textContent = '📝 编辑：第' + (index + 1) + '章 ' + (s.title || '');
-        
-        // 加载中占位
-        body.innerHTML = 
-            '<div class="story-form-group">' +
-                '<label>章节标题</label>' +
-                '<input type="text" id="story-edit-title" value="' + escapeHtml(s.title || '') + '" placeholder="输入章节标题">' +
-            '</div>' +
-            '<div class="story-form-group">' +
-                '<label>作者</label>' +
-                '<input type="text" id="story-edit-author" value="' + escapeHtml(s.author || '嘉二校园墙编辑部') + '">' +
-            '</div>' +
-            '<div class="story-form-group">' +
-                '<label>章节内容</label>' +
-                '<textarea id="story-edit-content" placeholder="正在加载章节内容..." oninput="storyAutoSave()">⏳ 加载中...</textarea>' +
-                '<div class="char-count"><span id="story-char-count">加载中...</span><span id="story-auto-save-status" style="color:#bbb;font-size:12px;margin-left:8px;"></span></div>' +
-            '</div>' +
-            '<div class="story-actions">' +
-                '<button class="story-btn story-btn-primary" onclick="storySave()">💾 保存修改</button>' +
-                '<button class="story-btn story-btn-success" style="background:linear-gradient(135deg,#667eea,#764ba2);" onclick="storySetCurrent(' + index + ')">📌 设为当前连载</button>' +
-                '<button class="story-btn story-btn-primary" style="background:linear-gradient(135deg,#43e97b,#38f9d7) !important;" onclick="storyPublishToWechat(' + index + ')">📤 推送到公众号</button>' +
-                '<button class="story-btn story-btn-danger" onclick="storyDelete(' + index + ')">🗑 删除本章</button>' +
-            '</div>';
-        
-        // 异步加载章节内容
-        loadChapterContent(index);
-        
-        // 更新导航按钮
-        document.getElementById('story-btn-prev').disabled = index <= 0;
-        document.getElementById('story-btn-next').disabled = index >= storiesData.stories.length - 1;
-    }
-    
-    async function loadChapterContent(index) {
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/chapter-content?index=' + index + '&novelId=' + encodeURIComponent(currentNovelId), {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                var chapter = json.data;
-                var ta = document.getElementById('story-edit-content');
-                if (ta) {
-                    ta.value = chapter.content || '';
-                    var cc = document.getElementById('story-char-count');
-                    if (cc) cc.textContent = (chapter.content || '').length + '字';
-                }
-                // 也更新 storiesData 中的缓存
-                if (storiesData.stories[index]) {
-                    storiesData.stories[index].content = chapter.content;
-                }
-            }
-        } catch(e) {
-            var ta = document.getElementById('story-edit-content');
-            if (ta) ta.value = '加载内容失败，请重试';
-        }
-    }
-    
-    async function storySave() {
-        var title = document.getElementById('story-edit-title').value.trim();
-        var content = document.getElementById('story-edit-content').value;
-        var author = document.getElementById('story-edit-author').value.trim();
-        
-        if (!title) { showToast('请输入章节标题', 'error'); return; }
-        if (!content) { showToast('请输入章节内容', 'error'); return; }
-        if (!author) author = '匿名';
-        
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            
-            if (storiesData.editingIndex < 0) {
-                // 没有选中章节 → 创建新章节
-                var addRes = await fetch('/api/admin/stories/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ title: title, content: content, author: author, novelId: currentNovelId })
-                });
-                var addJson = await addRes.json();
-                if (addJson.code === 200) {
-                    await loadStories();
-                    showToast('✅ 章节已创建并保存', 'success');
-                    storySelect(storiesData.stories.length - 1);
-                } else {
-                    showToast('创建失败: ' + addJson.message, 'error');
-                }
-            } else {
-                // 编辑已有章节
-                var res = await fetch('/api/admin/stories/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ index: storiesData.editingIndex, title: title, content: content, author: author, novelId: currentNovelId })
-                });
-                var json = await res.json();
-                if (json.code === 200) {
-                    showToast('✅ 第' + (storiesData.editingIndex + 1) + '章保存成功', 'success');
-                    storiesData.stories[storiesData.editingIndex] = { file: storiesData.stories[storiesData.editingIndex].file, title: title, content: content, author: author };
-                    renderChapterList();
-                } else {
-                    showToast('保存失败: ' + json.message, 'error');
-                }
-            }
-        } catch(e) {
-            showToast('保存失败', 'error');
-        }
-    }
-    
-    var storyAutoSaveTimer = null;
-    function storyAutoSave() {
-        var textarea = document.getElementById('story-edit-content');
-        var statusEl = document.getElementById('story-auto-save-status');
-        document.getElementById('story-char-count').textContent = textarea.value.length + '字';
-        if (statusEl) statusEl.textContent = '⏳ 自动保存...';
-        if (storyAutoSaveTimer) clearTimeout(storyAutoSaveTimer);
-        storyAutoSaveTimer = setTimeout(function() {
-            var title = document.getElementById('story-edit-title').value.trim();
-            if (!title || !textarea.value) {
-                if (statusEl) statusEl.textContent = '';
-                return;
-            }
-            storySaveSilent(title, textarea.value);
-        }, 2000);
-    }
-    
-    async function storySaveSilent(title, content) {
-        if (storiesData.editingIndex < 0) return;
-        var author = document.getElementById('story-edit-author').value.trim();
-        var statusEl = document.getElementById('story-auto-save-status');
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ index: storiesData.editingIndex, title: title, content: content, author: author, novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                storiesData.stories[storiesData.editingIndex] = { file: storiesData.stories[storiesData.editingIndex].file, title: title, content: content, author: author };
-                renderChapterList();
-                if (statusEl) statusEl.textContent = '✅ 已自动保存';
-                setTimeout(function() { if (statusEl) statusEl.textContent = ''; }, 3000);
-            } else {
-                if (statusEl) statusEl.textContent = '❌ 保存失败';
-            }
-        } catch(e) {
-            if (statusEl) statusEl.textContent = '❌ 保存失败';
-        }
-    }
-    
-    async function storyAddChapter() {
-        // 先检查是否已登录
-        var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) {
-            showToast('请先登录', 'error');
-            return;
-        }
-        var defaultTitle = '第' + (storiesData.stories.length + 1) + '章';
-        var title = prompt('请输入新章节名称：', defaultTitle);
-        if (!title) return;
-        try {
-            var res = await fetch('/api/admin/stories/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ title: title, content: '', author: '嘉二校园墙编辑部', novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ 已添加新章节', 'success');
-                await loadStories();
-                storySelect(json.data.index);
-            } else {
-                showToast('添加失败: ' + json.message, 'error');
-            }
-        } catch(e) {
-            showToast('添加失败: ' + e.message, 'error');
-        }
-    }
-    
-    async function storyDelete(index) {
-        if (!confirm('确定删除第' + (index + 1) + '章？')) return;
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ index: index, novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ 已删除', 'success');
-                storiesData.stories = json.data.stories;
-                storiesData.currentIndex = json.data.currentIndex;
-                storiesData.editingIndex = -1;
-                renderChapterList();
-                document.getElementById('stories-editor-body').innerHTML = '<div class="stories-empty"><div class="empty-icon">👈</div><div>点击左侧章节进行编辑</div></div>';
-                document.getElementById('stories-editor-title').textContent = '📝 请选择一个章节';
-                document.getElementById('story-btn-prev').disabled = true;
-                document.getElementById('story-btn-next').disabled = true;
-            } else {
-                showToast('删除失败', 'error');
-            }
-        } catch(e) {
-            showToast('删除失败', 'error');
-        }
-    }
-    
-    async function storySetCurrent(index) {
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/set-current', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ index: index, novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ ' + json.message, 'success');
-                storiesData.currentIndex = index;
-                renderChapterList();
-            } else {
-                showToast('设置失败', 'error');
-            }
-        } catch(e) {
-            showToast('设置失败', 'error');
-        }
-    }
-    
-    function storyNavigate(direction) {
-        var newIndex = storiesData.editingIndex + direction;
-        if (newIndex >= 0 && newIndex < storiesData.stories.length) {
-            storySelect(newIndex);
-        }
-    }
-
-    // 键盘快捷键
-    document.addEventListener('keydown', function(e) {
-        if (window.currentPanel !== 'stories') return;
-        if (storiesData.editingIndex < 0) return;
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-            if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); storySave(); return; }
-            return;
-        }
-        if (e.key === 'ArrowLeft') { e.preventDefault(); storyNavigate(-1); }
-        else if (e.key === 'ArrowRight') { e.preventDefault(); storyNavigate(1); }
-        else if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); storySave(); }
-    });
-    
-    async function storyGeneratePrompt() {
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/next-prompt?novelId=' + encodeURIComponent(currentNovelId), {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                document.getElementById('stories-prompt-text').value = json.data.prompt;
-                showToast('✅ 提示词已生成，可复制到 DeepSeek', 'success');
-            } else {
-                showToast('生成失败', 'error');
-            }
-        } catch(e) {
-            showToast('生成失败', 'error');
-        }
-    }
-    
-    function copyPrompt() {
-        var ta = document.getElementById('stories-prompt-text');
-        if (!ta.value) { showToast('请先生成提示词', 'error'); return; }
-        ta.select();
-        document.execCommand('copy');
-        showToast('📋 已复制到剪贴板', 'success');
-    }
-    
-    async function storyPublishToWechat(index) {
-        if (index === undefined) index = storiesData.editingIndex;
-        if (index < 0) { showToast('请先选择一个章节', 'error'); return; }
-        if (!confirm('确定将第' + (index + 1) + '章推送到公众号草稿箱？')) return;
-        try {
-            showToast('⏳ 正在生成文章并同步到公众号...', 'info');
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/publish-to-wechat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ chapterIndex: index, novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ 已成功同步到公众号草稿箱！', 'success');
-                renderChapterList();
-                setTimeout(function() {
-                    // 用 modal 显示跳转链接
-                    var modalHtml = '<div class="modal-overlay show" id="wechat-push-modal" onclick="if(event.target===this)this.remove()">' +
-                        '<div class="modal" style="display:flex;max-width:420px;">' +
-                        '<div class="modal-header"><h3>✅ 推送成功</h3>' +
-                        '<button class="modal-close" onclick="document.getElementById(\'wechat-push-modal\').remove()">&times;</button></div>' +
-                        '<div class="modal-body" style="text-align:center;padding:32px 24px;">' +
-                        '<div style="font-size:48px;margin-bottom:16px;">🎉</div>' +
-                        '<div style="font-size:16px;font-weight:600;margin-bottom:8px;color:var(--text-primary);">第' + (index + 1) + '章已同步到公众号</div>' +
-                        '<div style="font-size:13px;color:var(--text-light);margin-bottom:20px;">media_id: ' + (json.data && json.data.media_id || '-') + '</div>' +
-                        '<a href="https://mp.weixin.qq.com/" target="_blank" style="display:inline-block;padding:12px 24px;background:linear-gradient(135deg,#07C160,#06AD56);color:#fff;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;">📤 前往公众号草稿箱</a>' +
-                        '<div style="font-size:12px;color:#999;margin-top:12px;">登录后 → 草稿箱 → 预览/发布</div>' +
-                        '</div></div></div>';
-                    document.body.insertAdjacentHTML('beforeend', modalHtml);
-                }, 1000);
-            } else {
-                showToast('❌ 推送失败: ' + json.message, 'error');
-            }
-        } catch(e) {
-            showToast('❌ 网络错误: ' + e.message, 'error');
-        }
-    }
-    
-    // 点击小说面板时加载配置
-    document.addEventListener('panelChange', function(e) {
-        if (e.detail && e.detail.panel === 'stories') {
-            loadStories().then(function() { loadPromptConfig(); });
-        }
-    });
-
-    // ===== 提示词模板设置 =====
-    function loadPromptConfig() {
-        var cfg = storiesData.promptConfig;
-        if (!cfg) return;
-        var fields = ['novelTitle','authorRole','wordCount','style','sceneRequirement','endingRequirement','extraRequirements'];
-        fields.forEach(function(f) {
-            var el = document.getElementById('pc-' + f);
-            if (el && cfg[f] !== undefined) el.value = cfg[f];
-        });
-    }
-
-    function togglePromptConfig() {
-        var body = document.getElementById('prompt-config-body');
-        var arrow = document.getElementById('prompt-config-arrow');
-        if (body.style.display === 'none') {
-            body.style.display = 'block';
-            arrow.style.transform = 'rotate(90deg)';
-        } else {
-            body.style.display = 'none';
-            arrow.style.transform = '';
-        }
-    }
-
-    async function savePromptConfig() {
-        var fields = ['novelTitle','authorRole','wordCount','style','sceneRequirement','endingRequirement','extraRequirements'];
-        var cfg = {};
-        fields.forEach(function(f) {
-            var el = document.getElementById('pc-' + f);
-            if (el) cfg[f] = el.value;
-        });
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            var res = await fetch('/api/admin/stories/save-prompt-config', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
-                },
-                body: JSON.stringify({ promptConfig: cfg, novelId: currentNovelId })
-            });
-            var json = await res.json();
-            if (json.code === 200) {
-                showToast('✅ AI 写作设置已保存', 'success');
-                storiesData.promptConfig = cfg;
-            } else {
-                showToast('保存失败: ' + json.message, 'error');
-            }
-        } catch(e) {
-            showToast('保存失败', 'error');
-        }
-    }
-
-    // AI 自动生成章节（流式输出）
-    var storyStreamController = null;
-    async function storyGenerateByAI() {
-        var btn = document.getElementById('storyGenBtn');
-        var loading = document.getElementById('storyGenLoading');
-        var ta = document.getElementById('stories-prompt-text');
-        btn.disabled = true;
-        btn.textContent = '⏳ 连接 AI 中...';
-        loading.style.display = 'block';
-        loading.innerHTML = '⏳ 正在连接 AI 服务...';
-        ta.value = '';
-        ta.style.display = 'none';
-        
-        try {
-            var token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            btn.textContent = '⏳ 生成中...';
-            loading.innerHTML = '🤖 AI 正在创作...<br><span id="streamContent" style="font-size:13px;color:var(--text-primary);display:block;margin-top:8px;text-align:left;background:rgba(255,255,255,0.5);padding:8px 12px;border-radius:6px;max-height:200px;overflow-y:auto;white-space:pre-wrap;"></span>';
-            
-            var streamDiv = document.getElementById('streamContent');
-            var fullText = '';
-            var doneMeta = null;
-            var url = '/api/admin/stories/generate-chapter-stream?token=' + encodeURIComponent(token) + '&novelId=' + encodeURIComponent(currentNovelId);
-            
-            // 用 fetch 读取 SSE 流
-            storyStreamController = new AbortController();
-            var res = await fetch(url, { signal: storyStreamController.signal });
-            if (!res.ok) {
-                loading.style.display = 'none';
-                ta.style.display = '';
-                showToast('❌ 服务器错误', 'error');
-                return;
-            }
-            
-            var reader = res.body.getReader();
-            var decoder = new TextDecoder();
-            var buffer = '';
-            var currentEvent = '';
-            
-            while (true) {
-                var result = await reader.read();
-                if (result.done) break;
-                
-                buffer += decoder.decode(result.value, { stream: true });
-                var lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-                
-                for (var li = 0; li < lines.length; li++) {
-                    var line = lines[li];
-                    if (line.startsWith('event: ')) {
-                        currentEvent = line.substring(7).trim();
-                    } else if (line.startsWith('data: ')) {
-                        var content = line.substring(6);
-                        if (currentEvent === 'done') {
-                            try { doneMeta = JSON.parse(content); } catch(e) {}
-                            currentEvent = '';
-                        } else if (currentEvent === 'error') {
-                            showToast('❌ 生成失败: ' + content, 'error');
-                            currentEvent = '';
-                        } else if (content !== '__DONE__') {
-                            var text = content.replace(/\\n/g, '\n');
-                            fullText += text;
-                            if (streamDiv) {
-                                streamDiv.textContent = fullText;
-                                streamDiv.scrollTop = streamDiv.scrollHeight;
-                            }
-                        }
-                        currentEvent = '';
-                    }
-                }
-            }
-            
-            // 解析标题（优先用 done 事件的元数据，否则从第一行提取）
-            var aiTitle = '';
-            var aiContent = fullText;
-            
-            if (doneMeta && doneMeta.title) {
-                aiTitle = doneMeta.title;
-                aiContent = doneMeta.content || fullText;
-            } else {
-                var contentLines = fullText.split('\n');
-                if (contentLines.length > 0) {
-                    var firstLine = contentLines[0].replace(/^#+\s*/, '').replace(/^第\d+章[：\s]*/, '').trim();
-                    if (firstLine.length > 0 && firstLine.length < 30) {
-                        aiTitle = firstLine;
-                        aiContent = contentLines.slice(1).join('\n').trim();
-                    }
-                }
-                if (!aiTitle) aiTitle = '第 ' + (parseInt(currentNovelChapterIndex || 0) + 1) + ' 章';
-            }
-            
-            // 加载到编辑器
-            loading.style.display = 'none';
-            ta.style.display = '';
-            ta.value = fullText;
-            
-            var titleInput = document.getElementById('story-edit-title');
-            var contentInput = document.getElementById('story-edit-content');
-            var authorInput = document.getElementById('story-edit-author');
-            if (titleInput) titleInput.value = aiTitle;
-            if (contentInput) contentInput.value = aiContent;
-            if (authorInput) authorInput.value = 'AI 辅助创作';
-            updateCharCount();
-            showToast('✨ AI 生成完成，请确认后手动保存', 'success');
-            
-            // 切换到编辑面板
-            var panelBtns = document.querySelectorAll('#panel-stories .tabs-header button');
-            for (var pi = 0; pi < panelBtns.length; pi++) {
-                if (panelBtns[pi].textContent.includes('编辑')) {
-                    panelBtns[pi].click(); break;
-                }
-            }
-        } catch(e) {
-            if (e.name === 'AbortError') {
-                showToast('已取消生成', 'info');
-            } else {
-                loading.style.display = 'none';
-                ta.style.display = '';
-                var errMsg = '❌ 生成失败: ' + e.message;
-                ta.value = errMsg;
-                showToast(errMsg, 'error');
-            }
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '✨ AI 生成章节';
-            storyStreamController = null;
-        }
-    }
-    </script>
+</script>
 </body>
 </html>

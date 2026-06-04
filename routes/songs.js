@@ -15,7 +15,7 @@ router.get('/remaining', auth, async (req, res) => {
     const remaining = Math.max(0, dailyLimit - (userSongCount[0].cnt || 0));
     res.json({ code: 200, data: { remaining, limit: dailyLimit } });
   } catch (err) {
-    res.json({ code: 200, data: { remaining: 3, limit: 3 } });
+    res.json({ code: 500, message: '获取点歌次数失败', data: { remaining: 3, limit: 3 } });
   }
 });
 
@@ -179,8 +179,8 @@ router.post('/', auth, async (req, res) => {
       'SELECT COUNT(*) as cnt FROM song_requests WHERE slot_date_id = ? AND status IN ("pending","approved")',
       [slot_date_id]
     );
-    
-    if (countResult[0].cnt >= slotDate.max_songs) {
+
+    if (countResult.length > 0 && countResult[0].cnt >= slotDate.max_songs) {
       return res.json({ code: 400, message: '该时段点歌已满' });
     }
     
@@ -294,64 +294,66 @@ router.get('/hot', async (req, res) => {
 
 // 投票/取消投票
 router.post('/vote', auth, async (req, res) => {
+  const conn = await pool.getConnection();
   try {
+    await conn.beginTransaction();
     const { song_request_id, vote_type } = req.body;
-    
+
     if (!song_request_id || !vote_type || !['up', 'down'].includes(vote_type)) {
       return res.json({ code: 400, message: '参数错误' });
     }
 
-    // 检查歌曲是否存在
-    const [songs] = await pool.execute(
-      'SELECT id, hot_score FROM song_requests WHERE id = ? AND deleted_at IS NULL',
+    // 检查歌曲是否存在（加锁）
+    const [songs] = await conn.execute(
+      'SELECT id, hot_score FROM song_requests WHERE id = ? AND deleted_at IS NULL FOR UPDATE',
       [song_request_id]
     );
     if (songs.length === 0) {
+      await conn.rollback();
       return res.json({ code: 404, message: '歌曲不存在' });
     }
 
     const currentScore = songs[0].hot_score || 0;
 
     // 检查是否已投票
-    const [existingVotes] = await pool.execute(
+    const [existingVotes] = await conn.execute(
       'SELECT id, vote_type FROM song_votes WHERE song_request_id = ? AND user_id = ?',
       [song_request_id, req.user.id]
     );
 
     let newScore = currentScore;
-    
+
     if (existingVotes.length > 0) {
-      // 已投票，取消投票
-      await pool.execute(
+      await conn.execute(
         'DELETE FROM song_votes WHERE song_request_id = ? AND user_id = ?',
         [song_request_id, req.user.id]
       );
-      // 恢复分数
       newScore = existingVotes[0].vote_type === 'up' ? currentScore - 1 : currentScore + 1;
     } else {
-      // 新投票
-      await pool.execute(
+      await conn.execute(
         'INSERT INTO song_votes (song_request_id, user_id, vote_type) VALUES (?, ?, ?)',
         [song_request_id, req.user.id, vote_type]
       );
-      // 更新分数
       newScore = vote_type === 'up' ? currentScore + 1 : currentScore - 1;
     }
 
-    // 更新歌曲热度
-    await pool.execute(
+    await conn.execute(
       'UPDATE song_requests SET hot_score = ? WHERE id = ?',
       [newScore, song_request_id]
     );
 
-    res.json({ 
-      code: 200, 
+    await conn.commit();
+    res.json({
+      code: 200,
       message: existingVotes.length > 0 ? '已取消投票' : '投票成功',
       data: { hot_score: newScore }
     });
   } catch (err) {
+    await conn.rollback();
     console.error('投票错误:', err);
     res.json({ code: 500, message: '服务器错误' });
+  } finally {
+    conn.release();
   }
 });
 

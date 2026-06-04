@@ -97,12 +97,12 @@ router.put('/:id/read', auth, async (req, res) => {
 router.put('/read-all', auth, async (req, res) => {
   try {
     await pool.execute(
-      'DELETE FROM notifications WHERE user_id = ?',
+      'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0',
       [req.user.id]
     );
-    res.json({ code: 200, message: '已清空所有通知' });
+    res.json({ code: 200, message: '已标记全部已读' });
   } catch (err) {
-    console.error('清空通知失败:', err);
+    console.error('标记全部已读失败:', err);
     res.json({ code: 500, message: '操作失败' });
   }
 });

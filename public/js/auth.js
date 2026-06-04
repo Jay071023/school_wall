@@ -19,21 +19,18 @@ document.addEventListener('DOMContentLoaded', function() {
   if (rememberMeCheckbox) {
     // 确保 checkbox 可以正常切换
     rememberMeCheckbox.addEventListener('click', function(e) {
-      console.log('记住我点击:before:', this.checked);
       // 让浏览器自动处理，不阻止默认行为
     });
-    
+
     rememberMeCheckbox.addEventListener('change', function() {
-      console.log('记住我状态变化:', this.checked);
       // 保存状态到 localStorage
       localStorage.setItem('lastRemember', this.checked ? 'true' : 'false');
     });
-    
+
     // 页面加载时恢复上次登录的状态（如果有）
     var lastRemember = localStorage.getItem('lastRemember');
     if (lastRemember === 'true') {
       rememberMeCheckbox.checked = true;
-      console.log('恢复记住我状态：已勾选');
     }
   }
 

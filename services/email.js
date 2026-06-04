@@ -3,6 +3,8 @@
  * 含邮件发送日志功能，所有收发记录可在管理后台查看
  */
 
+const siteConfig = require('../lib/site-config');
+
 const nodemailer = require('nodemailer');
 
 // 确保 email_logs 表存在
@@ -98,7 +100,7 @@ async function sendEmail(to, subject, html, type, userName) {
     } else if (smtp_user) {
       from = smtp_from ? smtp_from + ' <' + smtp_user + '>' : smtp_user;
     } else {
-      from = process.env.SMTP_FROM || '"嘉二の墙墙" <noreply@wall.jay23.cn>';
+      from = process.env.SMTP_FROM || '"' + siteConfig.siteName + '" <noreply@' + (process.env.SITE_DOMAIN || 'your-domain.com') + '>';
     }
     await transporter.sendMail({ from, to, subject, html });
     // 从html中提取纯文本摘要
@@ -134,7 +136,7 @@ function kawaiiLayout(title, bodyContent, siteUrl) {
                 <div style="font-size:48px;line-height:1;margin-bottom:8px;">${decoEmoji(title)}</div>
                 <div style="color:rgba(255,255,255,0.9);font-size:13px;letter-spacing:6px;">✦ ✦ ✦</div>
                 <h1 style="color:#fff;margin:10px 0 0;font-size:22px;font-weight:700;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,0.08);">${title}</h1>
-                <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75);">💌 来自 嘉二の墙墙 的一封信</div>
+                <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75);">💌 来自 ${siteConfig.siteName} 的一封信</div>
               </td>
             </tr>
             <!-- 📝 正文内容 -->
@@ -146,14 +148,14 @@ function kawaiiLayout(title, bodyContent, siteUrl) {
             <!-- 🔗 底部 -->
             <tr>
               <td style="padding:0 24px 24px;text-align:center;background:#FFFCFA;">
-                <a href="${siteUrl || 'https://wall.jay23.cn'}" style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#FF9ABF,#C084FC);color:#fff;text-decoration:none;border-radius:20px;font-size:14px;font-weight:600;box-shadow:0 4px 12px rgba(255,107,157,0.25);">✨ 去看看</a>
+                <a href="${siteUrl || 'https://your-domain.com'}" style="display:inline-block;padding:10px 28px;background:linear-gradient(135deg,#FF9ABF,#C084FC);color:#fff;text-decoration:none;border-radius:20px;font-size:14px;font-weight:600;box-shadow:0 4px 12px rgba(255,107,157,0.25);">✨ 去看看</a>
               </td>
             </tr>
             <!-- 📮 页脚 -->
             <tr>
               <td style="padding:20px 24px;background:#F8F5FF;border-top:1px solid rgba(255,107,157,0.06);text-align:center;">
                 <div style="color:#B8A9D4;font-size:12px;line-height:1.8;">
-                  <div>🪄 嘉二の墙墙 — 校园信息交流平台</div>
+                  <div>🪄 ${siteConfig.siteName} — 校园信息交流平台</div>
                   <div style="margin-top:4px;">这是一封系统自动发送的邮件，请勿回复</div>
                 </div>
               </td>
@@ -225,7 +227,7 @@ async function notifyNewComment(postAuthorEmail, postAuthorNickname, commenterNi
     ${contentCard(`<div style="font-size:14px;color:#4A3F5C;line-height:1.8;">${commentContent}</div>`)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 点击下方按钮去看看小伙伴说了什么~</p>
   `;
-  await sendEmail(postAuthorEmail, '💬 收到新评论 · 嘉二の墙墙', kawaiiLayout('有新的评论啦', body), 'comment', postAuthorNickname);
+  await sendEmail(postAuthorEmail, '💬 收到新评论 · ${siteConfig.siteName}', kawaiiLayout('有新的评论啦', body), 'comment', postAuthorNickname);
 }
 
 // 2. 点赞通知
@@ -246,7 +248,7 @@ async function notifyNewLike(userEmail, userNickname, likerNickname, postTitle, 
     ${contentCard('<div style="text-align:center;font-size:40px;line-height:1;">❤️</div><div style="text-align:center;font-size:14px;color:#FF6B9D;margin-top:8px;font-weight:600;">收到一个喜欢~</div>')}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 您的帖子得到了认可，继续加油哦！</p>
   `;
-  await sendEmail(userEmail, '❤️ 收到点赞 · 嘉二の墙墙', kawaiiLayout('有人喜欢了你的帖子', body), 'like', userNickname);
+  await sendEmail(userEmail, '❤️ 收到点赞 · ${siteConfig.siteName}', kawaiiLayout('有人喜欢了你的帖子', body), 'like', userNickname);
 }
 
 // 3. @提及通知
@@ -267,7 +269,7 @@ async function notifyMention(userEmail, userNickname, mentionerNickname, postTit
     ${contentCard(`<div style="font-size:14px;color:#4A3F5C;line-height:1.8;">${commentContent}</div>`)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 快去看看谁在找你吧~</p>
   `;
-  await sendEmail(userEmail, '📢 有人提到了你 · 嘉二の墙墙', kawaiiLayout('有人在评论中提到了你', body), 'mention', userNickname);
+  await sendEmail(userEmail, '📢 有人提到了你 · ${siteConfig.siteName}', kawaiiLayout('有人在评论中提到了你', body), 'mention', userNickname);
 }
 
 // 4. 新粉丝通知
@@ -287,7 +289,7 @@ async function notifyNewFollower(userEmail, userNickname, followerNickname, user
     ${contentCard('<div style="text-align:center;font-size:40px;line-height:1;">🌟</div><div style="text-align:center;font-size:15px;color:#C084FC;margin-top:8px;font-weight:600;">你多了一个小粉丝~</div>')}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 去ta的主页看看，也许会有惊喜！</p>
   `;
-  await sendEmail(userEmail, '🌟 新粉丝 · 嘉二の墙墙', kawaiiLayout('有新的小粉丝', body), 'follower', userNickname);
+  await sendEmail(userEmail, '🌟 新粉丝 · ${siteConfig.siteName}', kawaiiLayout('有新的小粉丝', body), 'follower', userNickname);
 }
 
 // 5. 帖子审核通过
@@ -304,7 +306,7 @@ async function notifyPostApproved(userEmail, userNickname, postTitle, userId) {
     <p style="font-size:15px;color:#4A3F5C;margin:0 0 6px;">🎉 您的帖子审核通过啦！</p>
     ${contentCard(`<div style="text-align:center;font-size:18px;font-weight:600;color:#10B981;">✅ 《${postTitle}》</div><div style="text-align:center;font-size:13px;color:#6B7280;margin-top:8px;">现在其他同学可以看到你的帖子了~</div>`)}
   `;
-  await sendEmail(userEmail, '✅ 帖子审核通过 · 嘉二の墙墙', kawaiiLayout('审核通过啦', body), 'post_approved', userNickname);
+  await sendEmail(userEmail, '✅ 帖子审核通过 · ${siteConfig.siteName}', kawaiiLayout('审核通过啦', body), 'post_approved', userNickname);
 }
 
 // 6. 帖子审核未通过
@@ -325,7 +327,7 @@ async function notifyPostRejected(userEmail, userNickname, postTitle, reason, us
     `)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 可以修改内容后重新提交哦~</p>
   `;
-  await sendEmail(userEmail, '💔 帖子未通过审核 · 嘉二の墙墙', kawaiiLayout('审核未通过', body), 'post_rejected', userNickname);
+  await sendEmail(userEmail, '💔 帖子未通过审核 · ${siteConfig.siteName}', kawaiiLayout('审核未通过', body), 'post_rejected', userNickname);
 }
 
 // 7. 点歌审核通过
@@ -347,7 +349,7 @@ async function notifySongApproved(userEmail, userNickname, songName, artist, slo
     `)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 记得在广播时间收听哦~</p>
   `;
-  await sendEmail(userEmail, '🎵 点歌审核通过 · 嘉二の墙墙', kawaiiLayout('点歌通过啦', body), 'song_approved', userNickname);
+  await sendEmail(userEmail, '🎵 点歌审核通过 · ${siteConfig.siteName}', kawaiiLayout('点歌通过啦', body), 'song_approved', userNickname);
 }
 
 // 8. 点歌审核未通过
@@ -368,7 +370,7 @@ async function notifySongRejected(userEmail, userNickname, songName, artist, rea
     `)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 可以重新选择其他歌曲哦~</p>
   `;
-  await sendEmail(userEmail, '💔 点歌未通过审核 · 嘉二の墙墙', kawaiiLayout('点歌未通过', body), 'song_rejected', userNickname);
+  await sendEmail(userEmail, '💔 点歌未通过审核 · ${siteConfig.siteName}', kawaiiLayout('点歌未通过', body), 'song_rejected', userNickname);
 }
 
 // 9. 点歌已播放
@@ -389,7 +391,7 @@ async function notifySongPlayed(userEmail, userNickname, songName, artist, userI
     `)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 感谢你的参与，下次继续点歌哦~</p>
   `;
-  await sendEmail(userEmail, '🎉 您的点歌已播放 · 嘉二の墙墙', kawaiiLayout('点歌已经播放啦', body), 'song_played', userNickname);
+  await sendEmail(userEmail, '🎉 您的点歌已播放 · ${siteConfig.siteName}', kawaiiLayout('点歌已经播放啦', body), 'song_played', userNickname);
 }
 
 // 9. 反馈回复通知
@@ -410,7 +412,7 @@ async function notifyFeedbackReply(userEmail, userNickname, feedbackTitle, reply
     `)}
     <p style="font-size:14px;color:#B8A9D4;margin:0;"> 如有其他问题，欢迎继续反馈~</p>
   `;
-  await sendEmail(userEmail, ' 反馈收到回复 · 嘉二の墙墙', kawaiiLayout('反馈回复', body), 'feedback_reply', userNickname);
+  await sendEmail(userEmail, ' 反馈收到回复 · ${siteConfig.siteName}', kawaiiLayout('反馈回复', body), 'feedback_reply', userNickname);
 }
 
 // 11. 关注的人发帖通知
@@ -420,7 +422,7 @@ async function notifyFollowPost(followerEmail, followerNickname, posterNickname,
     console.log('[Email] 用户 ' + followerId + ' 已关闭关注发帖通知');
     return;
   }
-  var postLink = 'https://wall.jay23.cn/post/' + postId;
+  var postLink = (process.env.SITE_URL || 'https://your-domain.com') + '/post/' + postId;
   var body = `
     <p style="font-size:15px;color:#4A3F5C;margin:0 0 12px;line-height:1.7;">
       亲爱的 <strong style="color:#FF6B9D;">${followerNickname}</strong> 同学：
@@ -432,7 +434,7 @@ async function notifyFollowPost(followerEmail, followerNickname, posterNickname,
     ${contentCard('<div style="text-align:center;font-size:40px;line-height:1;">🎉</div><div style="text-align:center;font-size:14px;color:#C084FC;margin-top:8px;font-weight:600;">你关注的人有新动态了~</div>')}
     <p style="font-size:14px;color:#B8A9D4;margin:0;">💡 <a href="${postLink}" style="color:#FF6B9D;text-decoration:none;font-weight:600;">点击查看TA的新帖子 →</a></p>
   `;
-  await sendEmail(followerEmail, '📝 关注的人发布了新帖子 · 嘉二の墙墙', kawaiiLayout('关注的人有新帖子', body), 'follow_post', followerNickname);
+  await sendEmail(followerEmail, '📝 关注的人发布了新帖子 · ${siteConfig.siteName}', kawaiiLayout('关注的人有新帖子', body), 'follow_post', followerNickname);
 }
 
 // 12. 新帖子待审核通知（通知所有管理员）
@@ -449,7 +451,7 @@ async function notifyAdminNewPostPending(postId, postTitle, posterNickname, post
       return;
     }
     
-    const siteUrl = process.env.SITE_URL || 'https://wall.jay23.cn';
+    const siteUrl = process.env.SITE_URL || 'https://your-domain.com';
     const adminUrl = siteUrl + '/admin';
     const contentPreview = (postContent || '').substring(0, 100);
     
@@ -481,7 +483,7 @@ async function notifyAdminNewPostPending(postId, postTitle, posterNickname, post
     
     for (const admin of admins) {
       const adminName = admin.nickname || admin.username || '管理员';
-      await sendEmail(admin.email, '📝 新帖子待审核 · 嘉二の墙墙', kawaiiLayout('新帖子待审核', body), 'admin_pending_post', adminName);
+      await sendEmail(admin.email, '📝 新帖子待审核 · ${siteConfig.siteName}', kawaiiLayout('新帖子待审核', body), 'admin_pending_post', adminName);
     }
     
     console.log('[Email] 已通知 ' + admins.length + ' 位管理员审核新帖子 #' + postId);

@@ -1,8 +1,11 @@
 const mysql = require('mysql2/promise');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env.local'), override: true });
 
 const DB_NAME = process.env.DB_NAME || 'campus_wall';
+const SITE_NAME = process.env.SITE_NAME || '校园墙';
+const SCHOOL_NAME = process.env.SCHOOL_NAME || '你的学校';
 
 // 主连接池（直接连接到目标数据库）
 const pool = mysql.createPool({
@@ -371,8 +374,8 @@ async function initDB() {
 
     // 插入默认系统设置
     const defaultSettings = [
-      { key: 'site_name', value: '嘉二の墙墙' },
-      { key: 'site_description', value: '校园信息交流平台' },
+      { key: 'site_name', value: SITE_NAME },
+      { key: 'site_description', value: SCHOOL_NAME + '校园信息交流平台' },
       { key: 'allow_register', value: 'true' },
       { key: 'post_review', value: 'true' },
       { key: 'song_enabled', value: 'true' }
@@ -733,6 +736,13 @@ async function initDB() {
     } catch (e) {
       if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
     }
+    // 单曲模板覆盖（-1=全局，0~11=指定模板，null=未设置）
+    try {
+      await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN template_override INT DEFAULT NULL COMMENT '单曲模板覆盖' AFTER song_info");
+      console.log('✅ daily_song_recs 表已添加 template_override 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
 
     // 私信会话表
     try {
@@ -835,6 +845,24 @@ async function initDB() {
     throw err;
   } finally {
     connection.release();
+  }
+
+  // 添加性能索引（已存在则忽略）
+  var indexes = [
+    'CREATE INDEX idx_posts_status_deleted ON posts(status, is_deleted)',
+    'CREATE INDEX idx_posts_created ON posts(created_at)',
+    'CREATE INDEX idx_posts_user ON posts(user_id)',
+    'CREATE INDEX idx_slot_reservations_lookup ON slot_reservations(slot_id, reservation_date, status)',
+    'CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read)',
+    'CREATE INDEX idx_song_votes_lookup ON song_votes(song_request_id, user_id)',
+    'CREATE INDEX idx_song_requests_slot ON song_requests(slot_date_id, status)'
+  ];
+  for (var j = 0; j < indexes.length; j++) {
+    try {
+      await pool.execute(indexes[j]);
+    } catch (e) {
+      // 索引已存在则忽略
+    }
   }
 }
 

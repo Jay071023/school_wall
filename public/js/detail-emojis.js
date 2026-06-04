@@ -3,6 +3,7 @@
  */
 
 var mentionedUsersList = []; // 艾特用户列表
+var commentInput = document.getElementById('commentInput');
 
 /**
  * 初始化表情选择器

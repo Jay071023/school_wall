@@ -11,7 +11,7 @@ function httpGet(url, extraHeaders) {
       'Accept': 'application/json'
     };
     if (extraHeaders) Object.assign(headers, extraHeaders);
-    var req = mod.get(url, { headers: headers, timeout: 10000 }, function(res) {
+    var req = mod.get(url, { headers: headers, timeout: 8000 }, function(res) {
       if (res.statusCode === 301 || res.statusCode === 302) {
         return httpGet(res.headers.location, extraHeaders).then(resolve).catch(reject);
       }
@@ -177,21 +177,19 @@ function cleanAIOutput(text) {
   var t = text;
   // 去掉<think>标签
   t = t.replace(/<think>[\s\S]*?<\/think>/g, '');
+  // 去掉"文案："、"介绍："、"推荐语："等前缀
+  t = t.replace(/^(?:文案|介绍|推荐语|推荐文案|歌曲介绍)[：:]\s*/gm, '');
   // 去掉常见AI思考/推理模式
-  t = t.replace(/(?:^|\n)(?:让我|我需要|首先|接下来|实际上|让我先|我应该|我想要|我必须|我认为|我觉得|我来写|我先|我想|我来构思|让我想|让我重新|让我来|我需要写|让我构思|让我思考|我需要了解|我需要确认|我应该避免|我应该诚实|我可以查找|这首歌的核心|让我想想|我想要捕捉|我需要诚实|这首歌是|这首歌的|这首歌曲的|我应该|我需要|我来|让我|我先|我想)[^\n]*/g, '');
+  t = t.replace(/(?:^|\n)(?:让我|我需要|首先|接下来|实际上|让我先|我应该|我想要|我必须|我认为|我觉得|我来写|我先|我想|我来构思|让我想|让我重新|让我来|我需要写|让我构思|让我思考|我需要了解|我需要确认|我应该避免|我应该诚实|我可以查找|这首歌的核心|让我想想|我想要捕捉|我需要诚实|这首歌是|这首歌的|这首歌曲的)[^\n]*/g, '');
   // 去掉英文思考模式
   t = t.replace(/(?:^|\n)(?:The user|They want|We need|Thus we|I think|I need|I should|Let me|First|Next|Actually|In this)[^\n]*/g, '');
-  // 去掉以"-"开头的思考行
-  t = t.replace(/^-\s+[^\n]*\n?/gm, '');
-  // 去掉解释性行
-  t = t.replace(/^(?:实际上|说实话|坦白说|其实|具体来说|简单来说|总的来说|这样我们|这样可以|我们需要|我们可以|这意味着|也就是说)[^\n]*\n?/gm, '');
-  // 去掉AI分析/检查行
-  t = t.replace(/^(?:检查|验证|确认|需要|要求|去掉|精简|控制在|保留|去掉多余|确保)[^\n]*\n?/gm, '');
-  // 去掉"文案："前缀和重复的文案内容
-  t = t.replace(/^文案[：:]\s*/gm, '');
-  // 去掉包含"要求："或"步骤"的行
-  t = t.replace(/^(?:\d+[.、]?\s*)?(?:要求|步骤|分析|注意|总结|说明)[：:][^\n]*\n?/gm, '');
-  // 去掉空的Markdown标题
+  // 去掉以"-"开头的列表行（通常是分析步骤）
+  t = t.replace(/^[-•]\s+[^\n]*\n?/gm, '');
+  // 去掉数字编号行（1. 2. 3. 等，通常是步骤说明）
+  t = t.replace(/^\d+[.、]\s*[^\n]*\n?/gm, '');
+  // 去掉解释性/检查性行
+  t = t.replace(/^(?:实际上|说实话|坦白说|其实|具体来说|简单来说|总的来说|这样我们|这样可以|我们需要|我们可以|这意味着|也就是说|检查|验证|确认|需要|要求|去掉|精简|控制在|保留|去掉多余|确保|注意|总结|说明|分析)[^\n]*\n?/gm, '');
+  // 去掉空的Markdown标题和格式符号
   t = t.replace(/^#{1,6}\s*$/gm, '');
   t = t.replace(/\*\*/g, '');
   t = t.replace(/^>\s*/gm, '');
@@ -202,11 +200,10 @@ function cleanAIOutput(text) {
   t = t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
   t = t.replace(/\n{3,}/g, '\n\n');
   t = t.trim();
-  // 如果清理后内容过短或看起来不像文案，取最后一个完整段落
-  var lines = t.split('\n').filter(function(l) { return l.trim().length > 10; });
-  if (lines.length > 3) {
-    // 取最后几行（通常是最终文案）
-    t = lines.slice(-3).join('\n').trim();
+  // 如果有多段落（AI输出了多个版本），取最后一段
+  var paragraphs = t.split(/\n\n+/).filter(function(p) { return p.trim().length > 15; });
+  if (paragraphs.length > 1) {
+    t = paragraphs[paragraphs.length - 1].trim();
   }
   return t;
 }
@@ -238,7 +235,7 @@ async function saveHistory(openid, userText, aiReply) {
 }
 
 async function getAIReply(text, openid) {
-  var systemPrompt = '你是校园墙助手"墙墙"，一个温柔可爱的学姐。回复要自然亲切，像朋友聊天一样，不要太机械。可以适当使用emoji表情，语气轻松活泼。当用户想聊天时，多问一些开放性问题引导对话；当用户想发帖或点歌时，引导他们去 https://wall.jay23.cn 操作。回复长度适中，不要太短也不要太长，控制在100字以内。';
+  var systemPrompt = '你是校园墙助手"墙墙"，一个温柔可爱的学姐。回复要自然亲切，像朋友聊天一样，不要太机械。可以适当使用emoji表情，语气轻松活泼。当用户想聊天时，多问一些开放性问题引导对话；当用户想发帖或点歌时，引导他们去 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + ' 操作。回复长度适中，不要太短也不要太长，控制在100字以内。';
 
   // 获取历史记录，提供上下文
   var history = [];
@@ -312,7 +309,7 @@ function callMinimaxWithModel(systemPrompt, messages, modelName, timeoutMs, maxT
         'X-Api-Key': MINIMAX_KEY,
         'Content-Length': Buffer.byteLength(body)
       },
-      timeout: timeoutMs || 15000
+      timeout: timeoutMs || 8000
     }, function(res) {
       var data = '';
       res.on('data', function(chunk) { data += chunk; });
@@ -437,23 +434,23 @@ function getRuleReply(text) {
   }
   // 天气
   if (/天气|气温|温度/i.test(t)) {
-    return '🌤️ 天气信息暂时查不到，你可以直接去 https://wall.jay23.cn 看看首页的天气卡片哦~';
+    return '🌤️ 天气信息暂时查不到，你可以直接去 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + ' 看看首页的天气卡片哦~';
   }
   // 投稿
   if (/投稿|发帖|发布/i.test(t)) {
-    return '📝 想投稿？很简单！\n\n打开 https://wall.jay23.cn → 点击"发布"→ 写内容提交就行~\n审核通过后就能在墙上看到啦！';
+    return '📝 想投稿？很简单！\n\n打开 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + ' → 点击"发布"→ 写内容提交就行~\n审核通过后就能在墙上看到啦！';
   }
   // 点歌
   if (/点歌|歌曲|音乐/i.test(t)) {
-    return '🎵 想点歌？\n\n打开 https://wall.jay23.cn → 进入"点歌"页面 → 选时段和歌曲 → 提交~\n校广播站会定时播放哦！';
+    return '🎵 想点歌？\n\n打开 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + ' → 进入"点歌"页面 → 选时段和歌曲 → 提交~\n校广播站会定时播放哦！';
   }
   // 绑定
   if (/绑定|微信/i.test(t)) {
-    return '🔗 微信绑定教程\n\n打开 https://wall.jay23.cn → 登录 → 个人中心 → 绑定微信 → 扫码即可~\n绑定后能收到评论和点赞通知哦~';
+    return '🔗 微信绑定教程\n\n打开 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + ' → 登录 → 个人中心 → 绑定微信 → 扫码即可~\n绑定后能收到评论和点赞通知哦~';
   }
   // 学校
-  if (/学校|嘉定|二中/i.test(t)) {
-    return '🏫 上海市嘉定区第二中学\n📍 德华路388号\n🌐 校园墙：https://wall.jay23.cn';
+  if (/学校/i.test(t)) {
+    return '🏫 ' + (process.env.SCHOOL_NAME || '你的学校') + '\n🌐 校园墙：' + (process.env.SITE_URL || 'https://your-domain.com');
   }
   // 夸夸
   if (/真棒|厉害|大佬|牛逼/i.test(t)) {
@@ -461,11 +458,11 @@ function getRuleReply(text) {
   }
   // 无聊
   if (/无聊|好无聊|闲/i.test(t)) {
-    return '😊 无聊的话可以去校园墙逛逛~ https://wall.jay23.cn\n看看大家在聊什么，或者发个帖找人聊天也行！';
+    return '😊 无聊的话可以去校园墙逛逛~ https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + '\n看看大家在聊什么，或者发个帖找人聊天也行！';
   }
 
   // 兜底
-  return '💬 回复"帮助"查看我能做什么吧~\n🌐 https://wall.jay23.cn';
+  return '💬 回复"帮助"查看我能做什么吧~\n🌐 https://' + (process.env.SITE_DOMAIN || 'your-domain.com') + '';
 }
 
 // ===== AI 生成小说章节 =====
@@ -641,14 +638,20 @@ async function generateChapterStream(prompt, onToken) {
 
 // 生成歌曲介绍
 async function generateSongIntro(songName, artist) {
-  // 先抓真实歌词
+  // 并行抓网易云 + QQ + 酷狗，节省时间
   var realLyrics = '';
   try {
-    realLyrics = await fetchNeteaseLyrics(songName, artist);
-    if (!realLyrics) realLyrics = await fetchQQLyrics(songName, artist);
-  } catch(e) {}
-
-  var lyricsSection = realLyrics ? '\n\n以下是这首歌的歌词，请基于歌词内容来写推荐语：\n' + realLyrics.substring(0, 2000) : '';
+    var results = await Promise.allSettled([
+      fetchNeteaseLyrics(songName, artist),
+      fetchQQLyrics(songName, artist)
+    ]);
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].status === 'fulfilled' && results[i].value && results[i].value.length > 10) {
+        realLyrics = results[i].value;
+        break;
+      }
+    }
+  } catch(e) { console.warn('[AI] 抓歌词失败:', e.message); }
 
   // 把歌词截取关键段落
   var lyricSnippet = '';
@@ -657,16 +660,17 @@ async function generateSongIntro(songName, artist) {
     lyricSnippet = lines.slice(0, 20).join('\n');
   }
 
-  var prompt = '歌曲《' + songName + '》的歌词：\n\n' + (lyricSnippet || '（无歌词）') + '\n\n请根据歌词写一段150字左右的推荐文案。要求：\n1. 自然融入1-2句歌词（不加引号，像聊天随口提到）\n2. 不要编造歌词，不要用Markdown\n3. 只输出最终文案，不要标题、不要编号、不要分析过程\n4. 直接开始写文案内容';
+  var systemMsg = '你是校园公众号音乐栏目编辑。你的任务是为一首歌写一段150字左右的推荐文案，用于公众号推文。\n\n严格规则：\n- 只输出推荐文案本身，不要输出任何其他内容\n- 不要输出标题、编号、分析、思考过程、歌词列表、检查说明\n- 不要以"文案："或"介绍："开头\n- 直接以文案正文开始，像跟朋友聊天一样自然\n- 在文案中自然融入1-2句歌词原句，不加引号，像随口提到一样\n- 不要编造歌词，只使用提供的歌词原文';
+
+  var prompt = '歌曲：《' + songName + '》' + (artist ? ' - ' + artist : '') + '\n\n歌词摘录：\n' + (lyricSnippet || '（暂无歌词）') + '\n\n请为这首歌写一段推荐文案。';
 
   var messages = [{ role: 'user', content: [{ type: 'text', text: prompt }] }];
-  var systemMsg = '你是校园公众号编辑，只写推荐文案。绝对不要输出分析、推理、思考过程、步骤说明或歌词原文列表。只输出一段流畅的推荐文字。';
 
   try {
     var reply = null;
     if (MINIMAX_KEY) {
       try {
-        reply = await callMiniMax(systemMsg, messages, 1500);
+        reply = await callMiniMax(systemMsg, messages, 800);
         console.log('[AI] MiniMax生成歌曲介绍成功:', reply ? reply.substring(0, 50) : '空');
       } catch(e) {
         console.warn('[AI] MiniMax生成歌曲介绍失败:', e.message);
@@ -715,81 +719,84 @@ async function searchSongInfo(songName, artist) {
   // 搜索时只用歌名（去掉中文歌手名避免干扰搜索）
   var searchName = songName;
   var searchArtist = artist || '';
-  // 如果歌手名含中文，提取英文部分用于搜索
   if (searchArtist) {
     searchArtist = searchArtist.replace(/[和的与&]/g, " ").replace(/s+/g, " ").trim();
   }
   var keyword = searchName;
   console.log('[歌曲信息] 搜索关键词:', keyword, '| 原始歌手:', artist || '');
 
-  // 方法1：网易云元数据
-  try {
+  // 并行：方法1网易云 + 方法2QQ
+  var netTask = (async function() {
     var searchUrl = 'https://music.163.com/api/search/get?s=' + encodeURIComponent(keyword) + '&type=1&limit=10';
     var searchRes = await httpGet(searchUrl, { 'Referer': 'https://music.163.com/' });
-    var searchData = JSON.parse(searchRes);
-    if (searchData.result && searchData.result.songs && searchData.result.songs.length > 0) {
-      var songs = searchData.result.songs;
-      var best = null;
-      var bestArtistCount = 999;
-      for (var i = 0; i < songs.length; i++) {
-        var sname = songs[i].name || '';
-        var sartist = (songs[i].artists || []).map(function(a) { return a.name || ''; }).join(' ');
-        if (!matchSongName(sname, songName)) continue;
-        if (artist && !matchArtist(sartist, artist)) continue;
-        // 优先选歌手少的（更精确的版本）
-        var acount = (songs[i].artists || []).length;
-        if (acount < bestArtistCount) { best = songs[i]; bestArtistCount = acount; }
-      }
-      if (!best) {
-        for (var i = 0; i < songs.length; i++) {
-          if (matchSongName(songs[i].name || '', songName)) { best = songs[i]; break; }
-        }
-      }
-      if (!best) best = songs[0];
-      if (best) {
-        var albumName = best.album && best.album.name ? best.album.name : '-';
-        var year = best.album && best.album.publishTime ? new Date(best.album.publishTime).getFullYear() + '' : '-';
-        var duration = best.duration ? Math.floor(best.duration / 60000) + ':' + String(Math.floor((best.duration % 60000) / 1000)).padStart(2, '0') : '-';
-        console.log('[歌曲信息] 匹配:', best.name, '|', (best.artists||[]).map(function(a){return a.name}).join('/'), '|', albumName, year, duration);
+    return JSON.parse(searchRes);
+  })().catch(function(e) { console.warn('[歌曲信息] 网易云失败:', e.message); return null; });
 
-        // 尝试获取专辑详情（含介绍）
-        var albumIntro = '';
-        if (best.album && best.album.id) {
-          try {
-            var detailUrl = 'https://music.163.com/api/album/' + best.album.id;
-            var detailRes = await httpGet(detailUrl, { 'Referer': 'https://music.163.com/' });
-            var detailData = JSON.parse(detailRes);
-            if (detailData.album && detailData.album.description) {
-              albumIntro = detailData.album.description.trim();
-            }
-          } catch(e) {}
-        }
-
-        return { album: albumName, year: year, duration: duration, intro: albumIntro };
-      }
-    }
-  } catch(e) { console.warn('[歌曲信息] 网易云失败:', e.message); }
-
-  // 方法2：QQ音乐
-  try {
+  var qqTask = (async function() {
     var qqUrl = 'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?w=' + encodeURIComponent(keyword) + '&format=json&n=5&p=1';
     var qqRes = await httpGet(qqUrl, { 'Referer': 'https://y.qq.com/' });
-    var qqData = JSON.parse(qqRes);
-    if (qqData.data && qqData.data.song && qqData.data.song.list && qqData.data.song.list.length > 0) {
-      var songs = qqData.data.song.list;
-      var best = null;
+    return JSON.parse(qqRes);
+  })().catch(function(e) { console.warn('[歌曲信息] QQ失败:', e.message); return null; });
+
+  var results = await Promise.allSettled([netTask, qqTask]);
+  var netData = results[0].status === 'fulfilled' ? results[0].value : null;
+  var qqData = results[1].status === 'fulfilled' ? results[1].value : null;
+
+  // 方法1：网易云元数据
+  if (netData && netData.result && netData.result.songs && netData.result.songs.length > 0) {
+    var songs = netData.result.songs;
+    var best = null;
+    var bestArtistCount = 999;
+    for (var i = 0; i < songs.length; i++) {
+      var sname = songs[i].name || '';
+      var sartist = (songs[i].artists || []).map(function(a) { return a.name || ''; }).join(' ');
+      if (!matchSongName(sname, songName)) continue;
+      if (artist && !matchArtist(sartist, artist)) continue;
+      var acount = (songs[i].artists || []).length;
+      if (acount < bestArtistCount) { best = songs[i]; bestArtistCount = acount; }
+    }
+    if (!best) {
       for (var i = 0; i < songs.length; i++) {
-        if (matchSongName(songs[i].songname || '', songName)) { best = songs[i]; break; }
-      }
-      if (!best) best = songs[0];
-      if (best) {
-        var albumName = best.albumname || '-';
-        var dur = best.interval ? Math.floor(best.interval / 60) + ':' + String(best.interval % 60).padStart(2, '0') : '-';
-        console.log('[歌曲信息] QQ:', best.songname, '|', albumName);
-        return { album: albumName, year: '-', duration: dur };
+        if (matchSongName(songs[i].name || '', songName)) { best = songs[i]; break; }
       }
     }
-  } catch(e) { console.warn('[歌曲信息] QQ失败:', e.message); }
+    if (!best) best = songs[0];
+    if (best) {
+      var albumName = best.album && best.album.name ? best.album.name : '-';
+      var year = best.album && best.album.publishTime ? new Date(best.album.publishTime).getFullYear() + '' : '-';
+      var duration = best.duration ? Math.floor(best.duration / 60000) + ':' + String(Math.floor((best.duration % 60000) / 1000)).padStart(2, '0') : '-';
+      console.log('[歌曲信息] 匹配:', best.name, '|', (best.artists||[]).map(function(a){return a.name}).join('/'), '|', albumName, year, duration);
+
+      // 异步获取专辑详情
+      if (best.album && best.album.id) {
+        try {
+          var detailUrl = 'https://music.163.com/api/album/' + best.album.id;
+          var detailRes = await httpGet(detailUrl, { 'Referer': 'https://music.163.com/' });
+          var detailData = JSON.parse(detailRes);
+          if (detailData.album && detailData.album.description) {
+            return { album: albumName, year: year, duration: duration, intro: detailData.album.description.trim() };
+          }
+        } catch(e) {}
+      }
+      return { album: albumName, year: year, duration: duration, intro: '' };
+    }
+  }
+
+  // 方法2：QQ音乐
+  if (qqData && qqData.data && qqData.data.song && qqData.data.song.list && qqData.data.song.list.length > 0) {
+    var qqsongs = qqData.data.song.list;
+    var qbest = null;
+    for (var i = 0; i < qqsongs.length; i++) {
+      if (matchSongName(qqsongs[i].songname || '', songName)) { qbest = qqsongs[i]; break; }
+    }
+    if (!qbest) qbest = qqsongs[0];
+    if (qbest) {
+      var albumName = qbest.albumname || '-';
+      var dur = qbest.interval ? Math.floor(qbest.interval / 60) + ':' + String(qbest.interval % 60).padStart(2, '0') : '-';
+      console.log('[歌曲信息] QQ:', qbest.songname, '|', albumName);
+      return { album: albumName, year: '-', duration: dur };
+    }
+  }
 
   return null;
 }
@@ -798,24 +805,19 @@ async function searchSongInfo(songName, artist) {
 async function searchSongLyrics(songName, artist) {
   console.log('[歌词] 搜索:', songName, artist || '');
 
-  // 方法1：网易云
+  // 并行：网易云 + QQ
+  var netP = fetchNeteaseLyrics(songName, artist).catch(function(e) { console.warn('[歌词] 网易云失败:', e.message); return ''; });
+  var qqP = fetchQQLyrics(songName, artist).catch(function(e) { console.warn('[歌词] QQ失败:', e.message); return ''; });
+  var raws = await Promise.allSettled([netP, qqP]);
   var rawLyrics = '';
-  try {
-    rawLyrics = await fetchNeteaseLyrics(songName, artist);
-    if (rawLyrics && rawLyrics.length > 10) { console.log('[歌词] 网易云成功'); }
-    else { rawLyrics = ''; }
-  } catch(e) { console.warn('[歌词] 网易云失败:', e.message); }
-
-  // 方法2：QQ音乐
-  if (!rawLyrics) {
-    try {
-      rawLyrics = await fetchQQLyrics(songName, artist);
-      if (rawLyrics && rawLyrics.length > 10) { console.log('[歌词] QQ成功'); }
-      else { rawLyrics = ''; }
-    } catch(e) { console.warn('[歌词] QQ失败:', e.message); }
+  for (var i = 0; i < raws.length; i++) {
+    if (raws[i].status === 'fulfilled' && raws[i].value && raws[i].value.length > 10) {
+      rawLyrics = raws[i].value;
+      break;
+    }
   }
 
-  // 方法3：AI兜底
+  // AI兜底
   if (!rawLyrics) {
     console.log('[歌词] 双源无结果，用AI');
     try {

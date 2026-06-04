@@ -7,10 +7,13 @@ const { notifyPostApproved, notifyPostRejected, notifySongApproved, notifySongRe
 const jwt = require('jsonwebtoken');
 const mpDraftService = require('../services/mp-draft');
 const aiService = require('../services/ai');
+const siteConfig = require('../lib/site-config');
 const router = express.Router();
 
-const SITE_URL = 'https://wall.jay23.cn';
-const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
+const SITE_URL = siteConfig.siteUrl;
+const SCHOOL_NAME = siteConfig.schoolName;
+const SITE_NAME = siteConfig.siteName;
+const JWT_SECRET = require('../config/jwt-secret');
 
 // 所有管理路由都需要登录 + 是管理后台用户
 router.use(auth, isStaff);
@@ -769,7 +772,24 @@ router.put('/daily-songs/:id/intro', requirePermission('songs:review'), async (r
   }
 });
 
+// 设置单曲模板（-1=跟随全局，0~11=指定模板，空=null=清除）
+router.put('/daily-songs/:id/template', requirePermission('songs:review'), async (req, res) => {
+  try {
+    var { template_override } = req.body;
+    var val = null;
+    if (template_override !== null && template_override !== undefined && template_override !== '') {
+      var n = parseInt(template_override);
+      if (!isNaN(n) && n >= -1 && n <= 11) val = n;
+    }
+    await pool.execute('UPDATE daily_song_recs SET template_override = ? WHERE id = ?', [val, req.params.id]);
+    res.json({ code: 200, message: val === null ? '已恢复全局' : '已设置' });
+  } catch (err) {
+    res.json({ code: 500, message: '保存失败: ' + err.message });
+  }
+});
+
 // 搜索歌曲信息（用于音乐卡片）
+// 搜索歌曲信息
 router.post('/search-song-info', requirePermission('songs:review'), async (req, res) => {
   try {
     const { song_name, artist } = req.body;
@@ -777,11 +797,15 @@ router.post('/search-song-info', requirePermission('songs:review'), async (req, 
       return res.json({ code: 400, message: '请提供歌曲名' });
     }
     const aiService = require('../services/ai');
-    const info = await aiService.searchSongInfo(song_name, artist || '');
+    // 30秒硬超时（兜底）
+    var info = await Promise.race([
+      aiService.searchSongInfo(song_name, artist || ''),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('搜索超时')); }, 30000); })
+    ]);
     if (info) {
       res.json({ code: 200, data: info });
     } else {
-      res.json({ code: 500, message: '搜索失败' });
+      res.json({ code: 404, message: '未找到该歌曲信息，请检查歌名/歌手是否正确' });
     }
   } catch (err) {
     res.json({ code: 500, message: '搜索失败: ' + err.message });
@@ -796,11 +820,15 @@ router.post('/search-song-lyrics', requirePermission('songs:review'), async (req
       return res.json({ code: 400, message: '请提供歌曲名' });
     }
     const aiService = require('../services/ai');
-    const lyrics = await aiService.searchSongLyrics(song_name, artist || '');
+    // 30秒硬超时
+    var lyrics = await Promise.race([
+      aiService.searchSongLyrics(song_name, artist || ''),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('搜索超时')); }, 30000); })
+    ]);
     if (lyrics) {
       res.json({ code: 200, data: { lyrics } });
     } else {
-      res.json({ code: 500, message: '搜索失败' });
+      res.json({ code: 404, message: '未找到该歌曲的歌词（可能歌曲名/歌手错误，或该歌曲暂无歌词）' });
     }
   } catch (err) {
     res.json({ code: 500, message: '搜索失败: ' + err.message });
@@ -808,24 +836,58 @@ router.post('/search-song-lyrics', requirePermission('songs:review'), async (req
 });
 
 // 生成歌曲介绍
+// 内存任务表：{taskId: {status, data, error, createdAt}}
+var introTasks = {};
+function genTaskId() { return Date.now().toString(36) + Math.random().toString(36).substring(2, 8); }
+// 清理5分钟前的任务
+setInterval(function() {
+  var now = Date.now();
+  Object.keys(introTasks).forEach(function(k) {
+    if (now - introTasks[k].createdAt > 5 * 60 * 1000) delete introTasks[k];
+  });
+}, 60 * 1000);
+
+// 启动生成（立即返回taskId）
 router.post('/generate-song-intro', requirePermission('songs:review'), async (req, res) => {
   try {
     const { song_name, artist } = req.body;
     if (!song_name) {
       return res.json({ code: 400, message: '请提供歌曲名' });
     }
-    const aiService = require('../services/ai');
-    const result = await aiService.generateSongIntro(song_name, artist || '');
-    if (result.intro || result.lyrics) {
-      res.json({ code: 200, data: { intro: result.intro || '', lyrics: result.lyrics || '' } });
-    } else if (result.prompt) {
-      res.json({ code: 200, data: { intro: '', lyrics: '', prompt: result.prompt, message: 'AI不可用，请复制提示词手动生成' } });
-    } else {
-      res.json({ code: 500, message: '生成失败' });
-    }
+    var taskId = genTaskId();
+    introTasks[taskId] = { status: 'pending', createdAt: Date.now() };
+    res.json({ code: 200, data: { taskId: taskId, status: 'pending' } });
+    // 后台异步生成
+    var aiService = require('../services/ai');
+    aiService.generateSongIntro(song_name, artist || '').then(function(result) {
+      if (result.intro || result.lyrics) {
+        introTasks[taskId] = { status: 'done', createdAt: introTasks[taskId].createdAt, data: { intro: result.intro || '', lyrics: result.lyrics || '' } };
+      } else if (result.prompt) {
+        introTasks[taskId] = { status: 'done', createdAt: introTasks[taskId].createdAt, data: { intro: '', lyrics: '', prompt: result.prompt, message: 'AI不可用，请复制提示词手动生成' } };
+      } else {
+        introTasks[taskId] = { status: 'error', createdAt: introTasks[taskId].createdAt, error: '生成失败' };
+      }
+    }).catch(function(err) {
+      introTasks[taskId] = { status: 'error', createdAt: introTasks[taskId].createdAt, error: err.message };
+    });
   } catch (err) {
-    res.json({ code: 500, message: '生成失败: ' + err.message });
+    res.json({ code: 500, message: '启动失败: ' + err.message });
   }
+});
+
+// 轮询生成结果
+router.get('/generate-song-intro/result', requirePermission('songs:review'), (req, res) => {
+  var taskId = req.query.taskId || '';
+  var task = introTasks[taskId];
+  if (!task) return res.json({ code: 404, message: '任务不存在或已过期' });
+  if (task.status === 'pending') return res.json({ code: 200, data: { status: 'pending' } });
+  if (task.status === 'error') {
+    delete introTasks[taskId];
+    return res.json({ code: 500, message: task.error });
+  }
+  // done
+  delete introTasks[taskId];
+  res.json({ code: 200, data: { status: 'done', ...task.data } });
 });
 
 // QQ热歌榜
@@ -1392,12 +1454,12 @@ router.post('/test-email', requirePermission('settings:view'), async (req, res) 
       return res.json({ code: 400, message: '请提供测试邮箱地址' });
     }
     const { sendEmail } = require('../services/email');
-    const success = await sendEmail(email, '🧪 测试邮件 · 嘉二の墙墙', `
+    const success = await sendEmail(email, '🧪 测试邮件 · ' + siteConfig.siteName, `
       <div style="text-align:center;padding:20px;font-family:sans-serif;">
         <div style="font-size:48px;margin-bottom:16px;">✉️</div>
         <h2 style="color:#FF6B9D;">邮件配置正确！</h2>
         <p style="color:#4A3F5C;font-size:15px;line-height:1.7;">🎉 恭喜，你的SMTP配置已经生效啦~<br>以后用户就能收到评论、点赞、关注等邮件通知了 ✨</p>
-        <div style="margin-top:20px;padding:16px;background:#F8F5FF;border-radius:12px;font-size:13px;color:#B8A9D4;">💌 嘉二の墙墙 — 让每一份心意都被看见</div>
+        <div style="margin-top:20px;padding:16px;background:#F8F5FF;border-radius:12px;font-size:13px;color:#B8A9D4;">💌 ${SITE_NAME} — 让每一份心意都被看见</div>
       </div>
     `);
     if (success) {
@@ -1995,7 +2057,7 @@ router.post('/email/send-batch', requirePermission('notices:manage'), async (req
     
     // 导入邮件服务
     const { sendEmail } = require('../services/email');
-    const siteUrl = process.env.SITE_URL || 'https://wall.jay23.cn';
+    const siteUrl = process.env.SITE_URL || '' + SITE_URL + '';
     
     // 生成卡哇伊风格邮件HTML
     const emailHtml = `
@@ -2003,7 +2065,7 @@ router.post('/email/send-batch', requirePermission('notices:manage'), async (req
         亲爱的同学：
       </p>
       <div style="font-size:14px;color:#4A3F5C;line-height:1.8;white-space:pre-wrap;">${content}</div>
-      <p style="font-size:14px;color:#B8A9D4;margin:16px 0 0;"> 来自 嘉二の墙墙 的温馨提醒</p>
+      <p style="font-size:14px;color:#B8A9D4;margin:16px 0 0;"> 来自 ${SITE_NAME} 的温馨提醒</p>
     `;
     
     // 使用kawaiiLayout包装
@@ -2146,7 +2208,7 @@ router.post('/wechat/test-message', async (req, res) => {
       touser: openid,
       msgtype: 'text',
       text: {
-        content: '🔔 嘉二の墙墙 - 测试消息'
+        content: '🔔 ' + SITE_NAME + ' - 测试消息'
       }
     });
 
@@ -2475,7 +2537,7 @@ function novelsGetList() {
       var oldIndex = JSON.parse(fs_stories.readFileSync(oldIndexPath, 'utf8'));
       if (Array.isArray(oldIndex) && oldIndex.length > 0) {
         // 已有章节，创建默认小说
-        list.push({ id: 'default', title: '致那个夏天的你', author: '嘉二校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+        list.push({ id: 'default', title: '致那个夏天的你', author: siteConfig.mpAuthor + '编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
         // 把文件从 config/stories/ 移到 config/stories/default/
         var novelDir = path_stories.join(STORIES_BASE, 'default');
         if (!fs_stories.existsSync(novelDir)) fs_stories.mkdirSync(novelDir, { recursive: true });
@@ -2508,7 +2570,7 @@ function novelsGetList() {
   }
   if (list.length === 0) {
     // 全新安装，创建默认小说
-    list.push({ id: 'default', title: '致那个夏天的你', author: '嘉二校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+    list.push({ id: 'default', title: '致那个夏天的你', author: siteConfig.mpAuthor + '编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
   }
   fs_stories.writeFileSync(NOVELS_PATH, JSON.stringify(list, null, 2), 'utf8');
   return list;
@@ -2601,8 +2663,8 @@ function storiesGetIndex(novelId) {
         var idx = [];
         oldStories.forEach(function(s, i) {
           var chapFile = i + '.json';
-          fs_stories.writeFileSync(path_stories.join(dir, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
-          idx.push({ file: chapFile, title: s.title, author: s.author || '嘉二校园墙编辑部', published: false });
+          fs_stories.writeFileSync(path_stories.join(dir, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || siteConfig.mpAuthor + '编辑部' }, null, 2), 'utf8');
+          idx.push({ file: chapFile, title: s.title, author: s.author || siteConfig.mpAuthor + '编辑部', published: false });
         });
         fs_stories.writeFileSync(p, JSON.stringify(idx, null, 2), 'utf8');
         fs_stories.renameSync(oldPath, oldPath + '.bak');
@@ -2636,7 +2698,7 @@ function storiesSaveChapter(idx, data, novelId) {
   if (idx >= 0 && idx < index.length) {
     fs_stories.writeFileSync(path_stories.join(dir, index[idx].file), JSON.stringify({ title: data.title, content: data.content, author: data.author }, null, 2), 'utf8');
     index[idx].title = data.title;
-    index[idx].author = data.author || '嘉二校园墙编辑部';
+    index[idx].author = data.author || siteConfig.mpAuthor + '编辑部';
     if (index[idx].published === undefined) index[idx].published = false;
     storiesSaveIndex(index, novelId);
   }
@@ -2647,8 +2709,8 @@ function storiesAddChapter(title, content, author, novelId) {
   var dir = getNovelDir(novelId);
   if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
   var nextFile = index.length + '.json';
-  fs_stories.writeFileSync(path_stories.join(dir, nextFile), JSON.stringify({ title: title, content: content || '', author: author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
-  index.push({ file: nextFile, title: title, author: author || '嘉二校园墙编辑部', published: false });
+  fs_stories.writeFileSync(path_stories.join(dir, nextFile), JSON.stringify({ title: title, content: content || '', author: author || siteConfig.mpAuthor + '编辑部' }, null, 2), 'utf8');
+  index.push({ file: nextFile, title: title, author: author || siteConfig.mpAuthor + '编辑部', published: false });
   storiesSaveIndex(index, novelId);
   return index.length - 1;
 }
@@ -2684,7 +2746,7 @@ router.post('/novels/create', auth, async (req, res) => {
     if (!title) return res.json({ code: 400, message: '小说标题不能为空' });
     var list = novelsGetList();
     var id = 'novel_' + Date.now();
-    list.push({ id: id, title: title, author: author || '嘉二校园墙编辑部', desc: desc || '', createdAt: new Date().toISOString().substring(0, 10) });
+    list.push({ id: id, title: title, author: author || siteConfig.mpAuthor + '编辑部', desc: desc || '', createdAt: new Date().toISOString().substring(0, 10) });
     novelsSaveList(list);
     // 初始化该小说的目录和配置
     var dir = getNovelDir(id);
@@ -2784,13 +2846,16 @@ router.get('/stories/chapter-content', auth, async (req, res) => {
   try {
     var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var idx = parseInt(req.query.index);
+    console.log('[故事] 获取章节 novelId=' + novelId + ' index=' + idx);
     var chapter = storiesGetChapter(idx, novelId);
     if (chapter) {
+      console.log('[故事] 章节内容长度:', (chapter.content || '').length);
       res.json({ code: 200, data: chapter });
     } else {
       res.json({ code: 404, message: '章节不存在' });
     }
   } catch (err) {
+    console.error('[故事] 获取章节失败:', err);
     res.json({ code: 500, message: err.message });
   }
 });
@@ -3220,7 +3285,7 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
     storyHtml += '❤️ 校园故事持续征集中<br>';
     storyHtml += '墙墙准备了一篇暖心小说，希望你喜欢 ❤️<br><br>';
     storyHtml += '🎨 如果你也有故事，<strong style="color:#FF6B9D;">欢迎分享给身边的同学哦</strong><br>';
-    storyHtml += '📮 想说的，去 <strong style="color:#FF6B9D;">https://wall.jay23.cn</strong> 投稿吧！<br>';
+    storyHtml += '📮 想说的，去 <strong style="color:#FF6B9D;">' + SITE_URL + '</strong> 投稿吧！<br>';
     storyHtml += '你的每一个故事，都有可能成为下篇文章的主角 ❤️';
     storyHtml += '</div></td></tr></table>';
     
@@ -3230,14 +3295,14 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
     storyHtml += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
     storyHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
     storyHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-    storyHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
+    storyHtml += '<img src="' + SITE_URL + '/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
     storyHtml += '</td></tr></table>';
     storyHtml += '</td></tr></table>';
     storyHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
-    storyHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
+    storyHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">' + SITE_URL + '</p>';
     storyHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
     storyHtml += '</td></tr></table>';
-    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 嘉二校园墙 ❀ ❀</p>';
+    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' ${siteConfig.mpAuthor} ❀ ❀</p>';
     storyHtml += '</div>';
     
     storyHtml = await uploadStoryImages(storyHtml);
@@ -3247,7 +3312,7 @@ router.post('/stories/publish-to-wechat', auth, async (req, res) => {
       author: 'JAY',
       digest: '小说连载 · ' + novelTitle + ' · ' + chapter.title + '。' + (chapter.content || '').replace(/[\n\r]+/g, '').substring(0, 60) + '...',
       content: storyHtml,
-      content_source_url: 'https://wall.jay23.cn',
+      content_source_url: '' + SITE_URL + '',
       show_cover_pic: 1,
       need_open_comment: 1,
       only_fans_can_comment: 0

@@ -1,10 +1,69 @@
+# ===== 依赖 =====
 node_modules/
+package-lock.json.bak
+
+# ===== 敏感信息（永不提交） =====
 .env
 .env.local
-*.log
+.env.*.local
+*.pem
+*.key
+*.crt
 ssh_key
-ssh_key_new
+ssh_key_*
 private.*.key
-$null
-*.zip
+secrets/
+
+# ===== 数据 =====
 data/
+uploads/
+public/uploads/avatars/
+public/uploads/posts/
+public/uploads/songs/
+backup/
+*.sql
+*.sql.gz
+*.dump
+
+# ===== 日志 =====
+*.log
+logs/
+pm2-*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+nohup.out
+
+# ===== 构建产物 =====
+public/admin-vue/dist/
+.cache/
+.parcel-cache/
+.vite/
+dist/
+build/
+*.min.js
+*.min.css
+*.bundle.*
+
+# ===== 临时文件 =====
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+$RECYCLE.BIN/
+$null
+*.swp
+*.swo
+*.bak
+*.zip
+*.tar.gz
+dbq*.js
+test-*.js
+check-*.js
+
+# ===== 编辑器 =====
+.vscode/
+.idea/
+*.iml
+.cursor/
+.claude/
