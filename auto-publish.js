@@ -2,7 +2,7 @@
  * 每日自动生成并发布公众号图文
  * 使用方式：node auto-publish.js
  * 设置定时：crontab -e 添加以下行
- *   0 8 * * * cd /path/to/campus-wall && node auto-publish.js >> logs/auto-publish.log 2>&1
+ *   0 8 * * * cd /www/wwwroot/wall.jay23.cn/campus-wall && node auto-publish.js >> logs/auto-publish.log 2>&1
  *   (每天早上8点执行)
  */
 
@@ -10,7 +10,6 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
-const siteConfig = require('./lib/site-config');
 // QRCode was removed - using local image instead
 
 // 项目根目录
@@ -180,7 +179,7 @@ async function main() {
     var originalSrc = match[1];
     if (originalSrc.indexOf('mmbiz.qpic.cn') >= 0 || originalSrc.indexOf('mmbiz.qlogo.cn') >= 0) continue;
     var uploadUrl = originalSrc;
-    if (uploadUrl.startsWith('/')) uploadUrl = siteConfig.siteUrl + uploadUrl;
+    if (uploadUrl.startsWith('/')) uploadUrl = 'https://wall.jay23.cn' + uploadUrl;
     tasks.push({ original: originalSrc, upload: uploadUrl });
   }
 
@@ -204,10 +203,10 @@ async function main() {
   if (storyData) {
     article = {
       title: '小说连载 · ' + storyData.chapter.title + ' | ' + dateInfo.date,
-      author: storyData.chapter.author || siteConfig.mpAuthor,
+      author: storyData.chapter.author || '嘉二校园墙',
       digest: '小说连载 · ' + storyData.chapter.title + '。' + (storyData.chapter.content ? storyData.chapter.content.replace(/[\n\r]+/g, '').substring(0, 60) + '...' : ''),
       content: html,
-      content_source_url: siteConfig.siteUrl,
+      content_source_url: 'https://wall.jay23.cn',
       show_cover_pic: 1,
       need_open_comment: 1,
       only_fans_can_comment: 0
@@ -215,10 +214,10 @@ async function main() {
   } else {
     article = {
       title: (sourceLabel ? sourceLabel + ' | ' : '') + dateInfo.date,
-      author: siteConfig.mpAuthor,
+      author: '嘉二校园墙',
       digest: (sourceLabel || '今日精选') + '：' + posts.length + '条帖子，含天气、每周之星等丰富内容',
       content: html,
-      content_source_url: siteConfig.siteUrl,
+      content_source_url: 'https://wall.jay23.cn',
       show_cover_pic: 1,
       need_open_comment: 1,
       only_fans_can_comment: 0
@@ -271,8 +270,8 @@ function loadStoryChapter(config) {
           if (!fs.existsSync(storiesDir)) fs.mkdirSync(storiesDir, { recursive: true });
           index = [];
           oldStories.forEach(function(s, i) {
-            fs.writeFileSync(path.join(storiesDir, i + '.json'), JSON.stringify({ title: s.title, content: s.content, author: s.author || siteConfig.mpAuthor + '编辑部' }, null, 2), 'utf8');
-            index.push({ file: i + '.json', title: s.title, author: s.author || siteConfig.mpAuthor + '编辑部' });
+            fs.writeFileSync(path.join(storiesDir, i + '.json'), JSON.stringify({ title: s.title, content: s.content, author: s.author || '嘉二校园墙编辑部' }, null, 2), 'utf8');
+            index.push({ file: i + '.json', title: s.title, author: s.author || '嘉二校园墙编辑部' });
           });
           fs.writeFileSync(indexPath, JSON.stringify(index, null, 2), 'utf8');
           fs.renameSync(oldPath, oldPath + '.bak');
@@ -334,7 +333,7 @@ function buildStoryArticleHTML(storyData, weather, hitokoto, dateInfo, weeklySta
   html += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
   html += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 校园小说连载 · 第' + chapNum + '章</div>';
   html += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">' + escapeHtml(chapter.title) + '</div>';
-  html += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + escapeHtml(chapter.author || (siteConfig.mpAuthor + '编辑部')) + '</div>';
+  html += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + escapeHtml(chapter.author || '嘉二校园墙编辑部') + '</div>';
   html += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
   html += '</td></tr></table>';
 
@@ -431,7 +430,7 @@ function buildStoryArticleHTML(storyData, weather, hitokoto, dateInfo, weeklySta
   html += '📢 今日校园暂无新投稿～<br>';
   html += '墙墙准备了一篇暖心小说，希望你喜欢 💕<br><br>';
   html += '📤 如果觉得不错，<strong style="color:#FF6B9D;">欢迎分享给同学和朋友</strong><br>';
-  html += '📝 有想说的？来 <strong>' + siteConfig.siteUrl + '</strong> 投稿吧！<br>';
+  html += '📝 有想说的？来 <strong>https://wall.jay23.cn</strong> 投稿吧！<br>';
   html += '你的每一条分享，都可能成为明天的推送内容 ✨';
   html += '</div></td></tr></table>';
 
@@ -441,14 +440,14 @@ function buildStoryArticleHTML(storyData, weather, hitokoto, dateInfo, weeklySta
   html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
   html += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
   html += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-  html += '<img src="' + siteConfig.siteUrl + '/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
+  html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
   html += '</td></tr></table>';
   html += '</td></tr></table>';
   html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
-  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">' + siteConfig.siteUrl + '</p>';
+  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
   html += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
   html += '</td></tr></table>';
-  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' ' + siteConfig.mpAuthor + ' · 💕</p>';
+  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' 嘉二校园墙 · 💕</p>';
   html += '</div>';
 
   return html;
@@ -576,7 +575,7 @@ function buildArticleHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF8F0;padding:16px;border-radius:12px;">';
   html += '<div style="font-size:13px;color:#D4876A;line-height:1.8;text-align:center;">';
   html += '📤 如果觉得不错，<strong style="color:#FF6B9D;">欢迎分享给同学和朋友</strong><br>';
-  html += '📝 有想说的？来 <strong>' + siteConfig.siteUrl + '</strong> 投稿吧！<br>';
+  html += '📝 有想说的？来 <strong>https://wall.jay23.cn</strong> 投稿吧！<br>';
   html += '你的每一条分享，都可能成为明天的推送内容 ✨';
   html += '</div></td></tr></table>';
 
@@ -586,14 +585,14 @@ function buildArticleHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码进入 · 发现身边的新鲜事</div>';
   html += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
   html += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-  html += '<img src="' + siteConfig.siteUrl + '/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
+  html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;height:200px;display:block;border-radius:6px;margin:0 auto;" alt="校园墙二维码">';
   html += '</td></tr></table>';
   html += '</td></tr></table>';
   html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 发现更多精彩</p>';
-  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">' + siteConfig.siteUrl + '</p>';
+  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
   html += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
   html += '</td></tr></table>';
-  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' ' + siteConfig.mpAuthor + ' · 💕</p>';
+  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">© ' + dateInfo.year + ' 嘉二校园墙 · 💕</p>';
   html += '</div>';
 
   return html;

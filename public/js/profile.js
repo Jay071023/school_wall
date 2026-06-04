@@ -433,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (json && (json.code === 200 || json.code === 404)) {
         // 如果是404错误，使用默认设置
         if (json.code === 404) {
+          console.log('通知设置API未找到，使用默认设置');
           s = {
             notify_comment: 1, notify_like: 1, notify_mention: 1,
             notify_follower: 1, notify_post_approved: 1, notify_post_rejected: 1,
@@ -443,6 +444,8 @@ document.addEventListener('DOMContentLoaded', function() {
           s = json.data;
         }
       } else {
+        // API无响应或其他错误，也使用默认设置
+        console.log('无法加载通知设置，使用默认值');
         s = {
           notify_comment: 1, notify_like: 1, notify_mention: 1,
           notify_follower: 1, notify_post_approved: 1, notify_post_rejected: 1,
@@ -500,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     })
     .catch(function(err) {
+      console.log('保存通知设置失败（可能是API未部署）:', err);
       // 即使API不可用，也显示保存成功（避免用户困惑）
       showToast('设置已保存', 'success');
     });
@@ -523,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var json = await res.json();
       if (json.code === 200 && json.data) {
         var stats = json.data;
+        console.log('[Profile] 统计数据:', stats);
         setStat('profilePostCount', stats.post_count);
         setStat('profileCommentCount', stats.comment_count);
         setStat('profileLikeCount', stats.likes_count);
@@ -1492,6 +1497,7 @@ async function markAsRead(notificationId, btn) {
   try {
     // 标记已读 = 删除通知（直接调用删除接口）
     var data = await authFetch('/api/notifications/' + notificationId, { method: 'DELETE' });
+    console.log('[通知] 删除响应:', data);
     if (data.code === 200) {
       var item = btn.closest('.notification-item');
       if (item) {
@@ -1522,6 +1528,7 @@ async function markAsRead(notificationId, btn) {
 async function markAllAsRead() {
   try {
     var data = await authFetch('/api/notifications/read-all', { method: 'PUT' });
+    console.log('[通知] 标记全部已读响应:', data);
     if (data.code === 200) {
       showToast('已清空所有通知', 'success');
       // 删除所有通知（带动画）
@@ -1666,6 +1673,7 @@ function getUrlParam(name) {
 
 // 加载其他用户的资料
 async function loadOtherUser(userId) {
+  console.log('[Profile-Other] 开始加载用户资料, userId:', userId);
   var btns = document.querySelectorAll('.btn-edit-profile, #changePasswordBtn, #adminPanelBtn');
   btns.forEach(function(b) { b.style.display = 'none'; });
 
@@ -1685,6 +1693,7 @@ async function loadOtherUser(userId) {
   var json;
   try {
     var url = '/api/profile/' + userId;
+    console.log('[Profile-Other] 请求URL:', url);
     var res = await fetch(url);
     if (!res.ok) {
       console.error('[Profile-Other] HTTP错误:', res.status, res.statusText);
@@ -1711,6 +1720,7 @@ async function loadOtherUser(userId) {
   if (json && json.code === 200) {
     try {
       var user = json.data;
+      console.log('[Profile-Other] 用户资料:', user);
       if (profileAvatar) profileAvatar.src = user.avatar || '/uploads/avatars/default.png';
       if (profileNickname) profileNickname.textContent = user.nickname || user.username;
       if (profileJoinTime) {

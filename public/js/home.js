@@ -12,6 +12,7 @@ var currentSort = 'latest';
 var currentKeyword = '';
 var isLoading = false;
 var isLiking = false; // 防止点赞重复触发
+var emptyStateEl = null;
 var skeletonShown = false;
 var pageInitialized = false;
 var totalLoaded = 0; // 已加载的总条数

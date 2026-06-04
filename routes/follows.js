@@ -34,7 +34,6 @@ const router = express.Router();
 
 // 关注/取消关注 (toggle)
 router.post('/:userId', auth, async (req, res) => {
-  const conn = await pool.getConnection();
   try {
     const followingId = parseInt(req.params.userId);
     const followerId = req.user.id;
@@ -44,28 +43,26 @@ router.post('/:userId', auth, async (req, res) => {
     }
 
     // 检查用户是否存在
-    const [users] = await conn.execute('SELECT id, nickname, username, email FROM users WHERE id = ?', [followingId]);
+    const [users] = await pool.execute('SELECT id, nickname, username, email FROM users WHERE id = ?', [followingId]);
     if (users.length === 0) {
       return res.json({ code: 404, message: '用户不存在' });
     }
 
-    await conn.beginTransaction();
-
-    // 加锁检查是否已关注
-    const [existing] = await conn.execute(
-      'SELECT id FROM follows WHERE follower_id = ? AND following_id = ? FOR UPDATE',
+    // 检查是否已关注
+    const [existing] = await pool.execute(
+      'SELECT id FROM follows WHERE follower_id = ? AND following_id = ?',
       [followerId, followingId]
     );
 
     if (existing.length > 0) {
-      await conn.execute('DELETE FROM follows WHERE follower_id = ? AND following_id = ?', [followerId, followingId]);
-      await conn.commit();
+      // 取消关注
+      await pool.execute('DELETE FROM follows WHERE follower_id = ? AND following_id = ?', [followerId, followingId]);
       res.json({ code: 200, message: '已取消关注', data: { followed: false } });
     } else {
-      await conn.execute('INSERT INTO follows (follower_id, following_id) VALUES (?, ?)', [followerId, followingId]);
-      await conn.commit();
+      // 关注
+      await pool.execute('INSERT INTO follows (follower_id, following_id) VALUES (?, ?)', [followerId, followingId]);
 
-      // 发送通知给被关注者（事务外，不影响关注操作）
+      // 发送通知给被关注者
       const [me] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [followerId]);
       const myName = me[0].nickname || me[0].username || '某用户';
 
@@ -79,6 +76,7 @@ router.post('/:userId', auth, async (req, res) => {
             null,
             null
           );
+          // 发送邮件通知
           if (users[0].email) {
             await notifyNewFollower(
               users[0].email,
@@ -94,11 +92,8 @@ router.post('/:userId', auth, async (req, res) => {
       res.json({ code: 200, message: '关注成功', data: { followed: true } });
     }
   } catch (err) {
-    try { await conn.rollback(); } catch (e) {}
     console.error('[Follow] 操作失败:', err.message);
     res.json({ code: 500, message: '服务器错误' });
-  } finally {
-    conn.release();
   }
 });
 

@@ -88,6 +88,7 @@ const ALL_FILES = [
     'views/admin/index.html',
     'views/admin/mp-draft.html',
     'auto-publish.js',
+    'config/novels.json',
     'config/auto-publish.json'
 ];
 
@@ -197,7 +198,7 @@ async function deploy() {
             console.log('Env vars set in .bashrc');
         }
         var pm2Cmd = envStr ? envStr + ' pm2 start server.js --name campus-wall' : 'pm2 start server.js --name campus-wall';
-        await exec(conn, 'cd ' + REMOTE_BASE + ' && pm2 delete campus-wall -s 2>/dev/null; fuser -k 3000/tcp 2>/dev/null; sleep 2; ' + pm2Cmd);
+        await exec(conn, 'cd ' + REMOTE_BASE + ' && pm2 stop campus-wall -s 2>/dev/null; sleep 1; pm2 delete campus-wall -s 2>/dev/null; sleep 1; ' + pm2Cmd);
         console.log('Restarting PM2 (force)...');
         console.log('Waiting 3 seconds...');
         await new Promise(resolve => setTimeout(resolve, 3000));

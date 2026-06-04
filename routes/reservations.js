@@ -38,52 +38,43 @@ router.get('/available', auth, async (req, res) => {
       userReservedMap[key] = true;
     });
     
-    // 构建可预定列表（先收集所有符合条件的 slot-date 对）
+    // 构建可预定列表
     const availableSlots = [];
-    const slotDatePairs = [];
-
+    
     for (const date of dates) {
       const dateObj = new Date(date);
       const dayOfWeek = dateObj.getDay() === 0 ? 7 : dateObj.getDay(); // 1-7
-
+      
       for (const slot of slots) {
         const weekdays = slot.weekdays.split(',').map(Number);
+        
+        // 检查该时段是否在该天开放
         if (weekdays.includes(dayOfWeek)) {
-          slotDatePairs.push({ slot, date, dayOfWeek });
+          const key = `${slot.id}_${date}`;
+          const isReserved = userReservedMap[key] || false;
+          
+          // 获取该时段该天的已预定数量
+          const [countResult] = await pool.execute(
+            'SELECT COUNT(*) as count FROM slot_reservations WHERE slot_id = ? AND reservation_date = ? AND status != "cancelled"',
+            [slot.id, date]
+          );
+          
+          const reservedCount = countResult[0].count;
+          const remaining = Math.max(0, slot.max_songs - reservedCount);
+          
+          availableSlots.push({
+            id: slot.id,
+            slot_name: slot.slot_name,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            date: date,
+            day_of_week: dayOfWeek,
+            remaining: remaining,
+            is_reserved: isReserved,
+            max_songs: slot.max_songs
+          });
         }
       }
-    }
-
-    // 批量查询所有时段的已预定数量（1次查询替代 N 次）
-    const countMap = {};
-    if (slotDatePairs.length > 0) {
-      const placeholders = slotDatePairs.map(() => '(?, ?)').join(',');
-      const flatParams = [];
-      slotDatePairs.forEach(p => { flatParams.push(p.slot.id, p.date); });
-      const [counts] = await pool.execute(
-        'SELECT slot_id, reservation_date, COUNT(*) as cnt FROM slot_reservations WHERE (slot_id, reservation_date) IN (' + placeholders + ') AND status != "cancelled" GROUP BY slot_id, reservation_date',
-        flatParams
-      );
-      counts.forEach(c => { countMap[c.slot_id + '_' + c.reservation_date] = c.cnt; });
-    }
-
-    for (const pair of slotDatePairs) {
-      const key = pair.slot.id + '_' + pair.date;
-      const reservedCount = countMap[key] || 0;
-      const remaining = Math.max(0, pair.slot.max_songs - reservedCount);
-      const isReserved = userReservedMap[key] || false;
-
-      availableSlots.push({
-        id: pair.slot.id,
-        slot_name: pair.slot.slot_name,
-        start_time: pair.slot.start_time,
-        end_time: pair.slot.end_time,
-        date: pair.date,
-        day_of_week: pair.dayOfWeek,
-        remaining: remaining,
-        is_reserved: isReserved,
-        max_songs: pair.slot.max_songs
-      });
     }
     
     res.json({

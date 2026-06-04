@@ -274,7 +274,7 @@ function updateNavbar() {
     // 已登录：显示用户信息，隐藏登录注册按钮
     navAuth.style.display = 'none';
     navUser.style.display = 'flex';
-    if (navAvatar) { var _img = navAvatar.querySelector('img'); if (_img) _img.src = user.avatar || '/uploads/avatars/default.png'; }
+    if (navAvatar) navAvatar.querySelector('img').src = user.avatar || '/uploads/avatars/default.png';
     if (navNickname) navNickname.textContent = user.nickname || user.username;
 
     // 根据角色显示管理入口
@@ -300,7 +300,7 @@ function updateNavbar() {
       navUser.style.display = 'flex';
       var navAvatar = document.getElementById('navAvatar');
       var navNickname = document.getElementById('navNickname');
-      if (navAvatar) { var _img = navAvatar.querySelector('img'); if (_img) _img.src = user.avatar || '/uploads/avatars/default.png'; }
+      if (navAvatar) navAvatar.querySelector('img').src = user.avatar || '/uploads/avatars/default.png';
       if (navNickname) navNickname.textContent = user.nickname || user.username;
     } else {
       navAuth.style.display = 'flex';

@@ -1,7 +1,7 @@
 {
   "name": "campus-wall",
   "version": "1.0.0",
-  "description": "校园墙：表白/树洞/点歌/公众号一体化校园社交平台",
+  "description": "嘉二人の墙墙网站 + 广播站点歌系统",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

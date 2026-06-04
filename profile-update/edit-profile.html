@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>嘉二の墙墙 - 编辑资料</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- 背景装饰元素 -->
+  <div class="bg-decorations" id="bgDecorations">
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-gradient bg-gradient-3"></div>
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
+    <div class="bg-circle bg-circle-3"></div>
+    <div class="bg-circle bg-circle-4"></div>
+    <div class="bg-line bg-line-1"></div>
+    <div class="bg-line bg-line-2"></div>
+    <div class="bg-dot bg-dot-1"></div>
+    <div class="bg-dot bg-dot-2"></div>
+    <div class="bg-dot bg-dot-3"></div>
+    <div class="bg-dot bg-dot-4"></div>
+    <div class="bg-dot bg-dot-5"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 返回按钮 -->
+    <div class="edit-profile-back">
+      <a href="/profile" class="edit-profile-back-btn">
+        <span class="edit-profile-back-icon">←</span>
+        <span>返回个人主页</span>
+      </a>
+    </div>
+
+    <!-- 编辑资料卡片 -->
+    <div class="edit-profile-card">
+      <div class="edit-profile-header">
+        <h2 class="edit-profile-title">✏️ 编辑资料</h2>
+        <p class="edit-profile-subtitle">完善你的个人信息，让大家更了解你</p>
+      </div>
+
+      <div class="edit-profile-body">
+        <!-- 头像上传 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">头像</label>
+          <div class="edit-avatar-upload" id="avatarUploadArea">
+            <img class="edit-avatar-preview" id="editAvatarPreview" src="/uploads/avatars/default.png" alt="头像">
+            <div class="edit-avatar-overlay">
+              <span>📷 点击更换</span>
+            </div>
+            <input type="file" id="editAvatarInput" accept="image/*" style="display:none">
+          </div>
+        </div>
+
+        <!-- 昵称 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">昵称 <span class="edit-profile-required">*</span></label>
+          <input type="text" class="edit-profile-input" id="editNickname" placeholder="请输入昵称" maxlength="20">
+          <span class="edit-profile-hint">最多20个字符</span>
+        </div>
+
+        <!-- 生日 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🎂 生日</label>
+          <div class="birthday-selects">
+            <select class="edit-profile-select birthday-year" id="editBirthdayYear">
+              <option value="">年</option>
+            </select>
+            <select class="edit-profile-select birthday-month" id="editBirthdayMonth">
+              <option value="">月</option>
+            </select>
+            <select class="edit-profile-select birthday-day" id="editBirthdayDay">
+              <option value="">日</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 性别 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🛍️ 性别</label>
+          <div class="edit-gender-tabs" id="genderTabs">
+            <div class="edit-gender-tab" data-value="男">
+              <span class="edit-gender-icon">👦</span>
+              <span>男</span>
+            </div>
+            <div class="edit-gender-tab" data-value="女">
+              <span class="edit-gender-icon">👧</span>
+              <span>女</span>
+            </div>
+            <div class="edit-gender-tab" data-value="保密">
+              <span class="edit-gender-icon">🤫</span>
+              <span>保密</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MBTI -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🧠 MBTI</label>
+          <select class="edit-profile-select" id="editMbti">
+            <option value="">不设置</option>
+            <optgroup label="分析家 (Analysts)">
+              <option value="INTJ">INTJ - 建筑师</option>
+              <option value="INTP">INTP - 逻辑学家</option>
+              <option value="ENTJ">ENTJ - 指挥官</option>
+              <option value="ENTP">ENTP - 辩论家</option>
+            </optgroup>
+            <optgroup label="外交家 (Diplomats)">
+              <option value="INFJ">INFJ - 提倡者</option>
+              <option value="INFP">INFP - 调停者</option>
+              <option value="ENFJ">ENFJ - 主人公</option>
+              <option value="ENFP">ENFP - 竞选者</option>
+            </optgroup>
+            <optgroup label="哨兵 (Sentinels)">
+              <option value="ISTJ">ISTJ - 物流师</option>
+              <option value="ISFJ">ISFJ - 守卫者</option>
+              <option value="ESTJ">ESTJ - 总经理</option>
+              <option value="ESFJ">ESFJ - 执政官</option>
+            </optgroup>
+            <optgroup label="探险家 (Explorers)">
+              <option value="ISTP">ISTP - 鉴赏家</option>
+              <option value="ISFP">ISFP - 探险家</option>
+              <option value="ESTP">ESTP - 企业家</option>
+              <option value="ESFP">ESFP - 表演者</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 喜好 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">❤️ 喜好</label>
+          <textarea class="edit-profile-textarea" id="editHobbies" placeholder="用逗号分隔你的喜好，例如：摄影, 旅行, 音乐, 美食, 编程" maxlength="500" rows="3"></textarea>
+          <span class="edit-profile-hint">最多500个字符，用逗号分隔</span>
+        </div>
+      </div>
+
+      <!-- 保存按钮 -->
+      <div class="edit-profile-footer">
+        <button class="edit-profile-save-btn" id="saveProfileBtn">
+          <span>💾</span> 保存修改
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+  /**
+   * 图片压缩函数
+   * @param {File} file - 原图文件
+   * @param {Object} options - 压缩选项
+   * @returns {Promise<Blob>} 压缩后的图片Blob
+   */
+  function compressImage(file, options = {}) {
+    var maxWidth = options.maxWidth || 800;
+    var maxHeight = options.maxHeight || 800;
+    var quality = options.quality || 0.8;
+    var outputType = options.outputType || 'image/jpeg';
+    
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          
+          var width = img.width;
+          var height = img.height;
+          
+          // 计算缩放比例
+          if (width > maxWidth || height > maxHeight) {
+            var ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // 使用白色背景填充（避免PNG透明区域变黑）
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+          
+          // 绘制压缩后的图片
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // 转换为Blob
+          canvas.toBlob(function(blob) {
+            if (blob) {
+              console.log('图片压缩完成:', {
+                originalSize: (file.size / 1024 / 1024).toFixed(2) + 'MB',
+                compressedSize: (blob.size / 1024 / 1024).toFixed(2) + 'MB',
+                width: width,
+                height: height
+              });
+              resolve(blob);
+            } else {
+              reject(new Error('图片压缩失败'));
+            }
+          }, outputType, quality);
+        };
+        img.onerror = function() {
+          reject(new Error('图片加载失败'));
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = function() {
+        reject(new Error('文件读取失败'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // 检查登录状态
+    if (!isLoggedIn()) {
+      window.location.href = '/login';
+      return;
+    }
+
+    var user = getCurrentUser();
+    if (!user) return;
+
+    // 填充已有数据
+    var nicknameInput = document.getElementById('editNickname');
+    var birthdayYear = document.getElementById('editBirthdayYear');
+    var birthdayMonth = document.getElementById('editBirthdayMonth');
+    var birthdayDay = document.getElementById('editBirthdayDay');
+    var mbtiSelect = document.getElementById('editMbti');
+    var hobbiesInput = document.getElementById('editHobbies');
+    var avatarPreview = document.getElementById('editAvatarPreview');
+    var avatarInput = document.getElementById('editAvatarInput');
+    var avatarUploadArea = document.getElementById('avatarUploadArea');
+    var saveBtn = document.getElementById('saveProfileBtn');
+
+    // 初始化生日下拉框
+    function initBirthdaySelects() {
+      var currentYear = new Date().getFullYear();
+      // 年份：从2007到当前年份
+      for (var y = currentYear; y >= 2007; y--) {
+        var opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y + '年';
+        birthdayYear.appendChild(opt);
+      }
+      // 月份：1-12
+      for (var m = 1; m <= 12; m++) {
+        var opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m + '月';
+        birthdayMonth.appendChild(opt);
+      }
+      // 日期：根据年月动态更新
+      birthdayYear.addEventListener('change', updateDays);
+      birthdayMonth.addEventListener('change', updateDays);
+    }
+    
+    function updateDays() {
+      var year = parseInt(birthdayYear.value);
+      var month = parseInt(birthdayMonth.value);
+      birthdayDay.innerHTML = '<option value="">日</option>';
+      if (year && month) {
+        var days = new Date(year, month, 0).getDate();
+        for (var d = 1; d <= days; d++) {
+          var opt = document.createElement('option');
+          opt.value = d;
+          opt.textContent = d + '日';
+          birthdayDay.appendChild(opt);
+        }
+      }
+    }
+    
+    initBirthdaySelects();
+    
+    // 设置当前生日值
+    if (user.birthday) {
+      var parts = user.birthday.split('T')[0].split('-');
+      if (parts.length >= 3) {
+        birthdayYear.value = parts[0];
+        birthdayMonth.value = parseInt(parts[1]);
+        birthdayDay.value = parseInt(parts[2]);
+        updateDays();
+      }
+    }
+    if (mbtiSelect && user.mbti) mbtiSelect.value = user.mbti;
+    if (hobbiesInput) hobbiesInput.value = user.hobbies || '';
+    if (avatarPreview) avatarPreview.src = user.avatar || '/uploads/avatars/default.png';
+
+    // 性别选项卡
+    var selectedGender = user.gender || '';
+    var genderTabs = document.querySelectorAll('.edit-gender-tab');
+    genderTabs.forEach(function(tab) {
+      if (tab.getAttribute('data-value') === selectedGender) {
+        tab.classList.add('active');
+      }
+      tab.addEventListener('click', function() {
+        genderTabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        selectedGender = tab.getAttribute('data-value');
+      });
+    });
+
+    // 头像上传
+    if (avatarUploadArea && avatarInput) {
+      avatarUploadArea.addEventListener('click', function() {
+        avatarInput.click();
+      });
+      avatarInput.addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        
+        // 显示加载状态
+        avatarUploadArea.style.opacity = '0.6';
+        
+        // 先压缩图片再上传
+        compressImage(file, {
+          maxWidth: 800,
+          maxHeight: 800,
+          quality: 0.8,
+          outputType: 'image/jpeg'
+        }).then(function(compressedBlob) {
+          // 显示压缩后的预览
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            avatarPreview.src = e.target.result;
+          };
+          reader.readAsDataURL(compressedBlob);
+          
+          // 创建新的文件名(保持.jpg扩展名)
+          var originalName = file.name;
+          var compressedFile = new File([compressedBlob], originalName.replace(/\.[^.]+$/, '.jpg'), {
+            type: 'image/jpeg'
+          });
+          
+          // 上传头像
+          var formData = new FormData();
+          formData.append('avatar', compressedFile);
+          
+          return fetch('/api/upload/avatar', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + getToken() },
+            body: formData
+          }).then(function(res) { return res.json(); }).then(function(data) {
+            avatarUploadArea.style.opacity = '1';
+            if (data.code === 200) {
+              var currentUser = getCurrentUser();
+              currentUser.avatar = data.data.avatar;
+              var remembered = !!localStorage.getItem('token');
+              saveAuth(getToken(), currentUser, remembered);
+              showToast('头像更新成功！原图:' + (file.size / 1024 / 1024).toFixed(2) + 'MB → 压缩后:' + (compressedBlob.size / 1024 / 1024).toFixed(2) + 'MB');
+            } else {
+              showToast(data.message || '头像上传失败', 'error');
+              avatarPreview.src = getCurrentUser().avatar || '/uploads/avatars/default.png';
+            }
+          }).catch(function(err) {
+            avatarUploadArea.style.opacity = '1';
+            console.error('上传失败:', err);
+            showToast('头像上传失败', 'error');
+            avatarPreview.src = getCurrentUser().avatar || '/uploads/avatars/default.png';
+          });
+        }).catch(function(err) {
+          avatarUploadArea.style.opacity = '1';
+          console.error('压缩失败:', err);
+          showToast('图片处理失败', 'error');
+          avatarPreview.src = getCurrentUser().avatar || '/uploads/avatars/default.png';
+        });
+      });
+    }
+
+    // 保存资料
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        var nickname = nicknameInput ? nicknameInput.value.trim() : '';
+        var birthday = birthdayInput ? birthdayInput.value : '';
+        var mbti = mbtiSelect ? mbtiSelect.value : '';
+        var hobbies = hobbiesInput ? hobbiesInput.value.trim() : '';
+
+        if (!nickname) {
+          showToast('昵称不能为空', 'error');
+          return;
+        }
+        if (nickname.length > 20) {
+          showToast('昵称不能超过20个字符', 'error');
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span>⏳</span> 保存中...';
+
+        var profileData = {
+          nickname: nickname,
+          birthday: birthday || null,
+          mbti: mbti || null,
+          gender: selectedGender || null,
+          hobbies: hobbies || null
+        };
+
+        authFetch('/api/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify(profileData)
+        }).then(function(data) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾</span> 保存修改';
+          if (data.code === 200) {
+            // 更新本地用户信息
+            var currentUser = getCurrentUser();
+            if (data.data) {
+              currentUser.nickname = data.data.nickname;
+              currentUser.birthday = data.data.birthday;
+              currentUser.mbti = data.data.mbti;
+              currentUser.gender = data.data.gender;
+              currentUser.hobbies = data.data.hobbies;
+            }
+            var remembered = !!localStorage.getItem('token');
+            saveAuth(getToken(), currentUser, remembered);
+            showToast('资料更新成功');
+            setTimeout(function() {
+              window.location.href = '/profile';
+            }, 1000);
+          } else {
+            showToast(data.message || '更新失败', 'error');
+          }
+        }).catch(function() {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾</span> 保存修改';
+          showToast('网络错误', 'error');
+        });
+      });
+    }
+  });
+  </script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 编辑资料';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -6,7 +6,6 @@
 
 const https = require('https');
 const http = require('http');
-const siteConfig = require('../lib/site-config');
 const fs = require('fs');
 const path = require('path');
 
@@ -330,10 +329,10 @@ async function createDraft(articles) {
       articles: articles.map(function(article) {
         return {
           title: article.title,
-          author: article.author || siteConfig.mpAuthor,
+          author: article.author || '嘉二校园墙',
           digest: article.digest || article.title.substring(0, 50),
           content: article.content,
-          content_source_url: article.content_source_url || siteConfig.siteUrl,
+          content_source_url: article.content_source_url || 'https://wall.jay23.cn',
           thumb_media_id: article.thumb_media_id,
           show_cover_pic: article.show_cover_pic || 1,
           need_open_comment: article.need_open_comment || 1,
@@ -734,10 +733,10 @@ async function createDraftWithConfig(article, config) {
   var draftData = {
     articles: [{
       title: article.title,
-      author: article.author || siteConfig.mpAuthor,
+      author: article.author || '嘉二校园墙',
       digest: article.digest || article.title.substring(0, 50),
       content: article.content,
-      content_source_url: article.content_source_url || siteConfig.siteUrl,
+      content_source_url: article.content_source_url || 'https://wall.jay23.cn',
       thumb_media_id: thumbMediaId,
       show_cover_pic: 1,
       need_open_comment: 1,

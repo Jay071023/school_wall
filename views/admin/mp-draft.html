@@ -403,222 +403,6 @@
         }
         .btn-info:hover { background: #138496; }
         [data-theme="dark"] .btn-info { background: #138496; }
-
-        /* ===== 视图切换器 ===== */
-        .view-switcher {
-            display: flex; gap: 4px; background: rgba(0,0,0,0.05);
-            border-radius: 10px; padding: 3px; margin-left: auto;
-        }
-        .view-switcher button {
-            padding: 6px 14px; border: none; background: transparent;
-            border-radius: 8px; font-size: 12px; cursor: pointer;
-            color: #888; transition: all 0.2s; display: flex;
-            align-items: center; gap: 4px;
-        }
-        .view-switcher button.active {
-            background: #667eea; color: #fff; box-shadow: 0 2px 6px rgba(102,126,234,0.3);
-        }
-        .view-switcher button:hover:not(.active) {
-            background: rgba(102,126,234,0.1); color: #667eea;
-        }
-
-        /* ===== 模板选择器 ===== */
-        .template-grid {
-            display: flex; gap: 10px; overflow-x: auto;
-            padding: 4px; margin: 0 -4px 16px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .template-card {
-            flex-shrink: 0; width: 90px; padding: 14px 8px;
-            border-radius: 14px; cursor: pointer;
-            border: 2px solid transparent; transition: all 0.25s;
-            text-align: center; background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .template-card:hover {
-            border-color: #667eea; transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102,126,234,0.2);
-        }
-        .template-card.selected {
-            border-color: #667eea; background: linear-gradient(145deg, #f8f6ff, #f0f0ff);
-            box-shadow: 0 6px 20px rgba(102,126,234,0.25);
-        }
-        .template-card .tpl-icon { font-size: 30px; margin-bottom: 8px; }
-        .template-card .tpl-name {
-            font-size: 12px; font-weight: 600; color: #444;
-        }
-        .template-card.selected .tpl-name { color: #667eea; }
-        .template-card .tpl-desc {
-            display: none;
-        }
-
-        /* ===== 歌曲卡片网格 ===== */
-        .song-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 14px;
-        }
-        .song-card {
-            background: #fff; border-radius: 16px; padding: 16px;
-            border: 2px solid #f0f0f0; transition: all 0.25s;
-            position: relative; overflow: hidden;
-        }
-        .song-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0;
-            height: 3px; background: transparent; transition: all 0.25s;
-        }
-        .song-card:hover {
-            border-color: #FF6B9D; box-shadow: 0 8px 24px rgba(255,107,157,0.15);
-            transform: translateY(-2px);
-        }
-        .song-card:hover::before { background: linear-gradient(90deg, #FF6B9D, #FF8FB1); }
-        .song-card.selected {
-            border-color: #FF6B9D; background: linear-gradient(145deg, #fffafc, #f8f0ff);
-            box-shadow: 0 8px 24px rgba(255,107,157,0.2);
-        }
-        .song-card.selected::before { background: linear-gradient(90deg, #FF6B9D, #FF8FB1); }
-        .song-card .song-card-header {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-        }
-        .song-card .song-checkbox {
-            width: 20px; height: 20px; accent-color: #FF6B9D; cursor: pointer; flex-shrink: 0;
-        }
-        .song-card .song-info { flex: 1; min-width: 0; }
-        .song-card .song-name {
-            font-weight: 700; font-size: 15px; color: #222;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .song-card .song-artist { font-size: 12px; color: #999; margin-top: 3px; }
-        .song-card .song-status {
-            font-size: 10px; padding: 4px 10px; border-radius: 20px; flex-shrink: 0;
-            font-weight: 500;
-        }
-        .song-card .song-status.filled { background: linear-gradient(135deg,#d1fae5,#bbf7d0); color: #059669; }
-        .song-card .song-status.missing { background: linear-gradient(135deg,#fef3c7,#fde68a); color: #d97706; }
-        .song-card .song-status.empty { background: linear-gradient(135deg,#fee2e2,#fecaca); color: #dc2626; }
-        .song-card .song-actions {
-            display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
-        }
-        .song-card .song-actions button {
-            padding: 5px 12px; font-size: 11px; border: none;
-            border-radius: 20px; cursor: pointer; transition: all 0.2s;
-            font-weight: 500;
-        }
-        .song-card .song-actions button:hover { transform: scale(1.05); }
-        .song-card .song-actions .btn-ai { background: linear-gradient(135deg,#FF6B9D,#FF8FB1); color: #fff; }
-        .song-card .song-actions .btn-info { background: linear-gradient(135deg,#64B5F6,#42A5F5); color: #fff; }
-        .song-card .song-actions .btn-lyrics { background: linear-gradient(135deg,#81C784,#66BB6A); color: #fff; }
-        .song-card .song-actions .btn-delete { background: #f5f5f5; color: #999; border: 1px solid #eee; }
-        .song-card textarea {
-            width: 100%; padding: 10px; border: 1px solid #eee;
-            border-radius: 12px; font-size: 12px; min-height: 50px;
-            max-height: 100px; resize: vertical; background: #fafafa;
-            line-height: 1.6; box-sizing: border-box; transition: border 0.2s;
-        }
-        .song-card textarea:focus { border-color: #FF6B9D; outline: none; }
-        .song-card .song-info-row { font-size: 11px; color: #bbb; margin-top: 10px; }
-
-        /* ===== 配色主题切换 ===== */
-        .theme-switcher {
-            display: flex; gap: 10px; align-items: center; margin-bottom: 16px;
-            padding: 12px 16px; background: #f8f9fa; border-radius: 12px;
-        }
-        .theme-switcher > span:first-child { font-size: 13px; color: #666; font-weight: 500; }
-        .theme-btn {
-            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-            border: 4px solid transparent; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-            position: relative; outline: none;
-        }
-        .theme-btn:hover { transform: scale(1.15) translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
-        .theme-btn.active {
-            border-color: #fff;
-            transform: scale(1.2);
-            box-shadow: 0 0 0 2px rgba(102,126,234,0.5), 0 6px 20px rgba(0,0,0,0.3);
-        }
-        .theme-btn::after {
-            content: '✓'; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%,-50%) scale(0); color: #fff; font-size: 16px; font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .theme-btn.active::after { transform: translate(-50%,-50%) scale(1); }
-        .theme-btn-label { font-size: 13px; color: #888; margin-left: 8px; transition: color 0.3s; }
-        .theme-btn-label.animated { color: #667eea; font-weight: 600; }
-
-        /* ===== 手机预览框 ===== */
-        .phone-frame {
-            width: 360px; margin: 0 auto; border-radius: 36px;
-            background: linear-gradient(145deg,#2a2a2a,#1a1a1a); padding: 10px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4); border: 1px solid #333;
-            animation: phoneIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes phoneIn {
-            0% { opacity: 0; transform: scale(0.85) translateY(20px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        .phone-frame .phone-screen {
-            background: #fff; border-radius: 28px; overflow: hidden;
-            max-height: 780px; overflow-y: auto;
-        }
-        .phone-frame .phone-screen::-webkit-scrollbar { width: 4px; }
-        .phone-frame .phone-screen::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 2px; }
-        .phone-frame .phone-notch {
-            width: 80px; height: 20px; background: #1a1a1a;
-            border-radius: 0 0 12px 12px; margin: 0 auto;
-            position: relative;
-        }
-        .phone-frame .phone-notch::before {
-            content: ''; position: absolute; right: -22px; top: 7px;
-            width: 6px; height: 6px; background: #333; border-radius: 50%;
-        }
-        .phone-frame .preview-content { font-size: 13px; line-height: 1.5; }
-        .phone-frame .preview-area > div { transform: scale(0.95); transform-origin: top center; }
-
-        /* ===== 生成进度动画 ===== */
-        .generate-progress {
-            display: none; padding: 40px 20px; text-align: center;
-            background: linear-gradient(145deg,#fafafa,#f5f5f5); border-radius:20px;
-        }
-        .generate-progress.active { display: block; }
-        .generate-progress .progress-icon {
-            font-size: 48px; animation: bounce 1s infinite;
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        .generate-progress .progress-text {
-            margin-top: 16px; font-size: 15px; color: #666; font-weight: 500;
-        }
-        .generate-progress .progress-bar {
-            width: 200px; height: 4px; background: #e0e0e0;
-            border-radius: 4px; margin: 16px auto 0; overflow: hidden;
-        }
-        .generate-progress .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 4px; animation: progress 1.5s ease-in-out infinite;
-        }
-        @keyframes progress {
-            0% { width: 0%; margin-left: 0; }
-            50% { width: 60%; margin-left: 20%; }
-            100% { width: 0%; margin-left: 100%; }
-        }
-
-        /* ===== 列表视图 ===== */
-        .song-list { display: none; }
-        .song-list.active { display: block; }
-        .song-grid.active { display: grid; }
-        .song-list .song-list-item {
-            display: flex; align-items: center; gap: 14px;
-            padding: 14px 16px; background: #fff; border-radius: 14px;
-            margin-bottom: 10px; border: 2px solid #f0f0f0;
-            transition: all 0.2s;
-        }
-        .song-list .song-list-item:hover {
-            border-color: #FF6B9D; box-shadow: 0 4px 12px rgba(255,107,157,0.1);
-        }
-        .song-list .song-list-item.selected {
-            border-color: #FF6B9D; background: linear-gradient(145deg, #fffafc, #f8f0ff);
-        }
     </style>
 </head>
 <body>
@@ -719,16 +503,6 @@
                 <div class="card-title">🎨 图文预览</div>
                 <div class="card-desc">预览生成的公众号图文卡片效果，确认后复制内容到公众号后台发布。</div>
 
-                <!-- 配色主题切换 -->
-                <div class="theme-switcher">
-                    <span style="font-size:13px;color:#888;">配色：</span>
-                    <button class="theme-btn active" style="background:linear-gradient(135deg,#FF91A4,#C89AFF);" onclick="setPreviewTheme('pink')" title="粉紫"></button>
-                    <button class="theme-btn" style="background:linear-gradient(135deg,#64B5F6,#81C784);" onclick="setPreviewTheme('bluegreen')" title="蓝绿"></button>
-                    <button class="theme-btn" style="background:linear-gradient(135deg,#FFB74D,#FF8A65);" onclick="setPreviewTheme('warm')" title="暖色"></button>
-                    <button class="theme-btn" style="background:linear-gradient(135deg,#9575CD,#7EB6FF);" onclick="setPreviewTheme('purple')" title="紫蓝"></button>
-                    <span class="theme-btn-label" id="themeLabel">粉紫渐变</span>
-                </div>
-
                 <!-- 今日推歌选择区 -->
                 <div id="dailySongSelector" style="margin-bottom:20px;padding:24px;background:linear-gradient(135deg,#FFF5F8,#F8F0FF);border-radius:16px;border:1px solid rgba(255,107,157,0.15);">
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
@@ -739,17 +513,20 @@
                             <div style="font-weight:700;font-size:18px;color:#FF6B9D;">今日推歌选择</div>
                             <div style="font-size:13px;color:#999;margin-top:4px;">选择今天要推送的歌曲，可以编辑介绍词</div>
                         </div>
-                        <div class="view-switcher">
-                            <button class="active" onclick="setSongView('grid')" title="卡片视图">📇</button>
-                            <button onclick="setSongView('list')" title="列表视图">📋</button>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:#666;cursor:pointer;background:#fff;padding:6px 12px;border-radius:20px;border:1px solid #eee;">
+                                <input type="checkbox" id="selectAllDailySongs" onchange="toggleSelectAllDailySongs(this.checked)" style="accent-color:#FF6B9D;"> 全选
+                            </label>
                         </div>
                     </div>
-                    <div id="dailySongList" class="song-grid active"></div>
-                    <div id="dailySongListAlt" class="song-list"></div>
-                    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-                        <button class="btn btn-outline btn-sm" onclick="loadDailySongSelector()" style="background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(255,107,157,0.3);">🔄 加载推歌</button>
-                        <button class="btn btn-outline btn-sm" onclick="toggleManualSongForm()" style="background:linear-gradient(135deg,#5B9BD5,#7EB8F0);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(91,155,213,0.3);">✏️ 手动添加</button>
+                    <div id="dailySongList" style="max-height:300px;overflow-y:auto;background:#fff;border-radius:12px;padding:12px;">
+                        <div style="text-align:center;padding:40px;color:#ccc;">
+                            <div style="font-size:40px;margin-bottom:12px;">🎶</div>
+                            <div style="font-size:14px;">点击下方按钮加载推歌</div>
+                        </div>
                     </div>
+                    <button class="btn btn-outline btn-sm" onclick="loadDailySongSelector()" style="margin-top:14px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(255,107,157,0.3);">🔄 加载推歌</button>
+                    <button class="btn btn-outline btn-sm" onclick="toggleManualSongForm()" style="margin-top:14px;background:linear-gradient(135deg,#5B9BD5,#7EB8F0);color:#fff;border:none;padding:10px 24px;border-radius:20px;font-weight:600;box-shadow:0 4px 15px rgba(91,155,213,0.3);">✏️ 手动添加歌曲</button>
 
                     <!-- 手动添加歌曲表单 -->
                     <div id="manualSongForm" style="display:none;margin-top:16px;padding:20px;background:#fff;border-radius:14px;border:1px dashed #ddd;">
@@ -792,50 +569,29 @@
                 </div>
 
                 <div class="preview-toolbar">
-                    <!-- 模板选择器 -->
-                    <div style="width:100%;margin-bottom:12px;">
-                        <div style="font-size:12px;color:#888;margin-bottom:8px;">🎨 模板选择（点击切换）</div>
-                        <div class="template-grid" id="templateGrid"></div>
+                    <div class="toggle-group">
+                        <label><input type="checkbox" id="cbWeather" checked> 🌤️ 包含天气</label>
+                        <label><input type="checkbox" id="cbHitokoto" checked> 📝 包含一言</label>
+                        <label><input type="checkbox" id="cbWeeklyStar" checked> ⭐ 包含每周之星</label>
+                        <label><input type="checkbox" id="cbGaokao" checked> 📚 包含高考倒计时</label>
                     </div>
-                    <!-- 视图切换 + 选项 -->
-                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-                        <div class="view-switcher">
-                            <button class="active" onclick="setPreviewView('desktop')" title="电脑视图">🖥️ 电脑</button>
-                            <button onclick="setPreviewView('phone')" title="手机视图">📱 手机</button>
-                        </div>
-                        <div class="toggle-group">
-                            <label><input type="checkbox" id="cbWeather" checked> 🌤️ 天气</label>
-                            <label><input type="checkbox" id="cbHitokoto" checked> 📝 一言</label>
-                            <label><input type="checkbox" id="cbWeeklyStar" checked> ⭐ 之星</label>
-                            <label><input type="checkbox" id="cbGaokao" checked> 📚 高考</label>
-                        </div>
-                        <button class="btn btn-outline btn-sm" onclick="generatePreview()">🔄 刷新</button>
-                        <button class="btn btn-warning btn-sm" onclick="generateSongOnly()">🎵 歌曲</button>
-                        <button class="btn btn-success btn-sm" onclick="copyContent()" id="btnCopy">📋 复制</button>
-                        <button class="btn btn-primary btn-sm" onclick="downloadHTML()" id="btnDownload">⬇️ HTML</button>
-                        <button class="btn btn-info btn-sm" onclick="syncDraft()" id="btnSync">📱 同步</button>
-                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="generatePreview()">🔄 刷新预览</button>
+                    <button class="btn btn-warning btn-sm" onclick="generateSongOnly()">🎵 推送歌曲</button>
+                    <button class="btn btn-success btn-sm" onclick="copyContent()" id="btnCopy">
+                        📋 复制内容
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="downloadHTML()" id="btnDownload">
+                        ⬇️ 下载HTML
+                    </button>
+                    <button class="btn btn-info btn-sm" onclick="syncDraft()" id="btnSync">
+                        📱 同步到公众号
+                    </button>
                 </div>
 
-                <div id="previewContainer">
-                    <div class="generate-progress" id="generateProgress">
-                        <div class="progress-icon">🎵</div>
-                        <div class="progress-text">正在生成预览...</div>
-                        <div class="progress-bar"><div class="progress-fill"></div></div>
-                    </div>
-                    <div class="preview-area" id="previewArea">
-                        <div class="placeholder">
-                            <div class="icon">📝</div>
-                            <div class="text">先选择帖子，再点击"刷新预览"</div>
-                        </div>
-                    </div>
-                </div>
-                <div id="phonePreviewContainer" style="display:none;">
-                    <div class="phone-frame">
-                        <div class="phone-notch"></div>
-                        <div class="phone-screen">
-                            <div class="preview-area" id="previewAreaPhone"></div>
-                        </div>
+                <div class="preview-area" id="previewArea">
+                    <div class="placeholder">
+                        <div class="icon">📝</div>
+                        <div class="text">先选择帖子，再点击"生成图文预览"</div>
                     </div>
                 </div>
             </div>
@@ -894,117 +650,6 @@
         var generatedArticles = null;
 
         // ===== Tab切换 =====
-        // ===== 模板选择器 =====
-        var selectedTemplate = 'random';
-        var templateNames = ['杂志风', '情感语录', '左右分栏', '手写信笺', '极简留白', '复古磁带', '音乐播放器', '旅行明信片', '电影海报', '时光卡片', '黑胶唱片', '便签纸'];
-        var templateIcons = ['📰', '💭', '📐', '💌', '✨', '📼', '🎧', '🗺', '🎬', '⏳', '💿', '📝'];
-
-        function renderTemplateGrid() {
-            var grid = document.getElementById('templateGrid');
-            if (!grid) return;
-            var html = '';
-            templateNames.forEach(function(name, idx) {
-                var selected = selectedTemplate === 'random' ? false : (parseInt(selectedTemplate) === idx);
-                html += '<div class="template-card' + (selected ? ' selected' : '') + '" onclick="selectTemplate(' + idx + ')" data-tpl="' + idx + '">';
-                html += '<div class="tpl-icon">' + templateIcons[idx] + '</div>';
-                html += '<div class="tpl-name">' + name + '</div>';
-                html += '</div>';
-            });
-            // 随机模板选项
-            var isRandom = selectedTemplate === 'random';
-            html += '<div class="template-card' + (isRandom ? ' selected' : '') + '" onclick="selectTemplate(\'random\')" data-tpl="random">';
-            html += '<div class="tpl-icon">🎲</div>';
-            html += '<div class="tpl-name">随机</div>';
-            html += '</div>';
-            grid.innerHTML = html;
-        }
-
-        function selectTemplate(idx) {
-            selectedTemplate = idx;
-            renderTemplateGrid();
-            // 如果已有预览，刷新
-            var previewArea = document.getElementById('previewArea');
-            var hasPreview = previewArea && previewArea.innerHTML.indexOf('padding:0') < 0 && previewArea.querySelector('[style*="padding: 0"]') === null && previewArea.textContent.length > 100;
-            var hasSongs = typeof getSelectedDailySongs === 'function' && getSelectedDailySongs().length > 0;
-            if (hasSongs) {
-                generateSongOnly(); // 歌曲推送直接重新生成
-            } else if (hasPreview) {
-                generatePreview(); // 帖子预览重新生成
-            }
-        }
-
-        // ===== 歌曲视图切换 =====
-        var songViewMode = 'grid';
-
-        function setSongView(mode) {
-            songViewMode = mode;
-            var grid = document.getElementById('dailySongList');
-            var list = document.getElementById('dailySongListAlt');
-            if (mode === 'grid') {
-                grid.classList.add('active');
-                list.classList.remove('active');
-            } else {
-                grid.classList.remove('active');
-                list.classList.add('active');
-            }
-            document.querySelector('.view-switcher button:nth-child(1)').classList.toggle('active', mode === 'grid');
-            document.querySelector('.view-switcher button:nth-child(2)').classList.toggle('active', mode === 'list');
-            renderDailySongSelector();
-        }
-
-        // ===== 预览视图切换 =====
-        function setPreviewView(mode) {
-            var container = document.getElementById('previewContainer');
-            var phoneContainer = document.getElementById('phonePreviewContainer');
-            var phoneArea = document.getElementById('previewAreaPhone');
-            // 用 button 文本精确定位按钮（避免选中其他 view-switcher）
-            var allSwitchers = document.querySelectorAll('.view-switcher');
-            var desktopBtn = null, phoneBtn = null;
-            for (var i = 0; i < allSwitchers.length; i++) {
-                var btns = allSwitchers[i].querySelectorAll('button');
-                for (var j = 0; j < btns.length; j++) {
-                    if (btns[j].textContent.indexOf('电脑') >= 0) desktopBtn = btns[j];
-                    if (btns[j].textContent.indexOf('手机') >= 0) phoneBtn = btns[j];
-                }
-            }
-
-            if (mode === 'phone') {
-                // 同步内容到手机预览
-                var srcArea = document.getElementById('previewArea');
-                if (phoneArea && srcArea) phoneArea.innerHTML = srcArea.innerHTML;
-                container.style.display = 'none';
-                phoneContainer.style.display = 'block';
-                if (desktopBtn) desktopBtn.classList.remove('active');
-                if (phoneBtn) phoneBtn.classList.add('active');
-            } else {
-                container.style.display = 'block';
-                phoneContainer.style.display = 'none';
-                if (desktopBtn) desktopBtn.classList.add('active');
-                if (phoneBtn) phoneBtn.classList.remove('active');
-            }
-        }
-
-        // ===== 配色主题切换 =====
-        var currentTheme = 'pink';
-        var themeLabels = { pink: '粉紫渐变', bluegreen: '蓝绿清新', warm: '暖阳金橙', purple: '紫蓝梦幻' };
-
-        function setPreviewTheme(theme) {
-            currentTheme = theme;
-            document.querySelectorAll('.theme-btn').forEach(function(btn) { btn.classList.remove('active'); });
-            if (event && event.target) event.target.classList.add('active');
-            var lbl = document.getElementById('themeLabel');
-            if (lbl) {
-                lbl.textContent = themeLabels[theme];
-                lbl.classList.add('animated');
-                setTimeout(function() { lbl.classList.remove('animated'); }, 600);
-            }
-            // 实时重新生成预览
-            var hasSongs = typeof getSelectedDailySongs === 'function' && getSelectedDailySongs().length > 0;
-            if (hasSongs) {
-                generateSongOnly();
-            }
-        }
-
         function switchTab(name) {
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
@@ -1302,15 +947,6 @@
             try {
                 var json = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
                 if (json.code === 200 && json.data.songs && json.data.songs.length > 0) {
-                    // 把后端的 template_override 映射到前端的 templateOverride
-                    // 注意：0 是合法值（杂志风），不能漏掉
-                    json.data.songs.forEach(function(s) {
-                        if (s.template_override !== null && s.template_override !== undefined && s.template_override !== '') {
-                            s.templateOverride = Number(s.template_override);
-                        } else {
-                            s.templateOverride = '';
-                        }
-                    });
                     selectedDailySongs = json.data.songs;
                     renderDailySongSelector();
                 } else {
@@ -1323,133 +959,55 @@
 
         function renderDailySongSelector() {
             var listEl = document.getElementById('dailySongList');
-            var listAlt = document.getElementById('dailySongListAlt');
-            if (!listEl || selectedDailySongs.length === 0) {
-                listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#ccc;"><div style="font-size:40px;margin-bottom:12px;">🎶</div><div style="font-size:14px;">点击上方"加载推歌"按钮</div></div>';
-                return;
-            }
+            if (!listEl || selectedDailySongs.length === 0) return;
 
             var html = '';
-            var altHtml = '';
             selectedDailySongs.forEach(function(song, idx) {
                 var intro = song.intro || '';
                 var lyrics = song.lyrics || '';
                 var hasIntro = intro.trim().length > 0;
                 var hasLyrics = lyrics.trim().length > 0;
-                var status = hasIntro && hasLyrics ? 'filled' : (hasIntro ? 'missing' : 'empty');
-                var statusText = hasIntro && hasLyrics ? '已填充' : (hasIntro ? '缺歌词' : '待生成');
 
-                // 卡片网格视图
-                html += '<div class="song-card' + (song._selected !== false ? ' selected' : '') + '" onclick="toggleSongCardSelection(' + idx + ', event)">';
-                html += '<div class="song-card-header">';
-                html += '<input type="checkbox" class="song-checkbox" value="' + idx + '"' + (song._selected !== false ? ' checked' : '') + ' onchange="updateSelectedSongs()" style="width:18px;height:18px;accent-color:#FF6B9D;cursor:pointer;">';
-                html += '<div class="song-info">';
-                html += '<div class="song-name">' + escapeHtml(song.song_name || '') + '</div>';
-                html += '<div class="song-artist">' + escapeHtml(song.artist || '未知歌手') + ' · ' + escapeHtml(song.submitter || '匿名') + '</div>';
+                html += '<div style="padding:16px;background:#fff;border-radius:14px;border:1px solid rgba(255,107,157,0.15);box-shadow:0 2px 10px rgba(0,0,0,0.03);margin-bottom:10px;">';
+                // 歌曲标题行
+                html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+                html += '<input type="checkbox" class="daily-song-select" value="' + idx + '" checked onchange="updateSelectedSongs()" style="width:18px;height:18px;accent-color:#FF6B9D;flex-shrink:0;">';
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="font-weight:700;font-size:15px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(song.song_name || '') + '</div>';
+                html += '<div style="font-size:12px;color:#999;margin-top:2px;">' + escapeHtml(song.artist || '未知歌手') + ' · ' + escapeHtml(song.submitter || '匿名') + '</div>';
                 html += '</div>';
-                html += '<span class="song-status ' + status + '">' + statusText + '</span>';
+                // 状态标签
+                if (hasIntro && hasLyrics) {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#d1fae5;color:#059669;border-radius:10px;flex-shrink:0;">已填充</span>';
+                } else if (hasIntro) {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#fef3c7;color:#d97706;border-radius:10px;flex-shrink:0;">缺歌词</span>';
+                } else {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#fee2e2;color:#dc2626;border-radius:10px;flex-shrink:0;">待生成</span>';
+                }
                 html += '</div>';
-                html += '<div class="song-actions">';
-                html += '<button class="btn-ai" onclick="event.stopPropagation();generateSongIntro(' + idx + ')">🤖 AI</button>';
-                html += '<button class="btn-info" onclick="event.stopPropagation();searchSongInfoInEditorFromList(' + idx + ')">🔍 歌曲</button>';
-                html += '<button class="btn-lyrics" onclick="event.stopPropagation();searchLyricsInEditorFromList(' + idx + ')">📝 歌词</button>';
+                // 操作按钮行
+                html += '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">';
+                html += '<button onclick="generateSongIntro(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🤖 AI生成</button>';
+                html += '<button onclick="searchSongInfoInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#64B5F6,#42A5F5);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🔍 歌曲信息</button>';
+                html += '<button onclick="searchLyricsInEditorFromList(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#81C784,#66BB6A);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">📝 搜索歌词</button>';
                 if (song._manual) {
-                    html += '<button class="btn-delete" onclick="event.stopPropagation();removeManualSong(' + idx + ')">🗑</button>';
+                    html += '<button onclick="removeManualSong(' + idx + ')" style="padding:5px 14px;font-size:12px;background:#f5f5f5;color:#999;border:1px solid #eee;border-radius:10px;cursor:pointer;white-space:nowrap;">🗑 删除</button>';
                 }
                 html += '</div>';
-
-                // 单首歌模板选择器
-                var _tplVal = song.templateOverride;
-                var _tplDisp = (_tplVal !== undefined && _tplVal !== null && _tplVal !== '') ? _tplVal : '';
-                html += '<div style="margin-top:6px;display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,0.6);border-radius:8px;border:1px solid ' + (_tplDisp !== '' ? '#FFD700' : '#f0f0f0') + ';" onclick="event.stopPropagation();">';
-                html += '<span style="font-size:10px;color:#999;letter-spacing:1px;flex-shrink:0;">🎨 模板</span>';
-                html += '<select onchange="setSongTemplate(' + idx + ', this.value)" style="flex:1;padding:4px 8px;border:1px solid ' + (_tplDisp !== '' ? '#FFD700' : '#e0e0e0') + ';border-radius:6px;font-size:11px;background:#fff;color:#555;cursor:pointer;outline:none;">';
-                html += '<option value=""' + (_tplDisp === '' ? ' selected' : '') + '>跟随全局</option>';
-                html += '<option value="0"' + (_tplVal === 0 || _tplVal === '0' ? ' selected' : '') + '>📰 杂志风</option>';
-                html += '<option value="1"' + (_tplVal === 1 || _tplVal === '1' ? ' selected' : '') + '>💭 情感语录</option>';
-                html += '<option value="2"' + (_tplVal === 2 || _tplVal === '2' ? ' selected' : '') + '>📐 左右分栏</option>';
-                html += '<option value="3"' + (_tplVal === 3 || _tplVal === '3' ? ' selected' : '') + '>💌 手写信笺</option>';
-                html += '<option value="4"' + (_tplVal === 4 || _tplVal === '4' ? ' selected' : '') + '>✨ 极简留白</option>';
-                html += '<option value="5"' + (_tplVal === 5 || _tplVal === '5' ? ' selected' : '') + '>📼 复古磁带</option>';
-                html += '<option value="6"' + (_tplVal === 6 || _tplVal === '6' ? ' selected' : '') + '>🎧 音乐播放器</option>';
-                html += '<option value="7"' + (_tplVal === 7 || _tplVal === '7' ? ' selected' : '') + '>🗺 旅行明信片</option>';
-                html += '<option value="8"' + (_tplVal === 8 || _tplVal === '8' ? ' selected' : '') + '>🎬 电影海报</option>';
-                html += '<option value="9"' + (_tplVal === 9 || _tplVal === '9' ? ' selected' : '') + '>⏳ 时光卡片</option>';
-                html += '<option value="10"' + (_tplVal === 10 || _tplVal === '10' ? ' selected' : '') + '>💿 黑胶唱片</option>';
-                html += '<option value="11"' + (_tplVal === 11 || _tplVal === '11' ? ' selected' : '') + '>📝 便签纸</option>';
-                html += '</select>';
-                if (_tplDisp !== '') {
-                    html += '<button onclick="event.stopPropagation();setSongTemplate(' + idx + ', \'\')" title="清除" style="padding:2px 6px;border:none;background:transparent;color:#999;cursor:pointer;font-size:14px;">✕</button>';
-                }
+                // 介绍词
+                html += '<div style="margin-bottom:8px;">';
+                html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">介绍词</label>';
+                html += '<textarea id="songIntro_' + idx + '" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;line-height:1.6;box-sizing:border-box;" placeholder="点击AI生成或手动输入..." onchange="updateSongIntro(' + idx + ', this.value)">' + escapeHtml(intro) + '</textarea>';
+                html += '<div class="song-info-result" id="songInfoResult_' + idx + '" style="display:none;margin-top:6px;padding:8px 12px;background:#E8F5E9;border-radius:8px;font-size:12px;color:#2E7D32;"></div>';
                 html += '</div>';
-                html += '<textarea id="songIntro_' + idx + '" placeholder="介绍词（点击AI生成）..." onchange="updateSongIntro(' + idx + ', this.value)">' + escapeHtml(intro) + '</textarea>';
-                html += '<div class="song-info-row">歌词：' + (hasLyrics ? '✓ ' + lyrics.split('\n').slice(0,1).join('').substring(0,20) + '...' : '未填充') + '</div>';
+                // 歌词
+                html += '<div>';
+                html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">歌词</label>';
+                html += '<textarea id="songLyrics_' + idx + '" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;font-family:serif;line-height:1.8;box-sizing:border-box;" placeholder="搜索歌词或手动输入..." onchange="updateSongLyrics(' + idx + ', this.value)">' + escapeHtml(lyrics) + '</textarea>';
                 html += '</div>';
-
-                // 列表视图
-                altHtml += '<div class="song-list-item' + (song._selected !== false ? ' selected' : '') + '" onclick="toggleSongCardSelection(' + idx + ', event)">';
-                altHtml += '<input type="checkbox" value="' + idx + '"' + (song._selected !== false ? ' checked' : '') + ' onchange="updateSelectedSongs()">';
-                altHtml += '<span style="font-weight:700;color:#333;">' + escapeHtml(song.song_name || '') + '</span>';
-                altHtml += '<span style="color:#999;font-size:12px;">' + escapeHtml(song.artist || '') + '</span>';
-                altHtml += '<span class="song-status ' + status + '">' + statusText + '</span>';
-                if (song.templateOverride !== undefined && song.templateOverride !== null && song.templateOverride !== '') {
-                    altHtml += '<span style="font-size:10px;padding:2px 8px;background:linear-gradient(135deg,#FFF5E1,#FFE4B5);color:#A67C00;border-radius:10px;font-weight:600;">🎨' + (templateNames[song.templateOverride] || '模板' + song.templateOverride) + '</span>';
-                }
-                altHtml += '<button class="btn-ai" onclick="event.stopPropagation();generateSongIntro(' + idx + ')" style="padding:4px 10px;font-size:11px;border:none;border-radius:6px;cursor:pointer;">🤖 AI</button>';
-                altHtml += '</div>';
+                html += '</div>';
             });
-
             listEl.innerHTML = html;
-            listAlt.innerHTML = altHtml;
-            listEl.classList.add('active');
-        }
-
-        function toggleSongCardSelection(idx, event) {
-            // 点击checkbox时不触发
-            if (event.target.type === 'checkbox') return;
-            var checkbox = document.querySelector('.song-card:nth-child(' + (idx+1) + ') .song-checkbox') ||
-                          document.querySelectorAll('.song-checkbox')[idx];
-            if (checkbox) {
-                checkbox.checked = !checkbox.checked;
-                updateSelectedSongs();
-                var card = checkbox.closest('.song-card');
-                if (card) card.classList.toggle('selected', checkbox.checked);
-            }
-        }
-
-        // 设置单首歌的模板覆盖
-        async function setSongTemplate(idx, val) {
-            if (!selectedDailySongs[idx]) return;
-            var song = selectedDailySongs[idx];
-            if (val === '' || val === null) {
-                delete song.templateOverride;
-            } else {
-                song.templateOverride = parseInt(val);
-            }
-            // 立即重渲染卡片列表（更新徽章等）
-            renderDailySongSelector();
-            // 保存到后端（如果有真实 id）
-            if (song.id && !song._manual) {
-                try {
-                    var saveRes = await apiFetch('/api/admin/daily-songs/' + song.id + '/template', {
-                        method: 'PUT',
-                        body: JSON.stringify({ template_override: val === '' || val === null ? null : parseInt(val) })
-                    });
-                    if (saveRes && saveRes.code === 200) {
-                        showToast(val === '' || val === null ? '已恢复全局' : '已设为 ' + (templateNames[parseInt(val)] || '模板'), 'success');
-                    } else {
-                        showToast('保存失败：' + (saveRes && saveRes.message || '未知错误'), 'error');
-                    }
-                } catch (e) {
-                    console.warn('[模板] 保存失败:', e.message);
-                    showToast('网络错误', 'error');
-                }
-            }
-            // 如果已有预览，重新生成
-            var hasSongs = typeof getSelectedDailySongs === 'function' && getSelectedDailySongs().length > 0;
-            if (hasSongs) {
-                generateSongOnly();
-            }
         }
 
         async function generateSongIntro(idx) {
@@ -1461,84 +1019,53 @@
                 textarea = allTextareas[idx * 2];
                 if (!textarea) return;
             }
-            textarea.value = 'AI生成中（约5-15秒）...';
+            textarea.value = 'AI生成中...';
             // 禁用整个列表中的AI按钮防止重复点击
             var allGenBtns = document.querySelectorAll('#dailySongList button');
             var genBtns = [];
             allGenBtns.forEach(function(b) { if (b.textContent && b.textContent.indexOf('AI') >= 0) { b.disabled = true; b.style.opacity = '0.5'; genBtns.push(b); } });
 
             try {
-                // 1) 启动任务，立即返回taskId（避免Cloudflare 524）
                 var res = await fetch('/api/admin/generate-song-intro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
                     body: JSON.stringify({ song_name: song.song_name, artist: song.artist || '' })
                 });
                 var json = await res.json();
-                if (json.code !== 200 || !json.data || !json.data.taskId) {
+                if (json.code === 200 && (json.data.intro || json.data.lyrics)) {
+                    textarea.value = json.data.intro || '';
+                    selectedDailySongs[idx].intro = json.data.intro || '';
+                    if (json.data.lyrics) {
+                        selectedDailySongs[idx].lyrics = json.data.lyrics;
+                        var lyricsTextarea = document.getElementById('songLyrics_' + idx);
+                        if (lyricsTextarea) lyricsTextarea.value = json.data.lyrics;
+                    }
+                    // 状态标签更新
+                    var statusArea = textarea.closest('[style*="padding:16px"]') || textarea.parentNode;
+                    var statusTag = statusArea.querySelector('[style*="border-radius:10px"]');
+                    if (statusTag) {
+                        statusTag.style.background = '#d1fae5';
+                        statusTag.style.color = '#059669';
+                        statusTag.textContent = '已填充';
+                    }
+                    showToast('介绍词生成成功' + (json.data.lyrics ? '（含歌词）' : ''), 'success');
+                } else if (json.data && json.data.prompt) {
                     textarea.value = '';
-                    showToast(json.message || '启动失败', 'error');
-                    return;
-                }
-                var taskId = json.data.taskId;
-
-                // 2) 轮询拿结果（每2秒一次，最多60秒）
-                var polled = null;
-                for (var attempt = 0; attempt < 30; attempt++) {
-                    await new Promise(function(r) { setTimeout(r, 2000); });
-                    try {
-                        var pollRes = await fetch('/api/admin/generate-song-intro/result?taskId=' + taskId, {
-                            headers: { 'Authorization': 'Bearer ' + getToken() }
-                        });
-                        polled = await pollRes.json();
-                    } catch (e) { continue; }
-                    if (polled.code === 200 && polled.data && polled.data.status === 'done') {
-                        // 成功拿到结果
-                        if (polled.data.intro || polled.data.lyrics) {
-                            textarea.value = polled.data.intro || '';
-                            selectedDailySongs[idx].intro = polled.data.intro || '';
-                            if (polled.data.lyrics) {
-                                selectedDailySongs[idx].lyrics = polled.data.lyrics;
-                                var lyricsTextarea = document.getElementById('songLyrics_' + idx);
-                                if (lyricsTextarea) lyricsTextarea.value = polled.data.lyrics;
-                            }
-                            var statusArea = textarea.closest('[style*="padding:16px"]') || textarea.parentNode;
-                            var statusTag = statusArea.querySelector('[style*="border-radius:10px"]');
-                            if (statusTag) {
-                                statusTag.style.background = '#d1fae5';
-                                statusTag.style.color = '#059669';
-                                statusTag.textContent = '已填充';
-                            }
-                            showToast('介绍词生成成功' + (polled.data.lyrics ? '（含歌词）' : ''), 'success');
-                        } else if (polled.data.prompt) {
-                            textarea.value = '';
-                            var promptBox = document.getElementById('promptFallback_' + idx);
-                            if (!promptBox) {
-                                promptBox = document.createElement('div');
-                                promptBox.id = 'promptFallback_' + idx;
-                                promptBox.style.cssText = 'margin-top:8px;padding:12px;background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;font-size:12px;color:#E65100;';
-                                textarea.parentNode.insertBefore(promptBox, textarea.nextSibling);
-                            }
-                            promptBox.innerHTML = '<div style="margin-bottom:8px;font-weight:600;">⚠️ AI不可用，请复制提示词到 <a href="https://chat.deepseek.com" target="_blank">DeepSeek</a> 手动生成：</div>' +
-                                '<textarea readonly style="width:100%;min-height:120px;padding:8px;border:1px solid #FFCC80;border-radius:6px;font-size:11px;background:#FFF8E1;resize:vertical;">' + polled.data.prompt + '</textarea>' +
-                                '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value);showToast(\'已复制\',\'success\')" style="margin-top:6px;padding:4px 12px;border:none;background:#FF9800;color:#fff;border-radius:6px;font-size:12px;cursor:pointer;">📋 复制提示词</button>';
-                            showToast('请复制提示词手动生成', 'info');
-                        }
-                        return;
+                    var promptBox = document.getElementById('promptFallback_' + idx);
+                    if (!promptBox) {
+                        promptBox = document.createElement('div');
+                        promptBox.id = 'promptFallback_' + idx;
+                        promptBox.style.cssText = 'margin-top:8px;padding:12px;background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;font-size:12px;color:#E65100;';
+                        textarea.parentNode.insertBefore(promptBox, textarea.nextSibling);
                     }
-                    if (polled.code !== 200) {
-                        // 出错了
-                        textarea.value = '';
-                        showToast(polled.message || '生成失败', 'error');
-                        return;
-                    }
-                    // 还在 pending，更新提示文字
-                    if (attempt === 5) textarea.value = 'AI生成中... 已等待10秒';
-                    else if (attempt === 15) textarea.value = 'AI生成中... 已等待30秒';
+                    promptBox.innerHTML = '<div style="margin-bottom:8px;font-weight:600;">⚠️ AI不可用，请复制提示词到 <a href="https://chat.deepseek.com" target="_blank">DeepSeek</a> 手动生成：</div>' +
+                        '<textarea readonly style="width:100%;min-height:120px;padding:8px;border:1px solid #FFCC80;border-radius:6px;font-size:11px;background:#FFF8E1;resize:vertical;">' + json.data.prompt + '</textarea>' +
+                        '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.value);showToast(\'已复制\',\'success\')" style="margin-top:6px;padding:4px 12px;border:none;background:#FF9800;color:#fff;border-radius:6px;font-size:12px;cursor:pointer;">📋 复制提示词</button>';
+                    showToast('请复制提示词手动生成', 'info');
+                } else {
+                    textarea.value = '';
+                    showToast('生成失败', 'error');
                 }
-                // 超时
-                textarea.value = '';
-                showToast('生成超时，请稍后重试', 'error');
             } catch (e) {
                 textarea.value = '';
                 showToast('网络错误', 'error');
@@ -1712,11 +1239,6 @@
         async function generatePreview() {
             var ids = getSelectedPostIds();
 
-            // 显示进度动画
-            var progress = document.getElementById('generateProgress');
-            var previewArea = document.getElementById('previewArea');
-            if (progress) progress.classList.add('active');
-            if (previewArea) previewArea.style.display = 'none';
 
             var includeWeather = document.getElementById('cbWeather').checked;
             var includeHitokoto = document.getElementById('cbHitokoto').checked;
@@ -1747,16 +1269,10 @@
             });
 
             if (res.code !== 200) {
-                if (progress) progress.classList.remove('active');
-                if (previewArea) previewArea.style.display = 'block';
                 showMsg('previewMsg', '生成失败: ' + (res.message || '未知错误'), 'error');
                 setStatus('❌ 生成图文失败', 'error');
                 return;
             }
-
-            // 隐藏进度动画，显示预览
-            if (progress) progress.classList.remove('active');
-            if (previewArea) previewArea.style.display = 'block';
 
             generatedArticles = res.data.articles;
             var articles = res.data.articles;
@@ -1972,11 +1488,11 @@
             previewHtml += '</div>';
             previewHtml += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
             previewHtml += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-            previewHtml += '<img src="/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
+            previewHtml += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
             previewHtml += '</td></tr></table>';
             previewHtml += '</td></tr></table>';
             previewHtml += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
-            previewHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;"></p>';
+            previewHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://wall.jay23.cn</p>';
             previewHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
             previewHtml += '</td></tr></table>';
 
@@ -1991,36 +1507,13 @@
 
         // ===== 推送歌曲（独立于帖子） =====
         async function generateSongOnly() {
-            // 显示进度动画
-            var progress = document.getElementById('generateProgress');
-            var previewArea = document.getElementById('previewArea');
-            if (progress) progress.classList.add('active');
-            if (previewArea) previewArea.style.display = 'none';
-
             setStatus('正在生成歌曲推送...', 'loading');
 
             // 重新从数据库加载歌曲列表（获取最新数据），保留手动添加的歌曲
             var manualSongs = selectedDailySongs.filter(function(s) { return s._manual; });
-            // 备份当前的templateOverride，按song id
-            var overrideMap = {};
-            selectedDailySongs.forEach(function(s) {
-                if (s && s.id && s.templateOverride !== undefined && s.templateOverride !== null && s.templateOverride !== '') {
-                    overrideMap[s.id] = s.templateOverride;
-                }
-            });
             try {
                 var refreshRes = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
                 if (refreshRes.code === 200 && refreshRes.data.songs) {
-                    // 把后端的 template_override 映射到前端的 templateOverride（但优先用本地未保存的修改）
-                    refreshRes.data.songs.forEach(function(s) {
-                        if (overrideMap[s.id] !== undefined) {
-                            s.templateOverride = overrideMap[s.id];
-                        } else if (s.template_override !== null && s.template_override !== undefined && s.template_override !== '') {
-                            s.templateOverride = Number(s.template_override);
-                        } else {
-                            s.templateOverride = '';
-                        }
-                    });
                     selectedDailySongs = refreshRes.data.songs.concat(manualSongs);
                     renderDailySongSelector();
                 }
@@ -2029,8 +1522,6 @@
             var selectedSongs = getSelectedDailySongs();
 
             if (selectedSongs.length === 0) {
-                if (progress) progress.classList.remove('active');
-                if (previewArea) previewArea.style.display = 'block';
                 showMsg('previewMsg', '请先在上方"今日推歌选择"中勾选要推送的歌曲', 'error');
                 setStatus('❌ 未选择歌曲', 'error');
                 return;
@@ -2046,50 +1537,16 @@
             var dateStr = dateInfo.date || new Date().toLocaleDateString('zh-CN');
             var weekStr = dateInfo.week || '';
 
-            // 4套调色板（按配色主题切换）
-            var palettes = {
-                pink: [
-                    { accent: '#FF6B9D', bg: '#FFF5F8', light: '#FFE4EE', border: '#FFD1E0', text: '#C44569' },
-                    { accent: '#C89AFF', bg: '#F8F0FF', light: '#EDE4FF', border: '#DDD1F5', text: '#6A4C9C' },
-                    { accent: '#FF8FB1', bg: '#FFF0F5', light: '#FFD8E5', border: '#F5C8D5', text: '#A8456B' },
-                    { accent: '#FFB6C1', bg: '#FFF8F8', light: '#FFE8E8', border: '#F5D5D5', text: '#A85060' },
-                    { accent: '#E89AFF', bg: '#FAF0FF', light: '#F0E0FF', border: '#E0C8F5', text: '#7A3A95' },
-                    { accent: '#FF7AB6', bg: '#FFF0F8', light: '#FFD8EC', border: '#F5C8E0', text: '#A83A75' },
-                    { accent: '#A78BFA', bg: '#F5F0FF', light: '#E8DEFF', border: '#D5C5F5', text: '#6B45A0' },
-                    { accent: '#FFA8C0', bg: '#FFF5F8', light: '#FFE0E8', border: '#F5C8D5', text: '#A85570' }
-                ],
-                bluegreen: [
-                    { accent: '#64B5F6', bg: '#F0F8FF', light: '#E0EEFF', border: '#C8DFF5', text: '#3A6FA0' },
-                    { accent: '#81C784', bg: '#F0FFF5', light: '#E0FFE8', border: '#C8F0D8', text: '#2E7D52' },
-                    { accent: '#4DD0E1', bg: '#F0FFFE', light: '#D8F5F5', border: '#B5E5E5', text: '#1A7A85' },
-                    { accent: '#AED581', bg: '#F8FFF0', light: '#E8FFD8', border: '#D0F0B5', text: '#5A8A2A' },
-                    { accent: '#4FC3F7', bg: '#F0FAFF', light: '#D8EEFF', border: '#B5DCF5', text: '#2A7AA0' },
-                    { accent: '#A5D6A7', bg: '#F0FFF5', light: '#D8F5D8', border: '#B5E5B5', text: '#3A8A3A' },
-                    { accent: '#26C6DA', bg: '#F0FCFD', light: '#D5F0F5', border: '#B0E0E5', text: '#1A7A85' },
-                    { accent: '#7CB342', bg: '#F5FFF0', light: '#E5F5D8', border: '#CFE5B5', text: '#4A7A1A' }
-                ],
-                warm: [
-                    { accent: '#FFB74D', bg: '#FFF8F0', light: '#FFE8D0', border: '#F5D5A5', text: '#9A6B20' },
-                    { accent: '#FF8A65', bg: '#FFF5F0', light: '#FFD8C8', border: '#F5BFA8', text: '#A8503A' },
-                    { accent: '#FFD54F', bg: '#FFFCF0', light: '#FFF0C8', border: '#F5D885', text: '#9A8020' },
-                    { accent: '#FF7043', bg: '#FFF5F0', light: '#FFD8C5', border: '#F5BFA5', text: '#A84020' },
-                    { accent: '#FFA726', bg: '#FFFAF0', light: '#FFE8C5', border: '#F5D0A5', text: '#9A6020' },
-                    { accent: '#D4A574', bg: '#FFF8F0', light: '#FFE8D5', border: '#E5CFA5', text: '#8A6030' },
-                    { accent: '#E8943A', bg: '#FFF5F0', light: '#FFDCC0', border: '#F0C898', text: '#8A5018' },
-                    { accent: '#FFAB91', bg: '#FFF5F0', light: '#FFE0D5', border: '#F5C8B5', text: '#A85A40' }
-                ],
-                purple: [
-                    { accent: '#9575CD', bg: '#F5F0FF', light: '#E8DEFF', border: '#D0BFF0', text: '#5A3D8A' },
-                    { accent: '#7EB6FF', bg: '#F0F5FF', light: '#D8E5FF', border: '#B0CFF5', text: '#3A5A95' },
-                    { accent: '#BA68C8', bg: '#FAF0FF', light: '#F0D8F5', border: '#E0B5E5', text: '#7A2A8A' },
-                    { accent: '#7986CB', bg: '#F0F2FA', light: '#D8DEF0', border: '#B5BFE0', text: '#3A4A8A' },
-                    { accent: '#A78BFA', bg: '#F5F0FF', light: '#E5D8FF', border: '#D0BFF5', text: '#5A3D95' },
-                    { accent: '#9FA8DA', bg: '#F0F2FA', light: '#DDE0F0', border: '#BFC5E0', text: '#4A558A' },
-                    { accent: '#CE93D8', bg: '#FAF0FA', light: '#F0D8F0', border: '#E0B5E0', text: '#7A3A80' },
-                    { accent: '#64B5F6', bg: '#F0F8FF', light: '#D8E8FF', border: '#B5D5F5', text: '#3A6F95' }
-                ]
-            };
-            var palette = palettes[currentTheme] || palettes.pink;
+            var palette = [
+                { accent: '#FF6B9D', bg: '#FFF5F8', light: '#FFE4EE', border: '#FFD1E0', text: '#C44569' },
+                { accent: '#5B9BD5', bg: '#F0F5FF', light: '#E0EEFF', border: '#C8DFF5', text: '#3A6FA0' },
+                { accent: '#4CAF7D', bg: '#F0FFF5', light: '#E0FFE8', border: '#C8F0D8', text: '#2E7D52' },
+                { accent: '#9575CD', bg: '#F5F0FF', light: '#EDE4FF', border: '#DDD1F5', text: '#6A4C9C' },
+                { accent: '#E8943A', bg: '#FFF8F0', light: '#FFF0D8', border: '#F5E0C0', text: '#9A6B20' },
+                { accent: '#E06B75', bg: '#FFF0F0', light: '#FFE0E0', border: '#F5C8C8', text: '#A84050' },
+                { accent: '#45B7D1', bg: '#F0FAFF', light: '#E0F4FF', border: '#C0E8F5', text: '#2A7A90' },
+                { accent: '#96CEB4', bg: '#F0FFF8', light: '#E0FFE8', border: '#C0F0D8', text: '#3A8A60' }
+            ];
 
             // 辅助：格式化介绍词
             function fmtIntro(raw) {
@@ -2114,14 +1571,7 @@
             var html = '<div style="padding:0;background:#F7F8FA;">';
 
             // ===== 顶部大标题区 =====
-            // 顶部标题区渐变（跟主题走）
-            var titleGradients = {
-                pink: 'linear-gradient(135deg,#FF91A4 0%,#C89AFF 50%,#7EB6FF 100%)',
-                bluegreen: 'linear-gradient(135deg,#64B5F6 0%,#4DD0E1 50%,#81C784 100%)',
-                warm: 'linear-gradient(135deg,#FFB74D 0%,#FF8A65 50%,#FFD54F 100%)',
-                purple: 'linear-gradient(135deg,#9575CD 0%,#7EB6FF 50%,#BA68C8 100%)'
-            };
-            html += '<div style="background:' + (titleGradients[currentTheme] || titleGradients.pink) + ';padding:40px 20px 32px;text-align:center;position:relative;overflow:hidden;">';
+            html += '<div style="background:linear-gradient(135deg,#FF91A4 0%,#C89AFF 50%,#7EB6FF 100%);padding:40px 20px 32px;text-align:center;position:relative;overflow:hidden;">';
             html += '<div style="position:absolute;top:16px;left:24px;width:8px;height:8px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
             html += '<div style="position:absolute;top:32px;right:36px;width:12px;height:12px;background:rgba(255,255,255,0.15);border-radius:50%;"></div>';
             html += '<div style="position:absolute;bottom:20px;left:45%;width:6px;height:6px;background:rgba(255,255,255,0.25);border-radius:50%;"></div>';
@@ -2141,76 +1591,24 @@
                 '在学校的走廊、操场、教室角落<br>耳机里单曲循环的那首歌<br>今天，我们把它写成文字，分享给所有人。',
                 '音乐是最好的翻译官——<br>把说不出口的情绪，翻译成旋律。<br>今天，听听他们的「音乐日记」。',
                 '每一代人都有属于自己的校园BGM。<br>今天这些被用心推荐的歌曲，<br>或许也能成为你今天的背景音乐。',
-                '认真推荐一首歌的心情，<br>大概和写一封情书差不多。<br>希望读到这里的你，能感受到这份心意。',
-                '如果心情有颜色，<br>那歌单就是调色盘。<br>今天的颜色，由你们来调。',
-                '你有没有那种时刻——<br>听到前奏响起，<br>整个世界突然安静下来？<br>今天分享的歌，都是这种时刻。',
-                '深夜戴耳机听歌的人，<br>心里都住着一个小宇宙。<br>今天，打开这扇宇宙的门，一起看看。',
-                '世界上最浪漫的事，<br>大概就是把喜欢的歌<br>悄悄放在别人耳边。<br>今天的推歌，就是这份浪漫。',
-                '课桌上的草稿纸写了又擦，<br>耳机里的歌听了又听。<br>那些年反复循环的旋律，你还记得吗？',
-                '总有一首歌能让你在人群中停下来。<br>今天这些被认真挑选的歌，<br>也许就是你停下来的理由。',
-                '有人说：「不要把歌单给别人看，<br>那是你灵魂的浏览记录。」<br>那么今天，我们大胆地公开一次。',
-                '校园里最动听的旋律，<br>不是下课铃，<br>而是有人在你耳边<br>轻声说：「这首歌你一定要听」。',
-                '今天的内容有点特别——<br>不是我们写的文章，<br>而是一封封用歌声写成的信。<br>每一封，都值得拆开。',
-                '音乐有一种神奇的力量，<br>能让陌生人在同一首歌里<br>找到共鸣。<br>今天的歌单，就是一场无声的相识。',
-                '有些歌不是用来听的，<br>是用来回忆的。<br>按下播放键的那一刻，<br>时光倒流，你还是那个少年。',
-                '你听过一首歌，<br>想起一个人，<br>然后笑了，然后沉默了。<br>今天的歌单里，一定有这样一首。',
-                '校园时光很短，<br>但总有一些旋律<br>会比记忆更长久。<br>这些歌，是你们留下的时光胶囊。',
-                '耳机分你一半，<br>是校园时代最温柔的告白。<br>今天，我们把整个歌单分给所有人。',
-                '操场上的风、教室里的光、<br>放学路上的夕阳——<br>如果它们有声音，<br>大概就是今天这些歌。',
-                '每个人心中都有一首"主题曲"，<br>它可能不流行，不热门，<br>但在你的世界里，<br>它就是第一名。',
-                '推荐一首歌给陌生人，<br>就像往河里放一艘小纸船。<br>你不知道谁会捡到，<br>但总有人会微笑着读完。'
+                '认真推荐一首歌的心情，<br>大概和写一封情书差不多。<br>希望读到这里的你，能感受到这份心意。'
             ];
-            var randIdx = Math.floor(Math.random() * openingQuotes.length);
             html += '<div style="padding:28px 20px 12px;">';
             html += '<div style="font-size:15px;color:#666;line-height:2.2;text-align:center;max-width:340px;margin:0 auto;">';
-            html += openingQuotes[randIdx % openingQuotes.length];
+            html += openingQuotes[idx % openingQuotes.length];
             html += '</div>';
             html += '</div>';
 
             // ===== 音乐小引言/知识点 =====
-            var factIdx = Math.floor(Math.random() * 30) + 1000; // 独立随机种子
             var musicFacts = [
-                '<span style="color:#FFB6C1;">🎵</span> 十年这首歌，我听过很多遍才听懂。不是那两个字没出口，是出口了才发现，说出来之后，一切反而更难受了。',
-                '<span style="color:#A78BFA;">🎵</span> 有的人分手之后说要放下，结果每天路过那家店都会绕道走。你问我放下了吗？我说放下了。你信吗？我自己都不信。',
-                '<span style="color:#64B5F6;">🎵</span> 有些人就是这样，你不知道什么时候会想起他。一首歌，一句话，一个熟悉的背影。明明已经过去很久了，可心里那个人，好像一直没走。',
-                '<span style="color:#81C784;">🎵</span> 后来我才知道，有些人出现在你生命里，就是为了教会你一件事。然后他就走了，留你一个人站在原地，不知道该哭还是该笑。',
-                '<span style="color:#FF8A65;">🎵</span> 你有没有那种时候，明明很想念一个人，却连发消息的勇气都没有。不是怕打扰，是怕回了之后不知道怎么接下去。',
-                '<span style="color:#F06292;">🎵</span> 分手那天，我们像往常一样说了再见。我以为我会很难过，结果我笑了。后来才明白，那种笑比哭更让人难受。',
-                '<span style="color:#AB47BC;">🎵</span> 有人说时间会冲淡一切，可时间只是把那些尖锐的棱角磨平了。想起来的时候，还是会心口一紧，只是不再那么痛了。',
-                '<span style="color:#42A5F5;">🎵</span> 我删掉了所有的聊天记录，可那张截图我还留着。你不知道的是，我把那张图存了三份，怕自己哪天手滑删掉。',
-                '<span style="color:#66BB6A;">🎵</span> 朋友问我还记不记得他，我说不记得了。其实我记得。每一个细节都记得。只是不想让任何人知道我还记得。',
-                '<span style="color:#EF5350;">🎵</span> 有人说忘掉一个人最好的方式是开始新的感情。我试过，但每次看着身边的人，心里想的还是那一个。',
-                '<span style="color:#FFA726;">🎵</span> 你有没有等过一个人的消息，等着等着就睡着了。醒来第一件事是看手机，然后发现——什么都没有。',
-                '<span style="color:#5C6BC0;">🎵</span> 我们都在等对方先放手。你等我，我等你，等到最后才发现，两个人都还在原地，谁都没走。',
-                '<span style="color:#26C6DA;">🎵</span> 有时候突然很想一个人，不是白天，是夜里。拿起手机想打电话，看了眼时间，又放下了。有些想念，注定只能说给黑夜听。',
-                '<span style="color:#D4E157;">🎵</span> 我可以笑着跟你打招呼，可以若无其事地说好久不见。但你别问我最近怎么样，我怕我忍不住。',
-                '<span style="color:#EC407A;">🎵</span> 有人说放下一个人最快的方式是旅行。可我去了那么多地方，看过那么多风景，每次回来还是觉得空落落的。',
-                '<span style="color:#78909C;">🎵</span> 我们分开之后，我开始听一些以前不听的歌。不是因为好听，是因为歌里写的就是我。',
-                '<span style="color:#FFCA28;">🎵</span> 有些话说出来就是错了。所以我选择沉默，选择假装，选择一个人把所有的话都咽下去。',
-                '<span style="color:#4DB6AC;">🎵</span> 我以为我已经习惯了一个人。直到有一天，我习惯性地做了两份早餐，然后愣在那里，才发现自己根本忘不了。',
-                '<span style="color:#7E57C2;">🎵</span> 你问我还爱他吗？我不知道。我只知道，看到他的名字出现在屏幕上，我的心还是会跳快一拍。',
-                '<span style="color:#FF7043;">🎵</span> 我们最后一次见面，说的是改天再约。后来才明白，改天就是再也不见。',
-                '<span style="color:#26A69A;">🎵</span> 有人问我怎么走出失恋的。我没回答，因为我没走出去。只是学会了带着那些东西继续生活。',
-                '<span style="color:#AB47BC;">🎵</span> 你有没有那种朋友，专门负责在你深夜发疯的时候接住你。我很庆幸我有，虽然我不想总是麻烦他。',
-                '<span style="color:#42A5F5;">🎵</span> 有时候我觉得我放下了，可看到某个相似的背影，心还是会揪一下。原来放下这件事，不是一次性的。',
-                '<span style="color:#66BB6A;">🎵</span> 我把想说的话都写在了备忘录里，写了删，删了写。一年下来，那个文件夹里躺着几十条草稿，没有一条发出去过。',
-                '<span style="color:#EF5350;">🎵</span> 我最怕的不是一个人，怕的是两个人在一起，却比一个人还孤独。',
-                '<span style="color:#FFA726;">🎵</span> 你有没有那么一瞬间，突然很想回到某个时刻。然后又马上清醒，知道回不去了。',
-                '<span style="color:#5C6BC0;">🎵</span> 我终于学会了怎么照顾自己，却发现自己最想照顾的那个人，已经不在了。',
-                '<span style="color:#26C6DA;">🎵</span> 有人问我，你相信爱情吗？我说信。然后他说，你看起来不像。我笑了笑，没说话。',
-                '<span style="color:#D4E157;">🎵</span> 我以为我会恨他。后来发现，我恨不起来。因为恨是需要力气的，而我连力气都没有了。',
-                '<span style="color:#EC407A;">🎵</span> 有时候我想，如果当初再坚持一下，结局会不会不一样。但我知道，如果再来一次，我大概还是会做同样的选择。',
-                '<span style="color:#78909C;">🎵</span> 朋友说你该放下了。我说我早就放下了。他说你骗谁呢，你骗不了自己。我知道他在说我，我也知道他说的对。',
-                '<span style="color:#FFCA28;">🎵</span> 我删掉了他的联系方式，以为这样就能忘记。结果我背下了那串号码，因为那是我唯一还记得的数字。',
-                '<span style="color:#4DB6AC;">🎵</span> 有些伤口不会好，只是结了痂。不小心碰到的时候，还是会疼。只是我学会了，不让别人看到我在挠。',
-                '<span style="color:#7E57C2;">🎵</span> 有一天我梦到他了。梦里我们还在一起，醒来之后我躺了很久，不愿意睁眼，因为睁眼就是现实。',
-                '<span style="color:#FF7043;">🎵</span> 我不后悔认识他，也不后悔分开。我后悔的是，在一起的时候，没有更用力地珍惜。',
-                '<span style="color:#26A69A;">🎵</span> 你有没有那种时刻，明明周围很吵，心里却空得可怕。那种感觉很难形容，像是站在人群中间，却谁也不认识。',
-                '<span style="color:#AB47BC;">🎵</span> 我以为我会遇到更好的。结果遇到的人，都让我想起他。',
-                '<span style="color:#42A5F5;">🎵</span> 有人说时间是最好的解药。可我的时间，好像都用来想他了。',
-                '<span style="color:#66BB6A;">🎵</span> 我很想知道他过得好不好，又怕知道他过得好。因为如果他过得很好，那我算什么？'
+                '<span style="color:#FFB6C1;">🎵</span> 研究发现，听喜欢的音乐时大脑会释放多巴胺，和恋爱时的感觉一样呢。',
+                '<span style="color:#A78BFA;">🎵</span> 你今天推荐的歌，可能会成为某个人今天的单曲循环哦。',
+                '<span style="color:#64B5F6;">🎵</span> 你知道吗？同一首歌在不同年纪听，会有完全不同的感受。',
+                '<span style="color:#81C784;">🎵</span> 音乐是最短的社交距离——分享一首歌，比说一百句话都管用。',
+                '<span style="color:#FF8A65;">🎵</span> 有人说，歌单里最不起眼的那首歌，往往藏着最深的秘密。',
+                '<span style="color:#F06292;">🎵</span> 一个人安静听歌的时候，其实是内心最丰富的时候。'
             ];
-            html += '<div style="padding:0 20px 12px;"><div style="padding:12px 16px;background:#F8F9FF;border-radius:12px;font-size:13px;color:#888;line-height:1.8;text-align:center;max-width:320px;margin:0 auto;border:1px dashed #E0E0FF;">' + musicFacts[factIdx % musicFacts.length] + '</div></div>';
+            html += '<div style="padding:0 20px 12px;"><div style="padding:12px 16px;background:#F8F9FF;border-radius:12px;font-size:13px;color:#888;line-height:1.8;text-align:center;max-width:320px;margin:0 auto;border:1px dashed #E0E0FF;">' + musicFacts[idx % musicFacts.length] + '</div></div>';
 
             // ===== 目录区 =====
             html += '<div style="margin:16px 16px 0;background:#fff;border-radius:16px;padding:22px;box-shadow:0 1px 6px rgba(0,0,0,0.05);border:1px solid #eee;">';
@@ -2250,652 +1648,507 @@
                 if (maxLines) lines = lines.slice(0, maxLines);
                 var h = '';
                 lines.forEach(function(line, i) {
-                    // 重点句（奇数行加粗高亮，偶数行淡化）
-                    var isEmphasis = (i === 0 || i === lines.length - 1);
-                    var fontSize = isEmphasis ? '16px' : '15px';
-                    var fontWeight = isEmphasis ? '700' : '500';
-                    var color = isEmphasis ? c.accent : '#666';
-                    var letterSpacing = isEmphasis ? '1px' : '0.3px';
-                    h += '<div style="font-size:' + fontSize + ';color:' + color + ';line-height:2.4;font-weight:' + fontWeight + ';letter-spacing:' + letterSpacing + ';padding:2px 0;">' + escapeHtml(line.trim()) + '</div>';
+                    h += '<div style="font-size:15px;color:' + (i < 2 ? c.text : '#666') + ';line-height:2.6;font-weight:' + (i < 2 ? '700' : '400') + ';letter-spacing:0.5px;">' + escapeHtml(line.trim()) + '</div>';
                 });
                 return h;
             }
             // 音乐卡片占位（同步后手动插入）
             function musicPlaceholder(s, c) {
-                return '<div style="margin:14px 0 0;padding:14px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border:1px dashed ' + c.border + ';border-radius:12px;display:flex;align-items:center;gap:12px;">'
-                    + '<div style="width:38px;height:38px;background:linear-gradient(135deg,' + c.accent + ',' + c.text + ');border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px ' + c.light + ';"><span style="font-size:13px;color:#fff;margin-left:2px;">▶</span></div>'
-                    + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.3px;">' + escapeHtml(s.song_name || '') + (s.artist ? ' - ' + escapeHtml(s.artist) : '') + '</div>'
-                    + '<div style="font-size:10px;color:' + c.accent + ';margin-top:3px;opacity:0.6;letter-spacing:0.5px;">🔄 同步后插入音乐卡片</div></div>'
-                    + '<div style="flex-shrink:0;width:24px;height:24px;border:1.5px solid ' + c.border + ';border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.5);"><span style="font-size:10px;color:' + c.accent + ';">♫</span></div>'
+                return '<div style="margin:16px 0 8px;padding:12px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border:1px dashed ' + c.border + ';border-radius:12px;display:flex;align-items:center;gap:10px;">'
+                    + '<div style="width:36px;height:36px;background:' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;color:#fff;">▶</span></div>'
+                    + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(s.song_name || '') + (s.artist ? ' - ' + escapeHtml(s.artist) : '') + '</div>'
+                    + '<div style="font-size:10px;color:#aaa;margin-top:2px;">🔄 同步后在此插入音乐卡片</div></div>'
+                    + '<div style="flex-shrink:0;width:20px;height:20px;border:2px solid ' + c.border + ';border-radius:50;display:flex;align-items:center;justify-content:center;"><span style="font-size:8px;color:' + c.accent + ';font-weight:700;">♪</span></div>'
                     + '</div>';
             }
 
             // ===== 10种卡片模板 =====
 
-            // 模板 A — 杂志风：精致排版，深度阅读
+            // 模板 A — 杂志长文
             function tplMagazine(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.08);border:1px solid ' + c.border + ';">';
-                // 顶部渐变条
-                h += '<div style="height:5px;background:linear-gradient(90deg,' + c.accent + ' 0%,#fff 50%,' + c.accent + ' 100%);"></div>';
-                // 杂志头部：序号 + 章节标识
-                h += '<div style="padding:24px 24px 0;display:flex;justify-content:space-between;align-items:flex-end;">';
-                h += '<div style="font-size:11px;color:' + c.accent + ';letter-spacing:3px;opacity:0.7;font-weight:700;">CHAPTER · ' + (idx+1).toString().padStart(2,'0') + '</div>';
-                h += '<div style="font-size:9px;color:#ccc;letter-spacing:2px;">DAILY MUSIC</div>';
-                h += '</div>';
-                // 歌名（杂志封面式）
-                h += '<div style="padding:14px 28px 6px;">';
-                h += '<div style="font-size:28px;font-weight:800;color:#1a1a2e;line-height:1.2;letter-spacing:0.5px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:14px;color:#888;margin-top:8px;font-family:Georgia,serif;font-style:italic;">♪ ' + escapeHtml(s.artist) + '</div>';
-                h += '</div>';
-                // 标签
-                if (songInfo) { h += '<div style="padding:10px 28px 0;">' + songTags(songInfo, c) + '</div>'; }
-                // 分隔
-                h += '<div style="margin:18px 28px 0;display:flex;align-items:center;gap:10px;">';
-                h += '<div style="width:3px;height:14px;background:' + c.accent + ';"></div>';
-                h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,' + c.accent + ',transparent);"></div>';
-                h += '</div>';
-                // 介绍（首字下沉）
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
+                h += '<div style="height:4px;background:linear-gradient(90deg,' + c.accent + ',' + c.light + ',' + c.accent + ');"></div>';
+                h += '<div style="padding:24px 20px 8px;display:flex;align-items:baseline;gap:12px;">';
+                h += '<span style="font-size:48px;font-weight:900;color:' + c.accent + ';opacity:0.12;line-height:1;">' + (idx+1) + '</span>';
+                h += '<div><div style="font-size:19px;font-weight:700;color:#222;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:3px;">' + escapeHtml(s.artist) + '</div></div></div>';
+                if (songInfo) { h += '<div style="padding:0 20px 12px;">' + songTags(songInfo, c) + '</div>'; }
                 if (intro) {
                     var firstChar = escapeHtml(intro.charAt(0));
                     var restIntro = escapeHtml(intro.substring(1));
-                    h += '<div style="padding:18px 28px 0;">';
-                    h += '<div style="font-size:16px;color:#3a3a3a;line-height:2.1;letter-spacing:0.3px;">';
-                    h += '<span style="float:left;font-size:54px;font-weight:900;color:' + c.accent + ';line-height:0.85;padding:8px 12px 0 0;font-family:Georgia,serif;">' + firstChar + '</span>' + restIntro;
-                    h += '</div><div style="clear:both;"></div></div>';
+                    h += '<div style="padding:8px 20px 16px;">';
+                    h += '<div style="font-size:15px;color:#444;line-height:2.6;text-align:justify;letter-spacing:0.5px;">';
+                    h += '<span style="float:left;font-size:40px;font-weight:700;color:' + c.accent + ';line-height:1;padding:4px 8px 0 0;">' + firstChar + '</span>' + restIntro;
+                    h += '</div></div>';
                 }
-                // 歌词区
                 if (lyrics) {
-                    h += '<div style="margin:22px 24px 0;padding:22px;background:linear-gradient(160deg,' + c.bg + ',#fff);border-radius:14px;border:1px solid ' + c.border + ';">';
-                    h += '<div style="font-size:10px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:16px;opacity:0.6;font-weight:700;display:flex;align-items:center;gap:8px;">';
-                    h += '<div style="width:12px;height:1px;background:' + c.accent + ';"></div> LYRICS';
-                    h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,' + c.accent + ',transparent);"></div></div>';
+                    h += '<div style="margin:0 16px 16px;padding:20px 16px;background:' + c.bg + ';border-radius:14px;text-align:center;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:14px;opacity:0.6;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
-                    h += '<div style="text-align:center;margin-top:16px;letter-spacing:8px;color:' + c.accent + ';opacity:0.3;font-size:14px;">· · ·</div>';
+                    h += '<div style="margin-top:14px;"><span style="font-size:9px;color:' + c.accent + ';opacity:0.3;letter-spacing:3px;">· · · · ·</span></div>';
                     h += '</div>';
                 }
-                // 留言
                 if (songMsg) {
-                    h += '<div style="margin:18px 24px 0;padding:14px 18px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:12px;border-left:4px solid ' + c.accent + ';">';
-                    h += '<div style="font-size:13px;color:#666;line-height:1.9;font-style:italic;letter-spacing:0.2px;">"' + escapeHtml(songMsg) + '"</div></div>';
+                    h += '<div style="margin:0 20px 12px;padding:12px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:10px;border-left:3px solid ' + c.accent + ';">';
+                    h += '<div style="font-size:13px;color:#555;line-height:1.8;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div></div>';
                 }
-                // 底部
-                h += '<div style="padding:18px 24px 20px;margin-top:20px;border-top:1px solid #f5f5f5;display:flex;justify-content:space-between;align-items:center;">';
-                h += '<div style="display:flex;align-items:center;gap:8px;">';
-                h += '<div style="width:24px;height:24px;background:' + c.bg + ';border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;">🎤</span></div>';
-                h += '<div style="font-size:12px;color:#666;">' + escapeHtml(submitter) + (toWhom ? ' <span style="color:#ccc;">to</span> <span style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</span>' : '') + '</div>';
-                h += '</div>';
-                h += '<div style="font-size:10px;color:#bbb;letter-spacing:1px;">' + new Date().toLocaleDateString('zh-CN') + '</div>';
+                h += '<div style="padding:12px 20px;border-top:1px solid #f5f5f5;font-size:12px;color:#999;display:flex;justify-content:space-between;align-items:center;">';
+                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
+                h += '<span style="font-size:11px;color:#ccc;">🎧 佩戴耳机食用更佳</span>';
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 B — 情感语录：斜体大字 + 引用符号 + 引言式
+            // 模板 B — 引用金句卡
             function tplQuote(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:linear-gradient(160deg,' + c.bg + ',#fff);border-radius:18px;padding:32px 26px 24px;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
-                // 装饰大引号
-                h += '<div style="position:absolute;top:-20px;left:18px;font-size:120px;color:' + c.accent + ';opacity:0.08;line-height:1;font-family:Georgia,serif;font-weight:700;">"</div>';
-                h += '<div style="position:absolute;top:24px;right:22px;font-size:120px;color:' + c.accent + ';opacity:0.08;line-height:1;font-family:Georgia,serif;font-weight:700;">"</div>';
-                // 装饰圆点
-                h += '<div style="position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;background:' + c.accent + ';opacity:0.06;border-radius:50%;"></div>';
-                // 顶部小标
-                h += '<div style="position:relative;z-index:1;text-align:center;margin-bottom:18px;">';
-                h += '<div style="display:inline-block;padding:4px 14px;background:rgba(255,255,255,0.7);border-radius:20px;font-size:10px;color:' + c.accent + ';letter-spacing:3px;font-weight:600;">FEELING · ' + (idx+1) + '</div>';
-                h += '</div>';
-                // 引言
+                var h = '<div style="background:' + c.bg + ';border-radius:16px;padding:28px 24px;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:8px;right:16px;font-size:72px;color:' + c.accent + ';opacity:0.06;line-height:1;font-family:Georgia,serif;">"</div>';
+                h += '<div style="position:absolute;bottom:-10px;left:-10px;width:80px;height:80px;background:' + c.accent + ';opacity:0.04;border-radius:50%;"></div>';
                 if (intro) {
                     var q = intro.split(/[。！？]/)[0] || intro;
-                    h += '<div style="position:relative;z-index:1;font-size:19px;color:' + c.text + ';line-height:2;font-style:italic;font-weight:600;letter-spacing:0.5px;padding:0 8px;">' + escapeHtml(q) + (q.endsWith('。') ? '' : '。') + '</div>';
+                    h += '<div style="font-size:18px;color:' + c.text + ';line-height:2.2;font-style:italic;font-weight:500;position:relative;z-index:1;">"' + escapeHtml(q) + (q.endsWith('。') ? '' : '。') + '"</div>';
                 }
-                // 歌名 + 歌手
-                h += '<div style="position:relative;z-index:1;margin-top:22px;padding-top:18px;border-top:1px dashed ' + c.border + ';">';
-                h += '<div style="font-size:18px;font-weight:800;color:#222;letter-spacing:0.5px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:4px;font-style:italic;">— ' + escapeHtml(s.artist) + '</div>';
-                if (songInfo) h += '<div style="margin-top:10px;">' + songTags(songInfo, c) + '</div>';
+                h += '<div style="margin-top:20px;padding-top:16px;border-top:1px dashed ' + c.border + ';position:relative;z-index:1;">';
+                h += '<div style="font-size:17px;font-weight:700;color:#222;">♪ ' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:12px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-top:8px;">' + songTags(songInfo, c) + '</div>';
                 h += '</div>';
-                // 介绍剩余部分
                 if (intro) {
                     var remaining = intro.replace(/^[^。！？]*[。！？]/, '');
                     if (remaining.trim()) {
-                        h += '<div style="position:relative;z-index:1;margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.6);border-radius:12px;font-size:14px;color:#666;line-height:2;">' + fmtIntro(remaining) + '</div>';
+                        h += '<div style="margin-top:16px;font-size:14px;color:#666;line-height:2;position:relative;z-index:1;">' + fmtIntro(remaining) + '</div>';
                     }
                 }
-                // 歌词
                 if (lyrics) {
-                    h += '<div style="position:relative;z-index:1;margin-top:18px;padding:16px;background:rgba(255,255,255,0.7);border-radius:12px;border:1px solid rgba(255,255,255,0.8);">';
-                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:12px;opacity:0.6;font-weight:600;">— LYRICS</div>';
-                    h += '<div style="font-style:italic;">' + fmtLyrics(lyrics, c, 3) + '</div></div>';
+                    h += '<div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.6);border-radius:10px;position:relative;z-index:1;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.5;">LYRICS</div>';
+                    h += '<div style="font-size:13px;color:#999;line-height:2;">' + fmtLyrics(lyrics, c, 3) + '</div></div>';
                 }
-                // 留言
                 if (songMsg) {
-                    h += '<div style="position:relative;z-index:1;margin-top:14px;font-size:13px;color:#888;font-style:italic;padding-left:12px;border-left:3px solid ' + c.accent + ';">' + escapeHtml(songMsg) + '</div>';
+                    h += '<div style="margin-top:14px;font-size:13px;color:#888;font-style:italic;position:relative;z-index:1;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
-                // 署名
-                h += '<div style="position:relative;z-index:1;margin-top:20px;text-align:right;font-size:12px;color:#888;">';
-                h += '<span style="color:' + c.accent + ';">— </span>' + escapeHtml(submitter) + (toWhom ? ' <span style="color:#ccc;">to</span> <span style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</span>' : '');
-                h += '</div>';
+                h += '<div style="margin-top:16px;text-align:right;font-size:11px;color:' + c.border + ';">— ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 C — 左右分栏：左侧信息，右侧歌词，编辑手记
+            // 模板 C — 分栏对比
             function tplSplit(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
-                // 顶部装饰条
-                h += '<div style="height:3px;background:linear-gradient(90deg,' + c.accent + ',' + c.light + ',' + c.accent + ');"></div>';
-                // 左右分栏
-                h += '<div style="display:flex;min-height:200px;">';
-                // 左侧
-                h += '<div style="width:38%;padding:22px 16px;background:linear-gradient(160deg,' + c.bg + ',#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px dashed ' + c.border + ';">';
-                h += '<div style="width:48px;height:48px;background:linear-gradient(135deg,#fff,' + c.bg + ');border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:14px;border:2px solid ' + c.border + ';box-shadow:0 4px 12px ' + c.light + ';"><span style="font-size:20px;">🎵</span></div>';
-                h += '<div style="text-align:center;font-size:17px;font-weight:800;color:#1a1a2e;line-height:1.3;letter-spacing:0.3px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="text-align:center;font-size:12px;color:#999;margin-top:5px;font-style:italic;">' + escapeHtml(s.artist) + '</div>';
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
+                h += '<div style="display:flex;">';
+                h += '<div style="width:40%;padding:20px 14px;border-right:1px solid #f5f5f5;background:' + c.bg + ';display:flex;flex-direction:column;align-items:center;justify-content:center;">';
+                h += '<div style="width:40px;height:40px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px;border:2px solid ' + c.border + ';box-shadow:0 2px 8px ' + c.light + ';"><span style="font-size:18px;">🎵</span></div>';
+                h += '<div style="text-align:center;font-size:16px;font-weight:700;color:#222;line-height:1.4;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="text-align:center;font-size:11px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
                 h += '<div style="margin-top:14px;padding-top:12px;border-top:1px dashed ' + c.border + ';text-align:center;width:100%;">';
-                h += '<div style="font-size:9px;color:' + c.accent + ';font-weight:700;letter-spacing:2px;margin-bottom:4px;">RECOMMENDED BY</div>';
-                h += '<div style="font-size:12px;color:#666;font-weight:500;">' + escapeHtml(submitter) + '</div>';
-                if (toWhom) h += '<div style="font-size:10px;color:#aaa;margin-top:3px;">→ ' + escapeHtml(toWhom) + '</div>';
+                h += '<div style="font-size:9px;color:' + c.accent + ';font-weight:600;letter-spacing:2px;">推荐人</div>';
+                h += '<div style="font-size:12px;color:#666;margin-top:4px;">' + escapeHtml(submitter) + '</div>';
+                if (toWhom) h += '<div style="font-size:10px;color:#aaa;margin-top:2px;">→ ' + escapeHtml(toWhom) + '</div>';
                 h += '</div>';
-                if (songInfo) h += '<div style="margin-top:10px;width:100%;">' + songTags(songInfo, c) + '</div>';
+                if (songInfo) h += '<div style="margin-top:12px;width:100%;">' + songTags(songInfo, c) + '</div>';
                 h += '</div>';
-                // 右侧 - 歌词
-                h += '<div style="width:62%;padding:22px 18px;display:flex;flex-direction:column;justify-content:center;background:#fff;">';
+                h += '<div style="width:60%;padding:20px 16px;display:flex;flex-direction:column;justify-content:center;">';
                 if (lyrics) {
-                    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
-                    h += '<div style="width:18px;height:1px;background:' + c.accent + ';"></div>';
-                    h += '<div style="font-size:10px;color:' + c.accent + ';letter-spacing:3px;opacity:0.7;font-weight:700;">LYRICS</div>';
-                    h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,' + c.accent + ',transparent);"></div>';
-                    h += '</div>';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:12px;opacity:0.6;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
-                } else {
-                    h += '<div style="text-align:center;color:#ccc;font-size:13px;padding:20px 0;">♪ 暂无歌词 ♪</div>';
                 }
                 h += '</div></div>';
-                // 编辑手记
                 if (intro) {
-                    h += '<div style="padding:18px 20px;background:linear-gradient(90deg,#fafafa,#fff);border-top:1px dashed ' + c.border + ';">';
-                    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
-                    h += '<div style="font-size:10px;color:' + c.accent + ';letter-spacing:2px;font-weight:700;">EDITOR\'S NOTE</div>';
-                    h += '<div style="flex:1;height:1px;background:' + c.border + ';opacity:0.5;"></div>';
-                    h += '</div>';
-                    h += '<div style="font-size:14px;color:#444;line-height:2.2;text-align:justify;letter-spacing:0.2px;">' + fmtIntro(intro) + '</div></div>';
+                    h += '<div style="padding:16px 20px;border-top:1px solid #f5f5f5;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.6;">EDITOR\'S NOTE</div>';
+                    h += '<div style="font-size:14px;color:#444;line-height:2.2;text-align:justify;">' + fmtIntro(intro) + '</div></div>';
                 }
                 if (songMsg) {
                     h += '<div style="padding:0 20px 16px;">';
-                    h += '<div style="padding:12px 16px;background:' + c.bg + ';border-radius:12px;font-size:13px;color:#666;line-height:1.8;font-style:italic;display:flex;gap:8px;align-items:flex-start;">';
-                    h += '<span style="color:' + c.accent + ';font-size:16px;line-height:1;">"</span>';
-                    h += '<span>' + escapeHtml(songMsg) + '</span></div></div>';
+                    h += '<div style="padding:10px 14px;background:' + c.bg + ';border-radius:10px;font-size:13px;color:#555;line-height:1.8;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div></div>';
                 }
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 D — 手写信笺：信纸风格，怀旧暖色
+            // 模板 D — 信件风
             function tplLetter(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:linear-gradient(135deg,#FFFEF8,#FFFAF0);border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(180,160,120,0.15);border:1px solid #E8DEC0;position:relative;">';
-                // 信纸纹理背景
-                h += '<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(transparent,transparent 32px,rgba(200,180,140,0.1) 32px,rgba(200,180,140,0.1) 33px);pointer-events:none;"></div>';
-                // 信头
-                h += '<div style="position:relative;padding:24px 28px 14px;border-bottom:1px dashed #D4C8A0;">';
-                h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
-                h += '<div style="font-size:11px;color:#A89878;letter-spacing:2px;font-style:italic;">Dear friend,</div>';
-                h += '<div style="font-size:10px;color:#C4B498;">No. ' + (idx+1).toString().padStart(3, '0') + '</div>';
+                var h = '<div style="background:#FFFEF8;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid #EDE8D8;">';
+                h += '<div style="padding:20px 24px 14px;border-bottom:1px dashed #E8E0C8;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:-8px;right:-8px;width:40px;height:40px;background:' + c.accent + ';opacity:0.08;border-radius:50%;"></div>';
+                h += '<div style="font-size:11px;color:#B8A88A;letter-spacing:1px;">Dear friend,</div>';
+                h += '<div style="font-size:12px;color:#8A7A60;margin-top:6px;">来自 <b>' + escapeHtml(submitter) + '</b> 的一首歌' + (toWhom ? '，送给 <b style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
                 h += '</div>';
-                h += '<div style="font-size:13px;color:#7A6A48;margin-top:8px;line-height:1.6;">来自 <b style="color:#5A4A28;">' + escapeHtml(submitter) + '</b> 的私藏' + (toWhom ? '，想寄给 <b style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
+                h += '<div style="padding:24px 24px 16px;text-align:center;">';
+                h += '<div style="font-size:24px;font-weight:800;color:#333;line-height:1.4;letter-spacing:1px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:6px;">♪ ' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
                 h += '</div>';
-                // 歌名
-                h += '<div style="position:relative;padding:28px 28px 8px;text-align:center;">';
-                h += '<div style="font-size:28px;font-weight:800;color:#3A2A18;line-height:1.3;letter-spacing:2px;font-family:Georgia,serif;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:14px;color:#8A7A60;margin-top:8px;font-style:italic;">♪ ' + escapeHtml(s.artist) + '</div>';
-                h += '<div style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;">';
-                h += '<div style="width:30px;height:1px;background:#C4B498;"></div>';
-                h += '<div style="width:6px;height:6px;background:' + c.accent + ';border-radius:50%;opacity:0.4;"></div>';
-                h += '<div style="width:30px;height:1px;background:#C4B498;"></div>';
-                h += '</div>';
-                if (songInfo) h += '<div style="margin-top:14px;">' + songTags(songInfo, c) + '</div>';
-                h += '</div>';
-                // 介绍词
                 if (intro) {
-                    h += '<div style="position:relative;padding:20px 32px 16px;">';
-                    h += '<div style="font-size:15px;color:#5A4A28;line-height:2.4;text-indent:2em;text-align:justify;letter-spacing:0.5px;font-family:Georgia,serif;">' + fmtIntro(intro) + '</div></div>';
+                    h += '<div style="padding:0 24px 16px;">';
+                    h += '<div style="font-size:15px;color:#555;line-height:2.4;text-indent:2em;text-align:justify;">' + fmtIntro(intro) + '</div></div>';
                 }
-                // 歌词（手写体）
                 if (lyrics) {
-                    h += '<div style="position:relative;margin:0 24px 18px;padding:18px 22px;background:rgba(255,255,255,0.6);border:1px dashed #D4C8A0;border-radius:8px;">';
-                    h += '<div style="text-align:center;font-size:9px;color:#A89878;letter-spacing:4px;margin-bottom:14px;font-weight:600;">— LYRICS —</div>';
-                    h += '<div style="font-family:Georgia,serif;font-style:italic;">' + fmtLyrics(lyrics, c) + '</div></div>';
+                    h += '<div style="margin:0 20px;padding:16px;border-top:1px dashed #E8E0C8;border-bottom:1px dashed #E8E0C8;">';
+                    h += '<div style="font-size:9px;color:#B8A88A;letter-spacing:4px;text-align:center;margin-bottom:12px;">LYRICS</div>';
+                    h += '<div style="text-align:center;">' + fmtLyrics(lyrics, c) + '</div></div>';
                 }
                 if (songMsg) {
-                    h += '<div style="position:relative;padding:0 28px 12px;">';
-                    h += '<div style="font-size:13px;color:#7A6A48;font-style:italic;line-height:1.8;padding:10px 16px;background:rgba(255,248,220,0.5);border-left:3px solid ' + c.accent + ';">"' + escapeHtml(songMsg) + '"</div></div>';
+                    h += '<div style="padding:0 24px 12px;">';
+                    h += '<div style="font-size:13px;color:#8A7A60;font-style:italic;line-height:1.8;">💌 "' + escapeHtml(songMsg) + '"</div></div>';
                 }
-                // 信尾
-                h += '<div style="position:relative;padding:16px 28px 18px;border-top:1px dashed #D4C8A0;text-align:right;">';
-                h += '<div style="font-size:12px;color:#A89878;font-style:italic;font-family:Georgia,serif;">P.S. 🎧 建议戴上耳机听哦</div>';
-                h += '<div style="font-size:11px;color:#C4B498;margin-top:4px;">—— ' + new Date().toLocaleDateString('zh-CN') + '</div>';
+                h += '<div style="padding:16px 24px;text-align:right;">';
+                h += '<div style="font-size:12px;color:#B8A88A;font-style:italic;">P.S. 🎧 建议戴上耳机听~</div>';
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 E — 极简留白：大字+留白，呼吸感
+            // 模板 E — 极简列表
             function tplMinimal(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="padding:32px 24px 24px;background:#fff;border-radius:18px;position:relative;">';
-                // 装饰小标
-                h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:6px;opacity:0.5;font-weight:600;margin-bottom:18px;">' + String(idx+1).padStart(2, '0') + ' · TRACK</div>';
-                // 序号 + 歌名（一行）
-                h += '<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:6px;">';
-                h += '<span style="font-size:60px;font-weight:200;color:' + c.accent + ';opacity:0.15;line-height:1;font-family:Georgia,serif;">' + (idx+1).toString().padStart(2, '0') + '</span>';
-                h += '<div style="font-size:26px;font-weight:700;color:#222;letter-spacing:1px;line-height:1.3;">' + escapeHtml(s.song_name || '') + '</div>';
+                var h = '<div style="padding:8px 4px;">';
+                h += '<div style="display:flex;align-items:baseline;gap:10px;">';
+                h += '<span style="font-size:28px;font-weight:900;color:' + c.accent + ';opacity:0.2;line-height:1;">' + (idx+1) + '</span>';
+                h += '<div style="font-size:22px;font-weight:800;color:#222;letter-spacing:0.5px;">' + escapeHtml(s.song_name || '') + '</div>';
                 h += '</div>';
-                if (s.artist) h += '<div style="font-size:14px;color:#999;margin-top:2px;margin-left:74px;letter-spacing:0.3px;">' + escapeHtml(s.artist) + '</div>';
-                if (songInfo) h += '<div style="margin-top:14px;margin-left:74px;">' + songTags(songInfo, c) + '</div>';
-                // 介绍
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:4px;margin-left:40px;">' + escapeHtml(s.artist) + '</div>';
                 if (intro) {
-                    h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #f0f0f0;">';
                     var q = intro.split(/[。！？]/)[0] || intro;
-                    h += '<div style="font-size:17px;color:#444;line-height:2;font-weight:500;letter-spacing:0.3px;">「' + escapeHtml(q) + '。」</div>';
-                    var remaining = intro.replace(/^[^。！？]*[。！？]/, '');
-                    if (remaining.trim()) {
-                        h += '<div style="margin-top:10px;font-size:13px;color:#888;line-height:2;">' + fmtIntro(remaining) + '</div>';
-                    }
-                    h += '</div>';
+                    h += '<div style="margin-top:14px;font-size:15px;color:' + c.text + ';line-height:2;font-style:italic;">「' + escapeHtml(q) + '。」</div>';
                 }
                 if (lyrics) {
-                    h += '<div style="margin-top:20px;">' + fmtLyrics(lyrics, c, 3) + '</div>';
+                    h += '<div style="margin-top:12px;font-size:13px;color:#bbb;line-height:2;">' + fmtLyrics(lyrics, c, 3) + '</div>';
                 }
                 if (songMsg) {
-                    h += '<div style="margin-top:14px;font-size:13px;color:#999;font-style:italic;padding:8px 0;border-top:1px dashed #eee;border-bottom:1px dashed #eee;text-align:center;">' + escapeHtml(songMsg) + '</div>';
+                    h += '<div style="margin-top:10px;font-size:13px;color:#999;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
-                h += '<div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;">';
-                h += '<div style="font-size:11px;color:#bbb;letter-spacing:0.5px;">' + escapeHtml(submitter) + (toWhom ? ' · 致 ' + escapeHtml(toWhom) : '') + '</div>';
-                h += '<div style="width:20px;height:1px;background:' + c.accent + ';opacity:0.3;"></div>';
-                h += '</div>';
+                h += '<div style="margin-top:12px;font-size:11px;color:#ccc;">— ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
                 h += musicPlaceholder(s, c);
+                h += '<div style="margin-top:16px;border-top:1px solid #f0f0f0;"></div>';
                 h += '</div>';
                 return h;
             }
 
-            // 模板 F — 复古磁带：怀旧cassette样式
+            // 模板 F — 黑胶唱片风
             function tplVinyl(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:linear-gradient(160deg,' + c.bg + ' 0%,#f5f0e8 100%);border-radius:18px;padding:24px 20px 20px;position:relative;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,0.08);">';
-                // 装饰元素
-                h += '<div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:' + c.accent + ';opacity:0.06;border-radius:50%;"></div>';
-                h += '<div style="position:absolute;bottom:-30px;left:-20px;width:80px;height:80px;background:' + c.accent + ';opacity:0.04;border-radius:50%;"></div>';
+                var h = '<div style="background:' + c.bg + ';border-radius:18px;padding:20px 18px;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:' + c.accent + ';opacity:0.04;border-radius:50%;"></div>';
                 // 磁带外壳
-                h += '<div style="position:relative;background:linear-gradient(180deg,#fff,#fafafa);border-radius:14px;padding:18px 16px;border:1.5px solid ' + c.border + ';box-shadow:0 4px 12px rgba(0,0,0,0.06);">';
-                // 顶部贴标区
-                h += '<div style="background:linear-gradient(135deg,' + c.accent + ',' + c.text + ');border-radius:8px;padding:12px 14px;margin-bottom:14px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.2);">';
+                h += '<div style="background:#fff;border-radius:14px;padding:16px 14px;border:1.5px solid ' + c.border + ';box-shadow:0 2px 10px rgba(0,0,0,0.04);">';
+                // 磁带顶部标签区
+                h += '<div style="background:linear-gradient(135deg,' + c.accent + ',' + c.light + ');border-radius:8px;padding:10px 12px;margin-bottom:12px;">';
                 h += '<div style="display:flex;justify-content:space-between;align-items:center;">';
-                h += '<div style="flex:1;min-width:0;">';
-                h += '<div style="font-size:9px;color:rgba(255,255,255,0.7);letter-spacing:3px;font-weight:600;">SIDE A · TRACK ' + (idx+1).toString().padStart(2,'0') + '</div>';
-                h += '<div style="font-size:17px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;letter-spacing:0.3px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:11px;color:rgba(255,255,255,0.85);margin-top:2px;font-style:italic;">' + escapeHtml(s.artist) + '</div>';
+                h += '<div style="flex:1;min-width:0;"><div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:2px;">SIDE A · TRACK ' + (idx+1) + '</div>';
+                h += '<div style="font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:1px;">' + escapeHtml(s.artist) + '</div>';
                 h += '</div>';
-                h += '<div style="width:38px;height:38px;border:2.5px solid rgba(255,255,255,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:10px;background:rgba(255,255,255,0.1);">';
-                h += '<div style="width:10px;height:10px;border:2px solid rgba(255,255,255,0.6);border-radius:50%;"></div></div>';
+                h += '<div style="width:36px;height:36px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:10px;">';
+                h += '<div style="width:8px;height:8px;border:1.5px solid rgba(255,255,255,0.5);border-radius:50%;"></div></div>';
                 h += '</div></div>';
                 // 磁带双轮区
-                h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 12px;">';
-                h += '<div style="width:48px;height:48px;border-radius:50%;background:repeating-conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 30deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 4px rgba(0,0,0,0.05);">';
-                h += '<div style="width:18px;height:18px;background:#fff;border-radius:50%;border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;background:' + c.accent + ';border-radius:50%;"></div></div>';
+                h += '<div style="display:flex;justify-content:center;gap:40px;padding:6px 0 10px;">';
+                // 左轮
+                h += '<div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 30deg,' + c.bg + ' 60deg,' + c.border + ' 90deg,' + c.bg + ' 120deg,' + c.border + ' 150deg,' + c.bg + ' 180deg,' + c.border + ' 210deg,' + c.bg + ' 240deg,' + c.border + ' 270deg,' + c.bg + ' 300deg,' + c.border + ' 330deg,' + c.bg + ' 360deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;position:relative;">';
+                h += '<div style="width:16px;height:16px;background:#fff;border-radius:50%;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;border:1px solid ' + c.accent + ';border-radius:50%;"></div></div>';
                 h += '</div>';
-                // 中间磁带窗
-                h += '<div style="flex:1;margin:0 8px;border:1px solid ' + c.border + ';border-radius:6px;background:linear-gradient(180deg,' + c.bg + ' 0%,#f8f8f8 50%,' + c.bg + ' 100%);position:relative;overflow:hidden;height:32px;">';
+                // 磁带窗（带磁带纹理）
+                h += '<div style="flex:1;margin:8px 4px;border:1px solid ' + c.border + ';border-radius:6px;background:linear-gradient(180deg,' + c.bg + ' 0%,#f8f8f8 50%,' + c.bg + ' 100%);position:relative;overflow:hidden;">';
                 h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:' + c.border + ';"></div>';
                 h += '<div style="position:absolute;top:30%;left:5%;right:5%;height:0.5px;background:' + c.border + ';opacity:0.5;"></div>';
                 h += '<div style="position:absolute;bottom:30%;left:5%;right:5%;height:0.5px;background:' + c.border + ';opacity:0.5;"></div>';
                 h += '</div>';
-                h += '<div style="width:48px;height:48px;border-radius:50%;background:repeating-conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 30deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 4px rgba(0,0,0,0.05);">';
-                h += '<div style="width:18px;height:18px;background:#fff;border-radius:50%;border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;background:' + c.accent + ';border-radius:50%;"></div></div>';
+                // 右轮
+                h += '<div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(' + c.bg + ' 0deg,' + c.border + ' 45deg,' + c.bg + ' 90deg,' + c.border + ' 135deg,' + c.bg + ' 180deg,' + c.border + ' 225deg,' + c.bg + ' 270deg,' + c.border + ' 315deg,' + c.bg + ' 360deg);border:1.5px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;">';
+                h += '<div style="width:16px;height:16px;background:#fff;border-radius:50%;border:1px solid ' + c.border + ';display:flex;align-items:center;justify-content:center;"><div style="width:5px;height:5px;border:1px solid ' + c.accent + ';border-radius:50%;"></div></div>';
                 h += '</div>';
                 h += '</div>';
-                // 底部螺丝
-                h += '<div style="display:flex;justify-content:space-between;padding:0 16px;margin-top:-2px;">';
+                // 磁带底部螺丝装饰
+                h += '<div style="display:flex;justify-content:space-between;padding:0 20px;">';
                 h += '<div style="width:6px;height:6px;background:' + c.border + ';border-radius:50%;opacity:0.5;"></div>';
                 h += '<div style="width:6px;height:6px;background:' + c.border + ';border-radius:50%;opacity:0.5;"></div>';
                 h += '</div>';
                 h += '</div>'; // 磁带外壳结束
                 // 信息区
-                if (songInfo) h += '<div style="position:relative;margin-top:14px;">' + songTags(songInfo, c) + '</div>';
+                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
                 if (intro) {
-                    h += '<div style="position:relative;margin-top:14px;padding:0 8px;font-size:14px;color:#444;line-height:2.2;text-align:center;letter-spacing:0.2px;">' + fmtIntro(intro) + '</div>';
+                    h += '<div style="margin-top:12px;font-size:14px;color:#555;line-height:2.2;text-align:center;padding:0 8px;">' + fmtIntro(intro) + '</div>';
                 }
                 if (lyrics) {
-                    h += '<div style="position:relative;margin-top:16px;padding:14px 16px;background:rgba(255,255,255,0.7);border-radius:10px;text-align:center;">';
-                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.5;font-weight:600;">— LYRICS</div>';
+                    h += '<div style="margin-top:14px;padding:14px 16px;background:rgba(255,255,255,0.7);border-radius:12px;text-align:center;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.5;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
                     h += '</div>';
                 }
                 if (songMsg) {
-                    h += '<div style="position:relative;margin-top:14px;text-align:center;font-size:13px;color:#888;font-style:italic;padding:0 8px;">"' + escapeHtml(songMsg) + '"</div>';
+                    h += '<div style="margin-top:12px;text-align:center;font-size:13px;color:#888;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
-                h += '<div style="position:relative;margin-top:16px;text-align:center;font-size:11px;color:' + c.border + ';letter-spacing:1px;">♪ ' + escapeHtml(submitter) + (toWhom ? ' · TO ' + escapeHtml(toWhom) : '') + '</div>';
+                h += '<div style="margin-top:14px;text-align:center;font-size:11px;color:' + c.border + ';">♪ ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 G — 音乐播放器：仿 Spotify/Apple Music 风格
+            // 模板 G — 播放器卡片风
             function tplPlayer(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                // 用背景色做主色（如果太亮用text色）
-                var bgColor = c.accent;
-                var textColor = '#fff';
-                var h = '<div style="background:linear-gradient(160deg,' + bgColor + ' 0%,' + c.text + ' 100%);border-radius:20px;padding:26px 22px;color:' + textColor + ';position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.2);">';
-                // 装饰光晕
-                h += '<div style="position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:rgba(255,255,255,0.12);border-radius:50%;"></div>';
-                h += '<div style="position:absolute;bottom:-40px;left:30px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>';
-                h += '<div style="position:absolute;top:30%;left:8%;width:6px;height:6px;background:rgba(255,255,255,0.4);border-radius:50%;"></div>';
-                h += '<div style="position:absolute;top:60%;right:12%;width:4px;height:4px;background:rgba(255,255,255,0.5);border-radius:50%;"></div>';
+                var h = '<div style="background:linear-gradient(145deg,' + c.accent + ',' + (songInfo && songInfo.album ? c.text : c.accent) + ');border-radius:16px;padding:24px 20px;color:#fff;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>';
+                h += '<div style="position:absolute;bottom:-20px;left:20px;width:80px;height:80px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>';
                 // 播放器头部
-                h += '<div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">';
-                h += '<div style="display:flex;align-items:center;gap:10px;">';
-                h += '<div style="width:36px;height:36px;background:rgba(255,255,255,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);"><span style="font-size:18px;">♫</span></div>';
-                h += '<div><div style="font-size:10px;opacity:0.8;letter-spacing:2px;font-weight:600;">NOW PLAYING</div>';
-                h += '<div style="font-size:10px;opacity:0.5;margin-top:1px;letter-spacing:1px;">第 ' + (idx+1).toString().padStart(2,'0') + ' 首</div></div>';
+                h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative;z-index:1;">';
+                h += '<div style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;">♫</span></div>';
+                h += '<div style="flex:1;"><div style="font-size:11px;opacity:0.7;letter-spacing:1px;">NOW PLAYING</div>';
+                h += '<div style="font-size:12px;opacity:0.5;margin-top:1px;"># ' + (idx+1) + '</div></div>';
                 h += '</div>';
-                h += '<div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);"><span style="font-size:14px;">♥</span></div>';
+                // 歌名 + 歌手
+                h += '<div style="position:relative;z-index:1;">';
+                h += '<div style="font-size:22px;font-weight:800;line-height:1.3;letter-spacing:0.5px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;opacity:0.75;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
                 h += '</div>';
-                // 歌名
-                h += '<div style="position:relative;z-index:1;margin-bottom:16px;">';
-                h += '<div style="font-size:26px;font-weight:800;line-height:1.2;letter-spacing:0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.2);">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:14px;opacity:0.85;margin-top:6px;font-style:italic;">' + escapeHtml(s.artist) + '</div>';
-                h += '</div>';
-                if (songInfo) h += '<div style="position:relative;z-index:1;margin-bottom:14px;"><span style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,0.18);border-radius:20px;letter-spacing:1px;">' + escapeHtml(songInfo.album || '') + (songInfo.year ? ' · ' + songInfo.year : '') + '</span></div>';
-                // 进度条
-                h += '<div style="position:relative;z-index:1;margin-bottom:18px;">';
-                h += '<div style="height:4px;background:rgba(255,255,255,0.18);border-radius:2px;position:relative;">';
-                h += '<div style="position:absolute;left:0;top:0;width:' + (25 + (idx % 5) * 15) + '%;height:100%;background:rgba(255,255,255,0.85);border-radius:2px;"></div>';
-                h += '<div style="position:absolute;right:-3px;top:-3px;width:10px;height:10px;background:#fff;border-radius:50%;transform:translateX(' + (25 + (idx % 5) * 15) + '%);box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>';
-                h += '</div>';
-                h += '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;opacity:0.6;">';
-                h += '<span>1:23</span><span>-2:45</span>';
-                h += '</div>';
-                h += '</div>';
-                // 播放控制条（装饰）
-                h += '<div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:24px;margin-bottom:18px;">';
-                h += '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;opacity:0.7;font-size:18px;">⏮</div>';
-                h += '<div style="width:48px;height:48px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);color:' + c.accent + ';font-size:20px;margin-left:2px;">▶</div>';
-                h += '<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;opacity:0.7;font-size:18px;">⏭</div>';
+                if (songInfo) h += '<div style="margin-top:10px;position:relative;z-index:1;"><span style="font-size:10px;padding:3px 10px;background:rgba(255,255,255,0.15);border-radius:20px;">' + escapeHtml(songInfo.album || '') + (songInfo.year ? ' · ' + songInfo.year : '') + '</span></div>';
+                // 进度条装饰
+                h += '<div style="margin-top:16px;position:relative;z-index:1;">';
+                h += '<div style="height:3px;background:rgba(255,255,255,0.15);border-radius:2px;"><div style="width:' + (30 + idx * 8) + '%;height:100%;background:rgba(255,255,255,0.6);border-radius:2px;"></div></div>';
                 h += '</div>';
                 if (intro) {
-                    h += '<div style="position:relative;z-index:1;padding:14px;background:rgba(255,255,255,0.12);border-radius:12px;font-size:13px;line-height:2;backdrop-filter:blur(8px);">' + fmtIntro(intro) + '</div>';
+                    h += '<div style="margin-top:16px;padding:14px;background:rgba(255,255,255,0.1);border-radius:12px;font-size:14px;line-height:2;position:relative;z-index:1;">' + fmtIntro(intro) + '</div>';
                 }
                 if (lyrics) {
-                    h += '<div style="position:relative;z-index:1;margin-top:14px;text-align:center;">';
-                    h += '<div style="font-size:9px;opacity:0.6;letter-spacing:3px;margin-bottom:8px;font-weight:600;">— LYRICS —</div>';
+                    h += '<div style="margin-top:14px;text-align:center;position:relative;z-index:1;">';
+                    h += '<div style="font-size:9px;opacity:0.5;letter-spacing:3px;margin-bottom:8px;">LYRICS</div>';
                     var lines = lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 2);
                     lines.forEach(function(line) {
-                        h += '<div style="font-size:15px;font-weight:600;line-height:2.2;opacity:0.95;letter-spacing:0.5px;">' + escapeHtml(line.trim()) + '</div>';
+                        h += '<div style="font-size:15px;font-weight:600;line-height:2.4;opacity:0.9;">' + escapeHtml(line.trim()) + '</div>';
                     });
                     h += '</div>';
                 }
                 if (songMsg) {
-                    h += '<div style="position:relative;z-index:1;margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.1);border-radius:10px;font-size:13px;opacity:0.9;font-style:italic;">"' + escapeHtml(songMsg) + '"</div>';
+                    h += '<div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.08);border-radius:10px;font-size:13px;opacity:0.8;font-style:italic;position:relative;z-index:1;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
-                h += '<div style="position:relative;z-index:1;margin-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:10px;opacity:0.6;letter-spacing:1px;">';
-                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' · TO ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span>嘉二の墙墙</span>';
+                h += '<div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;opacity:0.5;position:relative;z-index:1;">';
+                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
+                h += '<span>🎧</span>';
+                h += '</div>';
+                h += '<div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
+                h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
+                h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
+                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
                 h += '</div>';
                 h += '</div>';
                 return h;
             }
 
-            // 模板 H — 旅行明信片：复古手写，旅行感
+            // 模板 H — 明信片风
             function tplPostcard(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:linear-gradient(135deg,#FFF8F0,#FFFDF8);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:2px solid ' + c.border + ';position:relative;">';
-                // 装饰邮戳
-                h += '<div style="position:absolute;top:18px;right:18px;width:54px;height:54px;border:2px dashed ' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.5);transform:rotate(15deg);opacity:0.6;">';
-                h += '<div style="font-size:8px;color:' + c.accent + ';text-align:center;line-height:1.3;font-weight:700;letter-spacing:1px;">POST<br>' + (idx+1).toString().padStart(3, '0') + '</div>';
-                h += '</div>';
-                // 顶部头部
-                h += '<div style="display:flex;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px dashed ' + c.border + ';">';
-                h += '<div>';
-                h += '<div style="font-size:9px;color:#bbb;letter-spacing:3px;font-weight:600;">✉ POSTCARD</div>';
-                h += '<div style="font-size:10px;color:#ccc;margin-top:3px;font-style:italic;">from ' + escapeHtml(submitter) + '</div>';
-                h += '</div>';
-                h += '<div style="width:38px;height:38px;background:linear-gradient(135deg,' + c.accent + ',' + c.text + ');border-radius:6px;display:flex;align-items:center;justify-content:center;margin-right:50px;"><span style="font-size:18px;color:#fff;">🎵</span></div>';
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:2px solid ' + c.border + ';position:relative;">';
+                // 顶部邮票区
+                h += '<div style="display:flex;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px dashed #e0e0e0;">';
+                h += '<div><div style="font-size:10px;color:#bbb;letter-spacing:2px;">POSTCARD</div>';
+                h += '<div style="font-size:11px;color:#ddd;margin-top:2px;">No.' + (idx + 1).toString().padStart(3, '0') + '</div></div>';
+                h += '<div style="width:42px;height:42px;border:2px solid ' + c.border + ';border-radius:4px;display:flex;align-items:center;justify-content:center;background:' + c.bg + ';position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:-1px;right:-1px;width:0;height:0;border-top:8px solid transparent;border-right:8px solid ' + c.border + ';"></div>';
+                h += '<span style="font-size:20px;">🎵</span></div>';
                 h += '</div>';
                 // 歌名大字
-                h += '<div style="padding:22px 26px 8px;">';
-                h += '<div style="font-size:26px;font-weight:800;color:#2a2520;letter-spacing:1px;line-height:1.3;font-family:Georgia,serif;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:13px;color:#998877;margin-top:6px;font-style:italic;">♪ ' + escapeHtml(s.artist) + '</div>';
-                if (songInfo) h += '<div style="margin-top:12px;">' + songTags(songInfo, c) + '</div>';
+                h += '<div style="padding:20px 24px 8px;">';
+                h += '<div style="font-size:24px;font-weight:900;color:' + c.accent + ';letter-spacing:1px;line-height:1.3;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:6px;">' + escapeHtml(s.artist) + '</div>';
                 h += '</div>';
+                if (songInfo) h += '<div style="padding:0 24px 12px;">' + songTags(songInfo, c) + '</div>';
+                // 介绍词（明信片正文）
                 if (intro) {
-                    h += '<div style="padding:12px 26px 16px;">';
-                    h += '<div style="font-size:14px;color:#5a5040;line-height:2.2;text-indent:2em;text-align:justify;letter-spacing:0.3px;font-family:Georgia,serif;">' + fmtIntro(intro) + '</div></div>';
+                    h += '<div style="padding:8px 24px 16px;">';
+                    h += '<div style="font-size:14px;color:#555;line-height:2.4;text-indent:2em;text-align:justify;letter-spacing:0.3px;">' + fmtIntro(intro) + '</div></div>';
                 }
+                // 歌词区（横线本样式）
                 if (lyrics) {
-                    h += '<div style="margin:0 22px 16px;padding:16px 18px;background:repeating-linear-gradient(transparent,transparent 26px,rgba(180,160,130,0.15) 26px,rgba(180,160,130,0.15) 27px);border-radius:6px;">';
-                    h += '<div style="font-size:9px;color:#998877;letter-spacing:3px;margin-bottom:10px;font-weight:600;">— LYRICS</div>';
-                    h += '<div style="font-family:Georgia,serif;">' + fmtLyrics(lyrics, c) + '</div></div>';
-                }
-                if (songMsg) {
-                    h += '<div style="padding:0 22px 12px;font-size:13px;color:#998877;font-style:italic;font-family:Georgia,serif;">"' + escapeHtml(songMsg) + '"</div>';
-                }
-                // 底部签名
-                h += '<div style="padding:14px 22px;background:rgba(0,0,0,0.03);border-top:1px dashed ' + c.border + ';display:flex;justify-content:space-between;align-items:center;">';
-                h += '<div style="font-size:11px;color:#998877;font-family:Georgia,serif;font-style:italic;">✎ ' + escapeHtml(submitter) + (toWhom ? ' → <span style="color:' + c.accent + ';">' + escapeHtml(toWhom) + '</span>' : '') + '</div>';
-                h += '<div style="font-size:9px;color:#bbb;letter-spacing:1px;">📮 嘉二の墙墙</div>';
-                h += '</div>';
-                h += musicPlaceholder(s, c);
-                h += '</div>';
-                return h;
-            }
-
-            // 模板 I — 电影海报：暗黑剧院感，英文标签
-            function tplCinematic(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:linear-gradient(180deg,#1a1a2e 0%,#0f0f1e 100%);border-radius:16px;padding:30px 26px;color:#fff;position:relative;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.3);">';
-                // 装饰光晕
-                h += '<div style="position:absolute;top:-80px;right:-80px;width:200px;height:200px;background:radial-gradient(circle,' + c.accent + ' 0%,transparent 70%);opacity:0.25;"></div>';
-                h += '<div style="position:absolute;bottom:-100px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,' + c.text + ' 0%,transparent 70%);opacity:0.2;"></div>';
-                // 顶部装饰
-                h += '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,' + c.accent + ',transparent);"></div>';
-                h += '<div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;"></div>';
-                // 序号
-                h += '<div style="position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin-bottom:18px;">';
-                h += '<div style="font-size:11px;color:' + c.accent + ';letter-spacing:4px;font-weight:700;">TRACK ' + (idx+1).toString().padStart(2, '0') + '</div>';
-                h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,' + c.accent + ',transparent);"></div>';
-                h += '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;">NOW SHOWING</div>';
-                h += '</div>';
-                // 歌名
-                h += '<div style="position:relative;z-index:1;font-size:30px;font-weight:900;line-height:1.2;letter-spacing:1px;text-shadow:0 4px 16px rgba(0,0,0,0.5);margin-bottom:6px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="position:relative;z-index:1;font-size:15px;opacity:0.7;letter-spacing:1px;font-style:italic;">' + escapeHtml(s.artist) + '</div>';
-                if (songInfo) h += '<div style="position:relative;z-index:1;margin-top:12px;"><span style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:20px;letter-spacing:1px;">' + escapeHtml(songInfo.album || '') + (songInfo.year ? ' · ' + songInfo.year : '') + '</span></div>';
-                // 分隔
-                h += '<div style="position:relative;z-index:1;margin:20px 0;display:flex;align-items:center;gap:10px;">';
-                h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);"></div>';
-                h += '<div style="font-size:8px;color:' + c.accent + ';letter-spacing:3px;opacity:0.7;">★ ★ ★</div>';
-                h += '<div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);"></div>';
-                h += '</div>';
-                if (intro) {
-                    h += '<div style="position:relative;z-index:1;font-size:14px;color:rgba(255,255,255,0.8);line-height:2.2;letter-spacing:0.3px;">' + fmtIntro(intro) + '</div>';
-                }
-                if (lyrics) {
-                    h += '<div style="position:relative;z-index:1;margin-top:18px;text-align:center;">';
-                    h += '<div style="display:inline-block;font-size:9px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:14px;opacity:0.6;font-weight:700;">— LYRICS —</div>';
-                    var lines = lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 3);
-                    lines.forEach(function(line, i) {
-                        h += '<div style="font-size:16px;color:rgba(255,255,255,' + (i === 0 ? '0.95' : '0.55') + ');line-height:2.4;font-weight:' + (i === 0 ? '700' : '400') + ';letter-spacing:0.5px;font-style:' + (i === 0 ? 'normal' : 'italic') + ';">' + escapeHtml(line.trim()) + '</div>';
-                    });
-                    h += '</div>';
-                }
-                if (songMsg) {
-                    h += '<div style="position:relative;z-index:1;margin-top:16px;padding:12px 16px;background:rgba(255,255,255,0.05);border-radius:10px;font-size:13px;color:rgba(255,255,255,0.7);font-style:italic;border-left:2px solid ' + c.accent + ';">"' + escapeHtml(songMsg) + '"</div>';
-                }
-                h += '<div style="position:relative;z-index:1;margin-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;">';
-                h += '<span>🎬 ' + escapeHtml(submitter) + (toWhom ? ' · TO ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span>嘉二の墙墙 · 2026</span>';
-                h += '</div>';
-                h += musicPlaceholder(s, c);
-                h += '</div>';
-                return h;
-            }
-
-            // 模板 J — 时光卡片：节点式时间线
-            function tplTimeline(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
-                // 顶部渐变
-                h += '<div style="height:6px;background:linear-gradient(90deg,' + c.accent + ' 0%,' + c.light + ' 50%,' + c.accent + ' 100%);"></div>';
-                h += '<div style="padding:24px 20px 0;">';
-                // 节点 + 标题
-                h += '<div style="display:flex;gap:14px;align-items:flex-start;">';
-                h += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">';
-                h += '<div style="width:36px;height:36px;background:linear-gradient(135deg,' + c.accent + ',' + c.text + ');border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px ' + c.light + ';"><span style="font-size:14px;font-weight:800;color:#fff;">' + (idx+1) + '</span></div>';
-                h += '<div style="width:2px;flex:1;background:linear-gradient(180deg,' + c.accent + ',transparent);margin-top:6px;min-height:40px;"></div>';
-                h += '</div>';
-                h += '<div style="flex:1;padding-top:4px;padding-bottom:8px;">';
-                h += '<div style="font-size:10px;color:' + c.accent + ';letter-spacing:3px;font-weight:600;margin-bottom:4px;">TIME · ' + String(idx+1).padStart(2, '0') + '</div>';
-                h += '<div style="font-size:20px;font-weight:800;color:#1a1a2e;letter-spacing:0.3px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:13px;color:#888;margin-top:4px;">♪ ' + escapeHtml(s.artist) + '</div>';
-                h += '</div></div>';
-                if (songInfo) h += '<div style="margin:14px 0 0 50px;">' + songTags(songInfo, c) + '</div>';
-                if (intro) {
-                    h += '<div style="margin:16px 0 0 50px;padding:14px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:12px;border-left:3px solid ' + c.accent + ';">';
-                    h += '<div style="font-size:14px;color:#444;line-height:2.2;letter-spacing:0.2px;">' + fmtIntro(intro) + '</div></div>';
-                }
-                if (lyrics) {
-                    h += '<div style="margin:16px 0 0 50px;">';
-                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.6;font-weight:600;">— LYRICS</div>';
+                    h += '<div style="margin:0 20px 16px;padding:14px 16px;background:' + c.bg + ';border-radius:10px;border-bottom:1px dashed ' + c.border + ';">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:8px;opacity:0.5;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
                     h += '</div>';
                 }
                 if (songMsg) {
-                    h += '<div style="margin:14px 0 0 50px;padding:12px 16px;background:rgba(0,0,0,0.02);border-radius:10px;font-size:13px;color:#666;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
+                    h += '<div style="padding:0 24px 12px;font-size:13px;color:#888;font-style:italic;">💌 "' + escapeHtml(songMsg) + '"</div>';
                 }
-                h += '<div style="margin:16px 0 16px 50px;padding-top:12px;border-top:1px dashed ' + c.border + ';display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#999;">';
-                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span style="font-size:9px;color:#ccc;letter-spacing:1px;">嘉二の墙墙</span>';
+                // 底部签名
+                h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
+                h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
+                h += '<div style="font-size:10px;color:#ddd;">📮 嘉二の墙墙</div>';
                 h += '</div>';
-                h += '</div></div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 K — 黑胶唱片：唱片店风格，黑胶展示
-            function tplRecordStore(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var h = '<div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid ' + c.border + ';">';
-                // 黑胶店招牌
-                h += '<div style="background:linear-gradient(135deg,#1a1a2e,#2c3e50);padding:18px 20px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;">';
-                h += '<div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,' + c.accent + ' 0%,transparent 70%);opacity:0.3;"></div>';
-                h += '<div style="width:40px;height:40px;background:' + c.accent + ';border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + c.accent + '50;"><span style="font-size:18px;color:#fff;">♪</span></div>';
-                h += '<div style="flex:1;color:#fff;">';
-                h += '<div style="font-size:11px;opacity:0.5;letter-spacing:3px;font-weight:600;">RECORD STORE</div>';
-                h += '<div style="font-size:10px;opacity:0.4;margin-top:2px;">嘉二校园·音乐角</div>';
+            // 模板 I — 电影海报风
+            function tplCinematic(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#1a1a2e;border-radius:16px;padding:28px 24px;color:#fff;position:relative;overflow:hidden;">';
+                h += '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,' + c.accent + ',transparent);"></div>';
+                h += '<div style="position:absolute;top:-60px;right:-60px;width:160px;height:160px;background:' + c.accent + ';opacity:0.08;border-radius:50%;"></div>';
+                // 序号 + 歌名
+                h += '<div style="position:relative;z-index:1;">';
+                h += '<div style="font-size:10px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:10px;">TRACK ' + (idx+1).toString().padStart(2, '0') + '</div>';
+                h += '<div style="font-size:26px;font-weight:900;line-height:1.3;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,0.3);">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:14px;opacity:0.6;margin-top:6px;letter-spacing:1px;">' + escapeHtml(s.artist) + '</div>';
                 h += '</div>';
-                h += '<div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;">#' + (idx+1).toString().padStart(2,'0') + '</div>';
-                h += '</div>';
-                // 黑胶展示
-                h += '<div style="display:flex;padding:24px;gap:18px;align-items:center;background:linear-gradient(180deg,#fafafa,#fff);">';
-                h += '<div style="width:80px;flex-shrink:0;position:relative;">';
-                // 黑胶外圈
-                h += '<div style="width:80px;height:80px;background:linear-gradient(135deg,#222,#000);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.3),inset 0 0 8px rgba(255,255,255,0.1);position:relative;">';
-                // 唱片纹路
-                for (var ring = 1; ring <= 3; ring++) {
-                    h += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:' + (80 - ring * 12) + 'px;height:' + (80 - ring * 12) + 'px;border:1px solid rgba(255,255,255,0.08);border-radius:50%;"></div>';
+                if (songInfo) h += '<div style="margin-top:10px;position:relative;z-index:1;"><span style="font-size:10px;padding:3px 10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:20px;">' + escapeHtml(songInfo.album || '') + (songInfo.year ? ' · ' + songInfo.year : '') + '</span></div>';
+                // 分隔线
+                h += '<div style="margin:16px 0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);position:relative;z-index:1;"></div>';
+                if (intro) {
+                    h += '<div style="font-size:14px;color:rgba(255,255,255,0.7);line-height:2.2;position:relative;z-index:1;">' + fmtIntro(intro) + '</div>';
                 }
-                // 中心贴标
-                h += '<div style="width:32px;height:32px;background:linear-gradient(135deg,' + c.accent + ',' + c.text + ');border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:inset 0 0 4px rgba(0,0,0,0.2);">';
-                h += '<div style="width:8px;height:8px;background:#1a1a2e;border-radius:50%;"></div>';
+                if (lyrics) {
+                    h += '<div style="margin-top:16px;text-align:center;position:relative;z-index:1;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:4px;margin-bottom:12px;opacity:0.5;">LYRICS</div>';
+                    var lines = lyrics.split('\n').filter(function(l) { return l.trim(); }).slice(0, 3);
+                    lines.forEach(function(line, i) {
+                        h += '<div style="font-size:15px;color:rgba(255,255,255,' + (i === 0 ? '0.9' : '0.5') + ');line-height:2.4;font-weight:' + (i === 0 ? '700' : '400') + ';letter-spacing:0.5px;">' + escapeHtml(line.trim()) + '</div>';
+                    });
+                    h += '</div>';
+                }
+                if (songMsg) {
+                    h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;color:rgba(255,255,255,0.6);font-style:italic;position:relative;z-index:1;">💬 ' + escapeHtml(songMsg) + '</div>';
+                }
+                h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
+                h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
+                h += '<span>嘉二の墙墙</span>';
+                h += '</div>';
+                h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
+                h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
+                h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
+                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+                h += '</div>';
+                h += '</div>';
+                return h;
+            }
+
+            // 模板 J — 时间线风
+            function tplTimeline(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
+                // 顶部渐变色带
+                h += '<div style="height:6px;background:linear-gradient(90deg,' + c.accent + ' 0%,' + c.light + ' 50%,' + c.accent + ' 100%);"></div>';
+                h += '<div style="padding:20px 20px 0;">';
+                // 时间线节点 + 歌名
+                h += '<div style="display:flex;gap:12px;align-items:flex-start;">';
+                h += '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;">';
+                h += '<div style="width:28px;height:28px;background:' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:12px;font-weight:700;color:#fff;">' + (idx+1) + '</span></div>';
+                h += '<div style="width:2px;height:calc(100% + 16px);background:linear-gradient(' + c.accent + ',' + c.border + ');margin-top:4px;"></div>';
+                h += '</div>';
+                h += '<div style="flex:1;padding-top:2px;">';
+                h += '<div style="font-size:19px;font-weight:700;color:#222;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:12px;color:#999;margin-top:3px;">♪ ' + escapeHtml(s.artist) + '</div>';
                 h += '</div></div>';
+                if (songInfo) h += '<div style="margin:12px 0 0 40px;">' + songTags(songInfo, c) + '</div>';
+                if (intro) {
+                    h += '<div style="margin:14px 0 0 40px;padding:14px;background:' + c.bg + ';border-radius:10px;border-left:3px solid ' + c.accent + ';">';
+                    h += '<div style="font-size:14px;color:#444;line-height:2.2;">' + fmtIntro(intro) + '</div></div>';
+                }
+                if (lyrics) {
+                    h += '<div style="margin:14px 0 0 40px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:10px;opacity:0.6;">LYRICS</div>';
+                    h += fmtLyrics(lyrics, c);
+                    h += '</div>';
+                }
+                if (songMsg) {
+                    h += '<div style="margin:12px 0 0 40px;padding:10px 14px;background:linear-gradient(90deg,' + c.bg + ',#fff);border-radius:8px;font-size:13px;color:#666;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
+                }
+                h += '<div style="margin:14px 0 4px 40px;padding-top:10px;border-top:1px dashed #f0f0f0;font-size:11px;color:#ccc;">';
+                h += escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '');
+                h += '</div>';
+                h += musicPlaceholder(s, c);
+                h += '</div></div>';
+                return h;
+            }
+
+            // 模板 K — 唱片店风（Record Store）
+            function tplRecordStore(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
+                var h = '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid ' + c.border + ';">';
+                // 唱片店招牌
+                h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
+                h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
+                h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
+                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">嘉二校园·音乐角</div></div>';
+                h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
+                h += '</div>';
+                // 黑胶展示区
+                h += '<div style="display:flex;padding:20px;gap:16px;align-items:center;">';
+                h += '<div style="width:60px;flex-shrink:0;position:relative;">';
+                h += '<div style="width:60px;height:60px;background:radial-gradient(circle at 30% 30%,' + c.accent + ',#333);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);">';
+                h += '<div style="width:24px;height:24px;background:linear-gradient(135deg,#eee,#ccc);border-radius:50%;display:flex;align-items:center;justify-content:center;">';
+                h += '<div style="width:8px;height:8px;background:' + c.accent + ';border-radius:50%;"></div></div></div>';
+                h += '<div style="width:18px;height:18px;background:' + c.accent + ';border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0.15;"></div>';
                 h += '</div>';
                 h += '<div style="flex:1;min-width:0;">';
-                h += '<div style="font-size:18px;font-weight:800;color:#1a1a2e;line-height:1.3;letter-spacing:0.3px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:13px;color:#666;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
+                h += '<div style="font-size:18px;font-weight:800;color:#2c3e50;line-height:1.3;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#999;margin-top:4px;">' + escapeHtml(s.artist) + '</div>';
                 if (songInfo) h += '<div style="margin-top:8px;">' + songTags(songInfo, c) + '</div>';
                 h += '</div></div>';
                 // 标签卡
                 if (intro) {
-                    h += '<div style="margin:0 20px 16px;padding:14px 18px;background:#f8f9fa;border-radius:12px;border-left:4px solid ' + c.accent + ';position:relative;">';
-                    h += '<div style="position:absolute;top:14px;right:14px;font-size:18px;color:' + c.accent + ';opacity:0.2;">"</div>';
-                    h += '<div style="font-size:14px;color:#555;line-height:2.2;letter-spacing:0.2px;">' + fmtIntro(intro) + '</div></div>';
+                    h += '<div style="margin:0 20px 14px;padding:12px 16px;background:#f8f9fa;border-radius:10px;border-left:4px solid ' + c.accent + ';">';
+                    h += '<div style="font-size:14px;color:#555;line-height:2.2;">' + fmtIntro(intro) + '</div></div>';
                 }
                 if (lyrics) {
-                    h += '<div style="margin:0 20px 16px;padding:16px 18px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:12px;">';
-                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:3px;margin-bottom:12px;opacity:0.5;font-weight:600;">— LYRICS</div>';
+                    h += '<div style="margin:0 20px 14px;padding:14px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border-radius:10px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:2px;margin-bottom:10px;opacity:0.4;">LYRICS</div>';
                     h += fmtLyrics(lyrics, c);
                     h += '</div>';
                 }
                 if (songMsg) {
-                    h += '<div style="margin:0 20px 16px;padding:10px 16px;font-size:13px;color:#888;font-style:italic;border-left:3px solid ' + c.accent + ';">' + escapeHtml(songMsg) + '</div>';
+                    h += '<div style="margin:0 20px 14px;font-size:13px;color:#888;font-style:italic;">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
-                h += '<div style="margin:0 20px 16px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#aaa;padding-top:12px;border-top:1px dashed #eee;">';
+                h += '<div style="margin:0 20px 14px;display:flex;justify-content:space-between;font-size:12px;color:#aaa;border-top:1px dashed #eee;padding-top:12px;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span style="font-size:9px;color:#ccc;letter-spacing:1px;">📀 嘉二唱片角</span>';
+                h += '<span style="font-size:10px;color:#ddd;">嘉二唱片角</span>';
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            // 模板 L — 便签纸：胶带贴纸，手写感
+            // 模板 L — 便签风（Sticky Note）
             function tplStickyNote(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg) {
-                var rotation = (idx % 5 - 2) * 0.6; // -1.2° ~ 1.2° 小旋转
-                var tapeColors = [
-                    'linear-gradient(180deg,rgba(255,183,77,0.55),rgba(255,183,77,0.35))',
-                    'linear-gradient(180deg,rgba(255,138,101,0.55),rgba(255,138,101,0.35))',
-                    'linear-gradient(180deg,rgba(165,214,167,0.55),rgba(165,214,167,0.35))',
-                    'linear-gradient(180deg,rgba(159,168,218,0.55),rgba(159,168,218,0.35))',
-                    'linear-gradient(180deg,rgba(244,168,200,0.55),rgba(244,168,200,0.35))'
-                ];
+                var rotation = (idx % 4 - 1.5) * 0.8; // -1.2° ~ 1.2° 小旋转
+                var tapeColors = ['rgba(255,183,77,0.5)', 'rgba(255,138,101,0.5)', 'rgba(165,214,167,0.5)', 'rgba(159,168,218,0.5)'];
                 var tapeColor = tapeColors[idx % tapeColors.length];
-                var h = '<div style="background:linear-gradient(160deg,' + c.bg + ',#FFFEF8);border-radius:6px;padding:26px 22px 22px;transform:rotate(' + rotation + 'deg);box-shadow:0 6px 18px rgba(0,0,0,0.08);position:relative;margin:14px 4px;border:1px solid rgba(0,0,0,0.04);">';
-                // 胶带装饰（顶部居中）
-                h += '<div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(' + (-rotation) + 'deg);width:70px;height:22px;background:' + tapeColor + ';border-radius:2px;box-shadow:0 2px 4px rgba(0,0,0,0.1);z-index:1;"></div>';
-                // 折角
-                h += '<div style="position:absolute;bottom:0;right:0;width:0;height:0;border-bottom:18px solid rgba(0,0,0,0.04);border-left:18px solid transparent;"></div>';
+                var h = '<div style="background:' + c.bg + ';border-radius:14px;padding:24px 20px;transform:rotate(' + rotation + 'deg);box-shadow:4px 4px 12px rgba(0,0,0,0.06);position:relative;margin:12px 4px;">';
+                // 胶带装饰
+                h += '<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:60px;height:18px;background:' + tapeColor + ';border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"></div>';
                 // 便签头部
-                h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">';
-                h += '<div style="font-size:11px;color:' + c.text + ';opacity:0.6;letter-spacing:2px;font-weight:600;">♪ TODAY\'S PICK</div>';
-                h += '<div style="font-size:18px;font-weight:200;color:' + c.accent + ';opacity:0.4;line-height:1;">' + (idx+1) + '</div>';
+                h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;">';
+                h += '<div style="font-size:13px;font-weight:600;color:' + c.text + ';opacity:0.7;">♪ 今日推荐</div>';
+                h += '<div style="font-size:10px;color:' + c.border + ';">' + (idx+1) + '</div>';
                 h += '</div>';
-                // 歌名（手写风）
-                h += '<div style="font-size:22px;font-weight:800;color:#2a2520;line-height:1.3;letter-spacing:0.5px;margin-bottom:4px;">' + escapeHtml(s.song_name || '') + '</div>';
-                if (s.artist) h += '<div style="font-size:13px;color:#5a5040;margin-bottom:10px;font-style:italic;">— ' + escapeHtml(s.artist) + '</div>';
-                if (songInfo) h += '<div style="margin-bottom:10px;">' + songTags(songInfo, c) + '</div>';
+                // 歌名
+                h += '<div style="font-size:20px;font-weight:800;color:#2c3e50;line-height:1.4;letter-spacing:0.5px;margin-bottom:4px;">' + escapeHtml(s.song_name || '') + '</div>';
+                if (s.artist) h += '<div style="font-size:13px;color:#666;margin-bottom:8px;">— ' + escapeHtml(s.artist) + '</div>';
+                if (songInfo) h += '<div style="margin-bottom:8px;">' + songTags(songInfo, c) + '</div>';
                 // 横线本样式
                 if (intro) {
-                    h += '<div style="margin:14px 0;padding:10px 0;background:repeating-linear-gradient(transparent,transparent 28px,rgba(180,160,130,0.2) 28px,rgba(180,160,130,0.2) 29px);">';
-                    h += '<div style="font-size:14px;color:#3a2a18;line-height:2.2;font-family:Georgia,serif;font-style:italic;letter-spacing:0.3px;">' + fmtIntro(intro) + '</div></div>';
+                    h += '<div style="margin:14px 0 12px;padding:10px 0;border-top:1px dashed ' + c.border + ';">';
+                    h += '<div style="font-size:14px;color:#555;line-height:2.4;background:repeating-linear-gradient(transparent,transparent 28px,#f0f0f0 28px,#f0f0f0 29px);padding:0 4px;">' + fmtIntro(intro) + '</div></div>';
                 }
                 if (lyrics) {
-                    h += '<div style="margin:12px 0;padding:14px 12px;background:rgba(255,255,255,0.6);border-radius:8px;">';
-                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:2px;margin-bottom:8px;opacity:0.5;font-weight:600;">— LYRICS —</div>';
-                    h += '<div style="font-family:Georgia,serif;">' + fmtLyrics(lyrics, c) + '</div></div>';
+                    h += '<div style="margin:12px 0;padding:14px 12px;background:rgba(255,255,255,0.5);border-radius:10px;">';
+                    h += '<div style="font-size:9px;color:' + c.accent + ';letter-spacing:2px;margin-bottom:8px;opacity:0.4;">LYRICS</div>';
+                    h += '<div style="font-size:13px;color:#777;line-height:2;">' + fmtLyrics(lyrics, c) + '</div></div>';
                 }
                 if (songMsg) {
-                    h += '<div style="margin-top:12px;padding:8px 14px;background:#fff;border-radius:8px;font-size:13px;color:#666;font-style:italic;border:1px dashed ' + c.border + ';">"' + escapeHtml(songMsg) + '"</div>';
+                    h += '<div style="margin-top:12px;padding:8px 12px;background:#fff;border-radius:8px;font-size:13px;color:#888;font-style:italic;border:1px dashed ' + c.border + ';">💬 ' + escapeHtml(songMsg) + '</div>';
                 }
                 // 署名
-                h += '<div style="margin-top:18px;display:flex;justify-content:space-between;align-items:flex-end;">';
-                h += '<div style="font-size:12px;color:#8a7a60;font-family:Georgia,serif;font-style:italic;">✏️ ' + escapeHtml(submitter) + (toWhom ? '<br><span style="color:' + c.accent + ';">→ ' + escapeHtml(toWhom) + '</span>' : '') + '</div>';
-                h += '<div style="font-size:9px;color:#bbb;letter-spacing:1px;">' + new Date().toLocaleDateString('zh-CN') + '</div>';
+                h += '<div style="margin-top:16px;text-align:right;font-size:12px;color:' + c.border + ';">';
+                h += '✏️ ' + escapeHtml(submitter) + (toWhom ? ' — 给 ' + escapeHtml(toWhom) : '');
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
                 return h;
             }
 
-            var allTemplates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal, tplVinyl, tplPlayer, tplPostcard, tplCinematic, tplTimeline, tplRecordStore, tplStickyNote];
-            var templateNames = ['杂志风', '情感语录', '左右分栏', '手写信笺', '极简留白', '复古磁带', '音乐播放器', '旅行明信片', '电影海报', '时光卡片', '黑胶唱片', '便签纸'];
-            var templates = allTemplates.slice(); // 用于随机/单模板选择
-
-            // 模板选择：随机打乱或使用指定模板（全局默认）
-            if (selectedTemplate === 'random') {
-                for (var i = templates.length - 1; i > 0; i--) {
-                    var j = Math.floor(Math.random() * (i + 1));
-                    var tmp = templates[i]; templates[i] = templates[j]; templates[j] = tmp;
-                }
-            } else {
-                var tplIdx = parseInt(selectedTemplate);
-                if (tplIdx >= 0 && tplIdx < templates.length) {
-                    templates = [templates[tplIdx]];
-                }
+            var templates = [tplMagazine, tplQuote, tplSplit, tplLetter, tplMinimal, tplVinyl, tplPlayer, tplPostcard, tplCinematic, tplTimeline, tplRecordStore, tplStickyNote];
+            // 每次生成随机打乱模板顺序
+            for (var i = templates.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = templates[i]; templates[i] = templates[j]; templates[j] = tmp;
             }
 
             // ===== 每首歌的深度内容区 =====
@@ -2912,20 +2165,6 @@
                     try { songInfo = typeof s.song_info === 'string' ? JSON.parse(s.song_info) : s.song_info; } catch(e) {}
                 }
 
-                // --- 单首歌的模板选择 ---
-                var songTpl = null; // 该歌的指定模板函数
-                if (s.templateOverride !== undefined && s.templateOverride !== null && s.templateOverride !== '') {
-                    var sIdx = parseInt(s.templateOverride);
-                    if (sIdx >= 0 && sIdx < allTemplates.length) {
-                        songTpl = allTemplates[sIdx];
-                    }
-                }
-
-                // --- 单歌模板覆盖提示 ---
-                if (songTpl) {
-                    html += '<div style="text-align:center;margin:14px 0 -6px;"><span style="display:inline-block;padding:3px 12px;background:linear-gradient(135deg,#FFF5E1,#FFE4B5);color:#A67C00;font-size:10px;letter-spacing:1px;border-radius:20px;font-weight:600;">🎨 ' + (templateNames[s.templateOverride] || '模板' + s.templateOverride) + ' · 单曲定制</span></div>';
-                }
-
                 // --- 章节分隔（多样化） ---
                 var dividerStyles = [
                     '<div style="text-align:center;padding:24px 0 10px;"><div style="font-size:9px;color:#ccc;letter-spacing:6px;">· CHAPTER ' + songNum + ' ·</div><div style="width:40px;height:2px;background:linear-gradient(90deg,' + c.accent + ',transparent);margin:6px auto 0;border-radius:1px;"></div></div>',
@@ -2938,12 +2177,8 @@
                 html += '<div style="margin:28px 16px 0;">';
                 html += dividerStyles[idx % dividerStyles.length];
 
-                // --- 选择模板渲染卡片：单首歌override > 全局设置 ---
-                if (songTpl) {
-                    html += songTpl(s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg);
-                } else {
-                    html += templates[idx % templates.length](s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg);
-                }
+                // --- 选择模板渲染卡片 ---
+                html += templates[idx % templates.length](s, c, idx, songInfo, intro, lyrics, submitter, toWhom, songMsg);
 
                 html += '</div>'; // 章节结束
             });
@@ -2973,7 +2208,7 @@
             // 关注校墙
             html += '<div style="margin-top:14px;padding:16px;background:#FAFBFC;border-radius:12px;text-align:center;">';
             html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注嘉二校园墙</div>';
-            html += '<img src="/images/gzh.jpg" style="width:160px;display:block;border-radius:8px;margin:0 auto;" alt="公众号二维码">';
+            html += '<img src="https://wall.jay23.cn/images/gzh.jpg" style="width:160px;display:block;border-radius:8px;margin:0 auto;" alt="公众号二维码">';
             html += '<div style="font-size:11px;color:#bbb;margin-top:8px;">微信扫一扫 · 获取更多精彩</div>';
             html += '</div>';
             html += '</div>';
@@ -3029,10 +2264,6 @@
             html += '<div style="height:24px;"></div>';
             html += '</div>';
 
-            // 隐藏进度，显示预览
-            if (progress) progress.classList.remove('active');
-            if (previewArea) previewArea.style.display = 'block';
-
             previewArea.innerHTML = html;
             // 规范化标题
             var songTitles = selectedSongs.map(function(s) { return s.song_name || ''; }).filter(Boolean);
@@ -3053,7 +2284,7 @@
                 author: '嘉二校园墙',
                 digest: digestStr,
                 content: html,
-                content_source_url: '',
+                content_source_url: 'https://wall.jay23.cn',
                 show_cover_pic: 1,
                 need_open_comment: 1,
                 only_fans_can_comment: 0
@@ -3190,7 +2421,7 @@
                     return;
                 }
                 // 权限通过，加载页面
-                setTimeout(function() { loadHotPosts(); renderTemplateGrid(); }, 100);
+                setTimeout(function() { loadHotPosts(); }, 100);
             }).catch(function() {
                 window.location.href = '/login?redirect=/admin/mp-draft';
             });

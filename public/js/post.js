@@ -370,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
               var savedSize = file.size - compressedFile.size;
               var savedPercent = Math.round((savedSize / file.size) * 100);
+              console.log('图片压缩: ' + originalName + ' (' + Math.round(file.size/1024) + 'KB) -> ' + newName + ' (' + Math.round(compressedFile.size/1024) + 'KB), 节省 ' + savedPercent + '%');
 
               resolve(compressedFile);
             } else {
@@ -556,6 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   }).catch(function() {
+    console.log('无法获取站点设置，隐藏匿名选项');
   });
 
   if (anonymousToggle) {
