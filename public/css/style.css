@@ -12135,3 +12135,88 @@ select.form-input {
 [data-theme="dark"] .easter-bubble {
   box-shadow: 0 4px 12px rgba(255,107,157,0.5);
 }
+
+/* ============================================
+   移动端优化：profile 帖子卡片 + 标签栏
+   ============================================ */
+/* 全局：给 fixed navbar 留位置（仅外层 main-container） */
+.main-container {
+  padding-top: calc(var(--navbar-height, 60px) + 12px);
+}
+/* 嵌套的 page-container 不重复加 padding-top */
+.main-container > .page-container {
+  padding-top: 0;
+}
+@media (max-width: 768px) {
+  /* 标签栏：紧凑 + 横向滚动 */
+  .profile-tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .profile-tabs::-webkit-scrollbar { display: none; }
+  .profile-tab {
+    flex: 0 0 auto;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  /* 标签内容：去掉内边距让卡片占满 */
+  .profile-tab-content {
+    padding: 12px !important;
+  }
+
+  /* 帖子卡片：紧凑 + 可点击感 */
+  .post-card {
+    padding: 14px !important;
+    margin-bottom: 12px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 8px rgba(118, 75, 162, 0.06) !important;
+    border: 1px solid rgba(118, 75, 162, 0.08) !important;
+    transition: transform 0.2s ease;
+  }
+  .post-card:active { transform: scale(0.98); }
+
+  .post-card .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-width: 1.5px;
+  }
+  .post-card .user-name { font-size: 0.85rem; }
+  .post-card .post-time { font-size: 0.7rem; }
+  .post-card .post-title {
+    font-size: 1rem !important;
+    line-height: 1.4;
+  }
+  .post-card .post-content {
+    font-size: 0.88rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 10px !important;
+  }
+  .post-card .post-images {
+    gap: 4px !important;
+    margin-bottom: 10px !important;
+  }
+  .post-card .post-actions {
+    padding-top: 10px !important;
+    margin-top: 10px !important;
+    gap: 4px !important;
+  }
+  .post-card .action-btn {
+    font-size: 0.78rem;
+    padding: 4px 8px !important;
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+  .post-card .action-btn span:last-child { font-size: 0.78rem; }
+  .post-card .action-icon { font-size: 0.95rem; }
+  .post-card .post-views { font-size: 0.75rem !important; }
+}
+
+@media (max-width: 380px) {
+  .post-card { padding: 12px !important; }
+  .post-card .post-actions { gap: 2px !important; }
+  .post-card .action-btn { padding: 3px 6px !important; font-size: 0.72rem; }
+}

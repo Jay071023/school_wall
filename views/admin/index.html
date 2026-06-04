@@ -622,6 +622,7 @@
             align-items: center;
             gap: 12px;
             padding: 11px 16px;
+            position: relative;
             color: #8B3A5E;
             border-radius: 12px;
             margin: 2px 10px;
@@ -713,22 +714,24 @@
 
         .admin-sidebar .sidebar-link .link-badge {
             position: absolute;
-            right: 12px;
+            right: 14px;
             top: 50%;
-            transform: translateY(-50%);
-            min-width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #FF6B9D, #FF8FB5);
+            margin-top: -9px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            box-sizing: border-box;
+            display: block;
+            text-align: center;
+            line-height: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             font-size: 0.68rem;
-            font-weight: 700;
-            border-radius: var(--radius-full);
-            padding: 0 5px;
-            line-height: 20px;
-            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.35);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0;
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         /* Sidebar footer */
@@ -4637,7 +4640,7 @@
                         </span>
                         <span class="link-text">邮件群发</span>
                     </a>
-                    <a href="#" class="sidebar-link" data-panel="postviews" data-permission="posts:view" data-title="浏览记录">
+                    <a href="#" class="sidebar-link" data-panel="postviews" data-permission="post-views:view" data-title="浏览记录">
                         <span class="link-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </span>
@@ -4655,7 +4658,7 @@
                         </span>
                         <span class="link-text">系统设置</span>
                     </a>
-                    <a href="#" class="sidebar-link" data-panel="wechattest" data-permission="settings:view" data-title="微信测试">
+                    <a href="#" class="sidebar-link" data-panel="wechattest" data-permission="wechat:review" data-title="微信测试">
                         <span class="link-icon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M9 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5l-2 2z"/></svg>
                         </span>
@@ -4675,7 +4678,7 @@
                             </span>
                             <span class="link-text">公众号推送</span>
                         </a>
-                        <a href="#" class="sidebar-link" data-panel="stories" data-permission="admin:manage" data-title="连载小说">
+                        <a href="#" class="sidebar-link" data-panel="stories" data-permission="stories:review" data-title="连载小说">
                             <span class="link-icon">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
                             </span>
@@ -6506,15 +6509,50 @@
 
     <!-- ===== JavaScript ===== -->
     <script>
+    // ===== 全局错误捕获：JS 报错只影响出错的功能，不让后台整个挂掉 =====
     (function() {
-        'use strict';
+      'use strict';
 
-        // ===== 工具函数 =====
-
-        // 获取 token（兼容 localStorage 和 sessionStorage）
-        function getToken() {
-            return localStorage.getItem('token') || sessionStorage.getItem('token');
+      // 收集错误（每分钟最多 5 条，避免刷屏）
+      var _errLog = [];
+      var _errCount = 0;
+      function reportError(msg, source, line, col, error) {
+        _errCount++;
+        if (_errLog.length < 5) {
+          _errLog.push({ msg: msg, source: source, line: line, col: col, time: Date.now() });
+          console.error('[后台JS错误]', msg, '@', source, ':', line + ':' + col, error);
         }
+      }
+      window.addEventListener('error', function(e) {
+        reportError(e.message, e.filename, e.lineno, e.colno, e.error);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        reportError('Unhandled Promise: ' + (e.reason && e.reason.message || e.reason), '', 0, 0, e.reason);
+      });
+      window.getJsErrorCount = function() { return _errCount; };
+      window.getJsErrors = function() { return _errLog; };
+
+      // ===== 工具函数 =====
+
+      // 获取 token（兼容 localStorage 和 sessionStorage）
+      function getToken() {
+        try {
+          return localStorage.getItem('token') || sessionStorage.getItem('token');
+        } catch (e) { return ''; }
+      }
+
+      // 延后执行主逻辑，避免单点语法错误阻断页面渲染
+      window.addEventListener('DOMContentLoaded', function() {
+        try {
+          initAdminApp();
+        } catch (e) {
+          reportError('initAdminApp 失败: ' + e.message, '', 0, 0, e);
+          // 兜底：显示基础页面让用户至少能登录
+          if (typeof showLoginRequired === 'function') showLoginRequired();
+        }
+      });
+
+      function initAdminApp() {
 
         // ===== 主题切换 =====
         (function() {
@@ -6790,10 +6828,10 @@
 
         // 角色权限映射
         const ROLE_PERMISSIONS = {
-            reviewer:    ['posts:review', 'posts:delete'],
-            radio_admin: ['songs:review', 'songs:delete', 'slots:manage'],
-            admin:       ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view'],
-            super_admin: ['stats:view', 'posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage', 'posts:view']
+            reviewer:    ['posts:review', 'posts:delete', 'songs:review', 'stats:view'],
+            radio_admin: ['songs:review', 'songs:delete', 'slots:manage', 'stats:view'],
+            admin:       ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view', 'stories:review', 'logs:view', 'post-views:view', 'wechat:review'],
+            super_admin: ['stats:view', 'posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage', 'stories:review', 'post-views:view', 'wechat:review']
         };
 
         // 角色对应的默认面板
@@ -7232,7 +7270,23 @@
                 // ignore
             }
         }
-        window.loadSidebarBadges = loadSidebarBadges;
+        window.loadSidebarBadges = function() {
+            // 加防抖：3秒内只调用一次
+            if (window._sidebarBadgeTimer) clearTimeout(window._sidebarBadgeTimer);
+            window._sidebarBadgeTimer = setTimeout(loadSidebarBadges, 3000);
+        };
+
+        // ===== 侧边栏徽章自动刷新（仅切回 tab 时刷新，不主动轮询）=====
+        // 切回 tab 时立即刷新
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) loadSidebarBadges();
+        });
+        // 页面加载完启动（仅一次，不设 interval）
+        if (document.readyState === 'complete') {
+            loadSidebarBadges();
+        } else {
+            window.addEventListener('load', function() { loadSidebarBadges(); });
+        }
 
         // ----- 帖子管理 -----
         async function loadPosts() {
@@ -11226,6 +11280,8 @@
             }
         }).catch(function() {});
 
+    }
+
     })();
 
     // ===== 自动发布设置 =====
@@ -11357,17 +11413,6 @@
     var storiesData = { stories: [], currentIndex: 0, editingIndex: -1 };
     var currentNovelId = '';
     var novelsList = [];
-
-    // 从 localStorage 恢复上次选中的小说和章节
-    (function restoreNovelState() {
-        var saved = localStorage.getItem('novelState');
-        if (saved) {
-            try {
-                var state = JSON.parse(saved);
-                currentNovelId = state.novelId || '';
-            } catch(e) {}
-        }
-    })();
 
     async function loadNovels() {
         try {

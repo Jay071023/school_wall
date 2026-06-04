@@ -1679,7 +1679,7 @@ router.delete('/notifications', requirePermission('notices:manage'), async (req,
 });
 
 // 获取帖子浏览记录（超级管理员专用）
-router.get('/post-views', requirePermission('posts:view'), async (req, res) => {
+router.get('/post-views', requirePermission('post-views:view'), async (req, res) => {
   try {
     const { page = 1, limit = 20, post_id, keyword } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -1731,7 +1731,7 @@ router.get('/post-views', requirePermission('posts:view'), async (req, res) => {
 });
 
 // 清空N天前的浏览记录
-router.delete('/post-views/old', requirePermission('posts:view'), async (req, res) => {
+router.delete('/post-views/old', requirePermission('post-views:view'), async (req, res) => {
   try {
     const { days = 30 } = req.query;
     const daysNum = parseInt(days) || 30;
@@ -1868,7 +1868,7 @@ router.delete('/users/:userId/titles/:titleId', superAdminOnly, async (req, res)
 });
 
 // 清空所有浏览记录
-router.delete('/post-views/all', requirePermission('posts:view'), async (req, res) => {
+router.delete('/post-views/all', requirePermission('post-views:view'), async (req, res) => {
   try {
     const [result] = await pool.execute('DELETE FROM post_views');
     res.json({ code: 200, message: '已清空所有浏览记录', data: { deleted: result.affectedRows } });
@@ -2106,7 +2106,7 @@ router.get('/email/history', requirePermission('notices:manage'), async (req, re
 
 // ===== 微信测试 =====
 // 获取已绑定微信的用户列表
-router.get('/wechat/users', async (req, res) => {
+router.get('/wechat/users', requirePermission('wechat:review'), async (req, res) => {
   try {
     const [rows] = await pool.execute(
       'SELECT DISTINCT u.id, u.username, u.nickname, u.role, u.openid, ' +
@@ -2125,7 +2125,7 @@ router.get('/wechat/users', async (req, res) => {
 });
 
 // 测试消息推送（订阅号仅能验证连接，不能主动发消息）
-router.post('/wechat/test-message', async (req, res) => {
+router.post('/wechat/test-message', requirePermission('wechat:review'), async (req, res) => {
   try {
     var { openid, user_id } = req.body;
     if (!openid) {
@@ -2667,7 +2667,7 @@ function storiesDeleteChapter(idx, novelId) {
 // ===== 小说 CRUD 路由 =====
 
 // 获取小说列表
-router.get('/novels', auth, async (req, res) => {
+router.get('/novels', requirePermission('stories:review'), async (req, res) => {
   try {
     var list = novelsGetList();
     var pubConfig = loadPubConfig();
@@ -2678,7 +2678,7 @@ router.get('/novels', auth, async (req, res) => {
 });
 
 // 创建新小说
-router.post('/novels/create', auth, async (req, res) => {
+router.post('/novels/create', requirePermission('stories:review'), async (req, res) => {
   try {
     var { title, author, desc } = req.body;
     if (!title) return res.json({ code: 400, message: '小说标题不能为空' });
@@ -2700,7 +2700,7 @@ router.post('/novels/create', auth, async (req, res) => {
 });
 
 // 删除小说
-router.post('/novels/delete', auth, async (req, res) => {
+router.post('/novels/delete', requirePermission('stories:review'), async (req, res) => {
   try {
     var { novelId } = req.body;
     var list = novelsGetList();
@@ -2738,7 +2738,7 @@ router.post('/novels/delete', auth, async (req, res) => {
 });
 
 // 设置当前活跃小说
-router.post('/novels/set-active', auth, async (req, res) => {
+router.post('/novels/set-active', requirePermission('stories:review'), async (req, res) => {
   try {
     var { novelId } = req.body;
     var novel = novelsGetById(novelId);
@@ -2759,7 +2759,7 @@ function getNovelId(req) {
 }
 
 // 获取所有章节（不含内容）和配置信息
-router.get('/stories', auth, async (req, res) => {
+router.get('/stories', requirePermission('stories:review'), async (req, res) => {
   try {
     var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var index = storiesGetIndex(novelId);
@@ -2780,7 +2780,7 @@ router.get('/stories', auth, async (req, res) => {
 });
 
 // 获取单章内容
-router.get('/stories/chapter-content', auth, async (req, res) => {
+router.get('/stories/chapter-content', requirePermission('stories:review'), async (req, res) => {
   try {
     var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var idx = parseInt(req.query.index);
@@ -2796,7 +2796,7 @@ router.get('/stories/chapter-content', auth, async (req, res) => {
 });
 
 // 保存章节
-router.post('/stories/save', auth, async (req, res) => {
+router.post('/stories/save', requirePermission('stories:review'), async (req, res) => {
   try {
     var { index, title, content, author, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';
@@ -2808,7 +2808,7 @@ router.post('/stories/save', auth, async (req, res) => {
 });
 
 // 添加新章节
-router.post('/stories/add', auth, async (req, res) => {
+router.post('/stories/add', requirePermission('stories:review'), async (req, res) => {
   try {
     var { title, content, author, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';
@@ -2820,7 +2820,7 @@ router.post('/stories/add', auth, async (req, res) => {
 });
 
 // 删除章节
-router.post('/stories/delete', auth, async (req, res) => {
+router.post('/stories/delete', requirePermission('stories:review'), async (req, res) => {
   try {
     var { index, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';
@@ -2840,7 +2840,7 @@ router.post('/stories/delete', auth, async (req, res) => {
 });
 
 // 设置当前连载章节索引
-router.post('/stories/set-current', auth, async (req, res) => {
+router.post('/stories/set-current', requirePermission('stories:review'), async (req, res) => {
   try {
     var { index, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';
@@ -2853,7 +2853,7 @@ router.post('/stories/set-current', auth, async (req, res) => {
 });
 
 // 保存提示词模板配置
-router.post('/stories/save-prompt-config', auth, async (req, res) => {
+router.post('/stories/save-prompt-config', requirePermission('stories:review'), async (req, res) => {
   try {
     var { promptConfig, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';
@@ -2866,7 +2866,7 @@ router.post('/stories/save-prompt-config', auth, async (req, res) => {
 });
 
 // 获取下一个 DeepSeek 提示词
-router.get('/stories/next-prompt', auth, async (req, res) => {
+router.get('/stories/next-prompt', requirePermission('stories:review'), async (req, res) => {
   try {
     var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var index = storiesGetIndex(novelId);
@@ -2916,7 +2916,7 @@ router.get('/stories/next-prompt', auth, async (req, res) => {
 });
 
 // ===== AI 自动生成章节 =====
-router.post('/stories/generate-chapter', auth, async (req, res) => {
+router.post('/stories/generate-chapter', requirePermission('stories:review'), async (req, res) => {
   try {
     var novelId = getNovelId(req) || loadPubConfig().activeNovelId || 'default';
     var index = storiesGetIndex(novelId);
@@ -3100,7 +3100,7 @@ async function uploadStoryImages(htmlContent) {
   return htmlContent;
 }
 
-router.post('/stories/publish-to-wechat', auth, async (req, res) => {
+router.post('/stories/publish-to-wechat', requirePermission('stories:review'), async (req, res) => {
   try {
     var { chapterIndex, novelId } = req.body;
     novelId = novelId || loadPubConfig().activeNovelId || 'default';

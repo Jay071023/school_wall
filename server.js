@@ -80,7 +80,7 @@ app.use(function(req, res, next) {
 // 全局限流（通用）
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15分钟
-  max: 500, // 最多500请求
+  max: 2000, // 最多2000请求（之前500太少了，后台30秒轮询一次很容易刷满）
   standardHeaders: true,
   legacyHeaders: false
 }));
@@ -415,8 +415,12 @@ app.get('/admin', (req, res) => {
 // 公众号推送管理
 app.get('/admin/mp-draft', (req, res) => {
   if (!req.query.v) {
-    var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
-    return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
+    try {
+      var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
+      return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
+    } catch(e) {
+      return res.redirect(302, '/admin/mp-draft?v=' + Date.now());
+    }
   }
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
   res.set('Pragma', 'no-cache');

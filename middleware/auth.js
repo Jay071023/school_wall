@@ -22,8 +22,8 @@ const ROLE_PERMISSIONS = {
   user: [],
   reviewer: ['posts:review', 'posts:delete', 'songs:review', 'stats:view'],
   radio_admin: ['songs:review', 'songs:delete', 'slots:manage', 'stats:view'],
-  admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view'],
-  super_admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'stats:view', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage']
+  admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view', 'stories:review', 'logs:view', 'wechat:review', 'post-views:view'],
+  super_admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'stats:view', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage', 'stories:review', 'post-views:view', 'wechat:review']
 };
 
 const auth = async (req, res, next) => {
