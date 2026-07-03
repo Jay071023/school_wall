@@ -1,10 +1,62 @@
+# 依赖
 node_modules/
+
+# 环境配置（含密钥）
 .env
 .env.local
+.env.*.local
+
+# 上传的文件
+public/uploads/
+/uploads/
+
+# 日志和数据
+logs/
 *.log
+data/
+*.sqlite
+*.db
+
+# SSH 密钥
 ssh_key
 ssh_key_new
-private.*.key
-$null
+*.pem
+id_rsa*
+
+# 临时文件
+*.bak
+*.tmp
+*.temp
+temp/
+tmp/
+
+# 构建产物
+dist/
+build/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 运维脚本（已在 gitee 上单独管理）
+deploy_package/
+campus-wall-go/
+
+# Claude Code 工作区
+.claude/
+
+# 压缩包
 *.zip
-data/
+*.tar.gz
+*.rar
+*.7z
+
+# 秘钥
+private.*.key
