@@ -10,11 +10,6 @@ function apiFetch(url, options = {}) {
   return fetch(url, Object.assign({ headers }, options)).then(r => r.json());
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 function showToast(msg, type = 'info') {
   var toast = document.createElement('div');
   toast.className = 'toast toast-' + type;

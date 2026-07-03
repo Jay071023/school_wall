@@ -1147,7 +1147,7 @@
         left: 0;
         height: 3px;
         background: linear-gradient(90deg, var(--primary), var(--secondary));
-        z-index: 10000;
+        z-index: 11000;
         transition: width 0.1s ease;
     }
     

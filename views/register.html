@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 注册</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   
@@ -16,7 +17,7 @@
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <style>
     body {
       min-height: 100vh;
@@ -281,7 +282,7 @@
         <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
         <span class="nav-nickname" id="navNickname"></span>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -646,16 +647,16 @@
 
   <script src="/js/app.js"></script>
   <script src="/js/auth.js"></script>
-  <script>var currentUser = JSON.parse(localStorage.getItem('user') || 'null');</script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
   // 协议内容
   var agreements = {
     user: {
       title: '用户协议',
       content: '<h4>嘉二の墙墙 用户协议</h4>' +
-        '<p>欢迎使用嘉二人の墙墙服务！在使用本服务之前，请仔细阅读本协议。</p>' +
+        '<p>欢迎使用嘉二の墙墙服务！在使用本服务之前，请仔细阅读本协议。</p>' +
         '<h5>一、服务说明</h5>' +
-        '<p>1.1 嘉二人の墙墙是一个校园匿名社交平台，为用户提供发帖、评论、点歌等功能。</p>' +
+        '<p>1.1 嘉二の墙墙是一个校园匿名社交平台，为用户提供发帖、评论、点歌等功能。</p>' +
         '<p>1.2 用户在使用本服务时，应遵守当地法律法规，不得发布违法违规内容。</p>' +
         '<h5>二、用户行为规范</h5>' +
         '<p>2.1 用户不得发布以下内容：</p>' +
@@ -673,8 +674,8 @@
     },
     privacy: {
       title: '隐私政策',
-      content: '<h4>嘉二人の墙墙 隐私政策</h4>' +
-        '<p>嘉二人の墙墙非常重视用户的隐私保护，本政策说明了我们如何收集、使用和保护您的个人信息。</p>' +
+      content: '<h4>嘉二の墙墙 隐私政策</h4>' +
+        '<p>嘉二の墙墙非常重视用户的隐私保护，本政策说明了我们如何收集、使用和保护您的个人信息。</p>' +
         '<h5>一、信息收集</h5>' +
         '<p>1.1 我们收集的信息包括：</p>' +
         '<ul><li>注册信息：用户名、昵称、密码（加密存储）</li><li>使用信息：发帖、评论、点歌记录</li><li>设备信息：IP地址、设备类型</li><li>其他您主动提供的信息</li></ul>' +
@@ -952,6 +953,11 @@
           document.body.classList.remove('mode-520', 'register-page');
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
         }
       }
     })();

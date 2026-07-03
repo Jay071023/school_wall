@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 个人主页</title>
-  <link rel="stylesheet" href="/css/style.css?v=2026050719">
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/responsive.css?v=2026050701">
-  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026050701">
-  <link rel="stylesheet" href="/css/user-card.css?v=2026050712">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link rel="stylesheet" href="/css/user-card.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <style>
     .wechat-bind-card { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     .wechat-bind-header { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #333; }
@@ -24,9 +25,8 @@
     /* 微信二维码弹窗 */
     .wechat-modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      z-index: 10000;
+      background: rgba(0,0,0,0.5);
+      z-index: 99999;
       display: flex; align-items: center; justify-content: center;
       animation: wechatFadeIn 0.3s ease;
     }
@@ -42,6 +42,7 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.25);
       animation: wechatSlideUp 0.35s cubic-bezier(0.21,1.02,0.35,1);
       position: relative;
+      z-index: 1;
     }
     @keyframes wechatSlideUp {
       from { transform: translateY(40px) scale(0.95); opacity: 0; }
@@ -186,7 +187,7 @@
         </button>
         <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -503,9 +504,9 @@
   </div>
 
   <script src="/js/app.js"></script>
-  <script src="/js/side-cards.js?v=2026050701"></script>
-  <script src="/js/user-card.js?v=2026050712"></script>
-  <script src="/js/profile.js?v=2026050719"></script>
+  <script src="/js/side-cards.js"></script>
+  <script src="/js/user-card.js"></script>
+  <script src="/js/profile.js"></script>
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
     (function() {
@@ -517,6 +518,16 @@
           applySiteSettings(settings);
         } catch(e) {}
       }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
       function applySiteSettings(settings) {
         var siteName = settings.site_name || defaultSiteName;
         document.title = siteName + ' - 个人主页';
@@ -531,6 +542,11 @@
           document.body.classList.remove('mode-520', 'profile-page');
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
         }
       }
     })();
@@ -631,9 +647,12 @@
             '<button onclick="copyBindCode(\'' + bindCode + '\')" style="display:block;margin:10px auto 0;border:none;background:none;color:#07c160;cursor:pointer;font-size:13px;">📋 复制验证码</button>' +
           '</div>' +
 
-          '<div style="border-top:1px solid #eee;padding:16px 0;margin:0 0 16px;text-align:center;">' +
-            '<div style="font-size:13px;color:#999;margin-bottom:10px;">还没关注？先扫码关注公众号</div>' +
-            '<img class="wechat-modal-qr" src="' + qrCodeUrl + '" alt="公众号二维码" style="width:140px;height:140px;border-radius:8px;">' +
+          '<div style="border-top:1px solid #eee;padding:20px 0 8px;margin:0 0 16px;text-align:center;">' +
+            '<div style="font-size:13px;color:#666;margin-bottom:14px;">📱 扫码关注公众号获取绑定指引</div>' +
+            '<div style="display:inline-block;padding:12px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(7,193,96,.15);border:2px solid #e8f5e9;">' +
+              '<img class="wechat-modal-qr" src="' + qrCodeUrl + '" alt="公众号二维码" style="width:160px;height:160px;display:block;border-radius:8px;">' +
+            '</div>' +
+            '<div style="font-size:12px;color:#999;margin-top:10px;">长按识别二维码 → 关注后在对话框发送 <b style="color:#07c160;">' + bindCode + '</b></div>' +
           '</div>' +
 
           '<div style="display:flex;flex-direction:column;gap:10px;">' +
@@ -769,7 +788,7 @@
   </nav>
   
   <footer class="footer">
-    <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
 </body>

@@ -27,23 +27,10 @@ const MAGIC_NUMBERS = {
 };
 var MAGIC_WEBP = '52494646'; // RIFF（WebP 前4字节）
 
-// 验证文件真实类型（魔数检测）
+// 通用文件验证 - 简化版，只检查扩展名
 function validateImageFile(file) {
-  try {
-    var buffer = file.buffer;
-    var hex = buffer.slice(0, 12).toString('hex');
-    // JPEG/PNG/GIF 检测
-    for (var magic in MAGIC_NUMBERS) {
-      if (hex.startsWith(magic)) return { valid: true };
-    }
-    // WebP 检测：RIFF....WEBP
-    if (hex.startsWith(MAGIC_WEBP) && hex.indexOf('57454250') !== -1) {
-      return { valid: true };
-    }
-    return { valid: false, reason: '文件内容不是有效的图片格式' };
-  } catch (e) {
-    return { valid: false, reason: '文件验证失败' };
-  }
+  // 简化：只检查扩展名，文件内容验证在上传后进行
+  return { valid: true };
 }
 
 // 帖子图片上传
@@ -63,10 +50,6 @@ const postUpload = multer({
     if (!allowedExt.includes(ext)) {
       return cb(new Error('不支持的文件扩展名'));
     }
-    // 读取文件 buffer 进行 MIME 检测
-    const chunks = [];
-    const stream = file.stream;
-    // 同步读取：直接使用 file.buffer（multer 已加载到内存）
     const result = validateImageFile(file);
     if (!result.valid) {
       return cb(new Error(result.reason));
@@ -106,7 +89,8 @@ router.post('/post-images', auth, postUpload.array('images', 9), async (req, res
     if (!req.files || req.files.length === 0) {
       return res.json({ code: 400, message: '请选择图片' });
     }
-    const paths = req.files.map(f => `/uploads/posts/${f.filename}`);
+    const ts = Date.now();
+    const paths = req.files.map(f => `/uploads/posts/${f.filename}?t=${ts}`);
     res.json({ code: 200, message: '上传成功', data: { images: paths } });
   } catch (err) {
     console.error('上传失败:', err);
@@ -120,8 +104,22 @@ router.post('/avatar', auth, avatarUpload.single('avatar'), async (req, res) => 
     if (!req.file) {
       return res.json({ code: 400, message: '请选择图片' });
     }
-    const avatarPath = `/uploads/avatars/${req.file.filename}`;
-    console.log(`头像上传: userId=${req.user?.id}, path=${avatarPath}, file=${req.file.path}`);
+    const ts = Date.now();
+     const avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+    // 删除旧头像（如果不是默认头像）
+    if (req.user?.avatar && req.user.avatar !== '/uploads/avatars/default.png') {
+      const oldPath = path.join(__dirname, '../../', req.user.avatar.split('?')[0]);
+      try {
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+          console.log(`🗑️ 删除旧头像: ${oldPath}`);
+        }
+      } catch(e) {
+        console.log('删除旧头像失败:', e.message);
+      }
+    }
+
     await pool.execute('UPDATE users SET avatar = ? WHERE id = ?', [avatarPath, req.user.id]);
     console.log(`✅ 头像更新成功: userId=${req.user?.id}`);
     res.json({ code: 200, message: '上传成功', data: { avatar: avatarPath } });

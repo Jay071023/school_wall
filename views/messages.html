@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 私信</title>
-  <link rel="stylesheet" href="/css/style.css?v=2026050719">
-  <link rel="stylesheet" href="/css/responsive.css?v=2026050701">
-  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026050701">
-  <link rel="stylesheet" href="/css/messages.css?v=2.0">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link rel="stylesheet" href="/css/messages.css">
 </head>
 <body>
   <!-- 导航栏 -->
@@ -34,7 +35,7 @@
         </button>
         <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -179,19 +180,11 @@
   </div>
 
   <!-- 脚本 -->
-  <script src="/js/app.js?v=2026050719"></script>
-  <script src="/js/messages.js?v=2.0"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/messages.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      checkLoginStatus().then(isLoggedIn => {
-        if (!isLoggedIn) {
-          window.location.href = '/login.html?redirect=/messages.html';
-          return;
-        }
-        if (typeof initMessagesPage === 'function') {
-          initMessagesPage();
-        }
-      });
+      if (typeof initMessagesPage === 'function') { initMessagesPage(); }
     });
   </script>
 

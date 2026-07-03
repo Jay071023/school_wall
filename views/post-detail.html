@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 帖子详情</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
-  <link rel="stylesheet" href="/css/user-card.css?v=2026050527">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link rel="stylesheet" href="/css/user-card.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -26,7 +27,7 @@
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙 <span style="font-size:0.7em;opacity:0.6;">by JAY</span></a>
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
@@ -42,7 +43,7 @@
         <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
         <span class="nav-nickname" id="navNickname"></span>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -106,9 +107,9 @@
     </div>
   </div>
 
-  <script src="/js/app.js?v=202605232"></script>
-  <script src="/js/user-card.js?v=2026050527"></script>
-  <script src="/js/detail.js?v=99997"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/user-card.js"></script>
+  <script src="/js/detail.js"></script>
   <script src="/js/detail-replies.js"></script>
   <script src="/js/detail-emojis.js"></script>  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
@@ -146,6 +147,11 @@
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
         }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
       }
     })();
   </script>
@@ -174,7 +180,7 @@
   </nav>
   
   <footer class="footer">
-    <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
+    <p>&copy; 2026 嘉二の墙墙 · by JAY</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
 </body>

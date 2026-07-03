@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const mpDraftService = require('../services/mp-draft');
 const aiService = require('../services/ai');
 const router = express.Router();
+const { getIpRegion } = require('../services/ip-lookup');
 
 const SITE_URL = 'https://wall.jay23.cn';
 const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
@@ -25,6 +26,19 @@ router.get('/my-permissions', (req, res) => {
       permissions: req.user.permissions
     }
   });
+});
+
+// ===== 获取编辑团队（admin/super_admin 列表）=====
+router.get('/editors', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, username, nickname, role FROM users WHERE role IN ('admin', 'super_admin') ORDER BY role DESC, id ASC`
+    );
+    res.json({ code: 200, data: rows || [] });
+  } catch (err) {
+    console.error('获取编辑列表失败:', err);
+    res.json({ code: 500, message: '获取失败: ' + err.message });
+  }
 });
 
 // ===== 统计数据（需要 stats:view 权限）=====
@@ -2198,17 +2212,18 @@ router.post('/wechat/test-message', requirePermission('wechat:review'), async (r
 var AUTO_PUBLISH_CFG = require('path').join(__dirname, '..', 'config', 'auto-publish.json');
 
 function readPubCfg() {
-  try { var d = JSON.parse(require('fs').readFileSync(AUTO_PUBLISH_CFG, 'utf8')); return { hour: d.hour || 8, minute: d.minute || 0, enabled: d.enabled !== false, lastRun: d.lastRun || '', include_gaokao: d.include_gaokao !== false }; }
-  catch(e) { return { hour: 8, minute: 0, enabled: true, lastRun: '', include_gaokao: true }; }
+  try { var d = JSON.parse(require('fs').readFileSync(AUTO_PUBLISH_CFG, 'utf8')); return { hour: d.hour || 8, minute: d.minute || 0, enabled: d.enabled !== false, lastRun: d.lastRun || '', include_gaokao: d.include_gaokao !== false, include_songs: d.include_songs !== false }; }
+  catch(e) { return { hour: 8, minute: 0, enabled: true, lastRun: '', include_gaokao: true, include_songs: true }; }
 }
 
-function writePubCfg(hour, minute, enabled, lastRun, includeGaokao) {
+function writePubCfg(hour, minute, enabled, lastRun, includeGaokao, includeSongs) {
   var cfg = readPubCfg();
   if (hour !== undefined) cfg.hour = hour;
   if (minute !== undefined) cfg.minute = minute;
   if (enabled !== undefined) cfg.enabled = enabled;
   if (lastRun !== undefined) cfg.lastRun = lastRun;
   if (includeGaokao !== undefined) cfg.include_gaokao = includeGaokao;
+  if (includeSongs !== undefined) cfg.include_songs = includeSongs;
   require('fs').writeFileSync(AUTO_PUBLISH_CFG, JSON.stringify(cfg), 'utf8');
 }
 
@@ -2225,9 +2240,10 @@ router.post('/auto-publish-config', (req, res) => {
   var minute = parseInt(req.body.minute);
   var enabled = req.body.enabled !== false;
   var includeGaokao = req.body.include_gaokao !== false;
+  var includeSongs = req.body.include_songs !== false;
   if (isNaN(hour) || hour < 0 || hour > 23) return res.json({ code: 400, message: '小时范围0-23' });
   if (isNaN(minute) || minute < 0 || minute > 59) return res.json({ code: 400, message: '分钟范围0-59' });
-  writePubCfg(hour, minute, enabled, undefined, includeGaokao);
+  writePubCfg(hour, minute, enabled, undefined, includeGaokao, includeSongs);
   res.json({ code: 200, message: enabled ? '已设置每天 ' + String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0') + ' 自动发布' : '已关闭自动发布' });
 });
 
@@ -3266,6 +3282,19 @@ router.post('/stories/publish-to-wechat', requirePermission('stories:review'), a
   } catch (err) {
     console.error('[故事推送] 失败:', err.message);
     res.json({ code: 500, message: '推送失败: ' + err.message });
+  }
+});
+
+// ===== IP归属地查询 =====
+router.post('/lookup-ip', auth, isStaff, async (req, res) => {
+  try {
+    const { ip } = req.body;
+    if (!ip) return res.json({ code: 400, message: '请提供IP地址' });
+    const region = await getIpRegion(ip.replace(/^::ffff:/, ''));
+    res.json({ code: 200, data: { region: region || ip } });
+  } catch (err) {
+    console.error('[Admin] IP查询失败:', err.message);
+    res.json({ code: 500, message: '查询失败: ' + err.message });
   }
 });
 

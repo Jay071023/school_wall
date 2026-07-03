@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 意见反馈</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   
@@ -25,7 +26,7 @@
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
   <link rel="stylesheet" href="/css/reservation.css">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <style>
     .feedback-page {
       min-height: 100vh;
@@ -257,7 +258,7 @@
         </button>
         <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -402,9 +403,9 @@
   </div>
 
   <script src="/js/app.js"></script>
-  <script src="/js/side-cards.js?v=20260502"></script>
+  <script src="/js/side-cards.js"></script>
   <script>
-    var currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+    var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
     let selectedType = '';
     
     window.selectType = function(el) {
@@ -552,7 +553,7 @@
   </nav>
 
   <footer class="footer">
-    <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
 
@@ -589,6 +590,11 @@
           document.body.classList.remove('mode-520');
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
         }
       }
     })();

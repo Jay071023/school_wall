@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎉 嘉二人の墙墙 - 更新日志</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  line-height: 1.8;
+  color: #333;
+  background: #f5f5f5;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+h1 { font-size: 1.8em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #3B82F6; color: #1a1a1a; }
+h2 { font-size: 1.4em; margin: 28px 0 14px; color: #2c3e50; }
+h3 { font-size: 1.15em; margin: 22px 0 10px; color: #34495e; }
+p { margin: 12px 0; }
+ul, ol { margin: 10px 0; padding-left: 24px; }
+li { margin: 6px 0; }
+code {
+  background: #f0f2f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #e74c3c;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+}
+pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.5;
+  margin: 16px 0;
+}
+pre code { background: none; color: inherit; padding: 0; }
+blockquote {
+  border-left: 4px solid #3B82F6;
+  background: #f0f7ff;
+  padding: 12px 18px;
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+  color: #555;
+}
+a { color: #3B82F6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+th, td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  text-align: left;
+}
+th { background: #f8f9fa; font-weight: 600; }
+img { max-width: 100%; border-radius: 6px; }
+hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎉 嘉二人の墙墙 - 更新日志</h1>
+<blockquote>
+<p><strong>更新日期</strong>：2026年5月12日<br />
+<strong>版本</strong>：v2.1<br />
+<strong>更新类型</strong>：私信功能 + 性能优化</p>
+</blockquote>
+<hr />
+<h2>✨ 新增功能</h2>
+<h3>1. 私信系统</h3>
+<ul>
+<li>✅ 新增完整的用户私信功能</li>
+<li>✅ 支持一对一私人消息交流</li>
+<li>✅ 友好的卡哇伊风格UI，适配移动端/桌面端</li>
+<li>✅ 实时消息轮询（每5秒更新）</li>
+<li>✅ 消息已读/未读状态标记</li>
+<li>✅ 支持软删除消息（仅对自己隐藏）</li>
+<li>✅ 便捷的用户搜索和新对话创建</li>
+<li>✅ 入口已添加到导航栏和底部移动导航</li>
+</ul>
+<h3>2. AI助手优化</h3>
+<ul>
+<li>✅ 微信AI助手响应超时优化</li>
+<li>✅ 移除历史缓存以提升响应速度</li>
+<li>✅ 确保在微信5秒超时内返回回复</li>
+</ul>
+<h3>3. 微信公众号素材优化</h3>
+<ul>
+<li>✅ 修复文章预览截断问题（完整获取长文章内容）</li>
+<li>✅ 提升公众号素材生成的内容完整性</li>
+</ul>
+<hr />
+<blockquote>
+<p><strong>更新日期</strong>：2026年4月26日<br />
+<strong>版本</strong>：v2.0<br />
+<strong>更新类型</strong>：重大功能更新 + 全面优化</p>
+</blockquote>
+<hr />
+<h2>✨ 新增功能</h2>
+<h3>1. 反馈管理系统</h3>
+<ul>
+<li>✅ 新增用户反馈提交功能</li>
+<li>✅ 支持多种反馈类型：功能建议、Bug反馈、投诉、其他</li>
+<li>✅ 管理员可在后台查看、回复、处理反馈</li>
+<li>✅ 反馈状态追踪：待处理 → 处理中 → 已解决 → 已关闭</li>
+<li>✅ 用户可查看自己的反馈历史记录</li>
+</ul>
+<h3>2. 帖子回收站</h3>
+<ul>
+<li>✅ 新增帖子软删除功能（移入回收站）</li>
+<li>✅ 管理员可恢复误删帖子</li>
+<li>✅ 支持彻底删除和清空回收站</li>
+<li>✅ 回收站独立管理面板</li>
+</ul>
+<h3>3. 帖子/点歌详情查看</h3>
+<ul>
+<li>✅ 新增帖子详情弹窗，可查看完整内容、图片、IP归属地</li>
+<li>✅ 新增点歌详情弹窗，可查看完整点歌信息</li>
+<li>✅ 详情页支持直接审核操作</li>
+</ul>
+<h3>4. 实时热搜</h3>
+<ul>
+<li>✅ 首页新增微博实时热搜榜单</li>
+<li>✅ 自动更新，每5分钟刷新一次</li>
+<li>✅ 显示Top 5热门话题</li>
+</ul>
+<h3>5. 当地天气</h3>
+<ul>
+<li>✅ 天气卡片改为基于用户IP的当地天气</li>
+<li>✅ 自动定位用户所在城市</li>
+<li>✅ 显示温度、天气状况、湿度、风力、空气质量</li>
+<li>✅ 每10分钟自动更新</li>
+</ul>
+<h3>6. 公告管理</h3>
+<ul>
+<li>✅ 管理员可发布、编辑、删除公告</li>
+<li>✅ 支持公告置顶功能</li>
+<li>✅ 公告列表展示优化</li>
+</ul>
+<hr />
+<h2>🔧 功能优化</h2>
+<h3>管理后台优化</h3>
+<ul>
+<li>✅ 铃声按钮：点击跳转到待审核帖子列表</li>
+<li>✅ 操作日志：显示操作人姓名（之前为空）</li>
+<li>✅ 帖子删除：修复后台删除帖子无效的问题</li>
+<li>✅ 置顶功能：修复大头针按钮点击无效</li>
+<li>✅ 退出登录：修复移动端退出按钮无效</li>
+<li>✅ 提示框：成功提示显示时间延长至5秒</li>
+</ul>
+<h3>移动端全面优化</h3>
+<ul>
+<li>✅ 底部导航栏：所有页面统一添加移动端底部导航</li>
+<li>首页、点歌、发帖、反馈、我的</li>
+<li>当前页面高亮显示</li>
+<li>✅ 弹窗优化：修复移动端弹窗全屏问题</li>
+<li>✅ 按钮优化：登录/注册按钮样式优化，不再"胖胖的"</li>
+<li>✅ 管理后台：适配不同手机分辨率，不再超出屏幕</li>
+<li>✅ 筛选按钮：移动端横向滚动，不再竖向堆叠</li>
+<li>✅ 表格优化：移动端可横向滚动查看</li>
+<li>✅ 触摸优化：所有按钮最小44px，方便点击</li>
+</ul>
+<h3>页面体验优化</h3>
+<ul>
+<li>✅ 侧边栏：移动端丝滑动画，使用Material Design缓动曲线</li>
+<li>✅ 遮罩层：渐变显示/隐藏，不再突然出现</li>
+<li>✅ Toast提示：移动端自适应宽度，不再过大</li>
+<li>✅ 点歌页面：新增底部导航栏</li>
+</ul>
+<hr />
+<h2>🐛 Bug修复</h2>
+<ol>
+<li>✅ 反馈页面404错误 - 添加路由配置</li>
+<li>✅ 后台删除帖子无效 - 修复API调用错误处理</li>
+<li>✅ 置顶按钮无反应 - 暴露函数到全局作用域</li>
+<li>✅ 操作日志操作人为空 - 关联查询users表</li>
+<li>✅ 移动端弹窗全屏 - 限制最大宽高</li>
+<li>✅ 登录/注册按钮样式丑 - 统一样式规范</li>
+<li>✅ 管理后台超出屏幕 - 添加响应式布局</li>
+<li>✅ 天气显示上海固定城市 - 改为IP定位当地天气</li>
+<li>✅ 微博热搜API不可用 - 更换数据源并添加降级处理</li>
+</ol>
+<hr />
+<h2>📱 移动端适配</h2>
+<h3>支持的页面</h3>
+<ul>
+<li>✅ 首页</li>
+<li>✅ 登录/注册页</li>
+<li>✅ 点歌页</li>
+<li>✅ 反馈页</li>
+<li>✅ 个人主页</li>
+<li>✅ 发帖/编辑页</li>
+<li>✅ 帖子详情页</li>
+<li>✅ 编辑资料页</li>
+<li>✅ 管理后台</li>
+</ul>
+<h3>优化特性</h3>
+<ul>
+<li>📐 自适应不同分辨率（320px - 768px+）</li>
+<li>👆 触摸友好的按钮尺寸（最小44px）</li>
+<li>🔄 流畅的动画过渡效果</li>
+<li>📊 表格横向滚动查看</li>
+<li>🎯 底部固定导航栏</li>
+<li>🚫 防止横向滚动溢出</li>
+</ul>
+<hr />
+<h2>🎨 界面改进</h2>
+<h3>视觉优化</h3>
+<ul>
+<li>✅ 统一按钮样式和尺寸</li>
+<li>✅ 优化卡片圆角和阴影</li>
+<li>✅ 改进颜色对比度</li>
+<li>✅ 统一字体大小层级</li>
+</ul>
+<h3>交互优化</h3>
+<ul>
+<li>✅ 添加加载动画</li>
+<li>✅ 优化错误提示</li>
+<li>✅ 改进空状态展示</li>
+<li>✅ 增强hover/active效果</li>
+</ul>
+<hr />
+<h2>🔐 权限系统</h2>
+<h3>角色权限</h3>
+<ul>
+<li><strong>普通用户</strong>：发帖、点歌、反馈</li>
+<li><strong>审核员</strong>：帖子审核、帖子删除</li>
+<li><strong>广播管理员</strong>：点歌审核、时段管理</li>
+<li><strong>管理员</strong>：所有管理功能</li>
+<li><strong>超级管理员</strong>：所有权限 + 用户管理</li>
+</ul>
+<hr />
+<h2>📊 数据统计</h2>
+<h3>新增统计项</h3>
+<ul>
+<li>✅ 今日新增帖子数</li>
+<li>✅ 今日点歌数</li>
+<li>✅ 待审核帖子/点歌数</li>
+<li>✅ 总用户数、总帖子数、总点歌数</li>
+</ul>
+<hr />
+<h2>🚀 技术升级</h2>
+<h3>前端</h3>
+<ul>
+<li>✅ 新增 <code>mobile-fix.css</code> 专门移动端优化</li>
+<li>✅ 新增 <code>responsive.css</code> 响应式布局</li>
+<li>✅ 优化CSS变量系统</li>
+<li>✅ 改进JavaScript错误处理</li>
+</ul>
+<h3>后端</h3>
+<ul>
+<li>✅ 反馈管理API完整实现</li>
+<li>✅ 回收站API完整实现</li>
+<li>✅ 操作日志关联查询优化</li>
+<li>✅ 天气API改为免费Open-Meteo</li>
+</ul>
+<hr />
+<h2>📝 使用说明</h2>
+<h3>访问地址</h3>
+<ul>
+<li><strong>网站首页</strong>：https://wall.jay23.cn</li>
+<li><strong>管理后台</strong>：https://wall.jay23.cn/admin</li>
+</ul>
+<h3>默认管理员账号</h3>
+<ul>
+<li>用户名：<code>admin</code></li>
+<li>密码：<code>admin123</code></li>
+<li>⚠️ 请及时修改默认密码！</li>
+</ul>
+<hr />
+<h2>🎯 下一步计划</h2>
+<ul>
+<li>[ ] 用户私信功能</li>
+<li>[ ] 帖子评论回复通知</li>
+<li>[ ] 点歌播放历史记录</li>
+<li>[ ] 数据统计图表可视化</li>
+<li>[ ] 更多主题皮肤</li>
+<li>[ ] PWA离线支持</li>
+</ul>
+<hr />
+<h2>💬 反馈渠道</h2>
+<p>如有问题或建议，请通过以下方式反馈：<br />
+- 📧 网站内"反馈"功能<br />
+- 💬 管理后台反馈管理<br />
+- 📱 联系管理员</p>
+<hr />
+<p><strong>感谢大家的支持！🎉</strong><br />
+<strong>嘉二人の墙墙团队</strong><br />
+<strong>2026年4月26日</strong></p>
+</div>
+</body>
+</html>

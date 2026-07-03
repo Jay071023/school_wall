@@ -699,7 +699,7 @@ router.post('/callback', async (req, res) => {
           // 处理跳过当前步骤
           try {
             var [skipSession] = await pool.execute(
-              'SELECT step, song_name, artist FROM wechat_song_recs WHERE openid = ? AND step IN ("song_artist", "song_intro") AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
+              'SELECT step, song_name, artist FROM wechat_song_recs WHERE openid = ? AND step IN ("song_artist", "song_intro", "song_nickname") AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) ORDER BY updated_at DESC LIMIT 1',
               [openid]
             );
             if (skipSession.length > 0) {
@@ -710,6 +710,11 @@ router.post('/callback', async (req, res) => {
               } else if (skipStep === 'song_intro') {
                 await pool.execute('UPDATE wechat_song_recs SET step = "song_nickname", intro = "", updated_at = NOW() WHERE openid = ?', [openid]);
                 replyText = '😊 最后一步！你希望显示的名字是什么？\n\n（如"小明"、"学姐"等，回复"跳过"使用默认昵称）';
+              } else if (skipStep === 'song_nickname') {
+                await pool.execute('UPDATE wechat_song_recs SET step = "song_confirm", display_name = "", updated_at = NOW() WHERE openid = ?', [openid]);
+                var [sess] = await pool.execute('SELECT song_name, artist FROM wechat_song_recs WHERE openid = ? AND updated_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE) LIMIT 1', [openid]);
+                var info = '🎵 ' + (sess[0]?.song_name || '') + (sess[0]?.artist ? ' - ' + sess[0].artist : '');
+                replyText = '📋 确认发布\n\n' + info + '\n\n回复"确认"完成推歌~';
               }
             }
           } catch(e) {}

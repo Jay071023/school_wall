@@ -528,8 +528,8 @@ function buildArticleHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     html += '</tr></table></td></tr></table>';
   }
 
-  // 点歌
-  if (songs && songs.length > 0) {
+  // 点歌（可配置开关）
+  if (pubConfig.include_songs !== false && songs && songs.length > 0) {
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:12px 14px;">';
     html += '<div style="font-size:13px;color:#999;margin-bottom:6px;">🎵 最近点歌</div>';
     for (var si = 0; si < songs.length; si++) {

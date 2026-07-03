@@ -8,6 +8,11 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execFileSync } = require('child_process');
+
+// 本地静态文件根路径（用于本地图片不走 HTTP）
+const LOCAL_ROOT = path.join(__dirname, 'public');
 
 // 微信公众号配置（与 wechat.js 保持一致）
 const WECHAT_APPID = 'wx513226ad98127a0d';
@@ -23,28 +28,40 @@ const CONFIG = {
   HITOKOTO_API: 'https://v1.hitokoto.cn/?c=i&c=d&c=k', // 诗词、文学、动画
 };
 
+// access_token 内存缓存(微信有效期7200s,提前60s过期避免临界)
+var _accessTokenCache = { token: null, expireAt: 0 };
+
 /**
- * 获取微信 Access Token
+ * 获取微信 Access Token(带内存缓存)
  */
 async function getAccessToken() {
-  return new Promise((resolve, reject) => {
-    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_APPID}&secret=${WECHAT_SECRET}`;
-    https.get(url, function(res) {
+  var now = Date.now();
+  if (_accessTokenCache.token && _accessTokenCache.expireAt > now + 60000) {
+    return _accessTokenCache.token;
+  }
+  return new Promise(function(resolve, reject) {
+    var url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + WECHAT_APPID + '&secret=' + WECHAT_SECRET;
+    var req = https.get(url, function(res) {
       var data = '';
       res.on('data', function(chunk) { data += chunk; });
       res.on('end', function() {
         try {
           var json = JSON.parse(data);
           if (json.access_token) {
+            _accessTokenCache.token = json.access_token;
+            _accessTokenCache.expireAt = now + (json.expires_in || 7200) * 1000;
             resolve(json.access_token);
           } else {
-            reject(new Error('获取access_token失败: ' + data));
+            reject(new Error('获取access_token失败: ' + (data || '').substring(0, 200)));
           }
-        } catch (e) {
-          reject(e);
-        }
+        } catch (e) { reject(e); }
       });
-    }).on('error', reject);
+    });
+    req.setTimeout(10000, function() {
+      try { req.destroy(); } catch(e) {}
+      reject(new Error('access_token 请求超时'));
+    });
+    req.on('error', reject);
   });
 }
 
@@ -109,7 +126,10 @@ async function uploadMedia(imageUrl, type = 'image') {
           }
         });
       });
-
+      req.setTimeout(30000, function() {
+        try { req.destroy(); } catch(e) {}
+        reject(new Error('上传素材请求超时(30s)'));
+      });
       req.on('error', reject);
       req.write(postData);
       req.end();
@@ -123,18 +143,70 @@ async function uploadMedia(imageUrl, type = 'image') {
 /**
  * 下载图片
  */
-function downloadImage(url) {
-  return new Promise((resolve, reject) => {
-    const protocol = url.startsWith('https') ? https : http;
-    protocol.get(url, function(res) {
+function downloadImage(url, timeoutMs) {
+  timeoutMs = timeoutMs || 8000;
+  return new Promise(function(resolve, reject) {
+    var protocol = url.startsWith('https') ? https : http;
+    var settled = false;
+    var req = protocol.get(url, function(res) {
       if (res.statusCode !== 200) {
-        return reject(new Error('下载图片失败: ' + res.statusCode));
+        if (!settled) { settled = true; reject(new Error('下载图片失败: ' + res.statusCode)); }
+        return;
       }
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => resolve(Buffer.concat(chunks)));
-    }).on('error', reject);
+      var chunks = [];
+      res.on('data', function(chunk) { chunks.push(chunk); });
+      res.on('end', function() { if (!settled) { settled = true; resolve(Buffer.concat(chunks)); } });
+    });
+    req.on('error', function(e) { if (!settled) { settled = true; reject(e); } });
+    req.setTimeout(timeoutMs, function() {
+      try { req.destroy(); } catch(e) {}
+      if (!settled) { settled = true; reject(new Error('下载图片超时(' + timeoutMs + 'ms) url=' + url.substring(0, 60))); }
+    });
   });
+}
+
+/**
+ * 用 ImageMagick 将图片压缩到 <= targetBytes
+ * 支持 JPEG/PNG/GIF/WebP，转 JPEG 输出降低体积
+ * 失败返回 null，由调用方走原图
+ */
+function compressImageWithMagick(srcBuffer, targetBytes) {
+  var tmpIn = path.join(os.tmpdir(), 'mpc_in_' + Date.now() + '_' + Math.random().toString(36).substring(2) + '.jpg');
+  var tmpOut = path.join(os.tmpdir(), 'mpc_out_' + Date.now() + '_' + Math.random().toString(36).substring(2) + '.jpg');
+  try {
+    fs.writeFileSync(tmpIn, srcBuffer);
+    // 试三档：质量 85、70、55，最长边逐步缩小到 1920/1600/1280
+    var presets = [
+      { q: 85, w: 1920 },
+      { q: 70, w: 1600 },
+      { q: 55, w: 1280 }
+    ];
+    for (var i = 0; i < presets.length; i++) {
+      var p = presets[i];
+      try {
+        execFileSync('convert', [tmpIn, '-strip', '-resize', p.w + 'x>', '-quality', String(p.q), tmpOut], { timeout: 20000 });
+        var out = fs.readFileSync(tmpOut);
+        if (out.length <= targetBytes) return { buffer: out, ext: '.jpg', contentType: 'image/jpeg' };
+      } catch (e) {
+        console.warn('[MP压缩] 第' + (i+1) + '档失败:', e.message);
+      }
+    }
+    // 三档都不够，最后再降一档试一次更狠
+    try {
+      execFileSync('convert', [tmpIn, '-strip', '-resize', '1024x>', '-quality', '45', tmpOut], { timeout: 20000 });
+      var finalOut = fs.readFileSync(tmpOut);
+      return { buffer: finalOut, ext: '.jpg', contentType: 'image/jpeg' };
+    } catch (e) {
+      console.warn('[MP压缩] 最终档失败:', e.message);
+      return null;
+    }
+  } catch (e) {
+    console.warn('[MP压缩] 写入临时文件失败:', e.message);
+    return null;
+  } finally {
+    try { fs.unlinkSync(tmpIn); } catch(e) {}
+    try { fs.unlinkSync(tmpOut); } catch(e) {}
+  }
 }
 
 /**
@@ -145,52 +217,77 @@ function downloadImage(url) {
 async function uploadMpImage(imageUrl) {
   try {
     const token = await getAccessToken();
-    const imageBuffer = imageUrl.startsWith('http') 
-      ? await downloadImage(imageUrl) 
-      : fs.readFileSync(imageUrl);
+    let imageBuffer;
+    if (imageUrl.startsWith('http')) {
+      imageBuffer = await downloadImage(imageUrl, 10000);
+    } else if (imageUrl.startsWith('/')) {
+      // 本地相对路径，直接从文件系统读取
+      var localPath = path.join(LOCAL_ROOT, imageUrl);
+      imageBuffer = fs.readFileSync(localPath);
+      console.log('[MP素材] 本地图片: ' + imageUrl.substring(0, 60));
+    } else {
+      imageBuffer = fs.readFileSync(imageUrl);
+    }
 
-    var ext = path.extname(imageUrl).toLowerCase();
-    var contentType = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
-    var filename = 'image' + ext;
+    // 微信 CDN 限制:图片 ≤ 10MB,>9MB 才尝试压缩(留余量)
+    if (imageBuffer.length > 9 * 1024 * 1024) {
+      console.log('[MP素材] 图片' + (imageBuffer.length/1024/1024).toFixed(2) + 'MB过大,尝试压缩...');
+      var compressed = compressImageWithMagick(imageBuffer, 9 * 1024 * 1024);
+      if (compressed && compressed.buffer.length <= imageBuffer.length) {
+        console.log('[MP素材] 压缩成功 ' + (imageBuffer.length/1024).toFixed(0) + 'KB -> ' + (compressed.buffer.length/1024).toFixed(0) + 'KB');
+        imageBuffer = compressed.buffer;
+        var ext = compressed.ext;
+        var contentType = compressed.contentType;
+        var filename = 'image' + ext;
+      } else {
+        console.warn('[MP素材] 压缩失败,仍按原图上传');
+        var ext = path.extname(imageUrl).toLowerCase();
+        if (!['.jpg','.jpeg','.png','.gif','.bmp','.webp'].includes(ext)) ext = '.jpg';
+        var contentType = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
+        var filename = 'image' + ext;
+      }
+    } else {
+      var ext = path.extname(imageUrl).toLowerCase();
+      if (!['.jpg','.jpeg','.png','.gif','.bmp','.webp'].includes(ext)) ext = '.jpg';
+      var contentType = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
+      var filename = 'image' + ext;
+    }
 
-    return new Promise((resolve, reject) => {
-      const url = `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${token}`;
-      const boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
-      
-      const postData = Buffer.concat([
-        Buffer.from(`--${boundary}\r\n`),
-        Buffer.from(`Content-Disposition: form-data; name="media"; filename="${filename}"\r\n`),
-        Buffer.from(`Content-Type: ${contentType}\r\n\r\n`),
+    return new Promise(function(resolve, reject) {
+      var settled = false;
+      var url = 'https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=' + token;
+      var boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+      var postData = Buffer.concat([
+        Buffer.from('--' + boundary + '\r\n'),
+        Buffer.from('Content-Disposition: form-data; name="media"; filename="' + filename + '"\r\n'),
+        Buffer.from('Content-Type: ' + contentType + '\r\n\r\n'),
         imageBuffer,
-        Buffer.from(`\r\n--${boundary}--\r\n`)
+        Buffer.from('\r\n--' + boundary + '--\r\n')
       ]);
-
-      const options = {
+      var options = {
         method: 'POST',
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Type': 'multipart/form-data; boundary=' + boundary,
           'Content-Length': postData.length
         }
       };
-
-      const req = https.request(url, options, function(res) {
+      var req = https.request(url, options, function(res) {
         var data = '';
         res.on('data', function(chunk) { data += chunk; });
         res.on('end', function() {
+          if (settled) return; settled = true;
           try {
             var json = JSON.parse(data);
-            if (json.url) {
-              resolve(json.url);
-            } else {
-              reject(new Error('上传图片失败: ' + data));
-            }
-          } catch (e) {
-            reject(e);
-          }
+            if (json.url) resolve(json.url);
+            else reject(new Error('上传图片失败: ' + data.substring(0, 200)));
+          } catch (e) { reject(e); }
         });
       });
-
-      req.on('error', reject);
+      req.setTimeout(15000, function() {
+        try { req.destroy(); } catch(e) {}
+        if (!settled) { settled = true; reject(new Error('上传图片到微信CDN超时(15s)')); }
+      });
+      req.on('error', function(e) { if (!settled) { settled = true; reject(e); } });
       req.write(postData);
       req.end();
     });
@@ -249,6 +346,10 @@ async function uploadPermanentImage(filePath) {
           }
         } catch (e) { reject(e); }
       });
+    });
+    req.setTimeout(30000, function() {
+      try { req.destroy(); } catch(e) {}
+      reject(new Error('上传永久素材请求超时(30s)'));
     });
     req.on('error', reject);
     req.write(postData);
@@ -353,7 +454,7 @@ async function createDraft(articles) {
         }
       };
 
-      const req = https.request(url, options, function(res) {
+      var req = https.request(url, options, function(res) {
         var responseData = '';
         res.on('data', function(chunk) { responseData += chunk; });
         res.on('end', function() {
@@ -369,7 +470,10 @@ async function createDraft(articles) {
           }
         });
       });
-
+      req.setTimeout(30000, function() {
+        try { req.destroy(); } catch(e) {}
+        reject(new Error('创建草稿请求超时(30s),可能内容过大'));
+      });
       req.on('error', reject);
       req.write(postData);
       req.end();
@@ -417,7 +521,10 @@ async function getDraftList(offset = 0, count = 20) {
           }
         });
       });
-
+      req.setTimeout(30000, function() {
+        try { req.destroy(); } catch(e) {}
+        reject(new Error('获取草稿列表请求超时(30s)'));
+      });
       req.on('error', reject);
       req.write(postData);
       req.end();
@@ -465,7 +572,10 @@ async function deleteDraft(mediaId) {
           }
         });
       });
-
+      req.setTimeout(30000, function() {
+        try { req.destroy(); } catch(e) {}
+        reject(new Error('删除草稿请求超时(30s)'));
+      });
       req.on('error', reject);
       req.write(postData);
       req.end();
@@ -644,16 +754,17 @@ function getWeekdayName(dayIndex) {
  * 根据天气文字获取emoji
  */
 function getWeatherEmoji(text) {
-  if (!text) return '🌤️';
+  // 微信编辑器对 1.0+ emoji(☀️⛅🌧️❄️🌫️⛈️)不渲染显示空圆,改用 BMP 内基础符号
+  if (!text) return '☀';
   var lower = text.toLowerCase();
-  if (lower.includes('晴') || lower.includes('clear') || lower.includes('sunny') || lower.includes('fair')) return '☀️';
-  if (lower.includes('云') || lower.includes('cloud') || lower.includes('阴') || lower.includes('overcast')) return '⛅';
-  if (lower.includes('阴')) return '☁️';
-  if (lower.includes('雨') || lower.includes('雨') || lower.includes('rain') || lower.includes('drizzle') || lower.includes('shower')) return '🌧️';
-  if (lower.includes('雪') || lower.includes('snow') || lower.includes('sleet')) return '❄️';
-  if (lower.includes('雾') || lower.includes('fog') || lower.includes('mist') || lower.includes('haze')) return '🌫️';
-  if (lower.includes('雷') || lower.includes('thunder') || lower.includes('storm')) return '⛈️';
-  return '🌤️';
+  if (lower.includes('晴') || lower.includes('clear') || lower.includes('sunny') || lower.includes('fair')) return '☀';
+  if (lower.includes('阴')) return '☁';
+  if (lower.includes('云') || lower.includes('cloud') || lower.includes('overcast')) return '☁';
+  if (lower.includes('雨') || lower.includes('rain') || lower.includes('drizzle') || lower.includes('shower')) return '☂';
+  if (lower.includes('雪') || lower.includes('snow') || lower.includes('sleet')) return '❅';
+  if (lower.includes('雾') || lower.includes('fog') || lower.includes('mist') || lower.includes('haze')) return '▒';
+  if (lower.includes('雷') || lower.includes('thunder') || lower.includes('storm')) return '⚡';
+  return '☀';
 }
 
 /**
@@ -703,7 +814,7 @@ async function createDraftWithConfig(article, config) {
   // 用测试号的 appid/secret 获取 access_token
   var token = await new Promise(function(resolve, reject) {
     var url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${config.appId}&secret=${config.appSecret}`;
-    https.get(url, function(res) {
+    var tokenReq = https.get(url, function(res) {
       var data = '';
       res.on('data', function(chunk) { data += chunk; });
       res.on('end', function() {
@@ -716,7 +827,12 @@ async function createDraftWithConfig(article, config) {
           }
         } catch (e) { reject(e); }
       });
-    }).on('error', reject);
+    });
+    tokenReq.setTimeout(10000, function() {
+      try { tokenReq.destroy(); } catch(e) {}
+      reject(new Error('测试号access_token请求超时'));
+    });
+    tokenReq.on('error', reject);
   });
 
   // 上传默认封面
@@ -769,6 +885,10 @@ async function createDraftWithConfig(article, config) {
         } catch (e) { reject(e); }
       });
     });
+    req.setTimeout(30000, function() {
+      try { req.destroy(); } catch(e) {}
+      reject(new Error('测试号创建草稿请求超时(30s)'));
+    });
     req.on('error', reject);
     req.write(postData);
     req.end();
@@ -816,6 +936,10 @@ async function uploadMediaWithToken(filePath, token) {
           }
         } catch (e) { resolve(null); }
       });
+    });
+    req.setTimeout(30000, function() {
+      try { req.destroy(); } catch(e) {}
+      resolve(null);
     });
     req.on('error', function() { resolve(null); });
     req.write(postData);

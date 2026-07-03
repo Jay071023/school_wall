@@ -90,7 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
           if (staffRoles.indexOf(data.data.user.role) !== -1) {
             window.location.href = '/admin';
           } else {
-            window.location.href = '/';
+            var urlParams = new URLSearchParams(window.location.search);
+            var redirect = urlParams.get('redirect') || '/';
+            window.location.href = redirect;
           }
         } else {
           // 如果后端要求验证码，显示并刷新

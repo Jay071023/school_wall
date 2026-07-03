@@ -1839,6 +1839,117 @@ h3 {
   animation: heartbeat 0.4s ease;
 }
 
+/* ---- 个人主页"我的帖子/收藏"卡片美化 ---- */
+.profile-my-post {
+  position: relative;
+  border: 1px solid var(--border-light, rgba(0,0,0,0.06));
+  border-left: 3px solid transparent;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  background: var(--bg-card, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: border-left-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  overflow: hidden;
+}
+.profile-my-post:hover {
+  border-left-color: #FF6B9D;
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.12);
+  transform: translateY(-2px);
+}
+.profile-my-post-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.profile-my-post-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.10), rgba(167, 139, 250, 0.10));
+  color: #d6336c;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.profile-my-post-views svg {
+  display: block;
+  opacity: 0.7;
+}
+.profile-my-post .post-content {
+  margin-bottom: 12px;
+  padding: 0 2px;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text-primary, #1a1a2e);
+  word-break: break-word;
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.profile-my-post-divider {
+  height: 1px;
+  margin: 12px 0 10px;
+  background: linear-gradient(90deg, transparent, var(--border-light, rgba(0,0,0,0.08)), transparent);
+}
+.profile-my-post .post-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  border-top: none;
+}
+.profile-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-section, rgba(0,0,0,0.03));
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.profile-action-btn:hover {
+  background: rgba(255, 107, 157, 0.12);
+  color: #d6336c;
+  transform: translateY(-1px);
+}
+.profile-action-btn.liked {
+  background: rgba(255, 71, 87, 0.12);
+  color: #ff4757;
+}
+.profile-action-btn.favorited {
+  background: rgba(243, 156, 18, 0.15);
+  color: #f39c12;
+}
+.profile-action-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.profile-action-num {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.profile-action-del {
+  margin-left: auto;
+  opacity: 0.5;
+}
+.profile-action-del:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
 /* 心跳动画 */
 @keyframes heartbeat {
   0% { transform: scale(1); }

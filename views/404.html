@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 页面未找到</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
 </head>
 <body>
   <!-- 404页面 -->
@@ -61,11 +62,16 @@
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
         }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
       }
     })();
   </script>
   <footer class="footer">
-    <p>&copy; 2026 嘉二人の墙墙 All Rights Reserved</p>
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
 </body>

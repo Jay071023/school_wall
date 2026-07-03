@@ -1,7 +1,7 @@
 {
   "name": "campus-wall",
   "version": "1.0.0",
-  "description": "嘉二人の墙墙网站 + 广播站点歌系统",
+  "description": "嘉二の墙墙网站 + 广播站点歌系统",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

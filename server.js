@@ -53,10 +53,10 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       scriptSrcAttr: ["'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://v1.hitokoto.cn'],
-      fontSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'", 'https://v1.hitokoto.cn', 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+      fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"]
@@ -127,6 +127,7 @@ app.use('/api/follows', require('./routes/follows'));
 app.use('/api/wechat', require('./routes/wechat'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/mp', require('./routes/mp-draft'));
+app.use('/api/proxy/hitokoto', require('./routes/hitokoto'));
 
 
 // 公开的站点设置API（无需登录）
@@ -352,6 +353,9 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
 
 app.get('/register', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'register.html'));
@@ -439,25 +443,35 @@ app.use((err, req, res, next) => {
   res.status(500).json({ code: 500, message: '服务器内部错误' });
 });
 
-// 定时清理操作日志（保留30天）
-function scheduleLogCleanup() {
+// 定时清理过期数据（保留30天）
+function scheduleCleanup() {
   const CLEANUP_DAYS = 30;
-  async function cleanLogs() {
+  async function cleanup() {
     try {
-      const [result] = await pool.execute(
+      // 清理过期操作日志
+      const [logsResult] = await pool.execute(
         'DELETE FROM admin_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
         [CLEANUP_DAYS]
       );
-      if (result.affectedRows > 0) {
-        console.log(`🧹 已清理 ${result.affectedRows} 条过期操作日志（>${CLEANUP_DAYS}天）`);
+      if (logsResult.affectedRows > 0) {
+        console.log(`🧹 已清理 ${logsResult.affectedRows} 条过期操作日志`);
+      }
+
+      // 清理过期浏览记录
+      const [viewsResult] = await pool.execute(
+        'DELETE FROM post_views WHERE viewed_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+        [CLEANUP_DAYS]
+      );
+      if (viewsResult.affectedRows > 0) {
+        console.log(`🧹 已清理 ${viewsResult.affectedRows} 条过期浏览记录`);
       }
     } catch (err) {
-      console.error('清理日志失败:', err.message);
+      console.error('清理数据失败:', err.message);
     }
   }
 
   // 启动时立即执行一次
-  cleanLogs();
+  cleanup();
 
   // 每天凌晨3点执行
   const now = new Date();
@@ -467,12 +481,12 @@ function scheduleLogCleanup() {
   const delay = next3am - now;
 
   setTimeout(() => {
-    cleanLogs();
+    cleanup();
     // 之后每24小时执行一次
-    setInterval(cleanLogs, 24 * 60 * 60 * 1000);
+    setInterval(cleanup, 24 * 60 * 60 * 1000);
   }, delay);
 
-  console.log(`⏰ 日志自动清理已启动（每${CLEANUP_DAYS}天清理一次）`);
+  console.log(`⏰ 数据自动清理已启动（每${CLEANUP_DAYS}天清理一次）`);
 }
 
 // 启动服务器
@@ -487,7 +501,7 @@ async function start() {
       `);
 
       // 定时清理操作日志（每天凌晨3点清理30天前的日志）
-      scheduleLogCleanup();
+      scheduleCleanup();
     });
   } catch (err) {
     console.error('启动失败:', err);

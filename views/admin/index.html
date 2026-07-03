@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="/css/style.css?v=2026051402">
+    <link rel="stylesheet" href="/css/style.css">
     <style>
         /* ===== 管理后台页面补充样式 ===== */
 
@@ -800,11 +800,26 @@
             width: 72px;
         }
 
+        .admin-sidebar.sidebar-collapsed .sidebar-header {
+            padding: 16px 8px !important;
+            justify-content: center;
+        }
+
+        .admin-sidebar.sidebar-collapsed .sidebar-logo {
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .admin-sidebar.sidebar-collapsed .logo-text,
         .admin-sidebar.sidebar-collapsed .link-text,
         .admin-sidebar.sidebar-collapsed .nav-section-title,
         .admin-sidebar.sidebar-collapsed .footer-info {
             display: none;
+        }
+
+        .admin-sidebar.sidebar-collapsed .logo-icon-svg {
+            width: 26px;
+            height: 26px;
         }
 
         .admin-sidebar.sidebar-collapsed .sidebar-link {
@@ -2913,12 +2928,14 @@
         
         .feedback-content {
             margin-top: 8px;
-            padding: 12px;
-            background: var(--bg-section);
-            border-radius: 8px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #fff5f7, #fdf2f5);
+            border-radius: 12px;
             white-space: pre-wrap;
             word-break: break-all;
             line-height: 1.6;
+            font-size: 0.9rem;
+            border-left: 4px solid #FF6B9D;
         }
         
         .feedback-reply-section {
@@ -2927,18 +2944,55 @@
         
         .feedback-reply {
             margin-top: 8px;
-            padding: 12px;
-            background: #dcfce7;
-            border-radius: 8px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-radius: 12px;
             color: #166534;
             white-space: pre-wrap;
             word-break: break-all;
+            border-left: 4px solid #22c55e;
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
         
         .feedback-action-section {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--border-light);
+        }
+
+        /* 反馈回复按钮美化 */
+        .feedback-action-section .btn-primary {
+            background: linear-gradient(135deg, #FF6B9D, #FF8FB1);
+            border: none;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .feedback-action-section .btn-primary:hover {
+            background: linear-gradient(135deg, #FF5599, #FF7AA0);
+            box-shadow: 0 4px 16px rgba(255, 107, 157, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .feedback-action-section .btn-ghost {
+            background: transparent;
+            border: 1px solid #e8ecf4;
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .feedback-action-section .btn-ghost:hover {
+            background: #f5f5f5;
+            border-color: #ddd;
         }
         
         .form-group {
@@ -3376,6 +3430,17 @@
             background: #10b981;
         }
         
+        /* 已发布/已通过 */
+        .status-badge.status-published,
+        .status-badge.status-approved {
+            background: rgba(52, 211, 153, 0.1);
+            color: #059669;
+        }
+        .status-badge.status-published .status-dot,
+        .status-badge.status-approved .status-dot {
+            background: #34d399;
+        }
+
         /* 已拒绝/已禁用 */
         .status-badge.status-rejected,
         .status-badge.status-disabled {
@@ -3422,7 +3487,16 @@
         .status-badge.status-closed .status-dot {
             background: #94a3b8;
         }
-        
+
+        /* 已隐藏 */
+        .status-badge.status-hidden {
+            background: rgba(148, 163, 184, 0.1);
+            color: #6b7280;
+        }
+        .status-badge.status-hidden .status-dot {
+            background: #9ca3af;
+        }
+
         /* 已播放 */
         .status-badge.status-played {
             background: rgba(99, 102, 241, 0.1);
@@ -3754,29 +3828,36 @@
     margin-right: 6px;
     vertical-align: middle;
 }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #818cf8);
-            border: none;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
-        }
-        
-        .btn-primary:hover {
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
-            transform: translateY(-1px);
-        }
-        
-        .btn-ghost {
-            background: transparent;
-            border: 1px solid #e0e6f6;
-            color: #5b6abf;
-        }
-        
-        .btn-ghost:hover {
-            background: #f0f4ff;
-            border-color: #c0c8e6;
-        }
+
+/* 主要按钮 - 粉色渐变 */
+.btn-primary {
+    background: linear-gradient(135deg, #FF6B9D, #FF8FB1);
+    border: none;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
+    padding: 10px 20px;
+    font-size: 0.9rem;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #FF5599, #FF7AA0);
+    box-shadow: 0 4px 16px rgba(255, 107, 157, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 次要按钮 - 透明边框 */
+.btn-ghost {
+    background: transparent;
+    border: 1px solid #e8ecf4;
+    color: #666;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+}
+
+.btn-ghost:hover {
+    background: #f5f5f5;
+    border-color: #ddd;
+}
         
         [data-theme="dark"] .btn-ghost {
             border-color: #2d3348;
@@ -3820,19 +3901,27 @@
         
         /* ===== 表单输入美化 ===== */
         .form-input {
-            border: 1px solid #e0e6f6;
-            border-radius: 10px;
-            padding: 10px 14px;
+            border: 1px solid #f0d0e0;
+            border-radius: 12px;
+            padding: 12px 16px;
             font-size: 0.9rem;
             color: #1e293b;
             background: #fff;
             outline: none;
             transition: all 0.2s ease;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
         }
-        
+
         .form-input:focus {
-            border-color: #7b8fd4;
-            box-shadow: 0 0 0 3px rgba(123, 143, 212, 0.15);
+            border-color: #FF6B9D;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.15);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            line-height: 1.6;
         }
         
         [data-theme="dark"] .form-input {
@@ -4042,6 +4131,30 @@
         
         /* ===== 移动端适配增强 ===== */
         @media (max-width: 768px) {
+            /* 确保面板可滚动 */
+            #panel-posts {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                max-height: calc(100vh - 120px);
+                padding-bottom: 80px !important;
+            }
+
+            /* 表格包装器允许滚动 */
+            #panel-posts .admin-table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* 确保筛选栏不挡住内容 */
+            #panel-posts .filter-bar-admin {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #fff;
+                padding: 12px 0;
+                margin-bottom: 10px;
+            }
+
             .admin-panel {
                 padding: 16px !important;
                 border-radius: 12px;
@@ -4562,10 +4675,10 @@
         <!-- 左侧侧边栏 -->
         <aside class="admin-sidebar" id="admin-sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo" id="sidebar-logo">
+                <a href="/" class="sidebar-logo" id="sidebar-logo" title="返回首页">
                     <svg class="logo-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span class="logo-text">嘉二の墙墙管理</span>
-                </div>
+                    <span class="logo-text">嘉二の墙墙管理 <span style="font-size:0.75em;opacity:0.5;">by JAY</span></span>
+                </a>
                 <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="收起菜单">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
@@ -5199,6 +5312,15 @@
                             </div>
                             <div class="switch-wrapper">
                                 <div class="switch" id="pub-gaokao-switch"></div>
+                            </div>
+                        </div>
+                        <div class="pub-row">
+                            <div>
+                                <div class="pub-label">🎵 点歌推荐</div>
+                                <div class="pub-desc">是否包含最近点歌内容</div>
+                            </div>
+                            <div class="switch-wrapper">
+                                <div class="switch" id="pub-songs-switch"></div>
                             </div>
                         </div>
                         <div class="pub-row">
@@ -7404,7 +7526,7 @@
             });
         });
 
-        // 查看帖子详情
+                // 查看帖子详情（美化版）
         window.viewPostDetail = async function(postId) {
             try {
                 const res = await authFetch('/api/admin/posts/' + postId);
@@ -7412,54 +7534,104 @@
                 if (json.code === 200) {
                     const p = json.data;
                     const images = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [];
-                    
+                    var catColors = { daily:'#10B981', confession:'#F43F5E', help:'#F59E0B', secondhand:'#8B5CF6', club:'#3B82F6', other:'#6B7280' };
+                    var catBg = { daily:'#ECFDF5', confession:'#FFF1F2', help:'#FFFBEB', secondhand:'#F5F3FF', club:'#EFF6FF', other:'#F3F4F6' };
+                    var catName = p.category;
+                    var cc = catColors[catName] || '#6B7280';
+                    var cb = catBg[catName] || '#F3F4F6';
+
                     const modalHtml = `
-                        <div class="modal-overlay show" id="post-detail-overlay" onclick="if(event.target===this)window.closeModal('post-detail-modal')">
-                            <div class="modal" id="post-detail-modal" style="display: flex; max-width: 800px;">
-                                <div class="modal-header">
-                                    <h3>📝 帖子详情 #${p.id}</h3>
-                                    <button class="modal-close" onclick="window.closeModal('post-detail-modal')">&times;</button>
-                                </div>
-                                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>标题：</strong>${escapeHtml(p.title || '无标题')}
-                                    </div>
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>分类：</strong><span class="tag tag-default">${categoryName(p.category)}</span>
-                                    </div>
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>状态：</strong>${statusBadge(p.status)}
-                                    </div>
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>作者：</strong>${escapeHtml(p.nickname || p.username || '匿名')}
-                                    </div>
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>发布时间：</strong>${formatTime(p.created_at)}
-                                    </div>
-                                    ${p.ip_region ? `<div style="margin-bottom: 16px;"><strong>IP归属：</strong>📍 ${escapeHtml(p.ip_region)}</div>` : ''}
-                                    <div style="margin-bottom: 16px;">
-                                        <strong>内容：</strong>
-                                        <div style="margin-top: 8px; padding: 12px; background: var(--bg-section); border-radius: 8px; white-space: pre-wrap;">${escapeHtml(p.content || '')}</div>
-                                    </div>
-                                    ${images.length > 0 ? `
-                                        <div style="margin-bottom: 16px;">
-                                            <strong>图片：</strong>
-                                            <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
-                                                ${images.map(img => `<img src="${escapeHtml(img)}" style="width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${escapeHtml(img)}', '_blank')">`).join('')}
+                        <div class="modal-overlay show" id="post-detail-overlay" onclick="if(event.target===this)window.closeModal('post-detail-modal')" style="display:flex;align-items:center;justify-content:center;">
+                            <div class="modal" id="post-detail-modal" style="display:flex;max-width:820px;width:94vw;margin:20px;border:none;border-radius:20px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.25);animation:modalSlideUp 0.3s ease;">
+
+                                <!-- 顶部渐变区 -->
+                                <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:32px 36px 26px;position:relative;">
+                                    <button class="modal-close" onclick="window.closeModal('post-detail-modal')" style="position:absolute;top:16px;right:20px;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.15);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;">&times;</button>
+                                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                                <span style="background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:12px;font-size:11px;color:rgba(255,255,255,0.9);font-weight:500;"># ${p.id}</span>
+                                                ${statusBadge(p.status).replace(/style="/, 'style="background:rgba(255,255,255,0.2);color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;')}
                                             </div>
+                                            <h2 style="margin:0;color:#fff;font-size:20px;font-weight:700;line-height:1.4;word-break:break-word;">${escapeHtml(p.title || '无标题')}</h2>
                                         </div>
-                                    ` : ''}
-                                    ${p.status === 'pending' ? `
-                                        <div style="margin-top: 20px; display: flex; gap: 12px;">
-                                            <button class="btn btn-primary" onclick="window.adminAction('approvePost', ${p.id}); window.closeModal('post-detail-modal');">✓ 通过</button>
-                                            <button class="btn btn-ghost" style="color: #DC2626;" onclick="window.adminAction('rejectPost', ${p.id}); window.closeModal('post-detail-modal');">✕ 拒绝</button>
+                                    </div>
+                                </div>
+
+                                <div class="modal-body" style="padding:0;max-height:68vh;overflow-y:auto;background:#fff;">
+
+                                    <!-- 元数据行 -->
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:#f0f0f0;border-bottom:1px solid #f0f0f0;">
+                                        <div style="padding:16px 22px;background:#fff;">
+                                            <div style="font-size:11px;color:#999;margin-bottom:3px;">👤 作者</div>
+                                            <div style="font-size:14px;font-weight:600;color:#333;">${escapeHtml(p.nickname || p.username || '匿名')}</div>
                                         </div>
-                                    ` : ''}
+                                        <div style="padding:14px 18px;background:#fff;">
+                                            <div style="font-size:11px;color:#999;margin-bottom:3px;">🏷️ 分类</div>
+                                            <span style="display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;font-weight:600;color:${cc};background:${cb};">${categoryName(p.category)}</span>
+                                        </div>
+                                        <div style="padding:14px 18px;background:#fff;">
+                                            <div style="font-size:11px;color:#999;margin-bottom:3px;">🕒 发布时间</div>
+                                            <div style="font-size:13px;color:#555;font-weight:500;">${formatTime(p.created_at)}</div>
+                                        </div>
+                                        ${p.ip_region ? `
+                                        <div style="padding:14px 18px;background:#fff;">
+                                            <div style="font-size:11px;color:#999;margin-bottom:3px;">📍 IP归属</div>
+                                            <div style="font-size:13px;color:#555;font-weight:500;">${escapeHtml(p.ip_region)}</div>
+                                        </div>` : ''}
+                                    </div>
+
+                                    <!-- 统计卡片 -->
+                                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:22px 26px;background:#F9FAFB;border-bottom:1px solid #f0f0f0;">
+                                        <div style="text-align:center;background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                            <div style="font-size:22px;font-weight:800;color:#F43F5E;">${p.likes_count || 0}</div>
+                                            <div style="font-size:11px;color:#999;margin-top:2px;">❤️ 点赞</div>
+                                        </div>
+                                        <div style="text-align:center;background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                            <div style="font-size:22px;font-weight:800;color:#3B82F6;">${p.views || 0}</div>
+                                            <div style="font-size:11px;color:#999;margin-top:2px;">👁️ 浏览</div>
+                                        </div>
+                                        <div style="text-align:center;background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                            <div style="font-size:22px;font-weight:800;color:#10B981;">${p.comments_count || 0}</div>
+                                            <div style="font-size:11px;color:#999;margin-top:2px;">💬 评论</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 内容区 -->
+                                    <div style="padding:24px 28px;border-bottom:1px solid #f0f0f0;">
+                                        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:10px;">📄 正文内容</div>
+                                        <div style="padding:16px 18px;background:#FAF9FE;border-left:3px solid #667eea;border-radius:8px;font-size:14px;color:#444;line-height:1.8;white-space:pre-wrap;word-break:break-word;">${escapeHtml(p.content || '（无内容）')}</div>
+                                    </div>
+
+                                    <!-- 图片区 -->
+                                    ${images.length > 0 ? `
+                                    <div style="padding:24px 28px;border-bottom:1px solid #f0f0f0;">
+                                        <div style="font-size:13px;font-weight:600;color:#666;margin-bottom:10px;">🖼️ 图片（${images.length}张）</div>
+                                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+                                            ${images.map(function(img,idx) { return '<div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;position:relative;" onclick="window.open(\'' + img + '\',\'_blank\')" onmouseover="this.style.transform=\'scale(1.03)\';this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.15)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.08)\'"><img src="' + img + '" style="width:100%;height:200px;object-fit:cover;display:block;" alt="图片' + (idx+1) + '"><div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.5));padding:6px 10px;text-align:right;font-size:11px;color:rgba(255,255,255,0.8);">🔍</div></div>'; }).join('')}
+                                        </div>
+                                    </div>` : ''}
+
+                                    <!-- 操作按钮 -->
+                                    <div style="padding:22px 26px;display:flex;gap:12px;flex-wrap:wrap;${p.status === 'pending' ? '' : 'justify-content:flex-end;'}">
+                                        ${p.status === 'pending' ? `
+                                            <button style="flex:1;min-width:100px;padding:10px 20px;border-radius:12px;font-weight:600;border:none;cursor:pointer;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:14px;transition:transform 0.15s,box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="window.adminAction('approvePost', ${p.id}); window.closeModal('post-detail-modal');">✓ 通过审核</button>
+                                            <button style="flex:1;min-width:100px;padding:10px 20px;border-radius:12px;font-weight:600;border:1.5px solid #FCA5A5;cursor:pointer;background:#fff;color:#DC2626;font-size:14px;transition:all 0.15s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='#fff'" onclick="window.adminAction('rejectPost', ${p.id}); window.closeModal('post-detail-modal')">✕ 拒绝</button>
+                                        ` : ''}
+                                        <button style="padding:10px 22px;border-radius:12px;font-weight:500;border:1px solid #e0e0e0;cursor:pointer;background:#fff;color:#666;font-size:13px;transition:all 0.15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'" onclick="window.closeModal('post-detail-modal')">关闭</button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
+                        <style>
+                            @keyframes modalSlideUp {
+                                from { opacity:0; transform:translateY(30px) scale(0.96); }
+                                to { opacity:1; transform:translateY(0) scale(1); }
+                            }
+                        </style>
                     `;
-                    
+
                     document.body.insertAdjacentHTML('beforeend', modalHtml);
                 }
             } catch (err) {
@@ -7622,7 +7794,9 @@
                 function fmtIp(ip, region) {
                     if (!ip) return '<span style="color:var(--text-light);font-size:0.78rem;">—</span>';
                     var display = region && region !== ip ? region : ip;
-                    return '<span title="' + escapeHtml(ip) + '" style="font-size:0.78rem;white-space:nowrap;">' + escapeHtml(display) + '</span>';
+                    var hasRegion = region && region !== ip;
+                    return '<span title="' + escapeHtml(ip) + '" style="font-size:0.78rem;white-space:nowrap;">' + escapeHtml(display) + '</span>' +
+                           (!hasRegion ? ' <button class="action-btn action-btn-text" style="padding:0 4px;font-size:0.7rem;vertical-align:middle;" title="查询IP归属地" onclick="lookupIp(\'' + escapeHtml(ip) + '\',this)">📍</button>' : '');
                 }
                 // 构建角色选择下拉框（仅超管可见）
                 let roleSelectHtml = '';
@@ -8711,6 +8885,31 @@
             }
         };
 
+        // ===== IP归属地查询 =====
+        window.lookupIp = async function(ip, btn) {
+            btn.disabled = true;
+            btn.textContent = '⋯';
+            try {
+                var res = await authFetch('/api/admin/lookup-ip', {
+                    method: 'POST',
+                    body: JSON.stringify({ ip: ip })
+                });
+                if (res && res.code === 200 && res.data) {
+                    var region = res.data.region || res.data || ip;
+                    btn.parentElement.innerHTML = '<span title="' + escapeHtml(ip) + '" style="font-size:0.78rem;white-space:nowrap;">' + escapeHtml(region) + '</span>';
+                    showToast('📍 ' + region, 'success');
+                } else {
+                    btn.textContent = '📍';
+                    btn.disabled = false;
+                    showToast('查询失败: ' + (res && res.message ? res.message : '未知错误'), 'error');
+                }
+            } catch(e) {
+                btn.textContent = '📍';
+                btn.disabled = false;
+                showToast('网络错误', 'error');
+            }
+        };
+
         // ===== 管理操作 =====
         window.adminAction = async function(action, id, extra) {
             let url, options;
@@ -9672,7 +9871,7 @@
                                         <div style="margin-bottom: 16px;">
                                             <strong>图片：</strong>
                                             <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
-                                                ${images.map(img => `<img src="${escapeHtml(img)}" style="width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${escapeHtml(img)}', '_blank')">`).join('')}
+                                                ${images.map(img => `<img src="${img}" style="width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${img}', '_blank')">`).join('')}
                                             </div>
                                         </div>
                                     ` : ''}
@@ -10964,46 +11163,51 @@
                     list.innerHTML = '<p style="color:#888;font-size:14px;">请求失败</p>';
                     return;
                 }
-                var res = await resp.json();
-                if (res.code === 200 && Array.isArray(res.data)) {
-                    if (res.data.length === 0) {
-                        list.innerHTML = '<div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无用户绑定微信</span></div>';
-                        return;
-                    }
-                    var html = '<div class="wechat-user-table-wrap"><table class="wechat-user-table"><thead><tr>' +
-                        '<th>ID</th><th>昵称</th><th>角色</th><th>OpenID</th><th>绑定时间</th><th>操作</th>' +
-                        '</tr></thead><tbody>';
-                    for (var i = 0; i < res.data.length; i++) {
-                        var u = res.data[i];
-                        var badgeCls = u.openid ? 'bound' : 'unbound';
-                        var badgeText = u.openid ? '已绑定' : '未绑定';
-                        var openidDisplay = u.openid || '-';
-                        var boundAt = u.bound_at ? new Date(u.bound_at).toLocaleString('zh-CN') : '-';
-                        html += '<tr>' +
-                            '<td>' + u.id + '</td>' +
-                            '<td><strong>' + escapeHtml(u.nickname || u.username) + '</strong></td>' +
-                            '<td>' + escapeHtml(u.role || 'user') + '</td>' +
-                            '<td><span class="openid-text">' + escapeHtml(openidDisplay) + '</span></td>' +
-                            '<td style="font-size:12px;color:#888;">' + boundAt + '</td>' +
-                            '<td>' +
-                                (u.openid
-                                    ? '<button class="btn-test-msg" data-uid="' + u.id + '" data-openid="' + u.openid + '">✉️ 测试推送</button>'
-                                    : '<span style="color:#999;font-size:12px;">无法推送</span>'
-                                ) +
-                            '</td>' +
-                            '</tr>';
-                    }
-                    html += '</tbody></table></div>';
-                    list.innerHTML = html;
-                    // 绑定测试推送按钮事件
-                    list.querySelectorAll('.btn-test-msg').forEach(function(btn) {
-                        btn.addEventListener('click', function() {
-                            testMessage(this);
-                        });
-                    });
-                } else {
-                    list.innerHTML = '<p style="color:#888;font-size:14px;">加载失败: ' + (res.message || '未知错误') + '</p>';
+                var res;
+                try { res = await resp.json(); } catch(jsonErr) {
+                    list.innerHTML = '<p style="color:#e74c3c;font-size:14px;">JSON 解析失败: ' + escapeHtml(String(jsonErr.message)) + ' (HTTP ' + resp.status + ')</p>';
+                    return;
                 }
+                if (res.code !== 200) {
+                    list.innerHTML = '<p style="color:#e74c3c;font-size:14px;">加载失败: ' + escapeHtml(res.message || ('HTTP ' + resp.status)) + '</p>';
+                    return;
+                }
+                if (!Array.isArray(res.data)) {
+                    list.innerHTML = '<p style="color:#888;font-size:14px;">数据格式错误 (期望数组,实际 ' + typeof res.data + ')</p>';
+                    return;
+                }
+                if (res.data.length === 0) {
+                    list.innerHTML = '<div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无用户绑定微信</span></div>';
+                    return;
+                }
+                var html = '<div class="wechat-user-table-wrap"><table class="wechat-user-table"><thead><tr>' +
+                    '<th>ID</th><th>昵称</th><th>角色</th><th>OpenID</th><th>绑定时间</th><th>操作</th>' +
+                    '</tr></thead><tbody>';
+                for (var i = 0; i < res.data.length; i++) {
+                    var u = res.data[i];
+                    var openidDisplay = u.openid || '-';
+                    var boundAt = u.bound_at ? new Date(u.bound_at).toLocaleString('zh-CN') : '-';
+                    html += '<tr>' +
+                        '<td>' + u.id + '</td>' +
+                        '<td><strong>' + escapeHtml(u.nickname || u.username) + '</strong></td>' +
+                        '<td>' + escapeHtml(u.role || 'user') + '</td>' +
+                        '<td><span class="openid-text">' + escapeHtml(openidDisplay) + '</span></td>' +
+                        '<td style="font-size:12px;color:#888;">' + boundAt + '</td>' +
+                        '<td>' +
+                            (u.openid
+                                ? '<button class="btn-test-msg" data-uid="' + u.id + '" data-openid="' + u.openid + '">✉️ 测试推送</button>'
+                                : '<span style="color:#999;font-size:12px;">无法推送</span>'
+                            ) +
+                        '</td>' +
+                        '</tr>';
+                }
+                html += '</tbody></table></div>';
+                list.innerHTML = html;
+                list.querySelectorAll('.btn-test-msg').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        testMessage(this);
+                    });
+                });
             } catch (e) {
                 list.innerHTML = '<p style="color:#e74c3c;font-size:14px;">加载失败: ' + e.message + '</p>';
             }
@@ -11302,6 +11506,10 @@
                 if (gaokaoSw) {
                     if (d.include_gaokao) { gaokaoSw.classList.add('active'); } else { gaokaoSw.classList.remove('active'); }
                 }
+                var songsSw = document.getElementById('pub-songs-switch');
+                if (songsSw) {
+                    if (d.include_songs !== false) { songsSw.classList.add('active'); } else { songsSw.classList.remove('active'); }
+                }
                 document.getElementById('pub-last-run').textContent = d.lastRun || '从未执行';
             }
         } catch(e) { document.getElementById('pub-log').textContent = '加载失败'; }
@@ -11340,10 +11548,11 @@
         var minute = parseInt(document.getElementById('pub-minute').value);
         var enabled = document.getElementById('pub-switch').classList.contains('active');
         var includeGaokao = document.getElementById('pub-gaokao-switch').classList.contains('active');
+        var includeSongs = document.getElementById('pub-songs-switch').classList.contains('active');
         var res = await fetch('/api/admin/auto-publish-config', {
             method: 'POST',
             headers: { 'Authorization': 'Bearer ' + _token(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hour: hour, minute: minute, enabled: enabled, include_gaokao: includeGaokao })
+            body: JSON.stringify({ hour: hour, minute: minute, enabled: enabled, include_gaokao: includeGaokao, include_songs: includeSongs })
         }).then(r => r.json());
         showToast(res.message || (res.code === 200 ? '保存成功' : '保存失败'), res.code === 200 ? 'success' : 'error');
     }

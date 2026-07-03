@@ -9,8 +9,6 @@ const router = express.Router();
 const { pool } = require('../config/database');
 const mpDraftService = require('../services/mp-draft');
 const { auth, isStaff } = require('../middleware/auth');
-// 站点域名（用于补齐相对路径的图片URL）
-const SITE_URL = 'https://wall.jay23.cn';
 
 function escapeHtml(text) {
   if (!text) return '';
@@ -186,24 +184,29 @@ async function uploadImagesToWeixin(htmlContent) {
   while ((match = imgRegex.exec(htmlContent)) !== null) {
     var originalSrc = match[1];
     if (originalSrc.indexOf('mmbiz.qpic.cn') >= 0 || originalSrc.indexOf('mmbiz.qlogo.cn') >= 0 || originalSrc.startsWith('data:')) continue;
-    var uploadUrl = originalSrc;
-    if (uploadUrl.startsWith('/')) uploadUrl = SITE_URL + uploadUrl;
-    tasks.push({ original: originalSrc, upload: uploadUrl });
+    // 相对路径(/开头)直接传,mp-draft服务会读取本地文件;绝对路径则走HTTP下载
+    tasks.push({ original: originalSrc, upload: originalSrc });
   }
   if (tasks.length === 0) return htmlContent;
 
-  console.log('[MP图片] 发现 ' + tasks.length + ' 张图片');
-  for (var i = 0; i < tasks.length; i++) {
-    try {
-      var weixinUrl = await mpDraftService.uploadMpImage(tasks[i].upload);
-      if (weixinUrl) {
-        htmlContent = htmlContent.split(tasks[i].original).join(weixinUrl);
-        console.log('[MP图片] 第' + (i+1) + '张成功 ' + tasks[i].original.substring(0, 50) + ' -> 微信CDN');
-      }
-    } catch (e) {
-      console.warn('[MP图片] 第' + (i+1) + '张失败:', e.message);
+  console.log('[MP图片] 发现 ' + tasks.length + ' 张图片,开始并行上传');
+  // 并行上传,Promise.allSettled 不让一张失败阻塞其他
+  var uploadResults = await Promise.allSettled(tasks.map(function(task) {
+    return mpDraftService.uploadMpImage(task.upload).then(function(url) {
+      return { original: task.original, url: url };
+    });
+  }));
+  var uploadedCount = 0;
+  uploadResults.forEach(function(r, idx) {
+    if (r.status === 'fulfilled' && r.value && r.value.url) {
+      htmlContent = htmlContent.split(r.value.original).join(r.value.url);
+      uploadedCount++;
+      console.log('[MP图片] 第' + (idx+1) + '张成功 ' + r.value.original.substring(0, 60));
+    } else if (r.status === 'rejected') {
+      console.warn('[MP图片] 第' + (idx+1) + '张失败:', r.reason && r.reason.message);
     }
-  }
+  });
+  console.log('[MP图片] 并行上传完成 成功 ' + uploadedCount + '/' + tasks.length);
   return htmlContent;
 }
 
@@ -256,7 +259,7 @@ function autoFormatContent(text) {
 /**
  * 生成精美卡片HTML（卡哇伊风，兼容微信编辑器）
  */
-function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs) {
+function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeSongs) {
   const today = dateInfo.date;
   const week = dateInfo.week;
 
@@ -384,7 +387,7 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
   }
 
   // ===== 点歌卡片 =====
-  if (songs && songs.length > 0) {
+  if (includeSongs !== false && songs && songs.length > 0) {
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:12px 14px;">';
     html += '<div style="font-size:13px;color:#999;margin-bottom:6px;">🎵 最近点歌</div>';
     for (var si = 0; si < songs.length; si++) {
@@ -513,7 +516,7 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
  */
 router.post('/generate-content', async (req, res) => {
   try {
-    const { postIds, template = 'daily-summary', includeWeather = true, includeHitokoto = true, includeWeeklyStar = true, includeGaokao = true, weeklyStarUserIds = [] } = req.body;
+    const { postIds, template = 'daily-summary', includeWeather = true, includeHitokoto = true, includeWeeklyStar = true, includeGaokao = true, includeSongs = true, weeklyStarUserIds = [] } = req.body;
 
     if (!postIds || !Array.isArray(postIds)) {
       return res.json({ code: 400, message: '请提供帖子ID列表' });
@@ -627,17 +630,11 @@ router.post('/generate-content', async (req, res) => {
     const articles = [];
 
     if (template === 'daily-summary') {
-      // 使用用户选择的推歌，或获取所有已发布推歌
-      var dailySongs = req.body.dailySongs || [];
-      if (dailySongs.length === 0) {
-        try {
-          dailySongs = await pool.execute(
-            'SELECT * FROM daily_song_recs WHERE status = "published" ORDER BY published_at DESC LIMIT 10'
-          ).then(r => r[0]);
-        } catch(e) {}
-      }
+      // 根据开关决定是否包含推歌
+      // 只有显式传入 includeSongs=true 且有选择歌曲时才包含
+      var dailySongs = (includeSongs !== false && req.body.dailySongs) ? req.body.dailySongs : [];
 
-      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs);
+      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeSongs);
 
       articles.push({
         title: `今日校园精选 | ${dateInfo.date}`,
@@ -917,44 +914,87 @@ router.delete('/draft/:mediaId', async (req, res) => {
 });
 
 // ===== 同步草稿到公众号 =====
+// 后台同步任务池（避免 Cloudflare 100s 超时）
+var pendingSyncs = {};
+var syncIdCounter = 0;
+
+// 定时清理过期同步状态（每 5 分钟清理 >10 分钟的）
+setInterval(function() {
+  var now = Date.now();
+  for (var k in pendingSyncs) {
+    if (pendingSyncs[k].createdAt && now - pendingSyncs[k].createdAt > 10 * 60 * 1000) {
+      delete pendingSyncs[k];
+    }
+  }
+}, 5 * 60 * 1000);
+
 /**
  * 同步草稿到公众号（自动上传图片到微信CDN）
  * POST /api/mp/sync-draft
  */
 router.post('/sync-draft', async (req, res) => {
-  try {
-    var { article } = req.body;
-    if (!article) {
-      return res.json({ code: 400, message: '请先生成图文内容' });
-    }
-
-    // 调试：检查内容中有多少需要上传的图片
-    var imgTags = article.content.match(/<img[^>]+src="[^"]+"[^>]*>/g) || [];
-    var needUpload = [];
-    for (var ti = 0; ti < imgTags.length; ti++) {
-      var m = imgTags[ti].match(/src="([^"]+)"/);
-      if (m && m[1].indexOf('mmbiz.qpic.cn') < 0 && m[1].indexOf('mmbiz.qlogo.cn') < 0 && !m[1].startsWith('data:')) {
-        needUpload.push(m[1].substring(0, 80));
-      }
-    }
-    console.log('[MP同步] img标签:', imgTags.length, '需上传:', needUpload.length);
-    if (needUpload.length > 0) console.log('[MP同步] 图片URL:', JSON.stringify(needUpload));
-
-    var beforeCount = (article.content.match(/mmbiz.qpic.cn/g) || []).length;
-    article.content = await uploadImagesToWeixin(article.content);
-    var afterCount = (article.content.match(/mmbiz.qpic.cn/g) || []).length;
-    var uploaded = afterCount - beforeCount;
-    console.log('[MP同步] 上传成功:', uploaded, '/' , needUpload.length, '张');
-
-    var mediaId = await mpDraftService.createDraft([article]);
-    var msg = '同步成功';
-    if (needUpload.length > 0) msg += ' (图片' + uploaded + '/' + needUpload.length + ')';
-    console.log('[MP同步] 草稿ID:', mediaId, '| 图片状态:', uploaded, '/', needUpload.length);
-    res.json({ code: 200, data: { media_id: mediaId, img_found: needUpload.length, img_uploaded: uploaded }, message: msg });
-  } catch (err) {
-    console.error('[MP素材] 同步失败:', err.message);
-    res.json({ code: 500, message: err.message });
+  var { article } = req.body;
+  if (!article) {
+    return res.json({ code: 400, message: '请先生成图文内容' });
   }
+
+  // 内容大小校验（放宽到 5MB，微信实际限制 10MB）
+  if (article.content && article.content.length > 5 * 1024 * 1024) {
+    return res.json({ code: 413, message: '文章内容超过 5MB,请减少帖子数或图片数(' + (article.content.length/1024/1024).toFixed(2) + 'MB)' });
+  }
+
+  var imgTags = article.content.match(/<img[^>]+src="[^"]+"[^>]*>/g) || [];
+  var needUpload = [];
+  for (var ti = 0; ti < imgTags.length; ti++) {
+    var m = imgTags[ti].match(/src="([^"]+)"/);
+    if (m && m[1].indexOf('mmbiz.qpic.cn') < 0 && m[1].indexOf('mmbiz.qlogo.cn') < 0 && !m[1].startsWith('data:')) {
+      needUpload.push(m[1].substring(0, 80));
+    }
+  }
+  console.log('[MP同步] img标签:', imgTags.length, '需上传:', needUpload.length);
+  if (needUpload.length > 0) console.log('[MP同步] 图片URL:', JSON.stringify(needUpload));
+
+  // 先返回成功，后台处理同步（避免 Cloudflare 100s 超时）
+  var syncId = 'sync_' + (++syncIdCounter) + '_' + Date.now();
+  pendingSyncs[syncId] = { status: 'processing', msg: '处理中...', createdAt: Date.now() };
+
+  // 立即回复前端，不给 524 机会
+  res.json({
+    code: 200,
+    data: { sync_id: syncId, processing: true, img_count: needUpload.length },
+    message: '同步任务已提交(' + syncId + ')，正在后台处理...'
+  });
+
+  // 后台异步处理
+  (async function() {
+    try {
+      var articleCopy = JSON.parse(JSON.stringify(article));
+      var beforeCount = (articleCopy.content.match(/mmbiz.qpic.cn/g) || []).length;
+      articleCopy.content = await uploadImagesToWeixin(articleCopy.content);
+      var afterCount = (articleCopy.content.match(/mmbiz.qpic.cn/g) || []).length;
+      var uploaded = afterCount - beforeCount;
+      console.log('[MP同步] 上传成功:', uploaded, '/' , needUpload.length, '张');
+
+      var mediaId = await mpDraftService.createDraft([articleCopy]);
+      pendingSyncs[syncId] = { status: 'done', msg: '同步成功 (图片' + uploaded + '/' + needUpload.length + ')', media_id: mediaId };
+      console.log('[MP同步] 草稿ID:', mediaId, '| 图片状态:', uploaded, '/', needUpload.length);
+    } catch (err) {
+      console.error('[MP同步] 后台失败:', err.message);
+      pendingSyncs[syncId] = { status: 'fail', msg: err.message };
+    }
+  })();
+});
+
+/**
+ * 查询同步状态
+ * GET /api/mp/sync-status?sync_id=xxx
+ */
+router.get('/sync-status', async (req, res) => {
+  var syncId = req.query.sync_id;
+  if (!syncId || !pendingSyncs[syncId]) {
+    return res.json({ code: 404, message: '未找到该同步任务' });
+  }
+  res.json({ code: 200, data: pendingSyncs[syncId] });
 });
 
 module.exports = router;

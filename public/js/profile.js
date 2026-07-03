@@ -771,35 +771,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // 作者头像和名字可点击显示用户卡片（仅在非匿名且知道用户ID时）
     var authorCardClass = (!post.is_anonymous && post.author_id) ? ' user-card-trigger' : '';
     var authorCardAttr = (!post.is_anonymous && post.author_id) ? ' data-user-id="' + post.author_id + '" style="cursor:pointer;"' : '';
-    
-    return '<article class="post-card" data-id="' + post.id + '" onclick="window.location.href=\'/post/' + post.id + '\'">' +
-      '<div class="post-user">' +
-        '<img class="user-avatar' + authorCardClass + '"' + authorCardAttr + ' src="' + escapeHtml(authorAvatar) + '">' +
-        '<div class="user-info">' +
-          '<div class="user-name' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(authorName) + '</div>' +
-          '<div class="post-time">' + (post.time_ago || '') + '</div>' +
+
+    // 将浏览量移到头部右侧统一显示
+    var views = post.views || 0;
+
+    return '<article class="post-card profile-my-post" data-id="' + post.id + '" onclick="window.location.href=\'/post/' + post.id + '\'">' +
+      '<div class="profile-my-post-head">' +
+        '<div class="post-user" style="flex:1;min-width:0;">' +
+          '<img class="user-avatar' + authorCardClass + '"' + authorCardAttr + ' src="' + escapeHtml(authorAvatar) + '">' +
+          '<div class="user-info">' +
+            '<div class="user-name' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(authorName) + '</div>' +
+            '<div class="post-time">' + (post.time_ago || '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="profile-my-post-views" title="浏览量">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11 8-11 8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+          '<span>' + views + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="post-content">' + escapeHtml(post.content) + '</div>' +
-      '<div class="post-views">' +
-        '<span class="views-icon">👁️</span>' +
-        '<span>' + (post.views || 0) + '</span>' +
-      '</div>' +
       imageHtml +
+      '<div class="profile-my-post-divider"></div>' +
       '<div class="post-actions">' +
-        '<button class="action-btn ' + (isLiked ? 'liked' : '') + '" onclick="event.stopPropagation();toggleLike(' + post.id + ',this)">' +
-          '<span class="action-icon">' + (isLiked ? '❤️' : '🤍') + '</span>' +
-          '<span>' + (post.likes_count || 0) + '</span>' +
+        '<button class="profile-action-btn ' + (isLiked ? 'liked' : '') + '" onclick="event.stopPropagation();toggleLike(' + post.id + ',this)">' +
+          '<span class="profile-action-icon">' + (isLiked ? '❤️' : '🤍') + '</span>' +
+          '<span class="profile-action-num">' + (post.likes_count || 0) + '</span>' +
         '</button>' +
-        '<button class="action-btn" onclick="event.stopPropagation();window.location.href=\'/post/' + post.id + '\'">' +
-          '<span class="action-icon">💬</span>' +
-          '<span>' + (post.comments_count || 0) + '</span>' +
+        '<button class="profile-action-btn" onclick="event.stopPropagation();window.location.href=\'/post/' + post.id + '#comments\'" title="查看评论">' +
+          '<span class="profile-action-icon">💬</span>' +
+          '<span class="profile-action-num">' + (post.comments_count || 0) + '</span>' +
         '</button>' +
-        '<button class="action-btn ' + (post.is_favorited ? 'favorited' : '') + '" onclick="event.stopPropagation();handleProfileFavorite(' + post.id + ', this)">' +
-          '<span class="action-icon">' + (post.is_favorited ? '⭐' : '☆') + '</span>' +
+        '<button class="profile-action-btn ' + (post.is_favorited ? 'favorited' : '') + '" onclick="event.stopPropagation();handleProfileFavorite(' + post.id + ', this)" title="收藏">' +
+          '<span class="profile-action-icon">' + (post.is_favorited ? '⭐' : '☆') + '</span>' +
         '</button>' +
-        '<button class="action-btn delete-btn" onclick="event.stopPropagation();deletePost(' + post.id + ', this)" title="删除帖子" style="color: #EF4444;">' +
-          '<span class="action-icon">🗑️</span>' +
+        '<button class="profile-action-btn profile-action-del" onclick="event.stopPropagation();deletePost(' + post.id + ', this)" title="删除">' +
+          '<span class="profile-action-icon">🗑️</span>' +
         '</button>' +
       '</div>' +
     '</article>';

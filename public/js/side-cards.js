@@ -357,11 +357,6 @@
       if (sideHotsearch) sideHotsearch.addEventListener('click', function(e) { if (e.target !== refreshBtn) load(); });
     })();
 
-    // 小工具
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
   }
 
   // 在 DOMContentLoaded 或立即执行

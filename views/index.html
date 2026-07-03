@@ -7,7 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>嘉二の墙墙 - 校园信息交流平台</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  
+  <link rel="apple-touch-icon" href="/favicon.png" sizes="180x180">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+
   <!-- SEO Meta Tags -->
   <meta name="description" content="嘉二の墙墙 — 校园信息交流平台。匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
   <meta name="keywords" content="嘉定二中,嘉二,校园墙,校园信息,匿名发帖,校园广播,点歌,表白墙,求助,二手交易,校园社区,上海市嘉定区第二中学">
@@ -33,15 +35,82 @@
   <meta name="twitter:title" content="嘉二の墙墙 - 校园信息交流平台">
   <meta name="twitter:description" content="匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
   <meta name="twitter:image" content="https://wall.jay23.cn/images/show.jpg">
-  <link rel="stylesheet" href="/css/style.css?v=2026050701">
-  <link rel="stylesheet" href="/css/variables.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/responsive.css?v=2026050701">
-  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026050701">
-  <link rel="stylesheet" href="/css/performance.css">
-  <link rel="stylesheet" href="/css/user-card.css?v=2026050701">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link rel="preconnect" href="https://v1.hitokoto.cn" crossorigin>
+
+  <!-- P0-1: 关键 CSS 内联 - variables + base + 关键首屏样式 -->
+  <style>
+    :root {
+      --primary: #FF6B9D; --primary-light: #FF8FB5; --primary-dark: #E5558A;
+      --secondary: #A78BFA; --secondary-light: #C4B5FD;
+      --accent: #F59E0B; --accent-light: #FCD34D;
+      --success: #10B981; --danger: #EF4444; --warning: #F59E0B; --info: #3B82F6;
+      --bg-primary: #FAFBFE; --bg-secondary: #F1F3F8; --bg-card: #FFFFFF;
+      --bg-glass: rgba(255, 255, 255, 0.72);
+      --text-primary: #1E293B; --text-secondary: #64748B; --text-light: #94A3B8; --text-inverse: #FFFFFF;
+      --border-light: #E2E8F0; --border-color: #CBD5E1;
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-full: 9999px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.04); --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.08); --shadow-xl: 0 20px 60px rgba(0,0,0,.12);
+      --shadow-primary: 0 4px 14px rgba(255,107,157,.25); --shadow-secondary: 0 4px 14px rgba(167,139,250,.25);
+      --transition-fast: .15s ease; --transition-normal: .25s ease; --transition-slow: .4s cubic-bezier(.4,0,.2,1);
+      --navbar-height: 64px; --container-max: 680px;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #1a1423; --bg-secondary: #2a1f33; --bg-card: #2a1f33; --bg-glass: rgba(42,31,51,.82);
+      --text-primary: #f5e6f0; --text-secondary: #d4b8cf; --text-light: #a88ba3; --text-inverse: #1a1423;
+      --border-light: #3d2d48; --border-color: #4d3a58;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.25); --shadow-md: 0 4px 12px rgba(0,0,0,.35);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.4); --shadow-xl: 0 20px 60px rgba(0,0,0,.5);
+      --shadow-primary: 0 4px 14px rgba(255,107,157,.35); --shadow-secondary: 0 4px 14px rgba(167,139,250,.35);
+    }
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; margin: 0; padding: 0; min-height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    a { color: var(--primary); text-decoration: none; transition: color var(--transition-fast); }
+    a:hover { color: var(--primary-dark); }
+    img { max-width: 100%; display: block; }
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: inherit; }
+    ::selection { background: rgba(255,107,157,.2); color: var(--primary-dark); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--primary-light), var(--secondary-light)); border-radius: 3px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+    .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+    .skeleton-title { height: 16px; width: 60%; margin-bottom: 8px; }
+    .skeleton-text { height: 14px; width: 100%; margin-bottom: 6px; }
+    .skeleton-text.short { width: 40%; }
+    .skeleton-image { height: 180px; width: 100%; border-radius: var(--radius-md); margin: 12px 0; }
+    .skeleton-card { padding: 16px; background: var(--bg-card); border-radius: var(--radius-lg); margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .nav-mobile-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-primary); padding: 4px 8px; cursor: pointer; }
+    .nav-drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 9998; display: none; }
+    .nav-drawer-backdrop.show { display: block; }
+    @media (max-width: 480px) {
+      .nav-links { display: none !important; }
+      .nav-mobile-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .nav-links.mobile-open { display: flex !important; flex-direction: column; position: fixed; top: var(--navbar-height); right: 0; width: 80vw; max-width: 320px; height: calc(100vh - var(--navbar-height)); background: var(--bg-card); box-shadow: -4px 0 20px rgba(0,0,0,.15); padding: 24px 16px; z-index: 9999; animation: slideInRight .3s ease; gap: 12px; }
+      @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    }
+    @media (max-width: 375px) {
+      .bottom-tab-bar .tab-item[data-tab="feedback"], .bottom-tab-bar .tab-item[data-tab="login"] { display: none; }
+      .bottom-tab-bar .tab-item .tab-label { font-size: 0.7rem; }
+    }
+  </style>
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/animations.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/animations.css"></noscript>
+  <link rel="stylesheet" href="/css/responsive.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/responsive.css"></noscript>
+  <link rel="stylesheet" href="/css/mobile-fix.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/mobile-fix.css"></noscript>
+  <link rel="stylesheet" href="/css/performance.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/performance.css"></noscript>
+  <link rel="stylesheet" href="/css/user-card.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/user-card.css"></noscript>
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
 </head>
 <body>
   <!-- 光晕效果背景 -->
@@ -75,14 +144,14 @@
       <div class="nav-user" id="navUser">
         <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
         <span class="nav-nickname" id="navNickname"></span>
-        <button class="nav-notification" id="navNotification" title="通知">
+        <button class="nav-notification" id="navNotification" title="通知" aria-label="通知">
           <span class="notification-icon">🔔</span>
           <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
         </button>
-        <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
+        <button class="nav-logout" id="navLogout" title="退出登录" aria-label="退出登录">⏻</button>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题">🌙</button>
-      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" aria-label="切换主题">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle" aria-label="打开菜单" aria-expanded="false">☰</button>
     </div>
   </nav>
 
@@ -124,29 +193,70 @@
 
     <!-- 搜索栏 -->
     <div class="search-bar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" class="search-input" id="searchInput" placeholder="搜索帖子..." maxlength="50">
-      <button class="search-clear" id="searchClear" style="display:none;">✕</button>
+      <label for="searchInput" class="visually-hidden">搜索帖子</label>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索帖子..." maxlength="50" aria-label="搜索帖子">
+      <button class="search-clear" id="searchClear" style="display:none;" aria-label="清除搜索">✕</button>
     </div>
 
     <!-- 筛选栏 -->
     <div class="filter-bar">
-      <div class="filter-categories">
-        <span class="filter-tag active" data-category="全部">全部</span>
-        <span class="filter-tag" data-category="daily">日常</span>
-        <span class="filter-tag" data-category="confession">表白</span>
-        <span class="filter-tag" data-category="help">求助</span>
-        <span class="filter-tag" data-category="secondhand">二手</span>
-        <span class="filter-tag" data-category="club">社团</span>
+      <div class="filter-categories" role="group" aria-label="帖子分类筛选">
+        <button type="button" class="filter-tag active" data-category="全部" aria-pressed="true">全部</button>
+        <button type="button" class="filter-tag" data-category="daily" aria-pressed="false">日常</button>
+        <button type="button" class="filter-tag" data-category="confession" aria-pressed="false">表白</button>
+        <button type="button" class="filter-tag" data-category="help" aria-pressed="false">求助</button>
+        <button type="button" class="filter-tag" data-category="secondhand" aria-pressed="false">二手</button>
+        <button type="button" class="filter-tag" data-category="club" aria-pressed="false">社团</button>
       </div>
-      <div class="filter-sort">
-        <span class="sort-btn active" data-sort="latest">最新</span>
-        <span class="sort-btn" data-sort="hot">最热</span>
+      <div class="filter-sort" role="group" aria-label="排序方式">
+        <button type="button" class="sort-btn active" data-sort="latest" aria-pressed="true">最新</button>
+        <button type="button" class="sort-btn" data-sort="hot" aria-pressed="false">最热</button>
       </div>
     </div>
 
     <!-- 帖子列表 -->
-    <div id="postList" class="post-list"></div>
+    <div id="postList" class="post-list">
+      <!-- P0-3: 骨架屏占位 - 加载完成后由 home.js 清空 -->
+      <div class="skeleton-card" aria-hidden="true">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="skeleton skeleton-avatar"></div>
+          <div style="flex:1;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text short"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text short"></div>
+        <div class="skeleton skeleton-image"></div>
+      </div>
+      <div class="skeleton-card" aria-hidden="true">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="skeleton skeleton-avatar"></div>
+          <div style="flex:1;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text short"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text short"></div>
+      </div>
+      <div class="skeleton-card" aria-hidden="true">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="skeleton skeleton-avatar"></div>
+          <div style="flex:1;">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text short"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text short"></div>
+        <div class="skeleton skeleton-image"></div>
+      </div>
+    </div>
 
     <!-- 空状态 -->
     <div class="empty-state" id="emptyState" style="display:none">
@@ -172,6 +282,7 @@
   <a href="/new-post" class="fab-post">✏️</a>
 
     <!-- 左右两侧功能卡片 -->
+  <div class="side-cards-wrap" id="sideCardsWrap">
   <div class="side-cards-container">
     <!-- 左侧卡片组 -->
     <div class="side-cards-group side-cards-left">
@@ -262,18 +373,19 @@
       </div>
     </div>
   </div>
+  </div>
 
   <!-- 图片预览模态框 -->
   <div class="image-preview-modal" id="imagePreviewModal" style="display:none">
-    <button class="image-preview-close" id="imagePreviewClose">✕</button>
-    <button class="image-preview-nav image-preview-prev" id="imagePreviewPrev">‹</button>
-    <button class="image-preview-nav image-preview-next" id="imagePreviewNext">›</button>
+    <button class="image-preview-close" id="imagePreviewClose" aria-label="关闭预览">✕</button>
+    <button class="image-preview-nav image-preview-prev" id="imagePreviewPrev" aria-label="上一张">‹</button>
+    <button class="image-preview-nav image-preview-next" id="imagePreviewNext" aria-label="下一张">›</button>
     <img id="imagePreviewImg" src="" alt="预览图片">
     <div class="image-preview-counter" id="imagePreviewCounter">1 / 1</div>
   </div>
 
   <!-- 回到顶部按钮 -->
-  <button class="back-to-top" id="backToTop" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+  <button class="back-to-top" id="backToTop" style="display:none" aria-label="回到顶部">↑</button>
 
   <!-- 底部Tab导航（仅移动端显示） -->
   <nav class="bottom-tab-bar" id="bottomTabBar">
@@ -338,6 +450,20 @@
   }
   </script>
 
+  <!-- BreadcrumbList 结构化数据 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "首页",
+      "item": "https://wall.jay23.cn/"
+    }]
+  }
+  </script>
+
   <!-- 用户资料弹窗 -->
   <div class="user-profile-modal" id="userProfileModal" style="display:none">
     <div class="user-profile-modal-content">
@@ -351,16 +477,83 @@
     </div>
   </div>
 
-  <script src="/js/app.js?v=202605232"></script>
-  <script src="/js/user-card.js?v=2026050527"></script>
-  <script src="/js/home.js?v=2026050221"></script>
+  <script defer src="/js/app.js"></script>
+  <script defer src="/js/user-card.js"></script>
+  <script defer src="/js/index-theme.js"></script>
+  <script defer src="/js/home.js"></script>
   <script>
-    var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+    // P0-12: localStorage PII 过滤 - 只保留展示所需字段
+    (function() {
+      var raw = localStorage.getItem('user') || sessionStorage.getItem('user');
+      if (!raw) { window.currentUser = null; return; }
+      try {
+        var u = JSON.parse(raw);
+        if (u && typeof u === 'object') {
+          // 过滤敏感字段
+          var safe = {
+            username: u.username,
+            nickname: u.nickname,
+            avatar: u.avatar,
+            role: u.role
+          };
+          if (u.id !== undefined) safe.id = u.id;
+          window.currentUser = safe;
+          // 写回过滤后的版本
+          var cleaned = JSON.stringify(safe);
+          if (localStorage.getItem('user') === raw) localStorage.setItem('user', cleaned);
+          if (sessionStorage.getItem('user') === raw) sessionStorage.setItem('user', cleaned);
+        } else {
+          window.currentUser = u;
+        }
+      } catch (e) { window.currentUser = null; }
+    })();
+    let currentUser = window.currentUser;
+
+    // ===== P0-6: 移动端 hamburger 导航切换 =====
+    (function() {
+      const toggle = document.getElementById('navToggle');
+      const links = document.getElementById('navLinks');
+      if (!toggle || !links) return;
+      // 创建背景遮罩
+      let backdrop = document.querySelector('.nav-drawer-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'nav-drawer-backdrop';
+        document.body.appendChild(backdrop);
+      }
+      function close() {
+        links.classList.remove('mobile-open');
+        backdrop.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+      function open() {
+        links.classList.add('mobile-open');
+        backdrop.classList.add('show');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+      toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (links.classList.contains('mobile-open')) {
+          close();
+        } else {
+          open();
+        }
+      });
+      backdrop.addEventListener('click', close);
+      // 点击抽屉内链接后自动关闭
+      links.addEventListener('click', function(e) {
+        if (e.target.closest('a')) close();
+      });
+    })();
 
     // ===== 回到顶部按钮 =====
     (function() {
-      var btn = document.getElementById('backToTop');
+      const btn = document.getElementById('backToTop');
       if (!btn) return;
+      btn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
       window.addEventListener('scroll', function() {
         if (window.scrollY > 600) {
           btn.style.display = 'flex';
@@ -370,39 +563,10 @@
       });
     })();
 
-    // ===== 主题切换 =====
-    (function() {
-      var saved = localStorage.getItem('theme');
-      if (saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
-      function updateIcon() {
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        var icon = document.getElementById('themeIcon');
-        if (icon) icon.textContent = isDark ? '☀️' : '🌙';
-      }
-      updateIcon();
-      var btn = document.getElementById('themeSwitch');
-      if (btn) {
-        btn.addEventListener('click', function(e) {
-          e.preventDefault();
-          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
-          } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-          }
-          updateIcon();
-        });
-      }
-    })();
-
     // ===== 底部Tab登录状态切换 =====
     (function() {
-      var tabLogin = document.getElementById('tabLogin');
-      var tabProfile = document.getElementById('tabProfile');
+      const tabLogin = document.getElementById('tabLogin');
+      const tabProfile = document.getElementById('tabProfile');
       if (currentUser) {
         if (tabLogin) tabLogin.style.display = 'none';
         if (tabProfile) tabProfile.style.display = '';
@@ -414,8 +578,8 @@
 
     // ===== 通知按钮 - 侧边栏弹窗 =====
     (function() {
-      var notificationBtn = document.getElementById('navNotification');
-      var notificationBadge = document.getElementById('notificationBadge');
+      const notificationBtn = document.getElementById('navNotification');
+      const notificationBadge = document.getElementById('notificationBadge');
       
       // 创建侧边栏弹窗
       function createNotificationSidebar() {
@@ -438,270 +602,10 @@
           </div>
         `;
         document.body.appendChild(sidebar);
-        
-        // 添加样式
-        var style = document.createElement('style');
-        style.textContent = `
-          .notification-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 10000;
-            display: none;
-          }
-          .notification-sidebar.show {
-            display: block;
-          }
-          .notification-sidebar-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-          }
-          .notification-sidebar-content {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 380px;
-            max-width: 90vw;
-            height: 100%;
-            background: white;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            animation: slideInRight 0.3s ease;
-          }
-          @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-          }
-          .notification-sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-          .notification-sidebar-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #333;
-          }
-          .notification-sidebar-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #999;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s;
-          }
-          .notification-sidebar-close:hover {
-            background: #f5f5f5;
-            color: #333;
-          }
-          .notification-sidebar-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-          }
-          .notification-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-          }
-          .notification-empty-icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-          }
-          .notification-empty-text {
-            font-size: 0.9rem;
-          }
-          .notification-item {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .notification-item:hover {
-            background: #e9ecef;
-          }
-          .notification-item.unread {
-            background: #fff3cd;
-            border-left: 3px solid #ffc107;
-          }
-          .notification-item-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #333;
-            margin-bottom: 4px;
-          }
-          .notification-item-text {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 4px;
-          }
-          .notification-item-time {
-            font-size: 0.75rem;
-            color: #999;
-          }
-          @media (max-width: 768px) {
-            .notification-sidebar-content {
-              width: 100%;
-              max-width: 100%;
-            }
-          }
-          
-          /* 用户资料弹窗样式 */
-          .user-profile-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-          }
-          .user-profile-modal.show {
-            display: flex;
-          }
-          .user-profile-modal-content {
-            background: #fff;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-          }
-          .user-profile-modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 600;
-            font-size: 1rem;
-          }
-          .user-profile-modal-close {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            color: #999;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .user-profile-modal-close:hover {
-            background: #f5f5f5;
-            color: #333;
-          }
-          .user-profile-modal-body {
-            padding: 20px;
-          }
-          .user-profile-loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-          }
-          .user-profile-error {
-            text-align: center;
-            padding: 40px;
-            color: #f56c6c;
-          }
-          .user-profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 16px;
-            display: block;
-            border: 3px solid #f0f0f0;
-          }
-          .user-profile-name {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-          }
-          .user-profile-username {
-            text-align: center;
-            color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-          }
-          .user-profile-titles {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-            margin-bottom: 16px;
-          }
-          .user-profile-titles .title-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-          }
-          .user-profile-stats {
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-            padding: 16px 0;
-            border-top: 1px solid #f5f5f5;
-            border-bottom: 1px solid #f5f5f5;
-          }
-          .user-profile-stat {
-            text-align: center;
-          }
-          .user-profile-stat-value {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #333;
-          }
-          .user-profile-stat-label {
-            font-size: 0.8rem;
-            color: #999;
-            margin-top: 4px;
-          }
-          .user-profile-joined {
-            text-align: center;
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: 16px;
-          }
-          @media (max-width: 768px) {
-            .user-profile-modal-content {
-              width: 95%;
-              max-width: 95%;
-            }
-          }
-        `;
-        document.head.appendChild(style);
+
+        // P0-4: 样式已抽到 /css/user-card.css,不再内联注入
       }
-      
+
       // 打开侧边栏
       window.openNotificationSidebar = function() {
         var sidebar = document.getElementById('notificationSidebar');
@@ -733,19 +637,19 @@
       
       // 加载通知列表
       async function loadNotifications() {
-        var listEl = document.getElementById('notificationList');
+        const listEl = document.getElementById('notificationList');
         if (!listEl) return;
-        
-        listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">加载中...</div>';
+
+        listEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light,#94A3B8);">加载中...</div>';
         
         try {
-          var res = await fetch('/api/notifications', {
+          const res = await fetch('/api/notifications', {
             headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || sessionStorage.getItem('token') || '') }
           });
-          var data = await res.json();
-          
+          const data = await res.json();
+
           if (data.code === 200 && data.data && data.data.length > 0) {
-            var html = '';
+            let html = '';
             data.data.forEach(function(notif) {
               var unreadClass = notif.is_read ? '' : 'unread';
               html += '<div class="notification-item ' + unreadClass + '" onclick="handleNotificationClick(' + notif.id + ')">' +
@@ -759,6 +663,7 @@
             listEl.innerHTML = '<div class="notification-empty"><div class="notification-empty-icon">📭</div><div class="notification-empty-text">暂无通知</div></div>';
           }
         } catch (err) {
+          if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
           listEl.innerHTML = '<div class="notification-empty"><div class="notification-empty-icon">⚠️</div><div class="notification-empty-text">加载失败</div></div>';
         }
       }
@@ -806,62 +711,68 @@
           alert('弹窗元素不存在');
           return;
         }
-        
+
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
         body.innerHTML = '<div style="text-align:center;padding:40px;">加载中...</div>';
-        
-        // 使用 XMLHttpRequest 加超时
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/api/posts/users/' + userId, true);
-        xhr.timeout = 5000;
-        xhr.onreadystatechange = function() {
-          if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-              try {
-                var data = JSON.parse(xhr.responseText);
-                if (data.code === 200) {
-                  var user = data.data;
-                  var avatar = user.avatar || '/img/default-avatar.png';
-                  var titlesHtml = '';
-                  if (user.titles && user.titles.length > 0) {
-                    titlesHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;">';
-                    user.titles.forEach(function(t) {
-                      titlesHtml += '<span style="padding:4px 10px;border-radius:20px;font-size:0.75rem;background:' + (t.title_bg || 'rgba(255,107,157,0.1)') + ';color:' + (t.title_color || '#FF6B9D') + ';">' + (t.icon || '') + ' ' + t.title_name + '</span>';
-                    });
-                    titlesHtml += '</div>';
-                  }
-                  var joinDate = new Date(user.created_at).toLocaleDateString('zh-CN');
-                  body.innerHTML = 
-                    '<div style="text-align:center;padding:20px;">' +
-                    '<img src="' + avatar + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #f0f0f0;margin-bottom:16px;" onerror="this.src=\'/uploads/avatars/default.png\'">' +
-                    '<div style="font-size:1.2rem;font-weight:600;margin-bottom:8px;">' + (user.nickname || user.username) + '</div>' +
-                    '<div style="color:#999;font-size:0.9rem;margin-bottom:16px;">@' + user.username + '</div>' +
-                    titlesHtml +
-                    '<div style="display:flex;justify-content:center;gap:24px;padding:16px 0;border-top:1px solid #f5f5f5;border-bottom:1px solid #f5f5f5;">' +
-                    '<div style="text-align:center;"><div style="font-size:1.3rem;font-weight:700;">' + user.post_count + '</div><div style="font-size:0.8rem;color:#999;margin-top:4px;">发布动态</div></div>' +
-                    '<div style="text-align:center;"><div style="font-size:1.3rem;font-weight:700;">' + user.comment_count + '</div><div style="font-size:0.8rem;color:#999;margin-top:4px;">收到评论</div></div>' +
-                    '</div>' +
-                    '<div style="text-align:center;font-size:0.85rem;color:#999;margin-top:16px;">注册于 ' + joinDate + '</div>' +
-                    '</div>';
-                } else {
-                  body.innerHTML = '<div style="text-align:center;padding:40px;color:#f56c6c;">' + (data.message || '加载失败') + '</div>';
-                }
-              } catch(e) {
-                body.innerHTML = '<div style="text-align:center;padding:40px;color:#f56c6c;">解析失败</div>';
-              }
-            } else {
-              body.innerHTML = '<div style="text-align:center;padding:40px;color:#f56c6c;">加载失败: ' + xhr.status + '</div>';
+
+        // 使用 fetch + AbortController 实现超时
+        var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var timeoutId = setTimeout(function() {
+          if (controller) controller.abort();
+        }, 5000);
+
+        var fetchOpts = { method: 'GET' };
+        if (controller) fetchOpts.signal = controller.signal;
+
+        fetch('/api/posts/users/' + userId, fetchOpts)
+          .then(function(res) {
+            clearTimeout(timeoutId);
+            if (res.status === 200) {
+              return res.json();
             }
-          }
-        };
-        xhr.ontimeout = function() {
-          body.innerHTML = '<div style="text-align:center;padding:40px;color:#f56c6c;">请求超时</div>';
-        };
-        xhr.onerror = function() {
-          body.innerHTML = '<div style="text-align:center;padding:40px;color:#f56c6c;">网络错误</div>';
-        };
-        xhr.send();
+            throw new Error('HTTP ' + res.status);
+          })
+          .then(function(data) {
+            if (data.code === 200) {
+              var user = data.data;
+              var avatar = user.avatar || '/img/default-avatar.png';
+              var titlesHtml = '';
+              if (user.titles && user.titles.length > 0) {
+                titlesHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;">';
+                user.titles.forEach(function(t) {
+                  titlesHtml += '<span style="padding:4px 10px;border-radius:20px;font-size:0.75rem;background:' + (t.title_bg || 'rgba(255,107,157,0.1)') + ';color:' + (t.title_color || '#FF6B9D') + ';">' + (t.icon || '') + ' ' + t.title_name + '</span>';
+                });
+                titlesHtml += '</div>';
+              }
+              var joinDate = new Date(user.created_at).toLocaleDateString('zh-CN');
+              body.innerHTML =
+                '<div style="text-align:center;padding:20px;">' +
+                '<img src="' + avatar + '" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border-light,#E2E8F0);margin-bottom:16px;" onerror="this.src=\'/uploads/avatars/default.png\'">' +
+                '<div style="font-size:1.2rem;font-weight:600;margin-bottom:8px;">' + (user.nickname || user.username) + '</div>' +
+                '<div style="color:var(--text-light,#94A3B8);font-size:0.9rem;margin-bottom:16px;">@' + user.username + '</div>' +
+                titlesHtml +
+                '<div style="display:flex;justify-content:center;gap:24px;padding:16px 0;border-top:1px solid var(--border-light,#E2E8F0);border-bottom:1px solid var(--border-light,#E2E8F0);">' +
+                '<div style="text-align:center;"><div style="font-size:1.3rem;font-weight:700;">' + user.post_count + '</div><div style="font-size:0.8rem;color:var(--text-light,#94A3B8);margin-top:4px;">发布动态</div></div>' +
+                '<div style="text-align:center;"><div style="font-size:1.3rem;font-weight:700;">' + user.comment_count + '</div><div style="font-size:0.8rem;color:var(--text-light,#94A3B8);margin-top:4px;">收到评论</div></div>' +
+                '</div>' +
+                '<div style="text-align:center;font-size:0.85rem;color:var(--text-light,#94A3B8);margin-top:16px;">注册于 ' + joinDate + '</div>' +
+                '</div>';
+            } else {
+              body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger,#EF4444);">' + (data.message || '加载失败') + '</div>';
+            }
+          })
+          .catch(function(err) {
+            clearTimeout(timeoutId);
+            console.error('用户资料加载失败:', err);
+            if (err && err.name === 'AbortError') {
+              if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
+              body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger,#EF4444);">请求超时</div>';
+            } else {
+              if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
+              body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger,#EF4444);">网络错误</div>';
+            }
+          });
       };
       
       window.closeUserProfileModal = function() {
@@ -886,158 +797,130 @@
 
     // ===== 倒计时（高考/等级考切换） =====
     (function() {
-      var el = document.getElementById('gaokaoCountdown');
-      var sideEl = document.getElementById('sideGaokaoCountdown');
-      var progressBar = document.getElementById('progressBar');
-      var progressText = document.getElementById('progressText');
-      var sideGaokao = document.getElementById('sideGaokao');
-      var sideGaokaoTitle = sideGaokao ? sideGaokao.querySelector('.side-card-title') : null;
-      var sideGaokaoIcon = sideGaokao ? sideGaokao.querySelector('.side-card-icon') : null;
-      
+      const el = document.getElementById('gaokaoCountdown');
+      const sideEl = document.getElementById('sideGaokaoCountdown');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const sideGaokao = document.getElementById('sideGaokao');
+      const sideGaokaoTitle = sideGaokao ? sideGaokao.querySelector('.side-card-title') : null;
+      const sideGaokaoIcon = sideGaokao ? sideGaokao.querySelector('.side-card-icon') : null;
+
       // 快捷功能卡片中的标题
-      var gaokaoCard = document.getElementById('gaokaoCard');
-      var gaokaoCardText = gaokaoCard ? gaokaoCard.querySelector('.quick-card-text') : null;
-      var gaokaoCardIcon = gaokaoCard ? gaokaoCard.querySelector('.quick-card-icon') : null;
-      
-      var currentMode = 'gaokao';
-      var autoSwitchInterval;
-      
-      var exams = {
+      const gaokaoCard = document.getElementById('gaokaoCard');
+      const gaokaoCardText = gaokaoCard ? gaokaoCard.querySelector('.quick-card-text') : null;
+      const gaokaoCardIcon = gaokaoCard ? gaokaoCard.querySelector('.quick-card-icon') : null;
+
+      let currentMode = 'gaokao';
+      let autoSwitchInterval;
+
+      const exams = {
         gaokao: { name: '高考', month: 6, day: 7, hour: 9, icon: '📚' },
         dengkao: { name: '等级考', month: 5, day: 5, hour: 9, icon: '📝' }
       };
-      
+
       function getExamDate(exam) {
-        var now = new Date();
-        var year = now.getFullYear();
-        var examDate = new Date(year, exam.month - 1, exam.day, exam.hour, 0, 0);
+        const now = new Date();
+        let year = now.getFullYear();
+        let examDate = new Date(year, exam.month - 1, exam.day, exam.hour, 0, 0);
         if (now > examDate) {
           examDate = new Date(year + 1, exam.month - 1, exam.day, exam.hour, 0, 0);
         }
         return examDate;
       }
-      
+
       function update() {
-        var now = new Date();
-        var exam = exams[currentMode];
-        var examDate = getExamDate(exam);
-        var diff = examDate - now;
-        var totalDays = currentMode === 'gaokao' ? 365 : 365;
-        var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        
+        const now = new Date();
+        const exam = exams[currentMode];
+        const examDate = getExamDate(exam);
+        const diff = examDate - now;
+        const totalDays = currentMode === 'gaokao' ? 365 : 365;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
         // 移动端显示更详细的时间
-        var isMobile = window.innerWidth <= 768;
-        var displayText = isMobile ? (days + '天' + hours + '时' + minutes + '分') : (days + '天' + hours + '时');
-        
+        const isMobile = window.innerWidth <= 768;
+        const displayText = isMobile ? (days + '天' + hours + '时' + minutes + '分') : (days + '天' + hours + '时');
+
         if (el) el.textContent = displayText;
         if (sideEl) sideEl.textContent = displayText;
-        
+
         // 更新两侧卡片的标题和图标
         if (sideGaokaoTitle) sideGaokaoTitle.textContent = exam.name + '倒计时';
         if (sideGaokaoIcon) sideGaokaoIcon.textContent = exam.icon;
-        
+
         // 更新快捷功能卡片的标题和图标
         if (gaokaoCardText) gaokaoCardText.textContent = exam.name + '倒计时';
         if (gaokaoCardIcon) gaokaoCardIcon.textContent = exam.icon;
-        
-        var elapsed = totalDays - days;
-        var percent = Math.max(0, Math.min(100, (elapsed / totalDays) * 100));
-        
+
+        const elapsed = totalDays - days;
+        const percent = Math.max(0, Math.min(100, (elapsed / totalDays) * 100));
+
         if (progressBar) {
-          var circumference = 2 * Math.PI * 45;
-          var offset = circumference * (1 - percent / 100);
+          const circumference = 2 * Math.PI * 45;
+          const offset = circumference * (1 - percent / 100);
           progressBar.style.strokeDashoffset = offset;
         }
-        
+
         if (progressText) progressText.textContent = Math.round(percent) + '%';
       }
-      
+
       function switchMode() {
         currentMode = currentMode === 'gaokao' ? 'dengkao' : 'gaokao';
         update();
       }
-      
+
       update();
       setInterval(update, 60000); // 每分钟更新
-      
-      if (sideGaokao) {
-        sideGaokao.style.cursor = 'pointer';
-        
-        // 点击切换
-        sideGaokao.addEventListener('click', function() {
-          switchMode();
-          this.style.transform = 'translateY(-50%) scale(0.92)';
-          setTimeout(() => {
-            this.style.transform = '';
-          }, 150);
-        });
-        
-        // 移动端触摸滑动切换
-        var touchStartX = 0;
-        var touchStartY = 0;
-        
-        sideGaokao.addEventListener('touchstart', function(e) {
-          touchStartX = e.changedTouches[0].screenX;
-          touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-        
-        sideGaokao.addEventListener('touchend', function(e) {
-          var touchEndX = e.changedTouches[0].screenX;
-          var touchEndY = e.changedTouches[0].screenY;
-          var diffX = touchStartX - touchEndX;
-          var diffY = touchStartY - touchEndY;
-          
-          // 水平滑动距离大于垂直滑动距离且大于50px时触发切换
-          if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-            switchMode();
-            // 添加滑动反馈动画
-            this.style.transform = 'translateY(-50%) scale(0.95)';
-            setTimeout(() => {
-              this.style.transform = '';
-            }, 200);
-          }
-        }, { passive: true });
-        
-        // 自动轮播：每5秒切换一次
-        var autoSwitchTimer = setInterval(function() {
-          switchMode();
-        }, 5000);
+
+      // 侧边栏 gaokao 已移除(去重),仅快捷卡片保留
+    })();
+
+    // ===== 移动端移除侧边栏卡片,节省 DOM =====
+    (function() {
+      const sideWrap = document.getElementById('sideCardsWrap');
+      if (!sideWrap) return;
+      function maybeRemove() {
+        if (window.innerWidth <= 768 && sideWrap.parentNode) {
+          sideWrap.parentNode.removeChild(sideWrap);
+        }
       }
+      maybeRemove();
+      // resize 不再 add 回去(简单做法,刷新即可)
     })();
 
     // ===== 一言（增强版 - 左右卡片） =====
     (function() {
-      var el = document.getElementById('hitokotoText');
-      var sideEl = document.getElementById('sideHitokotoText');
-      var authorEl = document.getElementById('hitokotoAuthor');
-      var fromEl = document.getElementById('hitokotoFrom');
-      var refreshBtn = document.getElementById('refreshHitokoto');
-      var sideHitokoto = document.getElementById('sideHitokoto');
-      
+      const el = document.getElementById('hitokotoText');
+      const sideEl = document.getElementById('sideHitokotoText');
+      const authorEl = document.getElementById('hitokotoAuthor');
+      const fromEl = document.getElementById('hitokotoFrom');
+      const refreshBtn = document.getElementById('refreshHitokoto');
+      const sideHitokoto = document.getElementById('sideHitokoto');
+
       function load() {
         if (refreshBtn) {
           refreshBtn.classList.add('spinning');
         }
-        
-        fetch('https://v1.hitokoto.cn/?c=a&c=b&c=d&c=i&c=k')
+
+        fetch('/api/proxy/hitokoto')
           .then(function(r) { return r.json(); })
-          .then(function(data) {
-            if (data.hitokoto) {
-              var text = data.hitokoto;
-              var displayText = text.length > 30 ? text.substring(0, 30) + '...' : text;
-              
+          .then(function(resp) {
+            const data = (resp && resp.data) ? resp.data : resp;
+            if (data && data.hitokoto) {
+              const text = data.hitokoto;
+              const displayText = text.length > 30 ? text.substring(0, 30) + '...' : text;
+
               if (el) el.textContent = displayText;
               if (sideEl) sideEl.textContent = displayText;
               if (authorEl) authorEl.textContent = '— ' + (data.from || '未知');
               if (fromEl) fromEl.textContent = data.type ? getTypeName(data.type) : '';
             } else {
-              var fallback = '生活明朗，万物可爱';
+              const fallback = '生活明朗，万物可爱';
               if (el) el.textContent = fallback;
               if (sideEl) sideEl.textContent = fallback;
             }
-            
+
             if (refreshBtn) {
               setTimeout(() => {
                 refreshBtn.classList.remove('spinning');
@@ -1045,18 +928,18 @@
             }
           })
           .catch(function() {
-            var fallback = '生活明朗，万物可爱';
+            const fallback = '生活明朗，万物可爱';
             if (el) el.textContent = fallback;
             if (sideEl) sideEl.textContent = fallback;
-            
+
             if (refreshBtn) {
               refreshBtn.classList.remove('spinning');
             }
           });
       }
-      
+
       function getTypeName(type) {
-        var types = {
+        const types = {
           'a': '动画',
           'b': '漫画',
           'c': '游戏',
@@ -1108,14 +991,14 @@
 
     // ===== 天气卡片 - 基于服务端IP定位 =====
     (function() {
-      var weatherTemp = document.getElementById('weatherTemp');
-      var weatherIcon = document.getElementById('weatherIcon');
-      var weatherCondition = document.getElementById('weatherCondition');
-      var weatherHumidity = document.getElementById('weatherHumidity');
-      var weatherWind = document.getElementById('weatherWind');
-      var aqiValue = document.getElementById('aqiValue');
-      var sideWeather = document.getElementById('sideWeather');
-      var weatherTitle = sideWeather ? sideWeather.querySelector('.side-card-title') : null;
+      const weatherTemp = document.getElementById('weatherTemp');
+      const weatherIcon = document.getElementById('weatherIcon');
+      const weatherCondition = document.getElementById('weatherCondition');
+      const weatherHumidity = document.getElementById('weatherHumidity');
+      const weatherWind = document.getElementById('weatherWind');
+      const aqiValue = document.getElementById('aqiValue');
+      const sideWeather = document.getElementById('sideWeather');
+      const weatherTitle = sideWeather ? sideWeather.querySelector('.side-card-title') : null;
 
       // WMO天气代码转emoji
       function getWeatherIcon(code) {
@@ -1197,12 +1080,12 @@
         fetch('/api/weather')
           .then(function(r) { return r.json(); })
           .then(function(data) {
-            var city = '上海';
+            let city = '上海';
             if (data && data.city) {
               city = getCityName(data.city);
             }
             if (data && data.current) {
-              var current = data.current;
+              const current = data.current;
               if (weatherTemp) weatherTemp.textContent = Math.round(current.temperature_2m) + '°';
               if (weatherIcon) weatherIcon.textContent = getWeatherIcon(current.weather_code);
               if (weatherCondition) weatherCondition.textContent = getWeatherText(current.weather_code);
@@ -1219,6 +1102,7 @@
           })
           .catch(function(err) {
             console.error('天气加载失败:', err);
+            if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
             showDefaultWeather();
           });
       }
@@ -1250,17 +1134,17 @@
 
     // ===== 历史上的今天 =====
     (function() {
-      var hotsearchList = document.getElementById('hotsearchList');
-      var refreshBtn = document.getElementById('refreshHotsearch');
-      var sideHotsearch = document.getElementById('sideHotsearch');
-      var cardTitle = sideHotsearch ? sideHotsearch.querySelector('.side-card-title') : null;
+      const hotsearchList = document.getElementById('hotsearchList');
+      const refreshBtn = document.getElementById('refreshHotsearch');
+      const sideHotsearch = document.getElementById('sideHotsearch');
+      const cardTitle = sideHotsearch ? sideHotsearch.querySelector('.side-card-title') : null;
 
       function updateTitleWithDate() {
-        var titleEl = document.getElementById('hotsearchTitle');
+        const titleEl = document.getElementById('hotsearchTitle');
         if (titleEl) {
-          var today = new Date();
-          var month = today.getMonth() + 1;
-          var day = today.getDate();
+          const today = new Date();
+          const month = today.getMonth() + 1;
+          const day = today.getDate();
           titleEl.innerHTML = '📜 <span>' + month + '月' + day + '日</span>';
         }
       }
@@ -1276,14 +1160,14 @@
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (data.code === 200 && data.data && data.data.length > 0) {
-              var html = '';
+              let html = '';
               data.data.forEach(function(item, i) {
-                var title = item.title || '';
-                var icon = ['🔥','📜','🌟','💡','🎯','⚡','💫','✨'][i % 8];
+                const title = item.title || '';
+                const icon = ['🔥','📜','🌟','💡','🎯','⚡','💫','✨'][i % 8];
                 // 尝试提取日期前缀（如"2003年05月02日 "）
-                var datePart = '';
-                var eventPart = title;
-                var match = title.match(/^(\d{4}年\d{2}月\d{2}日)\s*/);
+                let datePart = '';
+                let eventPart = title;
+                const match = title.match(/^(\d{4}年\d{2}月\d{2}日)\s*/);
                 if (match) {
                   datePart = match[1];
                   eventPart = title.substring(match[0].length);
@@ -1308,6 +1192,7 @@
           })
           .catch(function(err) {
             console.error('历史上的今天请求失败:', err);
+            if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
             showDefaultHistory();
             if (refreshBtn) {
               refreshBtn.classList.remove('spinning');
@@ -1316,23 +1201,23 @@
       }
 
       function showDefaultHistory() {
-        var today = new Date();
-        var month = today.getMonth() + 1;
-        var day = today.getDate();
-        var events = [
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        const events = [
           month + '月' + day + '日 · 历史上的今天发生了许多精彩事件',
           '点击刷新按钮重新获取'
         ];
         if (hotsearchList) {
           hotsearchList.innerHTML = events.map(function(e, i) {
-            var icon = ['📜','🔄'][i];
+            const icon = ['📜','🔄'][i];
             return '<div class="hotsearch-item history-item"><span>' + icon + '</span><span>' + e + '</span></div>';
           }).join('');
         }
       }
 
       function escapeHtml(text) {
-        var div = document.createElement('div');
+        const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
       }
@@ -1360,15 +1245,15 @@
 
     // ===== 图片预览功能 =====
     (function() {
-      var modal = document.getElementById('imagePreviewModal');
-      var previewImg = document.getElementById('imagePreviewImg');
-      var closeBtn = document.getElementById('imagePreviewClose');
-      var prevBtn = document.getElementById('imagePreviewPrev');
-      var nextBtn = document.getElementById('imagePreviewNext');
-      var counter = document.getElementById('imagePreviewCounter');
-      
-      var currentImages = [];
-      var currentIndex = 0;
+      const modal = document.getElementById('imagePreviewModal');
+      const previewImg = document.getElementById('imagePreviewImg');
+      const closeBtn = document.getElementById('imagePreviewClose');
+      const prevBtn = document.getElementById('imagePreviewPrev');
+      const nextBtn = document.getElementById('imagePreviewNext');
+      const counter = document.getElementById('imagePreviewCounter');
+
+      let currentImages = [];
+      let currentIndex = 0;
       
       // 打开预览
       window.previewImage = function(imgSrc, allImages, index) {
@@ -1446,9 +1331,9 @@
       });
       
       // 触摸滑动
-      var touchStartX = 0;
-      var touchEndX = 0;
-      
+      let touchStartX = 0;
+      let touchEndX = 0;
+
       if (modal) {
         modal.addEventListener('touchstart', function(e) {
           touchStartX = e.changedTouches[0].screenX;
@@ -1467,60 +1352,86 @@
 
     // ===== 动态加载站点设置 =====
     (function() {
-      var defaultSiteName = '嘉二の墙墙';
-      var defaultSiteDesc = '校园信息交流平台';
-      
-      // 从localStorage获取缓存的设置（优先使用，避免每次请求）
-      var cachedSettings = localStorage.getItem('siteSettings');
-      if (cachedSettings) {
-        try {
-          var settings = JSON.parse(cachedSettings);
-          applySiteSettings(settings);
-        } catch(e) {}
-      }
-      
+      const defaultSiteName = '嘉二の墙墙';
+      const defaultSiteDesc = '校园信息交流平台';
+      const CACHE_KEY = 'siteSettings';
+      const CACHE_TTL = 3600 * 1000; // 1 小时
+
+      // 从localStorage获取缓存的设置（带 TTL,优先使用,避免每次请求）
+      try {
+        const cachedRaw = localStorage.getItem(CACHE_KEY);
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          if (cached && cached.__ts && (Date.now() - cached.__ts) < CACHE_TTL && cached.data) {
+            applySiteSettings(cached.data);
+          }
+        }
+      } catch(e) {}
+
       // 从服务器获取最新设置（使用公开API）
       fetch('/api/site-info')
         .then(function(res) { return res.json(); })
         .then(function(data) {
           if (data.code === 200 && data.data) {
-            var settings = data.data;
-            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            const settings = data.data;
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ __ts: Date.now(), data: settings }));
             applySiteSettings(settings);
           }
         })
         .catch(function(err) {
           console.error('加载站点设置失败:', err);
         });
-      
+
       // 应用设置到页面
       function applySiteSettings(settings) {
-        var siteName = settings.site_name || defaultSiteName;
-        var siteDesc = settings.site_description || defaultSiteDesc;
-        
+        const siteName = settings.site_name || defaultSiteName;
+        const siteDesc = settings.site_description || defaultSiteDesc;
+
         // 更新页面标题
         document.title = siteName + ' - ' + siteDesc;
-        
+
         // 更新meta标签
         var metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', siteName + ' — ' + siteDesc + '。匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！');
-        
+
         var ogTitle = document.querySelector('meta[property="og:title"]');
         if (ogTitle) ogTitle.setAttribute('content', siteName + ' - ' + siteDesc);
-        
+
         var ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogDesc) ogDesc.setAttribute('content', '匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！');
-        
+
         var ogSiteName = document.querySelector('meta[property="og:site_name"]');
         if (ogSiteName) ogSiteName.setAttribute('content', siteName);
-        
+
         // 更新导航栏logo
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
-        
+
         // 更新页脚版权
         var footerBrand = document.querySelector('.footer-brand');
         if (footerBrand) footerBrand.textContent = siteName;
+
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+
+        // 更新 theme-color（Safari/iPad 顶部栏颜色）
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          if (settings.special_mode_520) {
+            themeColorMeta.setAttribute('content', isDark ? '#2D2438' : '#FF7A9A');
+          } else {
+            themeColorMeta.setAttribute('content', isDark ? '#1a1423' : '#FAFBFE');
+          }
+        }
       }
     })();
   </script>

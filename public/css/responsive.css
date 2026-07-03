@@ -453,3 +453,68 @@
         border: 1px solid #ddd;
     }
 }
+
+/* 超小屏手机优化(<= 375px) - P1-5/6 快捷卡片 2x2 + 筛选横向滚动 */
+@media (max-width: 375px) {
+    /* 快捷功能卡片 2x2 布局 */
+    .quick-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 0;
+    }
+
+    .quick-card {
+        padding: 12px 8px;
+    }
+
+    .quick-card-icon {
+        font-size: 1.5rem;
+    }
+
+    .quick-card-text {
+        font-size: 0.75rem;
+    }
+
+    /* 筛选标签横向滚动 + scroll-snap */
+    .filter-tags,
+    .filter-categories {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+    }
+
+    .filter-tag {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}
+
+/* 极小屏(<= 320px) - 保持按钮高度 >= 44px,P1-5 */
+@media (max-width: 320px) {
+    .quick-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .quick-card {
+        min-height: 44px;
+        padding: 10px 6px;
+    }
+}
+
+/* Emoji fallback - 渲染失败时回退到文字(P1-10) */
+.emoji-fallback {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
+}
+
+/* 当 emoji 字体不可用时隐藏,显示 aria-label 文字 */
+.no-emoji-support .emoji-fallback {
+    font-size: 0;
+}
+.no-emoji-support .emoji-fallback::after {
+    content: attr(data-fallback);
+    font-size: 1rem;
+}

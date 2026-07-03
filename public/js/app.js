@@ -15,6 +15,19 @@ var API_BASE = '/api';
   }
 })();
 
+// ===== theme-color 动态更新（Safari/iPad 顶部栏颜色） =====
+function updateThemeColor() {
+  var meta = document.getElementById('themeColorMeta');
+  if (!meta) return;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var is520 = document.body.classList.contains('mode-520');
+  if (is520) {
+    meta.setAttribute('content', isDark ? '#2D2438' : '#FF7A9A');
+  } else {
+    meta.setAttribute('content', isDark ? '#1a1423' : '#FAFBFE');
+  }
+}
+
 /**
  * 全局HTML转义函数（防止XSS攻击）
  * 所有通过 innerHTML 渲染用户数据的地方都应使用此函数
@@ -69,7 +82,7 @@ function logout() {
   localStorage.removeItem('user');
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('user');
-  window.location.href = '/login';
+}
 }
 
 /**
@@ -84,7 +97,6 @@ function isLoggedIn() {
  */
 function requireLogin() {
   if (!isLoggedIn()) {
-    window.location.href = '/login';
     return false;
   }
   return true;
@@ -105,10 +117,10 @@ async function authFetch(url, options) {
     options.headers['Content-Type'] = 'application/json';
   }
   try {
+    // authFetch的401处理
     var res = await fetch(url, options);
     if (res.status === 401) {
       logout();
-      window.location.href = '/login';
       return { code: 401, message: '请先登录' };
     }
     var data = await res.json();
@@ -137,7 +149,6 @@ async function apiFetch(url, options) {
     var res = await fetch(url, options);
     if (res.status === 401) {
       logout();
-      window.location.href = '/login';
       return { code: 401, message: '请先登录' };
     }
     var data = await res.json();

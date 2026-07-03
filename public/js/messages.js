@@ -725,8 +725,8 @@ async function fetchWithAuth(url, options = {}) {
   const response = await fetch(url, { ...options, headers });
   
   if (response.status === 401) {
-    // token过期，跳转登录
-    window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+    // token过期，提示重新登录（不自动跳转）
+    showToast('登录已过期，请刷新页面重新登录', 'error');
     throw new Error('请重新登录');
   }
   
@@ -880,13 +880,6 @@ function formatDetailedTime(timestamp) {
   });
 }
 
-// 工具函数：HTML转义
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
 // 工具函数：获取Cookie
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -896,7 +889,7 @@ function getCookie(name) {
 
 // 工具函数：检查登录状态
 async function checkLoginStatus() {
-  const token = localStorage.getItem('token') || getCookie('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token') || getCookie('token');
   if (!token) return false;
   
   try {

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
   <title>嘉二の墙墙 - 广播站点歌</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   
@@ -18,14 +19,14 @@
   <meta property="og:url" content="https://wall.jay23.cn/radio">
   <meta property="og:site_name" content="嘉二の墙墙">
   <meta property="og:locale" content="zh_CN">
-  <link rel="stylesheet" href="/css/style.css?v=2026052201">
+  <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
-  <link rel="stylesheet" href="/css/responsive.css?v=2026052121">
-  <link rel="stylesheet" href="/css/mobile-fix.css?v=2026052121">
-  <link rel="stylesheet" href="/css/reservation.css?v=2026052121">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css?v=2026050701" disabled>
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link rel="stylesheet" href="/css/reservation.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
 </head>
 <body>
   <!-- 光晕效果背景 -->
@@ -59,7 +60,7 @@
         </button>
         <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
       </div>
-      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}})()">🌙</button>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
       <button class="nav-mobile-toggle" id="navToggle">☰</button>
     </div>
   </nav>
@@ -241,10 +242,10 @@
     </div>
   </div>
 
-  <script src="/js/app.js?v=202604281"></script>
-  <script src="/js/side-cards.js?v=20260502"></script>
-  <script>var currentUser = JSON.parse(localStorage.getItem('user') || 'null');</script>
-  <script src="/js/radio.js?v=2026050221"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/side-cards.js"></script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script src="/js/radio.js"></script>
   <script>
     (function() {
       var defaultSiteName = '嘉二の墙墙';
@@ -289,6 +290,11 @@
           document.body.classList.remove('mode-520');
           var themeCss = document.getElementById('theme-520-css');
           if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
         }
       }
     })();

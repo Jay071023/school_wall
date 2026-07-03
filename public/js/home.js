@@ -1,5 +1,5 @@
 /**
- * 嘉二人の墙墙 - 首页模块 (home.js)
+ * 嘉二の墙墙 - 首页模块 (home.js)
  * 功能：帖子列表加载、分类筛选、排序切换、点赞/收藏、分页加载
  * 后端返回字段：author_name, author_avatar, author_id, likes_count, comments_count,
  *               images(JSON字符串需parse), is_anonymous, is_liked, is_favorited, time_ago
@@ -119,10 +119,17 @@ async function loadPosts(append) {
 
   var postListEl = document.getElementById('postList');
   var loadMoreWrapper = document.querySelector('.load-more-wrapper');
+  var loadMoreBtn = document.getElementById('loadMoreBtn');
 
   // 首次加载显示简单 loading
   if (!append && !skeletonShown && postListEl) {
     postListEl.innerHTML = '<div style="text-align:center;padding:60px 0;color:#999;font-size:0.95rem;">⏳ 加载中...</div>';
+  }
+
+  // 加载更多按钮 loading 态
+  if (loadMoreBtn) {
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.textContent = '加载中...';
   }
 
   try {
@@ -196,6 +203,11 @@ async function loadPosts(append) {
       }
     } else {
       showToast(data.message || '加载失败', 'error');
+      // 恢复按钮为重试态
+      if (loadMoreBtn) {
+        loadMoreBtn.textContent = '加载失败,点击重试';
+        loadMoreBtn.disabled = false;
+      }
     }
   } catch (err) {
     console.error('加载帖子失败:', err);
@@ -206,11 +218,21 @@ async function loadPosts(append) {
       }, 2000);
       // 不显示 toast 避免打扰用户
     } else {
-      showToast('网络错误，请稍后重试', 'error');
+      if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
+    }
+    // 加载更多按钮恢复重试态
+    if (loadMoreBtn) {
+      loadMoreBtn.textContent = '加载失败,点击重试';
+      loadMoreBtn.disabled = false;
     }
   } finally {
     isLoading = false;
     hideSkeleton();
+    // 成功完成时,按钮恢复 "加载更多"(前提是还有更多)
+    if (loadMoreBtn && hasMore) {
+      loadMoreBtn.textContent = '加载更多';
+      loadMoreBtn.disabled = false;
+    }
   }
 }
 
@@ -323,7 +345,7 @@ function renderPostCard(post) {
 
   return '<article class="post-card" data-id="' + safePostId + '" onclick="openPostDetail(' + safePostId + ')">' +
     '<div class="post-user">' +
-      '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '"' + authorCardAttr + '>' +
+      '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '" loading="lazy" decoding="async"' + authorCardAttr + '>' +
       '<div class="user-info">' +
         '<div class="user-name' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(authorName) + roleBadge + titleBadges + '</div>' +
         '<div class="post-time">' + (post.time_ago || '') + (post.ip_region ? ' · 📍' + escapeHtml(post.ip_region) : '') + '</div>' +
@@ -368,38 +390,62 @@ async function toggleLike(postId, btn) {
   if (isLiking) return;
   isLiking = true;
 
+  // 乐观更新:先在 UI 上 +1 / -1
+  var icon = btn.querySelector('.action-icon');
+  var count = btn.querySelector('span:last-child');
+  var wasLiked = btn.classList.contains('liked');
+  var prevCount = parseInt(count.textContent, 10) || 0;
+  if (wasLiked) {
+    btn.classList.remove('liked');
+    icon.textContent = '🤍';
+    count.textContent = Math.max(0, prevCount - 1);
+  } else {
+    btn.classList.add('liked');
+    icon.textContent = '❤️';
+    count.textContent = prevCount + 1;
+    btn.classList.add('like-animate');
+    setTimeout(function() { btn.classList.remove('like-animate'); }, 400);
+  }
+
   try {
     var data = await authFetch('/api/posts/' + postId + '/like', { method: 'POST' });
     if (data.code === 200 && data.data && data.data.liked !== undefined) {
-      var icon = btn.querySelector('.action-icon');
-      var count = btn.querySelector('span:last-child');
+      // 用服务端真实值覆盖乐观值
       if (data.data.liked) {
         btn.classList.add('liked');
         icon.textContent = '❤️';
-        if (data.data.likes_count !== undefined) {
-          count.textContent = data.data.likes_count;
-        }
-        btn.classList.add('like-animate');
-        setTimeout(function() {
-          btn.classList.remove('like-animate');
-        }, 400);
-        cacheLikeStatus(postId, true);
       } else {
         btn.classList.remove('liked');
         icon.textContent = '🤍';
-        if (data.data.likes_count !== undefined) {
-          count.textContent = data.data.likes_count;
-        }
-        cacheLikeStatus(postId, false);
       }
+      if (data.data.likes_count !== undefined) {
+        count.textContent = data.data.likes_count;
+      }
+      cacheLikeStatus(postId, data.data.liked);
     } else {
+      // 回滚
+      rollbackLike(btn, icon, count, wasLiked, prevCount);
       showToast(data.message || '操作失败', 'error');
     }
   } catch (err) {
+    // 回滚
+    rollbackLike(btn, icon, count, wasLiked, prevCount);
     console.error('点赞失败:', err);
-    showToast('操作失败', 'error');
+    if (typeof showToast === 'function') showToast('网络不稳定,请稍后重试', 'error');
   }
   isLiking = false;
+}
+
+// 点赞失败回滚辅助
+function rollbackLike(btn, icon, count, wasLiked, prevCount) {
+  if (wasLiked) {
+    btn.classList.add('liked');
+    icon.textContent = '❤️';
+  } else {
+    btn.classList.remove('liked');
+    icon.textContent = '🤍';
+  }
+  count.textContent = prevCount;
 }
 
 /**
@@ -660,12 +706,14 @@ document.addEventListener('DOMContentLoaded', function() {
       var tag = e.target.closest('.filter-tag');
       if (!tag) return;
 
-      // 切换激活状态
+      // 切换激活状态 (P0-8: 用 aria-pressed 同步)
       var allTags = filterContainer.querySelectorAll('.filter-tag');
       for (var i = 0; i < allTags.length; i++) {
         allTags[i].classList.remove('active');
+        allTags[i].setAttribute('aria-pressed', 'false');
       }
       tag.classList.add('active');
+      tag.setAttribute('aria-pressed', 'true');
 
       // 更新当前分类并重新加载，同时滚动到顶部
       currentCategory = tag.getAttribute('data-category') || tag.textContent.trim();
@@ -713,7 +761,16 @@ document.addEventListener('DOMContentLoaded', function() {
   var currentPageNumEl = document.getElementById('currentPageNum');
   var totalPageNumEl = document.getElementById('totalPageNum');
   window._totalPages = 1; // 全局变量供 updatePaginationInfo 使用
-  
+
+  // 加载更多按钮点击(支持重试)
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+      if (isLoading) return;
+      if (!hasMore) return;
+      loadPosts(true);
+    });
+  }
+
   // 更新分页信息显示 - 已移到外部全局函数
   
   // 加载更多按钮 - 无限滚动模式下不需要，因为会自动加载
@@ -740,14 +797,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
   }, { passive: true });
 
-  // ===== 搜索功能 =====
+  // ===== 搜索功能(含 debounce) =====
   var searchInput = document.getElementById('searchInput');
   var searchClear = document.getElementById('searchClear');
   var searchTimer = null;
 
+  // 简单的 debounce 工具
+  function debounce(fn, wait) {
+    var t = null;
+    return function() {
+      var args = arguments;
+      var ctx = this;
+      clearTimeout(t);
+      t = setTimeout(function() { fn.apply(ctx, args); }, wait);
+    };
+  }
+
+  var debouncedSearch = debounce(function(val) {
+    currentKeyword = val;
+    totalLoaded = 0;
+    hasMore = true;
+    loadPosts(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 350);
+
   if (searchInput) {
     searchInput.addEventListener('input', function() {
-      clearTimeout(searchTimer);
       var val = this.value.trim();
       if (searchClear) {
         if (val) {
@@ -756,17 +831,12 @@ document.addEventListener('DOMContentLoaded', function() {
           searchClear.classList.remove('show');
         }
       }
-      searchTimer = setTimeout(function() {
-        currentKeyword = val;
-        totalLoaded = 0;
-        hasMore = true;
-        loadPosts(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 400);
+      debouncedSearch(val);
     });
 
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
+        // Enter 立即触发,不等 debounce
         clearTimeout(searchTimer);
         currentKeyword = this.value.trim();
         totalLoaded = 0;
