@@ -6,44 +6,17 @@
 
 const https = require('https');
 const crypto = require('crypto');
+const { getAccessToken } = require('./wechat-token');
 
-// 微信公众号配置（从环境变量读取，由 upload.js 自动配置）
+// 微信公众号配置
 const WECHAT_APPID = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
-const WECHAT_SECRET = process.env.WECHAT_SECRET || '';
-
-/**
- * 获取微信 Access Token（全局缓存，2小时有效）
- */
-let cachedAccessToken = null;
-let tokenExpireTime = 0;
-
-async function getAccessToken() {
-  if (cachedAccessToken && Date.now() < tokenExpireTime) {
-    return cachedAccessToken;
-  }
-  
-  return new Promise((resolve, reject) => {
-    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_APPID}&secret=${WECHAT_SECRET}`;
-    https.get(url, function(res) {
-      var data = '';
-      res.on('data', function(chunk) { data += chunk; });
-      res.on('end', function() {
-        try {
-          var json = JSON.parse(data);
-          if (json.access_token) {
-            cachedAccessToken = json.access_token;
-            tokenExpireTime = Date.now() + (json.expires_in - 200) * 1000;
-            resolve(json.access_token);
-          } else {
-            reject(new Error('获取access_token失败: ' + data));
-          }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
-  });
+const WECHAT_SECRET = process.env.WECHAT_SECRET;
+if (!WECHAT_SECRET) {
+  throw new Error('[wechat] 缺少环境变量 WECHAT_SECRET，请检查 .env 配置');
 }
+
+// 检查 token 缓存模块是否也设置了 secret（避免两次 throw）
+require('./wechat-token');
 
 /**
  * 生成微信扫码登录二维码链接

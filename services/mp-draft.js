@@ -14,11 +14,13 @@ const { execFileSync } = require('child_process');
 // 本地静态文件根路径（用于本地图片不走 HTTP）
 const LOCAL_ROOT = path.join(__dirname, 'public');
 
-// 微信公众号配置（与 wechat.js 保持一致）
-const WECHAT_APPID = 'wx513226ad98127a0d';
-const WECHAT_SECRET = process.env.WECHAT_SECRET || 'YOUR_APP_SECRET';
-
-// 配置项
+// 微信公众号配置（与 wechat.js 共用 wechat-token.js 统一缓存）
+const WECHAT_APPID = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
+const WECHAT_SECRET = process.env.WECHAT_SECRET;
+if (!WECHAT_SECRET) {
+  throw new Error('[mp-draft] 缺少环境变量 WECHAT_SECRET，请检查 .env 配置');
+}
+const { getAccessToken } = require('./wechat-token');
 const CONFIG = {
   // 天气API配置（使用和风天气免费版）
   WEATHER_API_KEY: process.env.WEATHER_API_KEY || '',
