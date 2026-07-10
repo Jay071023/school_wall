@@ -44,6 +44,15 @@ coverage/
 # 系统文件
 .DS_Store
 Thumbs.db
+# 工具脚本/截图（不上传）
+bili_loggedin.png
+bilibili_course.png
+bilibili_course_2.png
+ysjf_material.png
+ysjf_screenshot.png
+fix-codex-catalog.ps1
+switch-model.ps1
+inspect-catalog.js
 
 # 运维脚本（已在 gitee 上单独管理）
 deploy_package/
