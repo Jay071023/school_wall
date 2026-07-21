@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 页面未找到</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
+</head>
+<body>
+  <!-- 404页面 -->
+  <div class="error-page">
+    <div class="error-decorations">
+      <div class="decor-circle" style="width:250px;height:250px;background:rgba(255,107,107,0.12);top:-60px;right:-40px;"></div>
+      <div class="decor-circle" style="width:180px;height:180px;background:rgba(78,205,196,0.12);bottom:-40px;left:-30px;"></div>
+      <div class="decor-circle" style="width:120px;height:120px;background:rgba(255,217,61,0.12);top:50%;left:15%;"></div>
+    </div>
+    <div class="error-content">
+      <div class="error-illustration">
+        <div class="error-404-number">404</div>
+      </div>
+      <h1 class="error-title">页面走丢了~</h1>
+      <p class="error-subtitle">你访问的页面不存在或已被删除</p>
+      <a href="/" class="btn-home">🏠 返回首页</a>
+    </div>
+  </div>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 页面未找到';
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
+      }
+    })();
+  </script>
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+</body>
+</html>

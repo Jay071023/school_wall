@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 意见反馈</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="嘉二の墙墙意见反馈页面，欢迎提出宝贵建议，帮助我们改进产品和服务。">
+  <meta name="keywords" content="意见反馈,建议,问题反馈,用户反馈">
+  <link rel="canonical" href="https://wall.jay23.cn/feedback">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="嘉二の墙墙 - 意见反馈">
+  <meta property="og:description" content="欢迎提出宝贵建议，帮助我们改进产品和服务。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wall.jay23.cn/feedback">
+  <meta property="og:site_name" content="嘉二の墙墙">
+  <meta property="og:locale" content="zh_CN">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link rel="stylesheet" href="/css/reservation.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
+  <style>
+    .feedback-page {
+      min-height: 100vh;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .feedback-card {
+      background: var(--bg-card, #FFF);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(255, 107, 157, 0.15);
+    }
+    .feedback-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .feedback-subtitle {
+      text-align: center;
+      color: var(--text-light, #999);
+      margin-bottom: 24px;
+    }
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .type-item {
+      padding: 16px;
+      border: 2px solid var(--border-color, #eee);
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-secondary, #FFF);
+    }
+    .type-item:hover {
+      border-color: #FF6B9D;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 157, 0.15);
+    }
+    .type-item.active {
+      border-color: #FF6B9D;
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08), rgba(167, 139, 250, 0.08));
+      box-shadow: 0 2px 8px rgba(255, 107, 157, 0.2);
+    }
+    .type-item .type-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .type-item .type-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary, #333);
+    }
+    .type-item .type-desc {
+      font-size: 0.75rem;
+      color: var(--text-light, #999);
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-primary, #333);
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color, #ddd);
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background: var(--bg-secondary, #FFF);
+      color: var(--text-primary, #333);
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #FF6B9D;
+      box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+    }
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #FF6B9D, #C44569);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .submit-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+    }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success-msg {
+      text-align: center;
+      padding: 40px;
+    }
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+    }
+    .history-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color, #eee);
+    }
+    .history-title {
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary, #333);
+    }
+    .history-item {
+      padding: 14px;
+      background: var(--bg-tertiary, #f8f9fa);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-color, transparent);
+      transition: all 0.2s;
+    }
+    .history-item:hover {
+      border-color: rgba(255, 107, 157, 0.2);
+    }
+    .history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .history-item-title {
+      font-weight: 600;
+      color: var(--text-primary, #333);
+    }
+    .history-item-status {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .history-item-time {
+      font-size: 0.8rem;
+      color: var(--text-light, #999);
+      margin-top: 6px;
+    }
+    .history-item-content {
+      font-size: 0.9rem;
+      color: var(--text-secondary, #666);
+      white-space: pre-wrap;
+    }
+    .history-empty {
+      text-align: center;
+      color: var(--text-light, #999);
+      padding: 20px;
+    }
+    @media (max-width: 480px) {
+      .feedback-page { padding: 12px; }
+      .feedback-card { padding: 16px; border-radius: 12px; }
+      .feedback-title { font-size: 1.3rem; }
+      .type-grid { gap: 8px; }
+      .type-item { padding: 12px 8px; }
+      .type-item .type-icon { font-size: 1.5rem; }
+      .type-item .type-label { font-size: 0.85rem; }
+      .type-item .type-desc { font-size: 0.7rem; }
+      .history-item-header { flex-direction: column; gap: 4px; }
+    }
+    /* 修复：移动端输入时页面过度上滑 */
+    @media (max-width: 768px) {
+      .feedback-page input:focus,
+      .feedback-page textarea:focus,
+      .feedback-page select:focus {
+        scroll-margin-bottom: 80px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+        <button class="nav-notification" id="navNotification" title="通知">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <!-- SEO H1标签 -->
+    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">嘉二の墙墙 - 意见反馈</h1>
+    <div class="feedback-page">
+      <div class="feedback-card" id="feedbackForm">
+        <div class="feedback-title">💬 意见反馈</div>
+        <div class="feedback-subtitle">您的反馈是我们进步的动力 ✨</div>
+        
+        <div class="type-grid" id="typeGrid">
+          <div class="type-item" data-type="suggest" onclick="selectType(this)">
+            <div class="type-icon">💡</div>
+            <div class="type-label">功能建议</div>
+            <div class="type-desc">对网站功能有好的想法</div>
+          </div>
+          <div class="type-item" data-type="bug" onclick="selectType(this)">
+            <div class="type-icon">🐛</div>
+            <div class="type-label">Bug反馈</div>
+            <div class="type-desc">发现网站有问题</div>
+          </div>
+          <div class="type-item" data-type="complaint" onclick="selectType(this)">
+            <div class="type-icon">📢</div>
+            <div class="type-label">投诉</div>
+            <div class="type-desc">对网站或用户有意见</div>
+          </div>
+          <div class="type-item" data-type="other" onclick="selectType(this)">
+            <div class="type-icon">⚡</div>
+            <div class="type-label">对线作者</div>
+            <div class="type-desc">有事直接找作者聊聊</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">标题 <span style="color:red">*</span></label>
+          <input type="text" class="form-input" id="feedbackTitle" placeholder="简要描述您的问题或建议" maxlength="200">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">详细内容 <span style="color:red">*</span></label>
+          <textarea class="form-input form-textarea" id="feedbackContent" placeholder="请详细描述您的问题或建议，我们会认真处理..." maxlength="2000"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">联系方式（选填）</label>
+          <input type="text" class="form-input" id="feedbackContact" placeholder="邮箱或微信，方便我们联系您">
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitFeedback()">提交反馈</button>
+
+        <div class="history-section">
+          <div class="history-title">📋 我的反馈记录</div>
+          <div id="historyList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 侧栏卡片 -->
+  <div class="side-cards-container">
+    <div class="side-cards-group side-cards-left">
+      <div class="side-card glass-effect" id="sideGaokao">
+        <div class="side-card-icon">📚</div>
+        <div class="side-card-title">高考倒计时</div>
+        <div class="side-card-countdown" id="sideGaokaoCountdown"></div>
+        <div class="side-card-progress">
+          <div class="progress-ring">
+            <svg class="progress-svg" viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#F59E0B"/>
+                  <stop offset="50%" style="stop-color:#D97706"/>
+                  <stop offset="100%" style="stop-color:#B45309"/>
+                </linearGradient>
+              </defs>
+              <circle class="progress-bg" cx="50" cy="50" r="45"/>
+              <circle class="progress-bar" cx="50" cy="50" r="45" id="progressBar"/>
+            </svg>
+            <div class="progress-text" id="progressText">0%</div>
+          </div>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">✨</span>
+          <span class="float-element float-2">🌟</span>
+          <span class="float-element float-3">💫</span>
+        </div>
+      </div>
+      <div class="side-card glass-effect" id="sideWeather">
+        <div class="side-card-icon">⛅</div>
+        <div class="side-card-title">上海天气</div>
+        <div class="weather-main">
+          <span class="weather-temp" id="weatherTemp">--°</span>
+          <span class="weather-icon" id="weatherIcon">🌤️</span>
+        </div>
+        <div class="weather-info">
+          <div class="weather-item" id="weatherCondition">加载中...</div>
+          <div class="weather-detail">
+            <span>💧 <span id="weatherHumidity">--%</span></span>
+            <span>💨 <span id="weatherWind">--级</span></span>
+          </div>
+        </div>
+        <div class="weather-aqi" id="weatherAqi">
+          <span class="aqi-label">空气</span>
+          <span class="aqi-value" id="aqiValue">--</span>
+        </div>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">☁️</span>
+          <span class="float-element float-2">🌤️</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-cards-group side-cards-right">
+      <div class="side-card glass-effect" id="sideHitokoto">
+        <div class="side-card-icon">💬</div>
+        <div class="side-card-title">一言</div>
+        <div class="side-card-content" id="sideHitokotoText">加载中...</div>
+        <div class="side-card-meta">
+          <span class="hitokoto-author" id="hitokotoAuthor"></span>
+          <span class="hitokoto-from" id="hitokotoFrom"></span>
+        </div>
+        <button class="refresh-btn" id="refreshHitokoto">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">💭</span>
+          <span class="float-element float-2">✨</span>
+        </div>
+      </div>
+      <div class="side-card glass-effect" id="sideHotsearch">
+        <div class="side-card-icon">📜</div>
+        <div class="side-card-title" id="hotsearchTitle">📜 历史上的今天</div>
+        <div class="hotsearch-list" id="hotsearchList">
+          <div class="hotsearch-item loading">加载中...</div>
+        </div>
+        <button class="refresh-btn" id="refreshHotsearch">🔄</button>
+        <div class="side-card-decoration">
+          <span class="float-element float-1">📈</span>
+          <span class="float-element float-2">🔥</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/side-cards.js"></script>
+  <script>
+    var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');
+    let selectedType = '';
+    
+    window.selectType = function(el) {
+      document.querySelectorAll('.type-item').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+      selectedType = el.dataset.type;
+    }
+    
+    function showToast(msg, type) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;background:' + (type === 'error' ? '#EF4444' : '#10B981') + ';color:white;border-radius:8px;z-index:10000;font-size:0.9rem;';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+    
+    async function submitFeedback() {
+      if (!selectedType) {
+        showToast('请选择反馈类型', 'error');
+        return;
+      }
+      const title = document.getElementById('feedbackTitle').value.trim();
+      const content = document.getElementById('feedbackContent').value.trim();
+      const contact = document.getElementById('feedbackContact').value.trim();
+      
+      if (!title) {
+        showToast('请输入标题', 'error');
+        return;
+      }
+      if (!content) {
+        showToast('请输入详细内容', 'error');
+        return;
+      }
+      
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '提交中...';
+      
+      try {
+        const data = await authFetch('/api/feedback', {
+          method: 'POST',
+          body: JSON.stringify({ type: selectedType, title, content, contact })
+        });
+        
+        if (data.code === 200) {
+          document.getElementById('feedbackForm').innerHTML = '<div class="success-msg"><div class="success-icon">✅</div><h2>反馈提交成功！</h2><p style="color:#666;margin-top:8px;">感谢您的反馈，我们会尽快处理</p><a href="/profile" style="display:inline-block;margin-top:20px;padding:12px 24px;background:#FF6B9D;color:white;border-radius:8px;text-decoration:none;">返回个人主页</a></div>';
+        } else {
+          showToast(data.message || '提交失败', 'error');
+          btn.disabled = false;
+          btn.textContent = '提交反馈';
+        }
+      } catch (err) {
+        showToast('网络错误', 'error');
+        btn.disabled = false;
+        btn.textContent = '提交反馈';
+      }
+    }
+    
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/feedback/my', {
+          headers: {
+            'Authorization': 'Bearer ' + (localStorage.getItem('token') || sessionStorage.getItem('token'))
+          }
+        });
+        const json = await res.json();
+        const container = document.getElementById('historyList');
+        
+        if (json.code === 200) {
+          const data = json.data || [];
+          if (data.length > 0) {
+            const statusMap = { pending: '待处理', processing: '处理中', resolved: '已处理', closed: '已关闭' };
+            const typeMap = { suggest: '💡', bug: '🐛', complaint: '📢', other: '⚡' };
+            
+            container.innerHTML = data.map(f => {
+              const statusColor = { pending: '#F59E0B', processing: '#3B82F6', resolved: '#10B981', closed: '#999' }[f.status] || '#999';
+              return '<div class="history-item"><div class="history-item-header"><span class="history-item-title">' + (typeMap[f.type] || '📝') + ' ' + f.title + '</span><span class="history-item-status" style="background:' + statusColor + ';color:white;">' + (statusMap[f.status] || f.status) + '</span></div><div class="history-item-content">' + f.content + '</div><div class="history-item-time">' + new Date(f.created_at).toLocaleString() + '</div>' + (f.reply ? '<div style="margin-top:8px;padding:8px;background:#dcfce7;border-radius:6px;color:#166534;font-size:0.85rem;">📌 回复：' + f.reply + '</div>' : '') + '</div>';
+            }).join('');
+          } else {
+            container.innerHTML = '<div class="history-empty">暂无反馈记录</div>';
+          }
+        } else {
+          container.innerHTML = '<div class="history-empty">' + (json.message || '加载失败') + '</div>';
+        }
+      } catch (err) {
+        console.error('加载反馈历史失败:', err);
+        document.getElementById('historyList').innerHTML = '<div class="history-empty">网络错误，请刷新重试</div>';
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!isLoggedIn()) {
+        showToast('请先登录', 'error');
+        setTimeout(() => window.location.href = '/login', 1000);
+        return;
+      }
+      loadHistory();
+
+      // QQ内置浏览器和微信浏览器兼容：输入框聚焦时防止页面过度上滑
+      var isQQBrowser = /qq/i.test(navigator.userAgent) || /mqqbrowser/i.test(navigator.userAgent);
+      if (isQQBrowser) {
+        document.querySelectorAll('#feedbackTitle, #feedbackContent, #feedbackContact').forEach(function(el) {
+          el.addEventListener('focus', function() {
+            setTimeout(function() {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 400);
+          });
+        });
+        // 视口变化时（键盘弹出/收起）纠正滚动位置
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', function() {
+            var activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+              setTimeout(function() {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }, 200);
+            }
+          });
+        }
+      }
+    });
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item active" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            localStorage.setItem('siteSettings', JSON.stringify(data.data));
+            applySiteSettings(data.data);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 意见反馈';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

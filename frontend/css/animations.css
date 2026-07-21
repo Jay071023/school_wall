@@ -1,0 +1,306 @@
+/* ============================================
+   Campus Wall - Animations
+   All @keyframes animations for the application
+   ============================================ */
+
+/* ---- 骨架屏动画 ---- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ---- 触摸反馈动画 ---- */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-hover:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+/* ---- 点赞动画 ---- */
+@keyframes likeAnimation {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.like-animate {
+  animation: likeAnimation 0.4s ease;
+}
+
+/* ---- 收藏动画 ---- */
+@keyframes favoriteAnimation {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.2) rotate(-10deg); }
+  50% { transform: scale(0.9) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.favorite-animate {
+  animation: favoriteAnimation 0.5s ease;
+}
+
+/* ---- 按钮点击波纹效果 ---- */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* ---- 光晕效果浮动动画 ---- */
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -30px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  75% {
+    transform: translate(20px, 10px) scale(1.02);
+  }
+}
+
+/* ---- 卡片入场动画 ---- */
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 心跳动画 ---- */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(0.95); }
+  75% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* ---- 星星弹出动画 ---- */
+@keyframes starPop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* ---- 装饰元素浮动 ---- */
+@keyframes floatDecor {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+/* ---- 旋转光晕 ---- */
+@keyframes rotateGlow {
+  0% { opacity: 0.5; transform: rotate(0deg); }
+  50% { opacity: 0.8; transform: rotate(180deg); }
+  100% { opacity: 0.5; transform: rotate(360deg); }
+}
+
+/* ---- 状态闪烁 ---- */
+@keyframes statusShine {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.3; transform: scale(0.8); }
+}
+
+/* ---- 铃铛摇晃 ---- */
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(-5deg); }
+  25% { transform: rotate(5deg); }
+  50% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* ---- 脉冲动画 ---- */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---- 面板淡入 ---- */
+@keyframes panelFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 骨架屏加载 ---- */
+@keyframes skeleton-loading {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ---- 淡入动画 ---- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---- 向上滑动 ---- */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 缩放进入 ---- */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---- 旋转动画 ---- */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- 左侧滑入 ---- */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- 右侧滑入 ---- */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- 卡片滑入 ---- */
+@keyframes slideInCard {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- 弹跳动画 ---- */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ---- 数字滚动动画 ---- */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 漂浮动画 ---- */
+@keyframes floatAround {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -10px); }
+  50% { transform: translate(-5px, -15px); }
+  75% { transform: translate(-10px, -5px); }
+}
+
+/* ---- 渐变漂浮 ---- */
+@keyframes floatGradient {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(15px, -10px) rotate(120deg); }
+  66% { transform: translate(-10px, 10px) rotate(240deg); }
+}
+
+/* ---- 圆形漂浮 ---- */
+@keyframes floatCircle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+
+/* ---- 线条移动 ---- */
+@keyframes moveLine {
+  0% { transform: translateX(-100%) rotate(45deg); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(200%) rotate(45deg); opacity: 0; }
+}
+
+/* ---- 闪烁动画 ---- */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ---- 模态框滑入 ---- */
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-50px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- 浮动爱心 (Easter Egg) ---- */
+@keyframes heartFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+}
+
+/* ---- 气泡弹出 ---- */
+@keyframes bubblePop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.8); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.05); }
+  25% { transform: translateX(-50%) translateY(0) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.9); }
+}
+
+/* ---- 粒子漂浮 ---- */
+@keyframes particleFloat {
+  0% { opacity: 1; transform: translateY(0) scale(0.5) rotate(0deg); }
+  40% { opacity: 1; transform: translateY(-40px) scale(1.3) rotate(20deg); }
+  100% { opacity: 0; transform: translateY(-100px) scale(0.6) rotate(-15deg); }
+}
+
+/* ---- emoji雨动画 ---- */
+@keyframes rainFall {
+  0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+  80% { opacity: 0.8; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+
+/* ---- 边框闪烁 ---- */
+@keyframes flashPulse {
+  0% { opacity: 0; }
+  30% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* ---- 圆点脉冲 ---- */
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.5); opacity: 1; }
+}

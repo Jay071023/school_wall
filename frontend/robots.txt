@@ -1,0 +1,23 @@
+# 嘉二の墙墙 robots.txt
+# https://wall.jay23.cn
+
+User-agent: *
+Allow: /
+
+# 禁止抓取后台管理
+Disallow: /admin/
+Disallow: /api/
+
+# 禁止抓取用户隐私相关
+Disallow: /profile
+Disallow: /edit-profile
+Disallow: /notifications
+
+# 允许抓取公开页面
+Allow: /radio
+Allow: /feedback
+Allow: /login
+Allow: /register
+
+# Sitemap 地址
+Sitemap: https://wall.jay23.cn/sitemap.xml

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 编辑资料</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 返回按钮 -->
+    <div class="edit-profile-back">
+      <a href="/profile" class="edit-profile-back-btn">
+        <span class="edit-profile-back-icon">←</span>
+        <span>返回个人主页</span>
+      </a>
+    </div>
+
+    <!-- 编辑资料卡片 -->
+    <div class="edit-profile-card">
+      <div class="edit-profile-header">
+        <h2 class="edit-profile-title">✏️ 编辑资料</h2>
+        <p class="edit-profile-subtitle">完善你的个人信息，让大家更了解你</p>
+      </div>
+
+      <div class="edit-profile-body">
+        <!-- 头像上传 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">头像</label>
+          <div class="edit-avatar-upload" id="avatarUploadArea">
+            <img class="edit-avatar-preview" id="editAvatarPreview" src="/uploads/avatars/default.png" alt="头像">
+            <div class="edit-avatar-overlay">
+              <span>📷 点击更换</span>
+            </div>
+            <input type="file" id="editAvatarInput" accept="image/*" style="display:none">
+          </div>
+        </div>
+
+        <!-- 昵称 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">昵称 <span class="edit-profile-required">*</span></label>
+          <input type="text" class="edit-profile-input" id="editNickname" placeholder="请输入昵称" maxlength="20">
+          <span class="edit-profile-hint">最多20个字符</span>
+        </div>
+
+        <!-- 邮箱 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">📧 邮箱</label>
+          <input type="email" class="edit-profile-input" id="editEmail" placeholder="用于接收帖子评论、点歌审核等通知">
+          <span class="edit-profile-hint">选填，填写后可接收通知</span>
+        </div>
+
+        <!-- 生日 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🎂 生日</label>
+          <input type="date" class="edit-profile-input" id="editBirthday">
+        </div>
+
+        <!-- 性别 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🛍️ 性别</label>
+          <div class="edit-gender-tabs" id="genderTabs">
+            <div class="edit-gender-tab" data-value="男">
+              <span class="edit-gender-icon">👦</span>
+              <span>男</span>
+            </div>
+            <div class="edit-gender-tab" data-value="女">
+              <span class="edit-gender-icon">👧</span>
+              <span>女</span>
+            </div>
+            <div class="edit-gender-tab" data-value="保密">
+              <span class="edit-gender-icon">🤫</span>
+              <span>保密</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MBTI -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">🧠 MBTI</label>
+          <select class="edit-profile-select" id="editMbti">
+            <option value="">不设置</option>
+            <optgroup label="分析家 (Analysts)">
+              <option value="INTJ">INTJ - 建筑师</option>
+              <option value="INTP">INTP - 逻辑学家</option>
+              <option value="ENTJ">ENTJ - 指挥官</option>
+              <option value="ENTP">ENTP - 辩论家</option>
+            </optgroup>
+            <optgroup label="外交家 (Diplomats)">
+              <option value="INFJ">INFJ - 提倡者</option>
+              <option value="INFP">INFP - 调停者</option>
+              <option value="ENFJ">ENFJ - 主人公</option>
+              <option value="ENFP">ENFP - 竞选者</option>
+            </optgroup>
+            <optgroup label="哨兵 (Sentinels)">
+              <option value="ISTJ">ISTJ - 物流师</option>
+              <option value="ISFJ">ISFJ - 守卫者</option>
+              <option value="ESTJ">ESTJ - 总经理</option>
+              <option value="ESFJ">ESFJ - 执政官</option>
+            </optgroup>
+            <optgroup label="探险家 (Explorers)">
+              <option value="ISTP">ISTP - 鉴赏家</option>
+              <option value="ISFP">ISFP - 探险家</option>
+              <option value="ESTP">ESTP - 企业家</option>
+              <option value="ESFP">ESFP - 表演者</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 喜好 -->
+        <div class="edit-profile-section">
+          <label class="edit-profile-label">❤️ 喜好</label>
+          <textarea class="edit-profile-textarea" id="editHobbies" placeholder="用逗号分隔你的喜好，例如：摄影, 旅行, 音乐, 美食, 编程" maxlength="500" rows="3"></textarea>
+          <span class="edit-profile-hint">最多500个字符，用逗号分隔</span>
+        </div>
+      </div>
+
+      <!-- 保存按钮 -->
+      <div class="edit-profile-footer">
+        <button class="edit-profile-save-btn" id="saveProfileBtn">
+          <span>💾</span> 保存修改
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 检查登录状态
+    if (!isLoggedIn()) {
+      window.location.href = '/login';
+      return;
+    }
+
+    var user = getCurrentUser();
+    if (!user) return;
+
+    // 填充已有数据
+    var nicknameInput = document.getElementById('editNickname');
+    var emailInput = document.getElementById('editEmail');
+    var birthdayInput = document.getElementById('editBirthday');
+    var mbtiSelect = document.getElementById('editMbti');
+    var hobbiesInput = document.getElementById('editHobbies');
+    var avatarPreview = document.getElementById('editAvatarPreview');
+    var avatarInput = document.getElementById('editAvatarInput');
+    var avatarUploadArea = document.getElementById('avatarUploadArea');
+    var saveBtn = document.getElementById('saveProfileBtn');
+
+    if (nicknameInput) nicknameInput.value = user.nickname || '';
+    if (emailInput) emailInput.value = user.email || '';
+    if (birthdayInput) {
+      var birthday = user.birthday || '';
+      if (birthday && typeof birthday === 'string' && birthday.includes('T')) {
+        birthday = birthday.split('T')[0];
+      }
+      birthdayInput.value = birthday;
+    }
+    if (mbtiSelect && user.mbti) mbtiSelect.value = user.mbti;
+    if (hobbiesInput) hobbiesInput.value = user.hobbies || '';
+    if (avatarPreview) avatarPreview.src = user.avatar || '/uploads/avatars/default.png';
+
+    // 性别选项卡
+    var selectedGender = user.gender || '';
+    var genderTabs = document.querySelectorAll('.edit-gender-tab');
+    genderTabs.forEach(function(tab) {
+      if (tab.getAttribute('data-value') === selectedGender) {
+        tab.classList.add('active');
+      }
+      tab.addEventListener('click', function() {
+        genderTabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        selectedGender = tab.getAttribute('data-value');
+      });
+    });
+
+    // 头像上传
+    if (avatarUploadArea && avatarInput) {
+      avatarUploadArea.addEventListener('click', function() {
+        avatarInput.click();
+      });
+      avatarInput.addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          showToast('头像图片不能超过2MB', 'error');
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          avatarPreview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        // 上传头像
+        var formData = new FormData();
+        formData.append('avatar', file);
+        fetch('/api/upload/avatar', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+          body: formData
+        }).then(function(res) { return res.json(); }).then(function(data) {
+          if (data.code === 200) {
+            var currentUser = getCurrentUser();
+            currentUser.avatar = data.data.avatar;
+            var remembered = !!localStorage.getItem('token');
+            saveAuth(getToken(), currentUser, remembered);
+            showToast('头像更新成功');
+          } else {
+            showToast(data.message || '头像上传失败', 'error');
+            // 恢复原头像
+            avatarPreview.src = getCurrentUser().avatar || '/uploads/avatars/default.png';
+          }
+        }).catch(function() {
+          showToast('头像上传失败', 'error');
+          avatarPreview.src = getCurrentUser().avatar || '/uploads/avatars/default.png';
+        });
+      });
+    }
+
+    // 保存资料
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        var nickname = nicknameInput ? nicknameInput.value.trim() : '';
+        var email = emailInput ? emailInput.value.trim() : '';
+        var birthday = birthdayInput ? birthdayInput.value : '';
+        var mbti = mbtiSelect ? mbtiSelect.value : '';
+        var hobbies = hobbiesInput ? hobbiesInput.value.trim() : '';
+
+        if (!nickname) {
+          showToast('昵称不能为空', 'error');
+          return;
+        }
+        if (nickname.length > 20) {
+          showToast('昵称不能超过20个字符', 'error');
+          return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showToast('邮箱格式不正确', 'error');
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span>⏳</span> 保存中...';
+
+        var profileData = {
+          nickname: nickname,
+          email: email || null,
+          birthday: birthday || null,
+          mbti: mbti || null,
+          gender: selectedGender || null,
+          hobbies: hobbies || null
+        };
+
+        authFetch('/api/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify(profileData)
+        }).then(function(data) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾</span> 保存修改';
+          if (data.code === 200) {
+            // 更新本地用户信息
+            var currentUser = getCurrentUser();
+            if (data.data) {
+              currentUser.nickname = data.data.nickname;
+              currentUser.email = data.data.email;
+              currentUser.birthday = data.data.birthday;
+              currentUser.mbti = data.data.mbti;
+              currentUser.gender = data.data.gender;
+              currentUser.hobbies = data.data.hobbies;
+            }
+            var remembered = !!localStorage.getItem('token');
+            saveAuth(getToken(), currentUser, remembered);
+            showToast('资料更新成功');
+            setTimeout(function() {
+              window.location.href = '/profile';
+            }, 1000);
+          } else {
+            showToast(data.message || '更新失败', 'error');
+          }
+        }).catch(function() {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<span>💾</span> 保存修改';
+          showToast('网络错误', 'error');
+        });
+      });
+    }
+  });
+  </script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 编辑资料';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
+      }
+    })();
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,569 @@
+/* ============================================
+   时段卡片选择样式
+   ============================================ */
+.slot-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.slot-card-item {
+  padding: 12px 14px;
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.slot-card-item:hover {
+  border-color: #FF6B9D;
+  background: #FFF5F8;
+}
+
+.slot-card-item.selected {
+  border-color: #FF6B9D;
+  background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+  color: white;
+}
+
+.slot-card-item.selected .slot-card-time,
+.slot-card-item.selected .slot-card-remaining {
+  color: rgba(255,255,255,0.9);
+}
+
+.slot-card-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.slot-card-time {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.slot-card-remaining {
+  font-size: 0.7rem;
+  color: #10B981;
+  margin-top: 4px;
+}
+
+.slot-card-item.selected .slot-card-remaining {
+  color: rgba(255,255,255,0.85);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .slot-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+  .slot-card-item {
+    padding: 10px;
+  }
+  .slot-card-name {
+    font-size: 0.8rem;
+  }
+  .slot-card-time {
+    font-size: 0.7rem;
+  }
+}
+
+/* ============================================
+   点歌预定功能样式
+   ============================================ */
+.reservation-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  margin-top: 16px;
+}
+
+.reservation-header {
+  display: flex;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.btn-reservation-tab {
+  flex: 1;
+  padding: 12px;
+  background: #F9FAFB;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6B7280;
+  transition: all 0.2s;
+}
+
+.btn-reservation-tab.active {
+  background: white;
+  color: #FF6B9D;
+  border-bottom: 2px solid #FF6B9D;
+}
+
+.reservation-content {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.reservation-date-group {
+  margin-bottom: 16px;
+}
+
+.reservation-date-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  border-left: 3px solid #FF6B9D;
+}
+
+.reservation-slot-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.reservation-slot-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reservation-slot-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.reservation-slot-time {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.reservation-slot-status {
+  font-size: 0.7rem;
+  color: #10B981;
+}
+
+.reservation-slot-status.full {
+  color: #EF4444;
+}
+
+.btn-reserve {
+  padding: 6px 12px;
+  background: #FF6B9D;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reserve:hover {
+  background: #E5558A;
+}
+
+.btn-reserve:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  padding: 6px 12px;
+  background: white;
+  color: #EF4444;
+  border: 1px solid #EF4444;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #FEF2F2;
+}
+
+.reservation-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: #9CA3AF;
+}
+
+/* 我的预定卡片样式 */
+.my-reservation-card {
+  background: #F9FAFB;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+}
+
+.my-reservation-card:hover {
+  border-color: #FF6B9D;
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.1);
+}
+
+.my-reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.my-reservation-slot {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.my-reservation-date {
+  font-size: 0.8rem;
+  color: #6B7280;
+  background: #E5E7EB;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.my-reservation-song {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.my-reservation-song .song-name {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.song-status-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.song-status-tag.pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.song-status-tag.approved {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.song-status-tag.rejected {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.song-status-tag.played {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.song-to {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin-bottom: 8px;
+}
+
+.my-reservation-no-song {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px dashed #D1D5DB;
+}
+
+.my-reservation-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .reservation-slot-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .btn-reserve, .btn-cancel {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ============================================
+   我的点歌记录样式 - 全新美化设计
+   ============================================ */
+#mySongsSection {
+  position: relative;
+}
+
+#mySongsSection::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(255,107,157,0.06), rgba(167,139,250,0.06));
+  border-radius: 16px;
+  z-index: 0;
+}
+
+#mySongsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.my-song-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: linear-gradient(135deg, #ffffff 0%, #fdfbff 100%);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  border-radius: 16px;
+  padding: 18px 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(255, 107, 157, 0.04);
+}
+
+/* 左侧装饰条 */
+.my-song-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #FF6B9D, #A78BFA);
+  border-radius: 4px 0 0 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.my-song-item:hover {
+  border-color: rgba(255, 107, 157, 0.25);
+  box-shadow: 0 8px 30px rgba(255, 107, 157, 0.12), 0 2px 8px rgba(167, 139, 250, 0.08);
+  transform: translateY(-2px) scale(1.005);
+}
+
+.my-song-item:hover::before {
+  opacity: 1;
+}
+
+.my-song-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 歌曲名 + 图标 */
+.my-song-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.my-song-title::before {
+  content: '🎵';
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+/* 元信息行 */
+.my-song-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.my-song-date {
+  font-size: 0.78rem;
+  color: #6B7280;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: #F3F4F6;
+  border-radius: 6px;
+}
+
+/* 状态徽章 */
+.my-song-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 状态徽章带小圆点动画 */
+.my-song-status::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  top: 50%;
+  left: 8px;
+  transform: translateY(-50%);
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* 收信人/祝福语 */
+.my-song-recipient {
+  font-size: 0.82rem;
+  color: #FF6B9D;
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 107, 157, 0.06);
+  border-radius: 8px;
+  max-width: fit-content;
+}
+
+.my-song-msg {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin-top: 6px;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, #f8f9fa, #fff);
+  border: 1px dashed #E5E7EB;
+  border-radius: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 撤回按钮 */
+.my-song-cancel {
+  flex-shrink: 0;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #ffffff, #fef2f2);
+  color: #EF4444;
+  border: 1.5px solid #FECACA;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.my-song-cancel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #EF4444, #F87171);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 0;
+}
+
+.my-song-cancel span,
+.my-song-cancel::before {
+  position: relative;
+  z-index: 1;
+}
+
+.my-song-cancel:hover {
+  border-color: #EF4444;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
+  transform: scale(1.03);
+  color: white;
+}
+
+.my-song-cancel:hover::after {
+  opacity: 1;
+}
+
+.my-song-cancel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 480px) {
+  .my-song-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .my-song-item::before {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: 100%;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+
+  .my-song-cancel {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    padding: 11px;
+  }
+
+  .my-song-meta {
+    flex-wrap: wrap;
+  }
+}

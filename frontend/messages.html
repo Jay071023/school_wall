@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 私信</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/mobile-fix.css">
+  <link rel="stylesheet" href="/css/messages.css">
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link active" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+        <button class="nav-notification" id="navNotification" title="通知">
+          <span class="notification-icon">🔔</span>
+          <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+        </button>
+        <button class="nav-logout" id="navLogout" title="退出登录">⏻</button>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="messages-page">
+    <div class="messages-container">
+      <!-- 左侧会话列表 -->
+      <div class="messages-sidebar">
+        <div class="sidebar-top-actions">
+          <button class="btn-new-conversation" id="btn-new-conversation">＋ 新对话</button>
+          <div class="sidebar-settings">
+            <label class="sidebar-setting-item" title="收到新私信时发送邮件通知">
+              <span class="sidebar-setting-label">📧 邮件通知</span>
+              <input type="checkbox" id="notify-toggle" checked onchange="toggleNotifyMessage(this.checked)">
+            </label>
+            <button class="sidebar-setting-btn" onclick="showBlockList()" title="查看黑名单">🚫 黑名单</button>
+          </div>
+        </div>
+        <div class="conversation-list" id="conversation-list">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧消息区域 -->
+      <div class="messages-main">
+        <div class="messages-header-bar" id="messages-header-bar" style="display: none;">
+          <button class="btn-back-mobile" id="btn-back-conversations" onclick="backToConversations()" title="返回">←</button>
+          <div class="current-partner">
+            <img src="/uploads/avatars/default.png" alt="头像" class="partner-avatar" id="partner-avatar">
+            <div class="partner-info">
+              <h3 class="partner-name" id="partner-name">选择对话</h3>
+              <p class="partner-status" id="partner-status"></p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <span class="dnd-badge" id="dnd-badge" style="display:none;" title="已开启免打扰">🔕</span>
+            <button class="btn-action" id="btn-refresh" title="刷新">🔄</button>
+            <button class="btn-action btn-conversation-menu" title="更多" onclick="toggleConversationMenu(event)">⋮</button>
+          </div>
+          <!-- 会话菜单 -->
+          <div class="conversation-menu" id="conversation-menu">
+            <div class="menu-item menu-slider">
+              <span class="menu-slider-label">🔕 免打扰</span>
+              <label class="switch">
+                <input type="checkbox" id="dnd-slider" onchange="toggleDnd(this.checked)">
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+            <div class="menu-item menu-divider"></div>
+            <div class="menu-item" onclick="blockCurrentUser()">🚫 拉黑此人</div>
+            <div class="menu-item menu-divider"></div>
+            <div class="menu-item menu-item-danger" onclick="clearCurrentConversation()">🗑️ 清空聊天记录</div>
+            <div class="menu-item menu-item-danger" onclick="deleteCurrentConversation()">❌ 删除会话</div>
+          </div>
+        </div>
+
+        <div class="messages-list-container">
+          <div class="messages-list" id="messages-list">
+            <div class="message-empty" id="welcome-message">
+              <div class="message-empty-icon">💌</div>
+              <h3 class="message-empty-text">选择会话开始聊天</h3>
+              <p>从左侧选择一个会话，或发起新对话</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-input-area" id="message-input-area" style="display: none;">
+          <div class="message-input-wrapper">
+            <textarea 
+              class="message-textarea" 
+              id="message-textarea" 
+              placeholder="输入消息..." 
+              rows="2"
+              maxlength="2000"
+            ></textarea>
+            <button class="btn-send" id="btn-send" disabled>➤</button>
+          </div>
+        </div>
+
+        <div class="loading" id="messages-loading" style="display: none;">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 新会话模态框 -->
+  <div class="modal-overlay" id="new-conversation-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">发起新对话</h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-search">
+          <input type="text" class="modal-search-input" id="user-search-input" placeholder="搜索用户昵称或用户名...">
+        </div>
+        <div class="user-list" id="user-list">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>加载中...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 消息详情模态框 -->
+  <div class="modal-overlay" id="message-detail-modal">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">消息详情</h2>
+        <button class="modal-close" id="message-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="message-detail-content" id="message-detail-content"></div>
+        <div class="message-detail-actions">
+          <button class="btn-delete" id="btn-delete-message">🗑️ 删除</button>
+          <button class="btn-close-detail" id="btn-close-detail">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 黑名单模态框 -->
+  <div class="modal-overlay" id="block-list-modal">
+    <div class="modal-card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">🚫 黑名单</h2>
+        <button class="modal-close" onclick="document.getElementById('block-list-modal').classList.remove('show')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="user-list" id="block-list">
+          <div class="loading"><div class="loading-spinner"></div><p>加载中...</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 脚本 -->
+  <script src="/js/app.js"></script>
+  <script src="/js/messages.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof initMessagesPage === 'function') { initMessagesPage(); }
+    });
+  </script>
+
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/messages.html" class="tab-item active" data-tab="messages">
+      <span class="tab-icon">💌</span>
+      <span class="tab-label">私信</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+</body>
+</html>

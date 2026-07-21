@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 编辑帖子</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
+  <style>
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, #ffffff, #f8f9fa);
+      border: 1px solid #e9ecef;
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: -1px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .editor-btn {
+      padding: 7px 14px;
+      border: 1px solid #e0e3e8;
+      background: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a4a4a;
+      transition: all 0.2s ease;
+      min-width: 40px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .editor-btn b { font-weight: 800; }
+    .editor-btn:hover {
+      background: linear-gradient(135deg, #f3e7ff, #ffe7f0);
+      border-color: #d4b5e8;
+      color: #764ba2;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(118, 75, 162, 0.15);
+    }
+    .editor-btn:active { transform: translateY(0); }
+    .word-counter {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: #8b8b8b;
+      padding: 5px 12px;
+      background: rgba(118, 75, 162, 0.06);
+      border-radius: 20px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .word-counter.warning { color: #dc3545; background: rgba(220, 53, 69, 0.12); font-weight: 700; }
+    .form-textarea {
+      border-radius: 0 0 10px 10px !important;
+      padding: 14px !important;
+      line-height: 1.6 !important;
+      min-height: 220px;
+      resize: vertical;
+    }
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 100;
+      max-width: 320px;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+    .emoji-picker.show { display: flex; }
+    .emoji-item {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .emoji-item:hover { background: #f5f5f5; }
+    .editor-wrapper { position: relative; }
+
+    /* ===== 移动端适配：底部 tab bar 高度 =====
+       移动端底部 tab bar 是 60px 高的 fixed 元素，
+       必须给主内容预留空间，否则最下面的按钮会被遮挡无法点击 */
+    @media (max-width: 768px) {
+      .main-container, .page-container, .post-form-card {
+        padding-bottom: 100px !important;
+      }
+    }
+
+    /* ===== 顶部 navbar 高度适配 =====
+       顶部 navbar 是 fixed，主内容需预留空间避免被遮 */
+    .main-container { padding-top: 76px; }
+
+    /* ===== 表单卡片整体美化 ===== */
+    .post-form-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 4px 24px rgba(118, 75, 162, 0.08), 0 1px 3px rgba(0,0,0,0.04);
+      border: 1px solid rgba(118, 75, 162, 0.1);
+    }
+    .form-group { margin-bottom: 22px; }
+    .form-group label {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a3b5c;
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+    .form-group label .optional {
+      font-weight: 400;
+      color: #a89eb5;
+      font-size: 0.85rem;
+      margin-left: 4px;
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e6dfee;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: #fafbff;
+      transition: all 0.2s;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #a78bfa;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+    }
+    .form-input::placeholder, .form-textarea::placeholder { color: #b5adbf; }
+
+    /* ===== 上传区美化 ===== */
+    .image-upload-area {
+      border: 2px dashed #d4c4e8;
+      border-radius: 14px;
+      padding: 36px 20px;
+      text-align: center;
+      background: linear-gradient(180deg, #fdfaff, #f7f3fc);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .image-upload-area:hover {
+      border-color: #a78bfa;
+      background: linear-gradient(180deg, #f7f0ff, #f0e8fa);
+    }
+    .image-upload-area .upload-icon { font-size: 32px; }
+    .image-upload-area .upload-placeholder span:last-child {
+      color: #6b5a7e;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    /* ===== 匿名开关美化 ===== */
+    .toggle-label {
+      display: flex !important;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, #fafbff, #f4f0fa);
+      border-radius: 12px;
+      border: 1px solid #ebe5f3;
+      margin: 0;
+    }
+    .toggle-label > span:first-child {
+      font-weight: 600;
+      color: #4a3b5c;
+      font-size: 0.95rem;
+    }
+    .toggle-switch { margin-left: auto; }
+
+    /* ===== 提交按钮美化 ===== */
+    .btn-block {
+      width: 100%;
+      padding: 14px 24px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(118, 75, 162, 0.3);
+      transition: all 0.2s;
+      letter-spacing: 1px;
+    }
+    .btn-block:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+    }
+    .btn-block:active { transform: translateY(0); }
+    .btn-block:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ===== 页面标题美化 ===== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding: 24px 16px;
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08), rgba(118, 75, 162, 0.08));
+      border-radius: 18px;
+      border: 1px solid rgba(255, 107, 157, 0.1);
+    }
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FF6B9D, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .page-subtitle {
+      color: #8b7a9c;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容 -->
+  <div class="main-container">
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">编辑帖子</h1>
+        <p class="page-subtitle">修改你的帖子内容</p>
+      </div>
+
+      <!-- 编辑表单 -->
+      <div class="post-form-card">
+        <form id="editPostForm">
+          <!-- 分类选择 -->
+          <div class="form-group">
+            <label for="postCategory">分类</label>
+            <select id="postCategory" class="form-input" required>
+              <option value="">选择分类</option>
+              <option value="日常">日常</option>
+              <option value="表白">表白</option>
+              <option value="吐槽">吐槽</option>
+              <option value="求助">求助</option>
+              <option value="交友">交友</option>
+              <option value="二手">二手</option>
+              <option value="寻物">寻物</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+
+          <!-- 标题 -->
+          <div class="form-group">
+            <label for="postTitle">标题 <span class="optional">(选填)</span></label>
+            <input type="text" id="postTitle" class="form-input" placeholder="给帖子起个标题吧~" maxlength="50">
+          </div>
+
+          <!-- 内容 -->
+          <div class="form-group">
+            <label for="postContent">内容</label>
+            <div class="editor-wrapper">
+              <div class="editor-toolbar">
+                <button type="button" class="editor-btn" title="粗体" onclick="insertFormat('bold')"><b>B</b></button>
+                <button type="button" class="editor-btn" title="斜体" onclick="insertFormat('italic')"><i>I</i></button>
+                <button type="button" class="editor-btn" title="插入表情" onclick="showEmojiPicker()">😀</button>
+                <div class="word-counter"><span id="charCount">0</span> / 2000</div>
+              </div>
+              <textarea id="postContent" class="form-textarea" placeholder="分享你的想法..." rows="8" required></textarea>
+              <div class="emoji-picker" id="emojiPicker"></div>
+            </div>
+          </div>
+
+          <!-- 图片上传 -->
+          <div class="form-group">
+            <label>图片 <span class="optional">(选填，最多9张)</span></label>
+            <div class="image-upload-area" id="imageUploadArea">
+              <div class="upload-placeholder">
+                <span class="upload-icon">📷</span>
+                <span>点击上传图片</span>
+              </div>
+              <input type="file" id="imageInput" accept="image/*" multiple style="display:none">
+            </div>
+            <div class="image-preview-list" id="imagePreviewList"></div>
+          </div>
+
+          <!-- 匿名发布 -->
+          <div class="form-group">
+            <label class="toggle-label">
+              <span>匿名发布</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="anonymousToggle">
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+
+          <!-- 提交按钮 -->
+          <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+            保存修改
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/edit-post.js"></script>
+  <script>
+    // ===== 编辑器工具（emoji + 格式化）=====
+    var editContentArea = document.getElementById('postContent');
+    var editCharCount = document.getElementById('charCount');
+    var EMOJIS = ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😗','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😱','😨','😰','😥','😢','😭','💔','💖','💗','💘','💝','💞','💟','❣️','💕','❤️','🧡','💛','💚','💙','💜','🤍','🤎','💯','🔥','⭐','🌟','✨','💫','💥','💢','💣','💦','💨','🌀','🌈','☀️','🌤️','⛅','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','🎉','🎊','🎈','🎁','🎀','🎫','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎟️','💎','💍','👑','🎩','🧢','👒','🎓','💄','💋','👍','👎','👏','🙌','🤝','🙏','💪','🤘','🤙','👌','✌️','🤞','🤟','☝️','✋','🤚','🖐','🖖','✍','🤲'];
+
+    function updateEditCharCount() {
+      if (!editContentArea || !editCharCount) return;
+      editCharCount.textContent = editContentArea.value.length;
+    }
+    if (editContentArea) {
+      editContentArea.addEventListener('input', updateEditCharCount);
+      // 自动调整高度
+      function autoResizeEdit() {
+        editContentArea.style.height = 'auto';
+        editContentArea.style.height = Math.max(editContentArea.scrollHeight, 220) + 'px';
+      }
+      editContentArea.addEventListener('input', autoResizeEdit);
+      // 初次加载时也调整一次
+      setTimeout(autoResizeEdit, 200);
+      setTimeout(autoResizeEdit, 600);
+      setTimeout(autoResizeEdit, 1500);
+    }
+    window.showEmojiPicker = function() {
+      var picker = document.getElementById('emojiPicker');
+      if (!picker) return;
+      if (picker.classList.contains('show')) { picker.classList.remove('show'); return; }
+      picker.innerHTML = EMOJIS.map(function(e) {
+        return '<span class="emoji-item" onclick="insertEmoji(\'' + e + '\')">' + e + '</span>';
+      }).join('');
+      picker.classList.add('show');
+    };
+    window.insertEmoji = function(emoji) {
+      if (!editContentArea) return;
+      var start = editContentArea.selectionStart;
+      var end = editContentArea.selectionEnd;
+      var text = editContentArea.value;
+      editContentArea.value = text.substring(0, start) + emoji + text.substring(end);
+      editContentArea.selectionStart = editContentArea.selectionEnd = start + emoji.length;
+      editContentArea.focus();
+      updateEditCharCount();
+      editContentArea.dispatchEvent(new Event('input'));
+      var picker = document.getElementById('emojiPicker');
+      if (picker) picker.classList.remove('show');
+    };
+    window.insertFormat = function(type) {
+      if (!editContentArea) return;
+      var start = editContentArea.selectionStart;
+      var end = editContentArea.selectionEnd;
+      var text = editContentArea.value;
+      var sel = text.substring(start, end);
+      var wrapped = sel;
+      if (type === 'bold') wrapped = '**' + (sel || '粗体文字') + '**';
+      else if (type === 'italic') wrapped = '*' + (sel || '斜体文字') + '*';
+      editContentArea.value = text.substring(0, start) + wrapped + text.substring(end);
+      editContentArea.selectionStart = start;
+      editContentArea.selectionEnd = start + wrapped.length;
+      editContentArea.focus();
+      updateEditCharCount();
+      editContentArea.dispatchEvent(new Event('input'));
+    };
+    document.addEventListener('click', function(e) {
+      var picker = document.getElementById('emojiPicker');
+      if (picker && !picker.contains(e.target) && !e.target.matches('.editor-btn')) {
+        picker.classList.remove('show');
+      }
+    });
+  </script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 编辑帖子';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
+      }
+    })();
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+</body>
+</html>

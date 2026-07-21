@@ -37,7 +37,8 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    callback(new Error('Not allowed by CORS'));
+    // 不在白名单则拒绝，但不抛错
+    return callback(null, false);  // was: callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
@@ -163,10 +164,7 @@ app.get('/api/site-info', async (req, res) => {
   }
 });
 
-// 私信页面路由
-app.get('/messages.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views/messages.html'));
-});
+
 
 // 公开的用户信息API（无需登录，用于查看其他用户资料）
 app.get('/api/profile/:id', async (req, res) => {
@@ -342,105 +340,6 @@ app.get('/api/ip', (req, res) => {
   // 清理IPv6格式的本地地址
   const cleanIP = ip.replace(/^::ffff:/, '').replace(/^::1$/, '127.0.0.1');
   res.json({ ip: cleanIP });
-});
-
-// 前端页面路由
-app.get('/', (req, res) => {
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
-
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'login.html'));
-});
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'login.html'));
-});
-
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'register.html'));
-});
-
-app.get('/post/:id', (req, res) => {
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.sendFile(path.join(__dirname, 'views', 'post-detail.html'));
-});
-
-// 禁止HTML缓存中间件
-function noCache(req, res, next) {
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-  next();
-}
-
-app.get('/new-post', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'new-post.html'));
-});
-
-app.get('/edit-post/:id', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'edit-post.html'));
-});
-
-app.get('/profile', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'profile.html'));
-});
-
-app.get('/edit-profile', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'edit-profile.html'));
-});
-
-app.get('/radio', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'radio.html'));
-});
-
-app.get('/feedback', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'feedback.html'));
-});
-
-app.get('/agreement', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'agreement.html'));
-});
-
-app.get('/privacy', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'privacy.html'));
-});
-
-app.get('/reset-password', noCache, (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'reset-password.html'));
-});
-
-// 管理后台（HTML版本）
-app.get('/admin', (req, res) => {
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  res.sendFile(path.join(__dirname, 'views', 'admin', 'index.html'));
-});
-
-// 公众号推送管理
-app.get('/admin/mp-draft', (req, res) => {
-  if (!req.query.v) {
-    try {
-      var stat = fs.statSync(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
-      return res.redirect(302, '/admin/mp-draft?v=' + stat.mtimeMs);
-    } catch(e) {
-      return res.redirect(302, '/admin/mp-draft?v=' + Date.now());
-    }
-  }
-  res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private, max-age=0');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  res.sendFile(path.join(__dirname, 'views', 'admin', 'mp-draft.html'));
-});
-
-// 404处理
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
-});
-
-// 错误处理
-app.use((err, req, res, next) => {
-  console.error('服务器错误:', err);
-  res.status(500).json({ code: 500, message: '服务器内部错误' });
 });
 
 // 定时清理过期数据（保留30天）

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>嘉二の墙墙 - 帖子详情</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/user-card.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+</head>
+<body>
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙 <span style="font-size:0.7em;opacity:0.6;">by JAY</span></a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 返回按钮 -->
+    <div class="detail-back">
+      <a href="/" class="back-link">&larr; 返回首页</a>
+    </div>
+
+    <!-- 帖子详情 -->
+    <div class="detail-card" id="postDetail">
+      <!-- JS动态渲染内容 -->
+    </div>
+
+    <!-- 评论区 -->
+    <div class="comment-section">
+      <h3 class="comment-title">评论 <span class="comment-count" id="commentCount">0</span></h3>
+      <!-- 评论排序 -->
+      <div class="comment-sort-bar" id="commentSortBar" style="display:none;">
+        <span class="sort-label">排序：</span>
+        <button class="sort-btn active" data-sort="latest" onclick="switchCommentSort('latest')">最新</button>
+        <button class="sort-btn" data-sort="hot" onclick="switchCommentSort('hot')">最热</button>
+      </div>
+      <div class="comment-input-wrapper">
+        <!-- 回复目标提示 -->
+        <div class="reply-target" id="replyTarget" style="display:none;">
+          <span class="reply-target-text"></span>
+          <button class="reply-cancel" onclick="cancelReply()">取消回复</button>
+        </div>
+        <div class="comment-input-area">
+          <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..." rows="3"></textarea>
+          <!-- 艾特下拉列表 -->
+          <div class="mention-dropdown" id="mentionDropdown" style="display:none;">
+            <div class="mention-loading" id="mentionLoading" style="display:none;">搜索中...</div>
+            <div class="mention-list" id="mentionList"></div>
+          </div>
+          <!-- 表情选择器 -->
+          <div class="emoji-picker" id="emojiPicker" style="display:none;">
+            <div class="emoji-grid" id="emojiGrid"></div>
+          </div>
+        </div>
+        <div class="comment-input-footer">
+          <div class="comment-tools">
+            <button class="tool-btn" id="btnEmoji" title="表情">😀</button>
+            <button class="tool-btn" id="btnMention" title="艾特用户" onclick="showMentionPicker()">@</button>
+          </div>
+          <div class="anonymous-toggle" id="commentAnonymousOption" style="display: none;">
+            <span>匿名</span>
+            <label class="toggle-switch-sm">
+              <input type="checkbox" id="commentAnonymous">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <button class="btn-comment-submit" id="submitComment">发送</button>
+        </div>
+      </div>
+      <div class="comment-list" id="commentList"></div>
+      <div class="comment-empty" id="commentEmpty">还没有评论，快来抢沙发~</div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/user-card.js"></script>
+  <script src="/js/detail.js"></script>
+  <script src="/js/detail-replies.js"></script>
+  <script src="/js/detail-emojis.js"></script>  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '嘉二の墙墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      fetch('/api/site-info')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 帖子详情';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
+      }
+    })();
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/feedback" class="tab-item" data-tab="feedback">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">反馈</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 嘉二の墙墙 · by JAY</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+</body>
+</html>
