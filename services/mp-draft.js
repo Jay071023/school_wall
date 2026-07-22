@@ -30,49 +30,6 @@ const CONFIG = {
   HITOKOTO_API: 'https://v1.hitokoto.cn/?c=i&c=d&c=k', // 诗词、文学、动画
 };
 
-// access_token 内存缓存(微信有效期7200s,提前60s过期避免临界)
-var _accessTokenCache = { token: null, expireAt: 0 };
-
-/**
- * 获取微信 Access Token(带内存缓存)
- */
-async function getAccessToken() {
-  var now = Date.now();
-  if (_accessTokenCache.token && _accessTokenCache.expireAt > now + 60000) {
-    return _accessTokenCache.token;
-  }
-  return new Promise(function(resolve, reject) {
-    var url = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=' + WECHAT_APPID + '&secret=' + WECHAT_SECRET;
-    var req = https.get(url, function(res) {
-      var data = '';
-      res.on('data', function(chunk) { data += chunk; });
-      res.on('end', function() {
-        try {
-          var json = JSON.parse(data);
-          if (json.access_token) {
-            _accessTokenCache.token = json.access_token;
-            _accessTokenCache.expireAt = now + (json.expires_in || 7200) * 1000;
-            resolve(json.access_token);
-          } else {
-            reject(new Error('获取access_token失败: ' + (data || '').substring(0, 200)));
-          }
-        } catch (e) { reject(e); }
-      });
-    });
-    req.setTimeout(10000, function() {
-      try { req.destroy(); } catch(e) {}
-      reject(new Error('access_token 请求超时'));
-    });
-    req.on('error', reject);
-  });
-}
-
-/**
- * 上传临时素材（图片）
- * @param {string} imageUrl - 图片URL或本地路径
- * @param {string} type - 媒体类型：image
- * @returns {string} media_id
- */
 async function uploadMedia(imageUrl, type = 'image') {
   try {
     const token = await getAccessToken();

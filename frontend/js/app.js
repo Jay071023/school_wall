@@ -83,7 +83,6 @@ function logout() {
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('user');
 }
-}
 
 /**
  * 检查用户是否已登录
