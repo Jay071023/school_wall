@@ -26,7 +26,6 @@ function updateThemeColor() {
   } else {
     meta.setAttribute('content', isDark ? '#1a1423' : '#FAFBFE');
   }
-}
 
 /**
  * 全局HTML转义函数（防止XSS攻击）
@@ -58,7 +57,6 @@ function getCurrentUser() {
   } catch (e) {
     return null;
   }
-}
 
 /**
  * 保存登录信息到本地存储
@@ -82,7 +80,6 @@ function logout() {
   localStorage.removeItem('user');
   sessionStorage.removeItem('token');
   sessionStorage.removeItem('user');
-}
 }
 
 /**
@@ -121,6 +118,7 @@ async function authFetch(url, options) {
     var res = await fetch(url, options);
     if (res.status === 401) {
       logout();
+      window.location.href = '/login';
       return { code: 401, message: '请先登录' };
     }
     var data = await res.json();
@@ -149,6 +147,7 @@ async function apiFetch(url, options) {
     var res = await fetch(url, options);
     if (res.status === 401) {
       logout();
+      window.location.href = '/login';
       return { code: 401, message: '请先登录' };
     }
     var data = await res.json();
