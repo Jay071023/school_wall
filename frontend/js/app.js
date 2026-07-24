@@ -26,7 +26,6 @@ function updateThemeColor() {
   } else {
     meta.setAttribute('content', isDark ? '#1a1423' : '#FAFBFE');
   }
-}
 
 /**
  * 全局HTML转义函数（防止XSS攻击）
@@ -622,3 +621,5 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowLeft') lightboxGo(-1);
   if (e.key === 'ArrowRight') lightboxGo(1);
 });
+}
+}
