@@ -3018,7 +3018,7 @@ select.form-input {
 }
 /* 涓や晶瑁呴グ */
 .detail-card::before {
-  content: '馃尭';
+  content: '🌸';
   position: absolute;
   top: 30%;
   left: -40px;
@@ -3028,7 +3028,7 @@ select.form-input {
   pointer-events: none;
 }
 .detail-card::after {
-  content: '鉁?;
+  content: '⭐';
   position: absolute;
   top: 55%;
   right: -36px;
@@ -4820,7 +4820,7 @@ select.form-input {
 
 /* 姝屾洸鍚嶅墠鐨勯煶绗﹀浘鏍?*/
 .playlist-item .song-name::before {
-  content: '馃幍';
+  content: '🎵';
   font-size: 0.95rem;
   flex-shrink: 0;
 }
@@ -4951,7 +4951,7 @@ select.form-input {
 }
 
 .playlist-item .song-msg-bubble::before {
-  content: '馃挰';
+  content: '💬';
   margin-right: 5px;
 }
 
@@ -5409,7 +5409,7 @@ select.form-input {
 }
 
 .notice-item-time::before {
-  content: '馃晲';
+  content: '🕐';
   font-size: 0.7rem;
 }
 
@@ -5486,7 +5486,7 @@ select.form-input {
 }
 
 .playlist-loading::before {
-  content: '馃幍';
+  content: '🎵';
   font-size: 1.5rem;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -5501,7 +5501,7 @@ select.form-input {
 }
 
 .playlist-empty::before {
-  content: '馃摶';
+  content: '📻';
   font-size: 1.2rem;
 }
 
@@ -12972,12 +12972,12 @@ select.form-input {
   gap: 8px;
 }
 .preview-poll-item::before {
-  content: '馃敇';
+  content: '🔘';
   font-size: 0.85rem;
   flex-shrink: 0;
 }
 .preview-poll-item.multi::before {
-  content: '鈽戯笍';
+  content: '☑️';
 }
 
 @media (max-width: 768px) {

@@ -3016,7 +3016,31 @@ select.form-input {
   border: 1px solid rgba(0, 0, 0, 0.04);
   position: relative;
 }
-
+/* 两侧装饰 */
+.detail-card::before {
+  content: '🌸';
+  position: absolute;
+  top: 30%;
+  left: -40px;
+  font-size: 1.8rem;
+  opacity: 0.12;
+  animation: float-deco-side 7s ease-in-out infinite;
+  pointer-events: none;
+}
+.detail-card::after {
+  content: '⭐';
+  position: absolute;
+  top: 55%;
+  right: -36px;
+  font-size: 1.4rem;
+  opacity: 0.12;
+  animation: float-deco-side 6s ease-in-out infinite 1s;
+  pointer-events: none;
+}
+@keyframes float-deco-side {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(6deg); }
+}
 
 /* ---- 涓や晶瑁呴グ鍗＄墖 ---- */
 @media (min-width: 1200px) {
@@ -3329,7 +3353,32 @@ select.form-input {
   background: linear-gradient(90deg, #FF6B9D, #A78BFA, #FCD34D, #34D399, #60A5FA, #A78BFA);
   border-radius: 24px 24px 0 0;
 }
-
+/* 装饰：漂浮小元素 */
+.comment-section::after {
+  content: '🌸';
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  font-size: 1.6rem;
+  opacity: 0.1;
+  animation: float-comment-deco 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes float-comment-deco {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(8deg); }
+}
+/* 第二个装饰 */
+.comment-section-header::after {
+  content: '⭐';
+  position: absolute;
+  top: -6px;
+  left: 36px;
+  font-size: 1rem;
+  opacity: 0.15;
+  animation: float-comment-deco 5s ease-in-out infinite 1s;
+  pointer-events: none;
+}
 
 [data-theme="dark"] .comment-section {
   background: linear-gradient(160deg, #1f1825 0%, #1a1528 50%, #181828 100%);
@@ -3903,7 +3952,18 @@ select.form-input {
   position: relative;
   overflow: hidden;
 }
-
+/* 顶部装饰 */
+.profile-card::before {
+  content: '⭐🌟✨⭐🌟✨⭐🌟✨';
+  position: absolute;
+  top: 8px;
+  left: 0; right: 0;
+  font-size: 9px;
+  letter-spacing: 10px;
+  color: rgba(255, 107, 157, 0.15);
+  text-align: center;
+  pointer-events: none;
+}
 
 /* 澶村儚瀹瑰櫒 */
 .profile-avatar-wrapper {
@@ -4796,7 +4856,7 @@ select.form-input {
 
 /* 姝屾洸鍚嶅墠鐨勯煶绗﹀浘鏍?*/
 .playlist-item .song-name::before {
-  content: '馃幍';
+  content: '🎵';
   font-size: 0.95rem;
   flex-shrink: 0;
 }
@@ -4927,7 +4987,7 @@ select.form-input {
 }
 
 .playlist-item .song-msg-bubble::before {
-  content: '馃挰';
+  content: '💬';
   margin-right: 5px;
 }
 
@@ -5385,7 +5445,7 @@ select.form-input {
 }
 
 .notice-item-time::before {
-  content: '馃晲';
+  content: '🕐';
   font-size: 0.7rem;
 }
 
@@ -5462,7 +5522,7 @@ select.form-input {
 }
 
 .playlist-loading::before {
-  content: '馃幍';
+  content: '🎵';
   font-size: 1.5rem;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -5477,7 +5537,7 @@ select.form-input {
 }
 
 .playlist-empty::before {
-  content: '馃摶';
+  content: '📻';
   font-size: 1.2rem;
 }
 
@@ -12948,12 +13008,12 @@ select.form-input {
   gap: 8px;
 }
 .preview-poll-item::before {
-  content: '馃敇';
+  content: '🔘';
   font-size: 0.85rem;
   flex-shrink: 0;
 }
 .preview-poll-item.multi::before {
-  content: '鈽戯笍';
+  content: '☑️';
 }
 
 @media (max-width: 768px) {
