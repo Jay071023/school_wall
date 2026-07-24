@@ -3353,32 +3353,7 @@ select.form-input {
   background: linear-gradient(90deg, #FF6B9D, #A78BFA, #FCD34D, #34D399, #60A5FA, #A78BFA);
   border-radius: 24px 24px 0 0;
 }
-/* 瑁呴グ锛氭紓娴皬鍏冪礌 */
-.comment-section::after {
-  content: '馃尭';
-  position: absolute;
-  top: 12px;
-  right: 24px;
-  font-size: 1.6rem;
-  opacity: 0.1;
-  animation: float-comment-deco 6s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes float-comment-deco {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(8deg); }
-}
-/* 绗簩涓楗?*/
-.comment-section-header::after {
-  content: '鉁?;
-  position: absolute;
-  top: -6px;
-  left: 36px;
-  font-size: 1rem;
-  opacity: 0.15;
-  animation: float-comment-deco 5s ease-in-out infinite 1s;
-  pointer-events: none;
-}
+
 
 [data-theme="dark"] .comment-section {
   background: linear-gradient(160deg, #1f1825 0%, #1a1528 50%, #181828 100%);
