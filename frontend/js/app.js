@@ -622,4 +622,3 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowLeft') lightboxGo(-1);
   if (e.key === 'ArrowRight') lightboxGo(1);
 });
-}
