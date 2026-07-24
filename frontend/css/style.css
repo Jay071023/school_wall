@@ -5542,7 +5542,7 @@ select.form-input {
 }
 
 .playlist-empty::after {
-  content: '鏆傛棤鎾斁鏇茬洰锛屽揩鍘荤偣涓€棣栧惂~';
+  content: '暂无播放曲目，快去点一首吧~';
   font-size: 0.85rem;
   color: var(--text-muted);
 }
