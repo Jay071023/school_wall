@@ -596,7 +596,7 @@
 }
 
 /* ============================================
-   2. 鍏ㄥ眬鍩虹鏍峰紡
+   2. 鍏ㄥ眬鍩虹样式
    ============================================ */
 
 /* ---- html ---- */
@@ -724,7 +724,7 @@ body {
   color: var(--primary-dark);
 }
 
-/* ---- 閾炬帴榛樿鏍峰紡 ---- */
+/* ---- 閾炬帴榛樿样式 ---- */
 a {
   color: var(--primary);
   text-decoration: none;
@@ -735,7 +735,7 @@ a:hover {
   color: var(--primary-dark);
 }
 
-/* ---- 鍥剧墖榛樿鏍峰紡 ---- */
+/* ---- 鍥剧墖榛樿样式 ---- */
 img {
   max-width: 100%;
   display: block;
@@ -848,10 +848,10 @@ h3 {
 }
 
 /* ============================================
-   5. 瀵艰埅鏍?
+   5. 导航栏?
    ============================================ */
 
-/* ---- 瀵艰埅鏍忎富浣?---- */
+/* ---- 导航栏忎富浣?---- */
 .navbar {
   position: fixed;
   top: 0;
@@ -866,13 +866,13 @@ h3 {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 瀵艰埅鏍忔粴鍔ㄥ悗鏍峰紡 */
+/* 导航栏忔粴鍔ㄥ悗样式 */
 .navbar.scrolled {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 1px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* ---- 瀵艰埅鏍忓唴閮ㄥ鍣?---- */
+/* ---- 导航栏忓唴閮ㄥ鍣?---- */
 .navbar .nav-inner {
   max-width: 1200px;
   margin: 0 auto;
@@ -936,7 +936,7 @@ h3 {
   font-weight: 600;
 }
 
-/* 绠＄悊鍚庡彴閾炬帴鏍峰紡 - 涓庡叾浠栧鑸摼鎺ヤ繚鎸佷竴鑷?*/
+/* 管理后台庡彴閾炬帴样式 - 涓庡叾浠栧鑸摼鎺ヤ繚鎸佷竴鑷?*/
 .navbar .nav-admin-link {
   padding: 8px 16px;
   border-radius: var(--radius-full);
@@ -1114,7 +1114,7 @@ h3 {
 }
 
 /* ============================================
-   11. 鎼滅储鏍?
+   11. 鎼搜索栏?
    ============================================ */
 .search-bar {
   display: flex;
@@ -1207,7 +1207,7 @@ h3 {
    12. 绛涢€夋爮
    ============================================ */
 
-/* ---- 棣栭〉鐐规瓕鎾斁鍒楄〃 ---- */
+/* ---- 首页〉鐐规瓕鎾斁鍒楄〃 ---- */
 .home-radio-section {
   background: var(--bg-glass);
   backdrop-filter: blur(16px);
@@ -1335,7 +1335,7 @@ h3 {
   border: 1px solid rgba(255, 107, 157, 0.15);
 }
 
-/* ---- 鍒嗙被鏍囩缁?---- */
+/* ---- 鍒嗙被标签缁?---- */
 .filter-categories {
   display: flex;
   flex-wrap: wrap;
@@ -1343,7 +1343,7 @@ h3 {
 }
 
 /* ============================================
-   閫€鍑虹櫥褰曠‘璁ゅ脊绐?- 鍗″搰浼婇鏍?
+   退出登录确认弹窗?- 鍗″搰浼婇鏍?
    ============================================ */
 .logout-confirm-modal {
   background: linear-gradient(160deg, #FFF8FA 0%, #FFF5FF 50%, #F8F0FF 100%);
@@ -1439,7 +1439,7 @@ h3 {
   box-shadow: 0 6px 18px rgba(255, 107, 157, 0.4);
 }
 
-/* 娣辫壊涓婚閫傞厤 */
+/* 娣辫壊涓婚适配厤 */
 [data-theme="dark"] .logout-confirm-modal {
   background: linear-gradient(160deg, rgba(60, 40, 50, 0.95) 0%, rgba(50, 35, 55, 0.95) 50%, rgba(45, 30, 50, 0.95) 100%);
 }
@@ -1581,7 +1581,7 @@ h3 {
   flex-wrap: wrap;
 }
 
-/* 瑙掕壊鏍囩 */
+/* 瑙掕壊标签 */
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -1692,7 +1692,7 @@ h3 {
   max-height: 400px;
 }
 
-/* 鍥剧墖鏍峰紡 */
+/* 鍥剧墖样式 */
 .post-card .post-image {
   width: 100%;
   height: 100%;
@@ -2098,7 +2098,7 @@ h3 {
 }
 
 /* ============================================
-   10.5 鍒嗛〉鎺т欢
+   10.5 分页控件
    ============================================ */
 .pagination-container {
   display: flex;
@@ -2269,7 +2269,7 @@ h3 {
 }
 
 /* ============================================
-   12. 鐧诲綍 / 娉ㄥ唽椤?
+   12. 登录 / 注册页椤?
    ============================================ */
 
 /* ---- 璁よ瘉椤典富浣?---- */
@@ -2540,7 +2540,7 @@ h3 {
   margin-top: 4px;
 }
 
-/* ---- 琛ㄥ崟鏍囩 ---- */
+/* ---- 琛ㄥ崟标签 ---- */
 .form-label {
   display: flex;
   align-items: center;
@@ -2560,7 +2560,7 @@ h3 {
   border-radius: var(--radius-sm);
 }
 
-/* 蹇呭～鏍囩 */
+/* 蹇呭～标签 */
 .required-tag {
   font-size: 0.7rem;
   padding: 2px 6px;
@@ -2807,14 +2807,14 @@ select.form-input {
   opacity: 1;
 }
 
-/* ---- 鍒嗙被鏍囩閫夋嫨 ---- */
+/* ---- 鍒嗙被标签閫夋嫨 ---- */
 .category-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/* 鍗曚釜鍒嗙被鏍囩 */
+/* 鍗曚釜鍒嗙被标签 */
 .category-tag {
   padding: 8px 18px;
   border-radius: var(--radius-full);
@@ -3217,7 +3217,7 @@ select.form-input {
   color: var(--text-light);
 }
 
-/* 甯栧瓙鍒嗙被鏍囩 */
+/* 甯栧瓙鍒嗙被标签 */
 .post-category-tag {
   font-size: 0.7rem;
   padding: 2px 8px;
@@ -4023,7 +4023,7 @@ select.form-input {
   margin-bottom: 8px;
 }
 
-/* 鐢ㄦ埛璧勬枡璇︽儏鏍囩锛堟€у埆/MBTI/鐢熸棩/鐖卞ソ锛?*/
+/* 鐢ㄦ埛璧勬枡璇︽儏标签锛堟€у埆/MBTI/鐢熸棩/鐖卞ソ锛?*/
 .profile-detail-info {
   display: flex;
   flex-wrap: wrap;
@@ -4151,7 +4151,7 @@ select.form-input {
   box-shadow: 0 4px 12px rgba(255, 107, 157, 0.15);
 }
 
-/* 淇敼瀵嗙爜鎸夐挳鏍峰紡 */
+/* 淇敼瀵嗙爜鎸夐挳样式 */
 .btn-edit-profile.btn-secondary {
   background: rgba(243, 244, 246, 0.6);
   color: #6B7280;
@@ -4164,7 +4164,7 @@ select.form-input {
   box-shadow: 0 4px 12px rgba(192, 132, 252, 0.15);
 }
 
-/* 绠＄悊鍚庡彴鎸夐挳鏍峰紡 - 涓庡叾浠栨寜閽繚鎸佷竴鑷寸殑澶у皬锛屼粎浠ラ鑹插尯鍒?*/
+/* 管理后台庡彴鎸夐挳样式 - 涓庡叾浠栨寜閽繚鎸佷竴鑷寸殑澶у皬锛屼粎浠ラ鑹插尯鍒?*/
 .btn-edit-profile.btn-admin {
   display: none;
   background: rgba(243, 244, 246, 0.6);
@@ -4290,7 +4290,7 @@ select.form-input {
   }
 }
 
-/* ---- 涓汉涓績鏍囩椤?---- */
+/* ---- 涓汉涓績标签椤?---- */
 .profile-tabs-section {
   background: rgba(255,255,255,0.7);
   backdrop-filter: blur(8px);
@@ -4300,14 +4300,14 @@ select.form-input {
   margin-bottom: 24px;
 }
 
-/* 鏍囩椤靛ご閮?*/
+/* 标签椤靛ご閮?*/
 .profile-tabs {
   display: flex;
   border-bottom: 1px solid rgba(255, 107, 157, 0.06);
   padding: 0 4px;
 }
 
-/* 鍗曚釜鏍囩 */
+/* 鍗曚釜标签 */
 .profile-tab {
   flex: 1;
   padding: 14px 8px;
@@ -4332,14 +4332,14 @@ select.form-input {
   background: rgba(255, 107, 157, 0.03);
 }
 
-/* 婵€娲荤殑鏍囩 */
+/* 婵€娲荤殑标签 */
 .profile-tab.active {
   color: #FF6B9D;
   font-weight: 700;
   border-bottom-color: #FF6B9D;
 }
 
-/* 鏍囩椤靛唴瀹?*/
+/* 标签椤靛唴瀹?*/
 .profile-tab-content {
   padding: 18px;
 }
@@ -4376,7 +4376,7 @@ select.form-input {
 }
 
 /* ============================================
-   17. 骞挎挱鐐规瓕椤?
+   17. 广播点歌页?
    ============================================ */
 
 /* ---- 骞挎挱椤靛ご閮?---- */
@@ -4890,7 +4890,7 @@ select.form-input {
   border-radius: 6px;
 }
 
-/* 鏍囩鏍峰紡 */
+/* 标签样式 */
 .playlist-item .song-tag {
   display: inline-flex;
   align-items: center;
@@ -4993,7 +4993,7 @@ select.form-input {
 
 /* 鎴戠殑鐐规瓕璁板綍鍗＄墖 - 宸茶縼绉诲埌 reservation.css锛屾澶勪繚鐣欐殫鑹查€傞厤 */
 .my-song-item {
-  /* 鍩虹鏍峰紡鐢?reservation.css 瀹氫箟 */
+  /* 鍩虹样式鐢?reservation.css 瀹氫箟 */
 }
 
 .my-song-main {
@@ -5047,7 +5047,7 @@ select.form-input {
 }
 
 /* ============================================
-   鏆楄壊妯″紡 - 鐐规瓕鍒楄〃 & 鎴戠殑鐐规瓕閫傞厤
+   鏆楄壊妯″紡 - 鐐规瓕鍒楄〃 & 鎴戠殑鐐规瓕适配厤
    ============================================ */
 [data-theme="dark"] .playlist-item {
   background: linear-gradient(135deg, rgba(30,30,40,0.9), rgba(25,25,35,0.95));
@@ -5215,7 +5215,7 @@ select.form-input {
   margin-bottom: 24px;
 }
 
-/* 杩斿洖棣栭〉鎸夐挳 */
+/* 杩斿洖首页〉鎸夐挳 */
 .btn-home {
   display: inline-flex;
   align-items: center;
@@ -5306,7 +5306,7 @@ select.form-input {
   background: var(--danger);
 }
 
-/* 璀﹀憡 Toast */
+/* 璀﹀公告 Toast */
 .toast-warning {
   background: var(--warning);
 }
@@ -5317,11 +5317,11 @@ select.form-input {
 }
 
 /* ============================================
-   20. 棣栭〉姝屽崟灞曠ず鍖?
+   20. 首页〉姝屽崟灞曠ず鍖?
    ============================================ */
 
 /* ============================================
-   14. 棣栭〉鍏憡
+   14. 首页〉鍏公告
    ============================================ */
 .home-notice-section {
   background: linear-gradient(135deg, #FFF7E6 0%, #FFF0D6 50%, #FFFBF0 100%);
@@ -5692,7 +5692,7 @@ select.form-input {
 }
 
 /* ============================================
-   21. 绠＄悊鍚庡彴
+   21. 管理后台庡彴
    ============================================ */
 
 /* ---- 鍚庡彴甯冨眬 ---- */
@@ -6335,7 +6335,7 @@ select.form-input {
   line-height: 1.2;
 }
 
-/* 缁熻鍗＄墖鏍囩 */
+/* 缁熻鍗＄墖标签 */
 .stat-card .stat-label {
   font-size: 0.813rem;
   color: var(--text-light);
@@ -6521,7 +6521,7 @@ select.form-input {
   opacity: 0.9;
 }
 
-/* 璀﹀憡鎸夐挳 */
+/* 璀﹀公告鎸夐挳 */
 .btn-warning {
   background: var(--warning);
   color: var(--text-inverse);
@@ -6587,7 +6587,7 @@ select.form-input {
   color: var(--danger);
 }
 
-/* 鐘舵€佸窘绔?- 璀﹀憡 */
+/* 鐘舵€佸窘绔?- 璀﹀公告 */
 .status-badge.status-warning {
   background: rgba(245, 158, 11, 0.1);
   color: var(--warning);
@@ -7012,7 +7012,7 @@ select.form-input {
 }
 
 /* ============================================
-   23.5 閫氱煡涓績鏍峰紡
+   23.5 閫氱煡涓績样式
    ============================================ */
 .notification-badge {
   display: inline-flex;
@@ -7185,7 +7185,7 @@ select.form-input {
 
 /* ---- 骞虫澘鍙婁互涓?(< 768px) ---- */
 @media (max-width: 768px) {
-  /* 璋冩暣瀵艰埅鏍忛珮搴?*/
+  /* 璋冩暣导航栏忛珮搴?*/
   :root {
     --navbar-height: 56px;
   }
@@ -7715,7 +7715,7 @@ select.form-input {
     min-width: 600px;
   }
 
-  /* 绠＄悊鍚庡彴绉诲姩绔紭鍖?*/
+  /* 管理后台庡彴绉诲姩绔紭鍖?*/
   .admin-sidebar .sidebar-nav {
     padding: 10px 0;
   }
@@ -8524,7 +8524,7 @@ select.form-input {
 }
 
 /* ============================================
-   28. 鏍囩椤电粍浠讹紙閫氱敤锛?
+   28. 标签椤电粍浠讹紙閫氱敤锛?
    ============================================ */
 .tabs {
   display: flex;
@@ -8607,7 +8607,7 @@ select.form-input {
 }
 
 /* ============================================
-   30. 鍒嗛殧绾?
+   30. 分隔线?
    ============================================ */
 .divider {
   height: 1px;
@@ -8672,7 +8672,7 @@ select.form-input {
 }
 
 /* ============================================
-   32. 鍗＄墖閫氱敤鏍峰紡
+   32. 鍗＄墖閫氱敤样式
    ============================================ */
 .card {
   background: var(--bg-card);
@@ -8701,7 +8701,7 @@ select.form-input {
    33. 杈撳叆妗嗗寮?
    ============================================ */
 
-/* 甯﹀浘鏍囩殑杈撳叆妗?*/
+/* 甯﹀浘标签殑杈撳叆妗?*/
 .input-group {
   position: relative;
 }
@@ -8858,7 +8858,7 @@ select.form-input {
 }
 
 /* ============================================
-   36. 鏍囩
+   36. 标签
    ============================================ */
 .tag {
   display: inline-flex;
@@ -9004,7 +9004,7 @@ select.form-input {
 }
 
 /* ============================================
-   40. 鎵撳嵃鏍峰紡
+   40. 鎵撳嵃样式
    ============================================ */
 @media print {
   .navbar,
@@ -9208,7 +9208,7 @@ select.form-input {
   }
 }
 
-/* 姣忔棩鎵撳崱鍗＄墖鏍峰紡 */
+/* 姣忔棩鎵撳崱鍗＄墖样式 */
 .side-card-checkin {
   width: 140px;
   padding: 16px 12px;
@@ -9567,7 +9567,7 @@ select.form-input {
 }
 
 /* ============================================
-   44. 鍏憡娣辫壊妯″紡閫傞厤
+   44. 鍏公告娣辫壊妯″紡适配厤
    ============================================ */
 [data-theme="dark"] .home-notice-section {
   background: linear-gradient(135deg, #3D2E1F 0%, #2D2218 50%, #3A2E1F 100%);
@@ -9850,7 +9850,7 @@ select.form-input {
   }
 }
 
-/* 娣辫壊涓婚閫傞厤 - 渚ц竟鍗＄墖 */
+/* 娣辫壊涓婚适配厤 - 渚ц竟鍗＄墖 */
 [data-theme="dark"] .side-cards-left .side-card {
   background: linear-gradient(145deg, rgba(80, 60, 40, 0.9), rgba(60, 45, 30, 0.85));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -9885,7 +9885,7 @@ select.form-input {
 }
 
 /* ============================================
-   42. 澶╂皵鍗＄墖鏍峰紡
+   42. 澶╂皵鍗＄墖样式
    ============================================ */
 .side-cards-left .side-card:nth-child(2) {
   background: linear-gradient(145deg, rgba(199, 230, 255, 0.95), rgba(180, 220, 255, 0.9));
@@ -9979,7 +9979,7 @@ select.form-input {
 }
 
 /* ============================================
-   43. 鐑悳鍗＄墖鏍峰紡
+   43. 鐑悳鍗＄墖样式
    ============================================ */
 .side-cards-right .side-card:nth-child(2) {
   background: linear-gradient(145deg, rgba(255, 240, 245, 0.95), rgba(255, 230, 238, 0.9));
@@ -10048,7 +10048,7 @@ select.form-input {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* 鍘嗗彶涓婄殑浠婂ぉ - 鍒楄〃鏉＄洰鏍峰紡锛堜豢鍙嶉璁板綍鍗＄墖锛?*/
+/* 鍘嗗彶涓婄殑浠婂ぉ - 鍒楄〃鏉＄洰样式锛堜豢鍙嶉璁板綍鍗＄墖锛?*/
 .hotsearch-item.history-item {
   display: flex;
   align-items: flex-start;
@@ -10548,7 +10548,7 @@ select.form-input {
 }
 
 /* ============================================
-   鐢ㄦ埛鍗忚鍕鹃€夋鏍峰紡
+   鐢ㄦ埛鍗忚鍕鹃€夋样式
    ============================================ */
 .agreement-section {
   margin: 16px 0;
@@ -10621,7 +10621,7 @@ select.form-input {
 }
 
 /* ============================================
-   鍗忚寮圭獥鏍峰紡
+   鍗忚寮圭獥样式
    ============================================ */
 .modal-overlay {
   position: fixed;
@@ -10797,7 +10797,7 @@ select.form-input {
 }
 
 /* ============================================
-   瀵嗙爜淇敼闈㈡澘 - 鐙珛鍗＄墖鏍峰紡锛堟棤閬僵锛?
+   瀵嗙爜淇敼闈㈡澘 - 鐙珛鍗＄墖样式锛堟棤閬僵锛?
    ============================================ */
 .password-panel {
   position: fixed;
@@ -11047,7 +11047,7 @@ select.form-input {
   font-size: 1rem;
 }
 
-/* 娣辫壊妯″紡閫傞厤 */
+/* 娣辫壊妯″紡适配厤 */
 [data-theme="dark"] .password-field-input {
   background: var(--bg-secondary);
   border-color: var(--border-color);
@@ -12696,7 +12696,7 @@ select.form-input {
   100% { opacity: 0; }
 }
 
-/* 鏆楄壊妯″紡閫傞厤 */
+/* 鏆楄壊妯″紡适配厤 */
 [data-theme="dark"] .easter-progress-text {
   color: rgba(255,143,181,0.8);
 }
@@ -12708,7 +12708,7 @@ select.form-input {
 }
 
 /* ============================================
-   绉诲姩绔紭鍖栵細profile 甯栧瓙鍗＄墖 + 鏍囩鏍?
+   绉诲姩绔紭鍖栵細profile 甯栧瓙鍗＄墖 + 标签鏍?
    ============================================ */
 /* 鍏ㄥ眬锛氱粰 fixed navbar 鐣欎綅缃紙浠呭灞?main-container锛?*/
 .main-container {
@@ -12719,7 +12719,7 @@ select.form-input {
   padding-top: 0;
 }
 @media (max-width: 768px) {
-  /* 鏍囩鏍忥細绱у噾 + 妯悜婊氬姩 */
+  /* 标签鏍忥細绱у噾 + 妯悜婊氬姩 */
   .profile-tabs {
     overflow-x: auto;
     overflow-y: hidden;
@@ -12734,7 +12734,7 @@ select.form-input {
     white-space: nowrap;
   }
 
-  /* 鏍囩鍐呭锛氬幓鎺夊唴杈硅窛璁╁崱鐗囧崰婊?*/
+  /* 标签鍐呭锛氬幓鎺夊唴杈硅窛璁╁崱鐗囧崰婊?*/
   .profile-tab-content {
     padding: 12px !important;
   }
@@ -12882,7 +12882,7 @@ select.form-input {
   font-weight: 500;
 }
 
-/* ===== 鏂板缓鎶曠エ甯栭€夐」鏍峰紡 ===== */
+/* ===== 鏂板缓鎶曠エ甯栭€夐」样式 ===== */
 .poll-option-row {
   display: flex;
   align-items: center;
