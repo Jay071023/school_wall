@@ -3016,7 +3016,7 @@ select.form-input {
   border: 1px solid rgba(0, 0, 0, 0.04);
   position: relative;
 }
-/* 涓や晶瑁呴グ */
+/* 两侧装饰 */
 .detail-card::before {
   content: '🌸';
   position: absolute;
@@ -3353,7 +3353,32 @@ select.form-input {
   background: linear-gradient(90deg, #FF6B9D, #A78BFA, #FCD34D, #34D399, #60A5FA, #A78BFA);
   border-radius: 24px 24px 0 0;
 }
-
+/* 装饰：漂浮小元素 */
+.comment-section::after {
+  content: '🌸';
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  font-size: 1.6rem;
+  opacity: 0.1;
+  animation: float-comment-deco 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes float-comment-deco {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(8deg); }
+}
+/* 第二个装饰 */
+.comment-section-header::after {
+  content: '⭐';
+  position: absolute;
+  top: -6px;
+  left: 36px;
+  font-size: 1rem;
+  opacity: 0.15;
+  animation: float-comment-deco 5s ease-in-out infinite 1s;
+  pointer-events: none;
+}
 
 [data-theme="dark"] .comment-section {
   background: linear-gradient(160deg, #1f1825 0%, #1a1528 50%, #181828 100%);
@@ -3817,7 +3842,7 @@ select.form-input {
   display: block;
   width: 64px; height: 64px;
   margin: 0 auto 12px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFE0E6'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36'%3E馃挰%3C/text%3E%3C/svg%3E") center/contain no-repeat;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23FFE0E6'/%3E%3Ctext x='50' y='62' text-anchor='middle' font-size='36'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E") center/contain no-repeat;
   opacity: 0.6;
 }
 
@@ -3927,7 +3952,18 @@ select.form-input {
   position: relative;
   overflow: hidden;
 }
-
+/* 顶部装饰 */
+.profile-card::before {
+  content: '⭐🌟✨⭐🌟✨⭐🌟✨';
+  position: absolute;
+  top: 8px;
+  left: 0; right: 0;
+  font-size: 9px;
+  letter-spacing: 10px;
+  color: rgba(255, 107, 157, 0.15);
+  text-align: center;
+  pointer-events: none;
+}
 
 /* 澶村儚瀹瑰櫒 */
 .profile-avatar-wrapper {
