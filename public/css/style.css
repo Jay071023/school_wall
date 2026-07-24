@@ -3927,18 +3927,7 @@ select.form-input {
   position: relative;
   overflow: hidden;
 }
-/* 椤堕儴瑁呴グ */
-.profile-card::before {
-  content: '鉁?鉁?鈽?鉁?鉁?鉁?鉁?鉁?;
-  position: absolute;
-  top: 8px;
-  left: 0; right: 0;
-  font-size: 9px;
-  letter-spacing: 10px;
-  color: rgba(255, 107, 157, 0.15);
-  text-align: center;
-  pointer-events: none;
-}
+
 
 /* 澶村儚瀹瑰櫒 */
 .profile-avatar-wrapper {
@@ -10565,7 +10554,7 @@ select.form-input {
 }
 
 .agreement-checkbox input[type="checkbox"]:checked + .checkmark::after {
-  content: '鉁?;
+  content: '✓';
   position: absolute;
   top: 50%;
   left: 50%;

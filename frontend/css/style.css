@@ -3016,31 +3016,7 @@ select.form-input {
   border: 1px solid rgba(0, 0, 0, 0.04);
   position: relative;
 }
-/* 涓や晶瑁呴グ */
-.detail-card::before {
-  content: '馃尭';
-  position: absolute;
-  top: 30%;
-  left: -40px;
-  font-size: 1.8rem;
-  opacity: 0.12;
-  animation: float-deco-side 7s ease-in-out infinite;
-  pointer-events: none;
-}
-.detail-card::after {
-  content: '鉁?;
-  position: absolute;
-  top: 55%;
-  right: -36px;
-  font-size: 1.4rem;
-  opacity: 0.12;
-  animation: float-deco-side 6s ease-in-out infinite 1s;
-  pointer-events: none;
-}
-@keyframes float-deco-side {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(6deg); }
-}
+
 
 /* ---- 涓や晶瑁呴グ鍗＄墖 ---- */
 @media (min-width: 1200px) {
@@ -3927,18 +3903,7 @@ select.form-input {
   position: relative;
   overflow: hidden;
 }
-/* 椤堕儴瑁呴グ */
-.profile-card::before {
-  content: '鉁?鉁?鈽?鉁?鉁?鉁?鉁?鉁?;
-  position: absolute;
-  top: 8px;
-  left: 0; right: 0;
-  font-size: 9px;
-  letter-spacing: 10px;
-  color: rgba(255, 107, 157, 0.15);
-  text-align: center;
-  pointer-events: none;
-}
+
 
 /* 澶村儚瀹瑰櫒 */
 .profile-avatar-wrapper {
@@ -10565,7 +10530,7 @@ select.form-input {
 }
 
 .agreement-checkbox input[type="checkbox"]:checked + .checkmark::after {
-  content: '鉁?;
+  content: '✓';
   position: absolute;
   top: 50%;
   left: 50%;
