@@ -8,17 +8,8 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const mpDraftService = require('../services/mp-draft');
+const { escapeHtml } = require('../services/html-utils');
 const { auth, isStaff } = require('../middleware/auth');
-
-function escapeHtml(text) {
-  if (!text) return '';
-  return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 
 // 所有公众号素材管理路由都需要登录且是管理后台用户
 router.use(auth, isStaff);

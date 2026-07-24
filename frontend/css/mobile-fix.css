@@ -406,37 +406,43 @@
 
     /* 搜索框 - 手机端超紧凑 */
     .search-bar {
-        padding: 0 6px !important;
-        margin-bottom: 4px !important;
-        gap: 2px !important;
-        border-width: 1px !important;
-        min-height: 24px !important;
-        height: 24px !important;
-        border-radius: 12px !important;
+        padding: 8px 14px !important;
+        margin-bottom: 10px !important;
+        gap: 6px !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        min-height: 40px !important;
+        height: auto !important;
+        border-radius: 20px !important;
         transform: none !important;
-        box-shadow: none !important;
-        background: #f8f9ff !important;
-        max-width: 200px !important;
+        background: #fff !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        transition: all 0.3s ease !important;
     }
 
-    /* 移除 focus-within 的放大效果 */
+    .search-bar::before { display: none !important; }
+
     .search-bar:focus-within {
         transform: none !important;
-        box-shadow: none !important;
-        border-color: inherit !important;
+        box-shadow: 0 1px 8px rgba(255, 107, 157, 0.12) !important;
+        border-color: rgba(255, 107, 157, 0.3) !important;
+        background: #fff !important;
     }
 
-    /* 确保搜索输入框不被其他样式影响 */
+    .search-bar:focus-within::before { display: none !important; }
+
     .search-bar input[type="text"],
     .search-input,
     input.search-input,
     #searchInput {
         padding: 0 4px !important;
         margin: 0 !important;
-        font-size: 0.8rem !important;
+        font-size: 0.9rem !important;
         min-height: auto !important;
         height: auto !important;
-        line-height: 1.2 !important;
+        line-height: 1.4 !important;
         border-radius: 0 !important;
         border: none !important;
         background: transparent !important;
@@ -444,26 +450,37 @@
         outline: none !important;
         -webkit-appearance: none !important;
         appearance: none !important;
+        font-weight: 500 !important;
     }
 
     .search-bar svg {
-        width: 12px !important;
-        height: 12px !important;
+        width: 16px !important;
+        height: 16px !important;
         flex-shrink: 0 !important;
-        margin-left: 4px !important;
-        color: #999 !important;
+        margin-left: 0 !important;
+        color: #bbb !important;
+        filter: none !important;
     }
 
     .search-clear {
-        width: 14px !important;
-        height: 14px !important;
-        font-size: 0.55rem !important;
-        margin-right: 4px !important;
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.6rem !important;
+        margin-right: 0 !important;
+        background: #f0f0f0 !important;
+        color: #999 !important;
+        border-radius: 50% !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .search-clear:active {
+        transform: scale(0.85) !important;
     }
 
     .search-input::placeholder {
-        font-size: 0.8rem !important;
-        color: #999 !important;
+        font-size: 0.82rem !important;
+        color: #ccc !important;
+        font-weight: 400 !important;
     }
 
     .form-input:focus,
@@ -477,13 +494,101 @@
         outline: none !important;
     }
 
-    /* 搜索框排除聚焦样式 */
     .search-input:focus,
     #searchInput:focus {
         border-color: transparent !important;
         box-shadow: none !important;
         background: transparent !important;
         outline: none !important;
+    }
+
+    /* 移动端签到（已移至个人主页） */
+
+    /* 编辑资料返回按钮 */
+    .edit-profile-back {
+        margin-bottom: 10px !important;
+    }
+
+    .edit-profile-back-btn {
+        padding: 6px 16px !important;
+        font-size: 0.78rem !important;
+        border-radius: 99px !important;
+    }
+
+    /* 移动端意见反馈美化 */
+    #feedbackToggleBtn {
+        border-radius: 14px !important;
+        padding: 14px 18px !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    #feedbackToggleBtn::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 4px !important;
+        height: 100% !important;
+        background: linear-gradient(180deg, #FF6B9D, #C084FC) !important;
+        border-radius: 0 4px 4px 0 !important;
+    }
+
+    #feedbackInlineForm {
+        border-radius: 14px !important;
+        padding: 18px 16px !important;
+        position: relative !important;
+        background: linear-gradient(135deg, #fff8fa 0%, #f8f4ff 100%) !important;
+        border: 1px solid rgba(255, 107, 157, 0.15) !important;
+        box-shadow: 0 4px 20px rgba(255, 107, 157, 0.08) !important;
+    }
+
+    #feedbackInlineForm::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 3px !important;
+        background: linear-gradient(90deg, #FF6B9D, #C084FC, #60A5FA) !important;
+        border-radius: 14px 14px 0 0 !important;
+    }
+
+    #feedbackInlineForm select,
+    #feedbackInlineForm input,
+    #feedbackInlineForm textarea {
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+        border: 1.5px solid rgba(0,0,0,0.06) !important;
+        background: #fff !important;
+        font-size: 0.88rem !important;
+        transition: all 0.2s !important;
+    }
+
+    #feedbackInlineForm select:focus,
+    #feedbackInlineForm input:focus,
+    #feedbackInlineForm textarea:focus {
+        border-color: #C084FC !important;
+        box-shadow: 0 0 0 4px rgba(192,132,252,0.12) !important;
+    }
+
+    #feedbackInlineForm textarea {
+        min-height: 90px !important;
+    }
+
+    #fbSubmitBtn {
+        border-radius: 12px !important;
+        padding: 13px !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 4px 16px rgba(255,107,157,0.25) !important;
+    }
+
+    #fbSubmitBtn:active {
+        transform: scale(0.97) !important;
+    }
+
+    #fbHistory {
+        font-size: 0.82rem !important;
     }
 
     /* 按钮 - 渐变精致风格 */
@@ -996,49 +1101,56 @@
 @media (max-width: 768px) {
     .pull-refresh-indicator {
         position: fixed;
-        top: 70px;
+        top: calc(var(--navbar-height, 64px) + 6px);
         left: 50%;
-        transform: translateX(-50%) translateY(-100px);
+        transform: translateX(-50%) translateY(-120px);
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        background: var(--bg-card);
-        border-radius: 25px;
+        gap: 10px;
+        padding: 8px 20px 8px 16px;
+        background: var(--bg-glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: var(--radius-full);
         box-shadow: var(--shadow-lg);
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
         opacity: 0;
         z-index: 999;
         pointer-events: none;
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--border-light);
+        border: 1px solid rgba(255, 107, 157, 0.15);
     }
-    
+
     .pull-refresh-indicator.show {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
     }
-    
+
     .pull-refresh-indicator .refresh-icon {
-        display: inline-block;
-        font-size: 1.1rem;
-        transition: transform 0.3s ease;
+        display: block;
+        color: var(--primary);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
     }
-    
+
+    .pull-refresh-indicator .refresh-text {
+        white-space: nowrap;
+        transition: color 0.25s ease;
+    }
+
+    .pull-refresh-indicator.pull-ready .refresh-text {
+        color: var(--primary);
+    }
+
     .pull-refresh-indicator.refreshing .refresh-icon {
-        animation: spin 1s linear infinite;
+        animation: pullSpin 0.8s linear infinite;
     }
-    
-    @keyframes spin {
+
+    @keyframes pullSpin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
-    }
-    
-    /* 下拉刷新时的页面偏移 */
-    body.pull-refreshing {
-        padding-top: 60px;
     }
 }
 
@@ -1257,8 +1369,6 @@
     .comment-input-wrapper {
         padding-bottom: 8px;
     }
-        appearance: none;
-    }
     
     /* 防止文本选择干扰触摸操作 */
     .no-select {
@@ -1270,5 +1380,373 @@
     .selectable {
         -webkit-user-select: text;
         user-select: text;
+    }
+
+    /* 评论区移动端优化 */
+    .comment-section {
+        padding: 16px;
+        border-radius: 14px;
+        margin-top: 16px;
+    }
+    .comment-item {
+        padding: 14px;
+        gap: 10px;
+    }
+    .comment-item .comment-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    .comment-input-wrapper {
+        padding: 12px;
+    }
+    .comment-input {
+        min-height: 56px;
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+    .comment-input-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .comment-tools {
+        justify-content: flex-start;
+    }
+    .btn-comment-submit {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+    .emoji-picker {
+        width: 280px;
+        max-height: 240px;
+    }
+    .emoji-grid {
+        grid-template-columns: repeat(7, 1fr);
+    }
+    .back-home-btn {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 8px;
+        font-size: 0.82rem;
+    }
+    .comment-reply-item {
+        padding: 10px 12px;
+    }
+    .reply-avatar {
+        width: 28px;
+        height: 28px;
+    }
+    .comment-title {
+        font-size: 1rem;
+    }
+    .comment-item .comment-text {
+        font-size: 0.9rem;
+    }
+    .comment-sort-bar {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}
+
+@media (max-width: 400px) {
+    .comment-section {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    .comment-item {
+        padding: 12px 10px;
+        border-radius: 12px;
+    }
+    .comment-item .comment-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    .comment-item .comment-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* 9. 点歌页面移动端紧密排版优化 */
+@media (max-width: 768px) {
+    .radio-header {
+        margin-bottom: 18px;
+    }
+    .radio-title {
+        font-size: 1.25rem;
+    }
+    .radio-section {
+        margin-bottom: 18px;
+    }
+    .section-title {
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+    }
+    .radio-form-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .radio-form .form-group {
+        margin-bottom: 10px;
+    }
+    .form-group .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    .form-group .form-input,
+    .form-group .form-textarea,
+    .form-group .form-select {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    .form-group .form-textarea {
+        min-height: 60px;
+    }
+    .radio-anonymous {
+        margin: 10px 0;
+    }
+    .radio-anonymous .toggle-switch {
+        width: 36px;
+        height: 20px;
+    }
+    .radio-anonymous .toggle-slider {
+        width: 36px;
+        height: 20px;
+    }
+    .radio-anonymous .toggle-slider::before {
+        width: 16px;
+        height: 16px;
+    }
+    .radio-anonymous span:last-child {
+        font-size: 0.85rem;
+    }
+    .form-actions {
+        margin-top: 6px;
+    }
+    .form-actions .btn-publish {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    .remaining-count {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        margin-bottom: 10px;
+    }
+
+    /* 播放列表卡片 */
+    .playlist {
+        gap: 10px;
+        max-height: none;
+        padding-right: 0;
+    }
+    .playlist-item {
+        border-radius: 12px;
+    }
+    .playlist-item .song-main {
+        padding: 12px 14px 12px 10px;
+        gap: 10px;
+    }
+    .playlist-item .song-index {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    .playlist-item .song-name {
+        font-size: 0.9rem;
+    }
+    .playlist-item .song-name::before {
+        font-size: 0.85rem;
+    }
+    .playlist-item .song-artist {
+        font-size: 0.75rem;
+        padding: 1px 6px;
+    }
+    .playlist-item .song-footer {
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 0.72rem;
+    }
+    .playlist-item .song-author {
+        font-size: 0.72rem;
+        padding: 1px 8px;
+    }
+    .playlist-item .song-tag {
+        font-size: 0.68rem;
+        padding: 2px 8px;
+    }
+    .playlist-item .song-tag.to-whom {
+        font-size: 0.68rem;
+    }
+    .playlist-item .song-msg-bubble {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+        margin-top: 6px;
+        white-space: normal;
+        text-overflow: clip;
+        display: block;
+    }
+    .playlist-item .song-status-area {
+        padding-right: 12px;
+        min-width: auto;
+        gap: 4px;
+    }
+    .playlist-item .song-status {
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    .playlist-item .song-status::before {
+        display: none;
+    }
+
+    /* 热门歌曲 */
+    .hot-songs-list {
+        gap: 10px;
+    }
+    .hot-song-item {
+        padding: 12px;
+        gap: 10px;
+        border-radius: 12px;
+    }
+    .hot-song-rank {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+    .hot-song-content {
+        min-width: 0;
+    }
+    .hot-song-name {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+    .hot-song-name .hot-song-artist {
+        font-size: 0.78rem;
+    }
+    .hot-song-meta {
+        gap: 8px;
+        font-size: 0.72rem;
+    }
+    .hot-song-author,
+    .hot-song-recipient,
+    .hot-song-message {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+    }
+    .hot-song-vote {
+        flex-shrink: 0;
+    }
+    .hot-song-vote .vote-btn {
+        padding: 6px 8px;
+        font-size: 0.72rem;
+    }
+    .hot-song-vote .vote-icon {
+        font-size: 0.85rem;
+    }
+    .hot-song-vote .vote-count {
+        font-size: 0.75rem;
+    }
+
+    .radio-section p[style] {
+        font-size: 0.8rem !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* 我的点歌记录 */
+    #mySongsList .my-song-item {
+        padding: 14px;
+        gap: 10px;
+    }
+    #mySongsList .my-song-title {
+        font-size: 0.9rem;
+    }
+    #mySongsList .my-song-title::before {
+        font-size: 0.9rem;
+    }
+    #mySongsList .my-song-date {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+    }
+    #mySongsList .my-song-status {
+        font-size: 0.68rem;
+        padding: 2px 10px;
+    }
+    #mySongsList .my-song-recipient {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+    }
+    #mySongsList .my-song-msg {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+    #mySongsList .my-song-cancel {
+        padding: 8px 14px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .radio-title {
+        font-size: 1.1rem;
+    }
+    .radio-subtitle {
+        font-size: 0.8rem;
+    }
+    .radio-form-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    .form-group .form-input,
+    .form-group .form-textarea,
+    .form-group .form-select {
+        font-size: 0.85rem;
+        padding: 9px 10px;
+    }
+    .form-actions .btn-publish {
+        padding: 11px;
+        font-size: 0.9rem;
+    }
+    .playlist-item .song-main {
+        padding: 10px 10px 10px 8px;
+        gap: 8px;
+    }
+    .playlist-item .song-name {
+        font-size: 0.85rem;
+    }
+    .playlist-item .song-footer {
+        font-size: 0.68rem;
+    }
+    .playlist-item .song-status-area {
+        padding-right: 8px;
+    }
+    .playlist-item .song-status {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+    .hot-song-item {
+        padding: 10px;
+        gap: 8px;
+    }
+    .hot-song-name {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .playlist-item .song-main {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .playlist-item .song-index {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+    .playlist-item .song-status-area {
+        flex-direction: row;
+        padding: 0 10px 8px;
+        justify-content: flex-end;
     }
 }

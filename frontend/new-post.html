@@ -33,7 +33,6 @@
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
-        <a href="/feedback" class="nav-link" data-page="feedback"><span>💬</span> 反馈</a>
         <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
         <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
       </div>
@@ -96,11 +95,29 @@
             <span class="category-tag" data-value="confession">表白</span>
             <span class="category-tag" data-value="help">求助</span>
             <span class="category-tag" data-value="secondhand">二手</span>
+            <span class="category-tag" data-value="lost_found">失物招领</span>
+            <span class="category-tag" data-value="poll">投票</span>
             <span class="category-tag" data-value="club">社团</span>
             <span class="category-tag" data-value="other">其他</span>
           </div>
         </div>
-        <!-- 匿名开关 -->
+        <!-- 联系方式（失物招领用） -->
+        <div class="form-group" id="contactGroup" style="display:none;">
+          <label class="form-label">联系方式 <span class="optional-tag">选填，失物招领用</span></label>
+          <input type="text" class="form-input" id="contactInput" placeholder="微信号 / QQ / 手机号" maxlength="50">
+        </div>
+        <!-- 投票选项 -->
+        <div class="form-group" id="pollGroup" style="display:none;">
+          <label class="form-label">投票选项 <span class="required-tag">至少2项</span></label>
+          <div id="pollOptionsContainer">
+            <div class="poll-option-row"><input type="text" class="form-input poll-option-input" placeholder="选项 1" maxlength="100"></div>
+            <div class="poll-option-row"><input type="text" class="form-input poll-option-input" placeholder="选项 2" maxlength="100"></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="addPollOption()" style="margin-top:8px;">+ 添加选项</button>
+          <div style="margin-top:8px;">
+            <label class="poll-multiple-label"><input type="checkbox" id="pollMultiple"> 允许多选</label>
+          </div>
+        </div>
         <div class="toggle-switch-wrapper" id="anonymousOption" style="display: none;">
           <span>匿名发布</span>
           <label class="toggle-switch">
@@ -130,7 +147,7 @@
     </div>
   </div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/app_v3.js"></script>
   <script src="/js/post.js"></script>
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
@@ -190,11 +207,7 @@
     <a href="/new-post" class="tab-item active tab-item-center" data-tab="post">
       <span class="tab-icon">✏️</span>
     </a>
-    <a href="/feedback" class="tab-item" data-tab="feedback">
-      <span class="tab-icon">💬</span>
-      <span class="tab-label">反馈</span>
-    </a>
-    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+        <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
       <span class="tab-icon">👤</span>
       <span class="tab-label">我的</span>
     </a>

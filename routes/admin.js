@@ -348,7 +348,8 @@ router.get('/users', requirePermission('users:view'), async (req, res) => {
 
     const [users] = await pool.execute(`
       SELECT id, username, nickname, avatar, email, role, status, created_at,
-             last_login_at, last_login_ip, last_login_region FROM users
+             last_login_at, last_login_ip, last_login_region,
+             ban_reason, ban_attempt_ip, ban_attempt_count FROM users
       WHERE ${whereClause}
       ORDER BY created_at DESC
       LIMIT ? OFFSET ?
@@ -370,10 +371,10 @@ router.get('/users', requirePermission('users:view'), async (req, res) => {
   }
 });
 
-// 修改用户状态（启用/禁用）
+// 修改用户状态（启用/禁用/封禁）
 router.put('/users/:id/status', requirePermission('users:status'), async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, ban_reason } = req.body;
     const targetId = parseInt(req.params.id);
 
     // 不能禁用自己
@@ -387,9 +388,14 @@ router.put('/users/:id/status', requirePermission('users:status'), async (req, r
       return res.json({ code: 403, message: '不能禁用超级管理员' });
     }
 
-    await pool.execute('UPDATE users SET status = ? WHERE id = ?', [status, targetId]);
-    res.json({ code: 200, message: '操作成功' });
+    if (status === 0) {
+      await pool.execute('UPDATE users SET status = 0, ban_reason = ? WHERE id = ?', [ban_reason || null, targetId]);
+    } else {
+      await pool.execute('UPDATE users SET status = 1, ban_reason = NULL WHERE id = ?', [targetId]);
+    }
+    res.json({ code: 200, message: status === 0 ? '已封禁' : '已解封' });
   } catch (err) {
+    console.error('修改用户状态错误:', err.message);
     res.json({ code: 500, message: '服务器错误' });
   }
 });
@@ -1897,7 +1903,8 @@ router.get('/users/:id/profile', requirePermission('users:view'), async (req, re
   try {
     const userId = parseInt(req.params.id);
     const [users] = await pool.execute(`
-      SELECT id, username, nickname, avatar, email, role, status, created_at 
+      SELECT id, username, nickname, avatar, email, role, status, created_at,
+             ban_reason, ban_attempt_ip, ban_attempt_count
       FROM users WHERE id = ?
     `, [userId]);
     
@@ -3090,11 +3097,7 @@ router.get('/stories/generate-chapter-stream', async (req, res) => {
   }
 });
 
-// 手动推送小说章节到微信公众号
-function storyEscapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+const { escapeHtml } = require('../services/html-utils');
 
 async function uploadStoryImages(htmlContent) {
   var imgRegex = /<img[^>]+src=["']([^"']+)["']/g;
@@ -3149,8 +3152,8 @@ router.post('/stories/publish-to-wechat', requirePermission('stories:review'), a
     // ===== 头部 =====
     storyHtml += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
     storyHtml += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 校园小说连载 · 第' + chapNum + '/' + chapTotal + '章</div>';
-    storyHtml += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">第' + chapNum + '章 ' + storyEscapeHtml(chapter.title) + '</div>';
-    storyHtml += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + storyEscapeHtml(chapter.author || '匿名投稿') + '</div>';
+    storyHtml += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">第' + chapNum + '章 ' + escapeHtml(chapter.title) + '</div>';
+    storyHtml += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + ' · ' + escapeHtml(chapter.author || '匿名投稿') + '</div>';
     storyHtml += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
     storyHtml += '</td></tr></table>';
     
@@ -3200,8 +3203,8 @@ router.post('/stories/publish-to-wechat', requirePermission('stories:review'), a
     // ===== 一言 =====
     if (hitokoto && hitokoto.text) {
       storyHtml += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFF9F5;padding:16px;border-left:3px solid #A78BFA;">';
-      storyHtml += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + storyEscapeHtml(hitokoto.text) + '"</p>';
-      storyHtml += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + storyEscapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p></td></tr></table>';
+      storyHtml += '<p style="font-size:14px;color:#888;margin:0 0 6px 0;line-height:1.8;font-style:italic;">💬 "' + escapeHtml(hitokoto.text) + '"</p>';
+      storyHtml += '<p style="text-align:right;color:#ccc;font-size:12px;margin:0;">—— ' + escapeHtml(hitokoto.from_who || hitokoto.from || '') + '</p></td></tr></table>';
     }
     
     // ===== 分割线 =====
@@ -3217,9 +3220,9 @@ router.post('/stories/publish-to-wechat', requirePermission('stories:review'), a
       if (!para) continue;
       var isDialogue = para.includes('"') || para.includes('"') || para.includes('"');
       if (isDialogue) {
-        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#6B4C3B;margin-top:0;letter-spacing:0.5px;background:#FFFBF8;padding:8px 14px;border-radius:8px;border-left:3px solid #FFD4B8;">' + storyEscapeHtml(para) + '</p>';
+        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#6B4C3B;margin-top:0;letter-spacing:0.5px;background:#FFFBF8;padding:8px 14px;border-radius:8px;border-left:3px solid #FFD4B8;">' + escapeHtml(para) + '</p>';
       } else {
-        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + storyEscapeHtml(para) + '</p>';
+        storyHtml += '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + escapeHtml(para) + '</p>';
       }
     }
     if (chapNum < chapTotal) {
@@ -3295,6 +3298,132 @@ router.post('/lookup-ip', auth, isStaff, async (req, res) => {
   } catch (err) {
     console.error('[Admin] IP查询失败:', err.message);
     res.json({ code: 500, message: '查询失败: ' + err.message });
+  }
+});
+
+// ===== 签到/积分运营数据 =====
+router.get('/gamification', requirePermission('stats:view'), async (req, res) => {
+  try {
+    var today = new Date().toISOString().slice(0, 10);
+    var [todayCheckins] = await pool.execute('SELECT COUNT(*) as total FROM checkins WHERE checkin_date = ?', [today]);
+    var [totalCheckins] = await pool.execute('SELECT COUNT(*) as total FROM checkins');
+    var [activeUsers] = await pool.execute('SELECT COUNT(DISTINCT user_id) as total FROM checkins WHERE checkin_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)');
+    var [topPoints] = await pool.execute('SELECT u.id, u.nickname, u.username, u.avatar, u.points FROM users u WHERE u.points > 0 ORDER BY u.points DESC LIMIT 10');
+    var [topStreak] = await pool.execute('SELECT c.user_id, u.nickname, u.username, MAX(c.streak) as max_streak FROM checkins c JOIN users u ON c.user_id = u.id GROUP BY c.user_id ORDER BY max_streak DESC LIMIT 10');
+    var weeklyStar = null;
+    try {
+      var [ws] = await pool.execute(
+        "SELECT utr.user_id, u.nickname, u.username, ut.title_name FROM user_title_relations utr JOIN users u ON utr.user_id = u.id JOIN user_titles ut ON utr.title_id = ut.id WHERE ut.title_name = '本周之星🏆' LIMIT 1"
+      );
+      if (ws.length > 0) weeklyStar = ws[0];
+    } catch (e) {}
+
+    res.json({
+      code: 200,
+      data: {
+        today_checkins: todayCheckins[0].total,
+        total_checkins: totalCheckins[0].total,
+        active_users_7d: activeUsers[0].total,
+        top_points: topPoints,
+        top_streak: topStreak,
+        weekly_star: weeklyStar
+      }
+    });
+  } catch (err) {
+    console.error('[Admin] 获取运营数据失败:', err.message);
+    res.json({ code: 500, message: '查询失败' });
+  }
+});
+
+// ===== 积分管理（手动发放/扣除）=====
+router.post('/points', auth, requirePermission('stats:view'), async (req, res) => {
+  try {
+    var { user_id, points, reason } = req.body;
+    if (!user_id || points === undefined) {
+      return res.json({ code: 400, message: '缺少 user_id 或 points' });
+    }
+    points = parseInt(points);
+    if (isNaN(points) || points === 0) {
+      return res.json({ code: 400, message: '积分值无效' });
+    }
+    if (Math.abs(points) > 1000) {
+      return res.json({ code: 400, message: '单次操作不能超过 1000 积分' });
+    }
+    if (req.user.role !== 'super_admin' && req.user.role !== 'admin') {
+      return res.json({ code: 403, message: '无权操作' });
+    }
+    var [users] = await pool.execute('SELECT id, points FROM users WHERE id = ?', [user_id]);
+    if (users.length === 0) return res.json({ code: 400, message: '用户不存在' });
+
+    var newBalance = (users[0].points || 0) + points;
+    if (newBalance < 0) return res.json({ code: 400, message: '积分不足以扣除' });
+
+    await pool.execute('UPDATE users SET points = points + ? WHERE id = ?', [points, user_id]);
+    await pool.execute(
+      'INSERT INTO points_log (user_id, points, balance, reason) VALUES (?, ?, ?, ?)',
+      [user_id, points, newBalance, (reason || 'admin_bonus').slice(0, 100)]
+    );
+
+    var log = await pool.execute(
+      'SELECT id, user_id, points, balance, reason, created_at FROM points_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+      [user_id]
+    );
+
+    res.json({ code: 200, message: (points > 0 ? '发放' : '扣除') + '成功', data: { balance: newBalance, logs: log[0] } });
+  } catch (err) {
+    console.error('[Admin] 积分操作失败:', err.message);
+    res.json({ code: 500, message: '操作失败: ' + err.message });
+  }
+});
+
+// 获取用户积分日志
+router.get('/points', auth, requirePermission('stats:view'), async (req, res) => {
+  try {
+    var userId = parseInt(req.query.user_id) || null;
+    var limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    var page = Math.max(parseInt(req.query.page) || 1, 1);
+    var offset = (page - 1) * limit;
+
+    if (userId) {
+      var [logs] = await pool.execute(
+        'SELECT pl.*, u.nickname, u.username FROM points_log pl JOIN users u ON pl.user_id = u.id WHERE pl.user_id = ? ORDER BY pl.created_at DESC LIMIT ? OFFSET ?',
+        [userId, limit, offset]
+      );
+      var [total] = await pool.execute('SELECT COUNT(*) as total FROM points_log WHERE user_id = ?', [userId]);
+      var [user] = await pool.execute('SELECT id, nickname, username, points FROM users WHERE id = ?', [userId]);
+      return res.json({
+        code: 200,
+        data: { logs: logs, total: total[0].total, user: user[0] || null }
+      });
+    }
+
+    var [logs] = await pool.execute(
+      'SELECT pl.*, u.nickname, u.username FROM points_log pl JOIN users u ON pl.user_id = u.id ORDER BY pl.created_at DESC LIMIT ? OFFSET ?',
+      [limit, offset]
+    );
+    var [total] = await pool.execute('SELECT COUNT(*) as total FROM points_log');
+    res.json({ code: 200, data: { logs: logs, total: total[0].total } });
+  } catch (err) {
+    console.error('[Admin] 查询积分日志失败:', err.message);
+    res.json({ code: 500, message: '查询失败' });
+  }
+});
+
+// 清理积分日志
+router.delete('/points/cleanup', requirePermission('stats:view'), async (req, res) => {
+  if (req.user.role !== 'super_admin' && req.user.role !== 'admin') {
+    return res.json({ code: 403, message: '无权操作' });
+  }
+  try {
+    var days = Math.max(parseInt(req.query.days) || 7, 1);
+    var [result] = await pool.execute(
+      'DELETE FROM points_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+      [days]
+    );
+    res.json({ code: 200, message: `已删除 ${days} 天前的积分记录`, data: { deleted: result.affectedRows } });
+  } catch (err) {
+    console.error('[Admin] 清理积分日志失败:', err.message);
+    res.json({ code: 500, message: '清理失败' });
   }
 });
 

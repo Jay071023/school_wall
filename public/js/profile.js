@@ -544,12 +544,52 @@ document.addEventListener('DOMContentLoaded', function() {
           // 重新渲染个人资料详情
           renderProfileDetail(cachedUser);
         }
+        // 加载积分/等级信息
+        loadPointsInfo();
       } else {
         console.warn('[Profile] 统计数据API返回异常:', json);
       }
     } catch (e) {
       console.error('[Profile] 加载统计数据失败:', e);
     }
+  };
+
+  async function loadPointsInfo() {
+    try {
+      var d = await authFetch('/api/checkin/status');
+      if (d.code !== 200) return;
+      var data = d.data;
+      var html = '<div class="profile-points-info">';
+      html += '<div class="profile-points-row"><span class="profile-points-icon">⭐</span><span>积分: <strong>' + data.total_points + '</strong></span></div>';
+      if (data.level) html += '<div class="profile-points-row"><span>' + data.level.icon + '</span><span>等级: <strong style="color:' + data.level.title_color + ';">' + data.level.title_name + '</strong></span></div>';
+      html += '<div class="profile-points-row"><span>📅</span><span>连续签到: <strong>' + data.streak + '</strong> 天</span>';
+      if (!data.checked_in) {
+        html += '<button class="btn-checkin" onclick="doProfileCheckin()" style="margin-left:auto;padding:4px 14px;font-size:0.75rem;">📅 签到</button>';
+      } else {
+        html += '<span style="margin-left:auto;font-size:0.8rem;">✅ 已签到</span>';
+      }
+      html += '</div>';
+      if (data.next_level) html += '<div class="profile-points-next">下一级: ' + data.next_level.icon + ' ' + data.next_level.title_name + '（还需 ' + (data.next_level.min_points - data.total_points) + ' 分）</div>';
+      html += '</div>';
+      var infoEl = document.getElementById('profileInfo');
+      if (infoEl) infoEl.innerHTML = html;
+    } catch (e) {}
+  }
+
+  window.doProfileCheckin = function() {
+    var btn = document.querySelector('.profile-points-info .btn-checkin');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+    authFetch('/api/checkin', { method: 'POST' }).then(function(d) {
+      if (d.code === 200) {
+        showToast('签到成功 +' + d.data.points_earned + '分' + (d.data.bonus > 0 ? ' (连续加成+' + d.data.bonus + ')' : ''));
+        loadPointsInfo();
+        var tabContent = document.querySelector('.profile-tab-content.active');
+        if (tabContent && tabContent.id === 'tab-myposts') loadMyPosts();
+      } else {
+        showToast(d.message || '签到失败', 'error');
+        if (btn) { btn.disabled = false; btn.textContent = '📅 签到'; }
+      }
+    }).catch(function() { showToast('网络错误', 'error'); if (btn) { btn.disabled = false; btn.textContent = '📅 签到'; } });
   };
 
   // ============================================
@@ -764,6 +804,13 @@ document.addEventListener('DOMContentLoaded', function() {
       imageHtml += '</div>';
     }
 
+    // 投票预览
+    var pollPreviewHtml = '';
+    if (post.poll_type) {
+      var pollLabel = post.poll_type === 'multiple' ? '多选' : '单选';
+      pollPreviewHtml = '<div class="profile-poll-preview">📊 投票 <span class="profile-poll-label">' + pollLabel + '</span></div>';
+    }
+
     // 应用缓存的点赞状态（优先使用缓存）
     var cachedLikeStatus = getCachedLikeStatus(post.id);
     var isLiked = cachedLikeStatus !== null ? cachedLikeStatus : (post.is_liked || false);
@@ -791,6 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {
       '</div>' +
       '<div class="post-content">' + escapeHtml(post.content) + '</div>' +
       imageHtml +
+      pollPreviewHtml +
       '<div class="profile-my-post-divider"></div>' +
       '<div class="post-actions">' +
         '<button class="profile-action-btn ' + (isLiked ? 'liked' : '') + '" onclick="event.stopPropagation();toggleLike(' + post.id + ',this)">' +
@@ -1781,5 +1829,62 @@ async function loadOtherUser(userId) {
     if (tabContent) tabContent.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">用户不存在或数据异常</div>';
   }
 }
+
+// ===== 内联意见反馈 =====
+window.toggleFeedbackForm = function() {
+  var form = document.getElementById('feedbackInlineForm');
+  var arrow = document.getElementById('feedbackArrow');
+  if (!form) return;
+  var isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.textContent = isOpen ? '→' : '↓';
+  if (!isOpen) loadFeedbackHistory();
+};
+
+window.loadFeedbackHistory = function() {
+  var container = document.getElementById('fbHistory');
+  if (!container) return;
+  fetch('/api/feedback/my', { headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || '') } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.code !== 200 || !d.data || d.data.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:8px;color:var(--text-light);font-size:0.8rem;">暂无反馈记录</div>';
+        return;
+      }
+      var html = '<div style="font-weight:600;font-size:0.85rem;margin-bottom:8px;color:var(--text-secondary);">📋 我的反馈</div>';
+      d.data.slice(0, 5).forEach(function(f) {
+        var statusMap = { pending: '⏳ 待处理', processing: '🔄 处理中', resolved: '✅ 已解决', closed: '📌 已关闭' };
+        html += '<div style="padding:8px 10px;border-radius:8px;background:var(--bg-section);margin-bottom:6px;font-size:0.8rem;">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+          + '<span style="font-weight:600;color:var(--text-primary);">' + escapeHtml(f.title || f.type) + '</span>'
+          + '<span style="font-size:0.7rem;color:var(--text-light);">' + (statusMap[f.status] || f.status) + '</span>'
+          + '</div></div>';
+      });
+      container.innerHTML = html;
+    }).catch(function() {});
+};
+
+window.submitInlineFeedback = function() {
+  var type = document.getElementById('fbType').value;
+  var title = document.getElementById('fbTitle').value.trim();
+  var content = document.getElementById('fbContent').value.trim();
+  var contact = document.getElementById('fbContact').value.trim();
+  var btn = document.getElementById('fbSubmitBtn');
+  if (!title && !content) { showToast('请填写反馈内容', 'error'); return; }
+  btn.disabled = true; btn.textContent = '⏳ 提交中...';
+  authFetch('/api/feedback', { method: 'POST', body: JSON.stringify({ type: type, title: title, content: content, contact: contact }) })
+    .then(function(data) {
+      if (data.code === 200) {
+        showToast('✅ 反馈提交成功！');
+        document.getElementById('fbTitle').value = '';
+        document.getElementById('fbContent').value = '';
+        document.getElementById('fbContact').value = '';
+        loadFeedbackHistory();
+      } else {
+        showToast(data.message || '提交失败', 'error');
+      }
+    }).catch(function() { showToast('网络错误', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = '💬 提交反馈'; });
+};
 
 

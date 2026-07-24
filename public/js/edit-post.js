@@ -76,17 +76,59 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contentTextarea) contentTextarea.value = post.content || '';
     if (categorySelect) categorySelect.value = post.category || '日常';
     if (anonymousToggle) anonymousToggle.checked = post.is_anonymous;
-    
+
     // 更新字符计数
     if (charCount && contentTextarea) {
       charCount.textContent = contentTextarea.value.length;
     }
-    
+
     // 加载已有图片
     if (post.images && post.images.length > 0) {
       uploadedImages = post.images;
       renderImagePreviews();
     }
+
+    // 加载投票选项：有 poll_type 就视为投票帖，自动展开
+    var pollGroup = document.getElementById('pollGroup');
+    var pollContainer = document.getElementById('pollOptionsContainer');
+    if (pollGroup && pollContainer) {
+      if (post.poll_type) {
+        pollGroup.style.display = 'block';
+        pollContainer.innerHTML = '';
+        if (post.poll_options && post.poll_options.length > 0) {
+          post.poll_options.forEach(function(opt) {
+            addEditPollOptionRow(opt.text || opt.option_text || '');
+          });
+        } else {
+          addEditPollOptionRow('');
+          addEditPollOptionRow('');
+        }
+        var pollMultiple = document.getElementById('pollMultiple');
+        if (pollMultiple) pollMultiple.checked = (post.poll_type === 'multiple');
+        // 分类自动切到"投票"
+        if (categorySelect) categorySelect.value = '投票';
+      } else {
+        pollGroup.style.display = 'none';
+      }
+    }
+
+    if (categorySelect && !categorySelect.dataset.bound) {
+      categorySelect.dataset.bound = '1';
+      categorySelect.addEventListener('change', function() {
+        if (pollGroup) pollGroup.style.display = this.value === '投票' ? 'block' : 'none';
+      });
+    }
+  }
+
+  window.addEditPollOption = function() { addEditPollOptionRow(''); };
+  function addEditPollOptionRow(value) {
+    var container = document.getElementById('pollOptionsContainer');
+    if (!container) return;
+    var num = container.querySelectorAll('.poll-option-input').length + 1;
+    var div = document.createElement('div');
+    div.className = 'poll-option-row';
+    div.innerHTML = '<input type="text" class="form-input poll-option-input" placeholder="选项 ' + num + '" maxlength="100" value="' + (value ? escapeHtml(value) : '') + '"><button type="button" class="btn-del-option" onclick="this.parentElement.remove()">✕</button>';
+    container.appendChild(div);
   }
 
   // ============================================
@@ -272,10 +314,27 @@ document.addEventListener('DOMContentLoaded', function() {
           category: categorySelect ? categorySelect.value : '日常',
           is_anonymous: anonymousToggle ? anonymousToggle.checked : false
         };
-        
-        // 只在有图片时添加图片字段
-        if (finalImages.length > 0) {
-          submitData.images = finalImages;
+
+        if (finalImages.length > 0) submitData.images = finalImages;
+
+        if (submitData.category === '投票') {
+          var pollInputs = document.querySelectorAll('.poll-option-input');
+          var pollOpts = [];
+          pollInputs.forEach(function(inp) {
+            var v = inp.value.trim();
+            if (v) pollOpts.push(v);
+          });
+          if (pollOpts.length >= 2) {
+            submitData.pollOptions = pollOpts;
+          } else {
+            showToast('投票选项至少需要2项', 'error');
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = '保存修改';
+            return;
+          }
+          var pollMultiple = document.getElementById('pollMultiple');
+          submitData.pollType = (pollMultiple && pollMultiple.checked) ? 'multiple' : 'single';
         }
         
         // 提交编辑

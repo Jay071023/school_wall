@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分运营 - 管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fb; color: #333; min-height: 100vh;
+        }
+        [data-theme="dark"] body { background: #13151f; color: #e0e0e0; }
+
+        .top-bar {
+            background: linear-gradient(135deg, #C084FC 0%, #FF6B9D 100%);
+            color: white; padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .top-bar h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .top-bar .back-link {
+            color: white; text-decoration: none; font-size: 14px;
+            display: flex; align-items: center; gap: 6px; opacity: 0.85;
+            padding: 6px 14px; border-radius: 20px; background: rgba(255,255,255,0.15);
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .top-bar .back-link:hover { opacity: 1; background: rgba(255,255,255,0.25); }
+        .top-bar .top-right { display: flex; align-items: center; gap: 12px; }
+        .top-bar .top-right .btn {
+            padding: 6px 16px; border: none; border-radius: 20px; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .top-bar .top-right .btn-primary { background: white; color: #C084FC; }
+        .top-bar .top-right .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white; border-radius: 16px; padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e8ecf4;
+        }
+        [data-theme="dark"] .stat-card { background: #1a1d2e; border-color: #2d3348; }
+        .stat-card .stat-value { font-size: 2rem; font-weight: 800; color: #C084FC; }
+        .stat-card .stat-label { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+        [data-theme="dark"] .stat-card .stat-value { color: #a78bfa; }
+
+        .tab-bar {
+            display: flex; gap: 4px; background: white; border-radius: 12px;
+            padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        [data-theme="dark"] .tab-bar { background: #1a1d2e; }
+        .tab-btn {
+            flex: 1; padding: 12px 16px; border: none; background: transparent;
+            font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px;
+            color: #94a3b8; transition: all 0.2s; white-space: nowrap;
+        }
+        .tab-btn:hover { color: #C084FC; background: rgba(192,132,252,0.08); }
+        .tab-btn.active { color: white; background: linear-gradient(135deg, #C084FC, #FF6B9D); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: white; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e8ecf4;
+        }
+        [data-theme="dark"] .card { background: #1a1d2e; border-color: #2d3348; }
+        .card table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .card th {
+            padding: 12px 16px; text-align: left; font-weight: 600;
+            color: #64748b; border-bottom: 2px solid #e8ecf4; background: #f8fafc;
+        }
+        [data-theme="dark"] .card th { color: #94a3b8; border-bottom-color: #2d3348; background: #1e2235; }
+        .card td { padding: 12px 16px; border-bottom: 1px solid #e8ecf4; }
+        [data-theme="dark"] .card td { border-bottom-color: #2d3348; }
+        .card tr:hover td { background: rgba(192,132,252,0.04); }
+        .card tr:last-child td { border-bottom: none; }
+
+        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 0.75rem; font-weight: 700; }
+        .rank-1 { background: #fef3c7; color: #d97706; }
+        .rank-2 { background: #f1f5f9; color: #64748b; }
+        .rank-3 { background: #fef2f2; color: #dc2626; }
+        [data-theme="dark"] .rank-1 { background: #78350f; color: #fbbf24; }
+        [data-theme="dark"] .rank-2 { background: #1e293b; color: #94a3b8; }
+        [data-theme="dark"] .rank-3 { background: #450a0a; color: #fca5a5; }
+
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .user-cell .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+        .user-cell .nickname { font-weight: 600; }
+
+        .streak-badge { background: #f0fdf4; color: #16a34a; padding: 2px 10px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; }
+        [data-theme="dark"] .streak-badge { background: #052e16; color: #4ade80; }
+
+        .pos-points { color: #16a34a; font-weight: 700; }
+        .neg-points { color: #dc2626; font-weight: 700; }
+
+        .loading-row td { text-align: center; padding: 40px; color: #94a3b8; }
+        .error-row td { text-align: center; padding: 40px; color: #ef4444; }
+        .empty-row td { text-align: center; padding: 40px; color: #94a3b8; }
+
+        .loading-spinner {
+            display: inline-block; width: 20px; height: 20px;
+            border: 3px solid #e2e8f0; border-top-color: #C084FC;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            vertical-align: middle; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .form-card {
+            background: white; border-radius: 16px; padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e8ecf4;
+            margin-bottom: 20px;
+        }
+        [data-theme="dark"] .form-card { background: #1a1d2e; border-color: #2d3348; }
+        .form-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #64748b; margin-bottom: 6px; }
+        [data-theme="dark"] .form-group label { color: #94a3b8; }
+
+        .form-input, .form-select {
+            width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 10px;
+            font-size: 0.9rem; background: #f8fafc; transition: border-color 0.2s;
+            color: #333;
+        }
+        [data-theme="dark"] .form-input, [data-theme="dark"] .form-select {
+            background: #1e2235; border-color: #2d3348; color: #e0e0e0;
+        }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #C084FC; }
+
+        .user-search-wrap { position: relative; }
+        .user-search-results {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+            max-height: 200px; overflow-y: auto; z-index: 50; display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        [data-theme="dark"] .user-search-results { background: #1a1d2e; border-color: #2d3348; }
+        .user-search-results .result-item {
+            padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid #f0f0f0; font-size: 0.85rem;
+        }
+        [data-theme="dark"] .user-search-results .result-item { border-bottom-color: #2d3348; }
+        .user-search-results .result-item:hover { background: rgba(192,132,252,0.08); }
+        .user-search-results .result-item:last-child { border-bottom: none; }
+        .user-search-results .result-item img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+
+        .selected-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; background: #f0fdf4; border-radius: 10px;
+            margin-top: 8px; font-size: 0.9rem;
+        }
+        [data-theme="dark"] .selected-user { background: #052e16; }
+        .selected-user img { width: 28px; height: 28px; border-radius: 50%; }
+        .selected-user .remove-btn {
+            margin-left: auto; cursor: pointer; color: #94a3b8;
+            padding: 2px 8px; border-radius: 6px; font-size: 1rem;
+        }
+        .selected-user .remove-btn:hover { background: #fef2f2; color: #dc2626; }
+        [data-theme="dark"] .selected-user .remove-btn:hover { background: #450a0a; }
+
+        .quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .quick-amounts .qa-btn {
+            padding: 6px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+            background: #f8fafc; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+            color: #64748b; transition: all 0.2s;
+        }
+        [data-theme="dark"] .quick-amounts .qa-btn { background: #1e2235; border-color: #2d3348; color: #94a3b8; }
+        .quick-amounts .qa-btn:hover { border-color: #C084FC; color: #C084FC; }
+        .quick-amounts .qa-btn.deduct { color: #dc2626; }
+        .quick-amounts .qa-btn.deduct:hover { border-color: #dc2626; color: #dc2626; }
+
+        .form-submit {
+            padding: 10px 24px; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #C084FC, #FF6B9D);
+            color: white; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .form-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(192,132,252,0.3); }
+        .form-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 600;
+            z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            animation: toastIn 0.3s ease;
+        }
+        .toast-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .toast-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        [data-theme="dark"] .toast-success { background: #052e16; border-color: #166534; }
+        [data-theme="dark"] .toast-error { background: #450a0a; border-color: #991b1b; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        @media (max-width: 600px) {
+            .top-bar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+            .top-bar h1 { font-size: 16px; }
+            .container { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-card .stat-value { font-size: 1.4rem; }
+            .card th, .card td { padding: 10px 12px; }
+            .user-cell .avatar { width: 26px; height: 26px; }
+        }
+        [data-theme="dark"] .cleanup-btn { border-color: #475569 !important; }
+        [data-theme="dark"] .cleanup-btn-default { background:#1e293b;color:#94a3b8;border-color:#475569; }
+        [data-theme="dark"] .cleanup-btn-warn { background:#422006;color:#fbbf24;border-color:#78350f; }
+        [data-theme="dark"] .cleanup-btn-danger { background:#450a0a;color:#fca5a5;border-color:#7f1d1d; }
+        [data-theme="dark"] .cleanup-btn-purple { background:#2e1065;color:#c4b5fd;border-color:#5b21b6; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>⭐ 积分运营</h1>
+        <div class="top-right">
+            <button class="btn btn-primary" onclick="awardWeeklyStar()">🏆 颁发本周之星</button>
+            <a href="/admin/" class="back-link">← 返回后台</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="g-today">-</div><div class="stat-label">今日签到</div></div>
+            <div class="stat-card"><div class="stat-value" id="g-total">-</div><div class="stat-label">总签到次数</div></div>
+            <div class="stat-card"><div class="stat-value" id="g-active">-</div><div class="stat-label">7日活跃用户</div></div>
+            <div class="stat-card"><div class="stat-value" id="g-weekly-star" style="font-size:1.1rem;"></div><div class="stat-label">本周之星</div></div>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="points" onclick="switchTab('points')">🏆 积分排行</button>
+            <button class="tab-btn" data-tab="streak" onclick="switchTab('streak')">🔥 签到排行</button>
+            <button class="tab-btn" data-tab="grant" onclick="switchTab('grant')">💰 积分发放</button>
+            <button class="tab-btn" data-tab="log" onclick="switchTab('log')">📋 积分日志</button>
+        </div>
+
+        <div class="tab-content active" id="tab-points">
+            <div class="card">
+                <table>
+                    <thead><tr><th>排名</th><th>用户</th><th>积分</th><th>最高连续签到</th></tr></thead>
+                    <tbody id="points-body"><tr class="loading-row"><td colspan="4"><span class="loading-spinner"></span>加载中...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-streak">
+            <div class="card">
+                <table>
+                    <thead><tr><th>排名</th><th>用户</th><th>最高连续签到</th><th>称号</th></tr></thead>
+                    <tbody id="streak-body"><tr class="loading-row"><td colspan="4"><span class="loading-spinner"></span>加载中...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-grant">
+            <div class="form-card">
+                <h3>💰 发放/扣除积分</h3>
+                <div class="form-group">
+                    <label>选择用户</label>
+                    <div class="user-search-wrap">
+                        <input type="text" class="form-input" id="user-search-input" placeholder="输入用户名或昵称搜索..." autocomplete="off">
+                        <div class="user-search-results" id="user-search-results"></div>
+                    </div>
+                    <div id="selected-user-display"></div>
+                </div>
+                <div class="form-group">
+                    <label>积分数量</label>
+                    <div class="quick-amounts">
+                        <span class="qa-btn" onclick="setAmount(10)">+10</span>
+                        <span class="qa-btn" onclick="setAmount(50)">+50</span>
+                        <span class="qa-btn" onclick="setAmount(100)">+100</span>
+                        <span class="qa-btn" onclick="setAmount(500)">+500</span>
+                        <span class="qa-btn deduct" onclick="setAmount(-10)">-10</span>
+                        <span class="qa-btn deduct" onclick="setAmount(-50)">-50</span>
+                        <span class="qa-btn deduct" onclick="setAmount(-100)">-100</span>
+                    </div>
+                    <input type="number" class="form-input" id="points-amount" placeholder="输入积分数量（正数发放，负数扣除）" value="">
+                </div>
+                <div class="form-group">
+                    <label>原因</label>
+                    <select class="form-select" id="points-reason">
+                        <option value="bonus">🎁 活动奖励</option>
+                        <option value="admin_bonus">✋ 手动发放</option>
+                        <option value="penalty">⚠️ 违规扣除</option>
+                        <option value="adjustment">🔄 手动调整</option>
+                        <option value="other">📝 其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>备注（可选）</label>
+                    <input type="text" class="form-input" id="points-remark" placeholder="备注说明">
+                </div>
+                <button class="form-submit" id="grant-btn" onclick="grantPoints()">确认发放</button>
+            </div>
+            <div class="form-card" id="grant-result" style="display:none;"></div>
+        </div>
+
+        <div class="tab-content" id="tab-log">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <input type="text" class="form-input" id="log-user-search" placeholder="按用户ID筛选..." style="max-width:250px;">
+                <button class="form-submit" onclick="loadPointsLog()" style="padding:8px 20px;">查询</button>
+            </div>
+            <div class="card">
+                <table>
+                    <thead><tr><th>时间</th><th>用户</th><th>变动</th><th>余额</th><th>原因</th></tr></thead>
+                    <tbody id="log-body"><tr class="loading-row"><td colspan="5"><span class="loading-spinner"></span>加载中...</td></tr></tbody>
+                </table>
+            </div>
+            <div id="log-pagination" style="display:flex;justify-content:center;gap:8px;margin-top:16px;"></div>
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border,#e8ecf4);">
+                <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🧹 清理旧日志</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="cleanup-btn cleanup-btn-default" onclick="cleanupPointsLog(7)" style="background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;padding:6px 16px;cursor:pointer;">删除 7 天前</button>
+                    <button class="cleanup-btn cleanup-btn-warn" onclick="cleanupPointsLog(14)" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:6px;padding:6px 16px;cursor:pointer;">删除 14 天前</button>
+                    <button class="cleanup-btn cleanup-btn-danger" onclick="cleanupPointsLog(30)" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:6px;padding:6px 16px;cursor:pointer;">删除 30 天前</button>
+                    <button class="cleanup-btn cleanup-btn-purple" onclick="cleanupPointsLog(90)" style="background:#f3f0ff;color:#6d28d9;border:1px solid #ddd6fe;border-radius:6px;padding:6px 16px;cursor:pointer;">删除 90 天前</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var PH = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2256%22 text-anchor=%22middle%22 font-size=%2240%22 fill=%22%2394a3b8%22%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E';
+        var selectedUserId = null;
+        var selectedUserDisplay = null;
+        var logPage = 1;
+
+        function getToken() {
+            return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        }
+
+        function authHeaders() {
+            return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
+        }
+
+        function showToast(msg, type) {
+            var t = document.createElement('div');
+            t.className = 'toast toast-' + type;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(function() { t.remove(); }, 3000);
+        }
+
+        async function checkAuth() {
+            var token = getToken();
+            if (!token) { window.location.href = '/admin/'; return false; }
+            try {
+                var res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return false; }
+                var json = await res.json();
+                if (json.code !== 200) { window.location.href = '/admin/'; return false; }
+                return true;
+            } catch (e) { window.location.href = '/admin/'; return false; }
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tab === name); });
+            document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.toggle('active', c.id === 'tab-' + name); });
+            if (name === 'log') loadPointsLog();
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s).replace(/[&<>"']/g, function(m) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]; });
+        }
+
+        function setAmount(val) {
+            document.getElementById('points-amount').value = val;
+        }
+
+        function formatTime(ts) {
+            if (!ts) return '-';
+            var d = new Date(ts);
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+        }
+
+        // 用户搜索
+        var searchTimer = null;
+        document.getElementById('user-search-input').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            var val = this.value.trim();
+            if (val.length < 1) { document.getElementById('user-search-results').style.display = 'none'; return; }
+            searchTimer = setTimeout(function() { searchUsers(val); }, 300);
+        });
+
+        document.getElementById('user-search-input').addEventListener('blur', function() {
+            setTimeout(function() { document.getElementById('user-search-results').style.display = 'none'; }, 200);
+        });
+
+        async function searchUsers(keyword) {
+            try {
+                var res = await fetch('/api/admin/users?keyword=' + encodeURIComponent(keyword) + '&limit=10', { headers: authHeaders() });
+                if (!res.ok) return;
+                var json = await res.json();
+                if (json.code !== 200 || !json.data || !json.data.users) return;
+                var results = document.getElementById('user-search-results');
+                if (json.data.users.length === 0) {
+                    results.style.display = 'none';
+                    return;
+                }
+                var html = '';
+                json.data.users.forEach(function(u) {
+                    html += '<div class="result-item" data-id="' + u.id + '" data-nick="' + escapeHtml(u.nickname || u.username) + '" data-avatar="' + (u.avatar || '') + '">'
+                        + '<img src="' + (u.avatar || PH) + '" onerror="this.style.display=\'none\'">'
+                        + '<span>' + escapeHtml(u.nickname || u.username) + '</span>'
+                        + '<span style="color:#94a3b8;font-size:0.8rem;">@' + escapeHtml(u.username) + ' · ' + (u.points || 0) + '分</span>'
+                        + '</div>';
+                });
+                results.innerHTML = html;
+                results.style.display = 'block';
+                results.querySelectorAll('.result-item').forEach(function(el) {
+                    el.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        selectUser(this.dataset.id, this.dataset.nick, this.dataset.avatar);
+                    });
+                });
+            } catch (e) {}
+        }
+
+        function selectUser(id, nick, avatar) {
+            selectedUserId = id;
+            document.getElementById('user-search-input').value = nick;
+            document.getElementById('user-search-results').style.display = 'none';
+            var display = document.getElementById('selected-user-display');
+            display.innerHTML = '<div class="selected-user">'
+                + '<img src="' + (avatar || PH) + '" onerror="this.style.display=\'none\'">'
+                + '<span><strong>' + escapeHtml(nick) + '</strong> (ID: ' + id + ')</span>'
+                + '<span class="remove-btn" onclick="clearSelectedUser()">✕</span></div>';
+        }
+
+        function clearSelectedUser() {
+            selectedUserId = null;
+            document.getElementById('selected-user-display').innerHTML = '';
+            document.getElementById('user-search-input').value = '';
+        }
+
+        // 发放积分
+        async function grantPoints() {
+            if (!selectedUserId) { showToast('请先选择用户', 'error'); return; }
+            var amount = parseInt(document.getElementById('points-amount').value);
+            if (isNaN(amount) || amount === 0) { showToast('请输入有效的积分数量', 'error'); return; }
+            var reason = document.getElementById('points-reason').value;
+            var remark = document.getElementById('points-remark').value.trim();
+            if (!confirm('确认' + (amount > 0 ? '发放' : '扣除') + ' ' + Math.abs(amount) + ' 积分给该用户？')) return;
+
+            var btn = document.getElementById('grant-btn');
+            btn.disabled = true; btn.textContent = '处理中...';
+            try {
+                var res = await fetch('/api/admin/points', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ user_id: selectedUserId, points: amount, reason: reason })
+                });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return; }
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast('✅ ' + (amount > 0 ? '发放' : '扣除') + '成功！当前余额: ' + json.data.balance, 'success');
+                    document.getElementById('points-amount').value = '';
+                    document.getElementById('points-remark').value = '';
+                    var resultDiv = document.getElementById('grant-result');
+                    var logs = json.data.logs || [];
+                    if (logs.length > 0) {
+                        var html = '<h3>📋 最新积分记录</h3><table style="width:100%;border-collapse:collapse;font-size:0.85rem;"><thead><tr>'
+                            + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e8ecf4;">时间</th>'
+                            + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e8ecf4;">变动</th>'
+                            + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e8ecf4;">余额</th>'
+                            + '<th style="padding:8px 12px;text-align:left;font-weight:600;color:#64748b;border-bottom:2px solid #e8ecf4;">原因</th></tr></thead><tbody>';
+                        logs.forEach(function(l) {
+                            html += '<tr><td style="padding:8px 12px;border-bottom:1px solid #e8ecf4;">' + formatTime(l.created_at) + '</td>'
+                                + '<td style="padding:8px 12px;border-bottom:1px solid #e8ecf4;"><span class="' + (l.points > 0 ? 'pos-points' : 'neg-points') + '">' + (l.points > 0 ? '+' : '') + l.points + '</span></td>'
+                                + '<td style="padding:8px 12px;border-bottom:1px solid #e8ecf4;">' + l.balance + '</td>'
+                                + '<td style="padding:8px 12px;border-bottom:1px solid #e8ecf4;">' + escapeHtml(l.reason || '-') + '</td></tr>';
+                        });
+                        html += '</tbody></table>';
+                        resultDiv.innerHTML = html;
+                        resultDiv.style.display = 'block';
+                    }
+                    loadData();
+                } else {
+                    showToast('❌ ' + (json.message || '操作失败'), 'error');
+                }
+            } catch (e) {
+                showToast('❌ 网络错误', 'error');
+            }
+            btn.disabled = false; btn.textContent = '确认发放';
+        }
+
+        // 加载积分日志
+        async function loadPointsLog(p) {
+            if (p !== undefined) logPage = p;
+            var body = document.getElementById('log-body');
+            body.innerHTML = '<tr class="loading-row"><td colspan="5"><span class="loading-spinner"></span>加载中...</td></tr>';
+            var userId = document.getElementById('log-user-search').value.trim();
+            try {
+                var url = '/api/admin/points?page=' + logPage + '&limit=20';
+                if (userId) url += '&user_id=' + parseInt(userId);
+                var res = await fetch(url, { headers: authHeaders() });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return; }
+                var json = await res.json();
+                if (json.code !== 200) throw new Error(json.message || '加载失败');
+                var d = json.data;
+                if (d.logs && d.logs.length > 0) {
+                    var html = '';
+                    d.logs.forEach(function(l) {
+                        html += '<tr><td style="padding:10px 12px;border-bottom:1px solid #e8ecf4;">' + formatTime(l.created_at) + '</td>'
+                            + '<td style="padding:10px 12px;border-bottom:1px solid #e8ecf4;"><div class="user-cell"><span class="nickname">' + escapeHtml(l.nickname || l.username) + '</span></div></td>'
+                            + '<td style="padding:10px 12px;border-bottom:1px solid #e8ecf4;"><span class="' + (l.points > 0 ? 'pos-points' : 'neg-points') + '">' + (l.points > 0 ? '+' : '') + l.points + '</span></td>'
+                            + '<td style="padding:10px 12px;border-bottom:1px solid #e8ecf4;">' + (l.balance || '-') + '</td>'
+                            + '<td style="padding:10px 12px;border-bottom:1px solid #e8ecf4;">' + escapeHtml(l.reason || '-') + '</td></tr>';
+                    });
+                    body.innerHTML = html;
+                } else {
+                    body.innerHTML = '<tr class="empty-row"><td colspan="5">暂无日志</td></tr>';
+                }
+                var total = d.total || 0;
+                var totalPages = Math.ceil(total / 20) || 1;
+                var pagHtml = '';
+                if (logPage > 1) pagHtml += '<button class="form-submit" style="padding:6px 16px;font-size:0.8rem;" onclick="loadPointsLog(' + (logPage-1) + ')">← 上一页</button>';
+                pagHtml += '<span style="padding:8px 12px;color:#94a3b8;">第 ' + logPage + '/' + totalPages + ' 页（共 ' + total + ' 条）</span>';
+                if (logPage < totalPages) pagHtml += '<button class="form-submit" style="padding:6px 16px;font-size:0.8rem;" onclick="loadPointsLog(' + (logPage+1) + ')">下一页 →</button>';
+                document.getElementById('log-pagination').innerHTML = pagHtml;
+            } catch (e) {
+                body.innerHTML = '<tr class="error-row"><td colspan="5">错误: ' + escapeHtml(e.message) + '</td></tr>';
+            }
+        }
+
+        // 加载概览数据
+        async function loadData() {
+            var ptBody = document.getElementById('points-body');
+            var stBody = document.getElementById('streak-body');
+            ptBody.innerHTML = '<tr class="loading-row"><td colspan="4"><span class="loading-spinner"></span>加载中...</td></tr>';
+            stBody.innerHTML = '<tr class="loading-row"><td colspan="4"><span class="loading-spinner"></span>加载中...</td></tr>';
+
+            try {
+                var res = await fetch('/api/admin/gamification', { headers: authHeaders() });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return; }
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var json = await res.json();
+                if (json.code !== 200) throw new Error(json.message || '加载失败');
+                var d = json.data;
+
+                document.getElementById('g-today').textContent = d.today_checkins || 0;
+                document.getElementById('g-total').textContent = d.total_checkins || 0;
+                document.getElementById('g-active').textContent = (d.active_users_7d || 0) + ' 人';
+                document.getElementById('g-weekly-star').textContent = d.weekly_star ? '🏆 ' + d.weekly_star.nickname : '暂无';
+
+                if (d.top_points && d.top_points.length > 0) {
+                    var html = '';
+                    d.top_points.forEach(function(u, i) {
+                        var rc = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+                        var ms = '-';
+                        if (d.top_streak) {
+                            var f = d.top_streak.find(function(s) { return '' + s.user_id === '' + u.id; });
+                            if (f) ms = f.max_streak + ' 天';
+                        }
+                        html += '<tr><td><span class="rank-badge ' + rc + '">' + (i + 1) + '</span></td>'
+                            + '<td><div class="user-cell"><img src="' + (u.avatar || PH) + '" class="avatar" onerror="this.style.display=\'none\'"><span class="nickname">' + escapeHtml(u.nickname || u.username) + '</span></div></td>'
+                            + '<td><strong style="color:#C084FC;">' + u.points + '</strong></td>'
+                            + '<td><span class="streak-badge">🔥 ' + ms + '</span></td></tr>';
+                    });
+                    ptBody.innerHTML = html;
+                } else {
+                    ptBody.innerHTML = '<tr class="empty-row"><td colspan="4">暂无数据</td></tr>';
+                }
+
+                if (d.top_streak && d.top_streak.length > 0) {
+                    var shtml = '';
+                    d.top_streak.forEach(function(s, i) {
+                        var rl = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : '' + (i + 1);
+                        var badge = s.max_streak >= 30 ? '💪 签到达人' : s.max_streak >= 7 ? '🌟 连续签到' : '🌱 继续加油';
+                        shtml += '<tr><td><span class="rank-badge" style="background:' + (i === 0 ? '#fef3c7;color:#d97706' : i === 1 ? '#f1f5f9;color:#64748b' : i === 2 ? '#fef2f2;color:#dc2626' : '#f8fafc;color:#94a3b8') + '">' + rl + '</span></td>'
+                            + '<td><div class="user-cell"><span class="nickname">' + escapeHtml(s.nickname || s.username) + '</span></div></td>'
+                            + '<td><strong style="color:#16a34a;">' + s.max_streak + ' 天</strong></td>'
+                            + '<td>' + badge + '</td></tr>';
+                    });
+                    stBody.innerHTML = shtml;
+                } else {
+                    stBody.innerHTML = '<tr class="empty-row"><td colspan="4">暂无数据</td></tr>';
+                }
+            } catch (e) {
+                console.error('加载积分数据失败:', e);
+                ptBody.innerHTML = '<tr class="error-row"><td colspan="4">错误: ' + escapeHtml(e.message) + '</td></tr>';
+                stBody.innerHTML = '<tr class="error-row"><td colspan="4">错误: ' + escapeHtml(e.message) + '</td></tr>';
+            }
+        }
+
+        window.cleanupPointsLog = async function(days) {
+            if (!confirm('确定要删除 ' + days + ' 天前的所有积分日志吗？此操作不可恢复！')) return;
+            try {
+                var res = await fetch('/api/admin/points/cleanup?days=' + days, { method: 'DELETE', headers: authHeaders() });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return; }
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast('✅ ' + json.message + '（共 ' + json.data.deleted + ' 条）', 'success');
+                    loadPointsLog();
+                } else {
+                    showToast('❌ ' + (json.message || '操作失败'), 'error');
+                }
+            } catch (e) { showToast('❌ 网络错误', 'error'); }
+        };
+
+        window.awardWeeklyStar = async function() {
+            if (!confirm('确定要颁发本周之星给近7天点赞最多的帖子作者吗？')) return;
+            try {
+                var res = await fetch('/api/checkin/weekly-star', { method: 'POST', headers: authHeaders() });
+                if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return; }
+                var json = await res.json();
+                if (json.code === 200) {
+                    showToast('✅ ' + json.data.nickname + ' 获得本周之星！', 'success');
+                    loadData();
+                } else {
+                    showToast('❌ ' + (json.message || '操作失败'), 'error');
+                }
+            } catch (e) { showToast('❌ 网络错误', 'error'); }
+        };
+
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        checkAuth().then(function(ok) { if (ok) loadData(); });
+    </script>
+</body>
+</html>

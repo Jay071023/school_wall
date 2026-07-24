@@ -259,7 +259,24 @@
 
   <script>
     var API_BASE = '/api/admin';
-    var token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+
+    function getToken() {
+      return localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    }
+
+    async function checkAuth() {
+      var token = getToken();
+      if (!token) { window.location.href = '/admin/'; return false; }
+      try {
+        var res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return false; }
+        var json = await res.json();
+        if (json.code !== 200) { window.location.href = '/admin/'; return false; }
+        return true;
+      } catch (e) { window.location.href = '/admin/'; return false; }
+    }
+
+    var token = getToken();
 
     // 加载当前配置
     async function loadSettings() {
@@ -380,8 +397,8 @@
       }, 8000);
     }
 
-    // 页面加载后读取配置
-    loadSettings();
+    // 页面加载后先验证权限再读取配置
+    checkAuth().then(function(ok) { if (ok) loadSettings(); });
   </script>
 </body>
 </html>

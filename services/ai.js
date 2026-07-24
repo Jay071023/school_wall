@@ -170,6 +170,8 @@ async function fetchQQLyrics(songName, artist) {
 
 var MINIMAX_KEY = process.env.MINIMAX_API_KEY || '';
 var DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
+var OPENCODE_KEY = process.env.OPENCODE_API_KEY || 'sk-zZxyAwW64nl1ReQUmkcaLqgGYp6USIcYF01tGsjpdFD4Kld2QJdmMStDV7vHy8OR';
+var OPENCODE_URL = process.env.OPENCODE_URL || 'https://opencode.ai/go';
 
 // 清理AI思考过程和Markdown格式
 function cleanAIOutput(text) {
@@ -238,7 +240,7 @@ async function saveHistory(openid, userText, aiReply) {
 }
 
 async function getAIReply(text, openid) {
-  var systemPrompt = '你是校园墙助手"墙墙"，一个温柔可爱的学姐。回复要自然亲切，像朋友聊天一样，不要太机械。可以适当使用emoji表情，语气轻松活泼。当用户想聊天时，多问一些开放性问题引导对话；当用户想发帖或点歌时，引导他们去 https://wall.jay23.cn 操作。回复长度适中，不要太短也不要太长，控制在100字以内。';
+  var systemPrompt = '你是校园墙助手"墙墙"，一个温柔可爱的学姐。回复要自然亲切，像朋友聊天一样，不要太机械。可以适当使用emoji表情，语气轻松活泼。回复长度控制在100字以内。\n\n功能引导：\n- 用户想发帖/投稿时，引导ta回复「投稿」通过微信直接发帖\n- 用户想点歌（校园广播播放）时，引导ta去网站 https://wall.jay23.cn/radio 操作\n- 用户想推歌/推荐歌曲时（发到公众号每日图文），引导ta回复「推歌」\n- 注意区分「点歌」（校园广播）和「推歌」（公众号图文），不要混淆\n- 如果用户提到歌曲、音乐、分享等，可以友好地问ta是想点歌还是推歌';
 
   // 获取历史记录，提供上下文
   var history = [];
@@ -246,6 +248,22 @@ async function getAIReply(text, openid) {
     history = await getHistory(openid);
   }
   var messages = history.concat([{ role: 'user', content: [{ type: 'text', text: text }] }]);
+
+  // 先试 OpenCode (deepseek-v4-flash)
+  if (OPENCODE_KEY) {
+    try {
+      var reply = await callOpenCode(systemPrompt, messages);
+      if (reply) {
+        reply = reply.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        if (reply) {
+          if (openid) await saveHistory(openid, text, reply);
+          return reply;
+        }
+      }
+    } catch (err) {
+      console.warn('[AI] OpenCode失败:', err.message);
+    }
+  }
 
   // 先试 MiniMax
   if (MINIMAX_KEY) {
@@ -284,6 +302,76 @@ async function getAIReply(text, openid) {
 }
 
 
+
+// ===== OpenCode API (OpenAI 兼容, deepseek-v4-flash) =====
+function callOpenCode(systemPrompt, messages, maxTokens) {
+  var msgs = [{ role: 'system', content: systemPrompt }];
+  for (var i = 0; i < messages.length; i++) {
+    var m = messages[i];
+    var content = '';
+    if (typeof m.content === 'string') {
+      content = m.content;
+    } else if (Array.isArray(m.content)) {
+      var textBlock = m.content.find(function(c) { return c.type === 'text' && c.text; });
+      content = textBlock ? textBlock.text : '';
+    }
+    msgs.push({ role: m.role, content: content });
+  }
+  var body = JSON.stringify({
+    model: 'deepseek-v4-flash',
+    messages: msgs,
+    max_tokens: maxTokens || 300,
+    temperature: 0.7,
+    stream: false
+  });
+
+  return new Promise(function(resolve, reject) {
+    console.log('[AI] 调用 OpenCode API (deepseek-v4-flash):', OPENCODE_URL);
+    var req = https.request({
+      hostname: 'opencode.ai',
+      port: 443,
+      path: '/go',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + OPENCODE_KEY,
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: 15000
+    }, function(res) {
+      var data = '';
+      res.on('data', function(chunk) { data += chunk; });
+      res.on('end', function() {
+        console.log('[AI] OpenCode 响应状态码:', res.statusCode);
+        if (res.statusCode === 401) return reject(new Error('OpenCode密钥无效'));
+        if (res.statusCode !== 200) {
+          return reject(new Error('OpenCode HTTP' + res.statusCode + ': ' + data.substring(0, 100)));
+        }
+        try {
+          var json = JSON.parse(data);
+          if (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) {
+            console.log('[AI] OpenCode 调用成功');
+            return resolve(json.choices[0].message.content.trim());
+          }
+          reject(new Error('OpenCode 响应格式异常: ' + JSON.stringify(json).substring(0, 200)));
+        } catch (e) {
+          reject(new Error('JSON解析失败: ' + e.message));
+        }
+      });
+    });
+    req.on('error', function(err) {
+      console.log('[AI] OpenCode 网络错误:', err.message);
+      reject(err);
+    });
+    req.on('timeout', function() {
+      req.destroy();
+      console.log('[AI] OpenCode 请求超时');
+      reject(new Error('OpenCode超时(15秒)'));
+    });
+    req.write(body);
+    req.end();
+  });
+}
 
 // ===== MiniMax API (Anthropic 兼容格式) =====
 function callMiniMax(systemPrompt, messages, maxTokens) {
@@ -470,83 +558,50 @@ function getRuleReply(text) {
 
 // ===== AI 生成小说章节 =====
 async function generateChapter(prompt) {
-  if (!MINIMAX_KEY) {
-    throw new Error('MINIMAX_API_KEY 未配置');
+  var systemPrompt = '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。';
+  var messages = [{ role: 'user', content: prompt }];
+
+  try {
+    if (OPENCODE_KEY) {
+      var reply = await callOpenCode(systemPrompt, messages, 4096);
+      reply = cleanAIOutput(reply);
+      if (reply && reply.length > 50) return reply;
+    }
+  } catch(e) { console.warn('[AI] OpenCode章节生成失败:', e.message); }
+
+  if (MINIMAX_KEY) {
+    try {
+      var reply = await callMiniMax(systemPrompt, messages, 4096);
+      reply = cleanAIOutput(reply);
+      if (reply && reply.length > 50) return reply;
+    } catch(e) { console.warn('[AI] MiniMax章节生成失败:', e.message); }
   }
 
-  var systemPrompt = '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。';
-
-  var body = JSON.stringify({
-    model: 'MiniMax-M2.7',
-    system: systemPrompt,
-    messages: [{ role: 'user', content: prompt }],
-    max_tokens: 4096,
-    temperature: 0.8,
-    stream: false
-  });
-
-  return new Promise(function(resolve, reject) {
-    console.log('[AI] 开始生成小说章节...');
-    var aborted = false;
-    var timer = setTimeout(function() {
-      aborted = true;
-      req.destroy();
-      reject(new Error('生成超时(45秒)'));
-    }, 45000);
-
-    var req = https.request({
-      hostname: 'api.minimaxi.com',
-      port: 443,
-      path: '/anthropic/v1/messages',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Api-Key': MINIMAX_KEY,
-        'Content-Length': Buffer.byteLength(body)
-      }
-    }, function(res) {
-      var data = '';
-      res.on('data', function(chunk) { data += chunk; });
-      res.on('end', function() {
-        if (aborted) return;
-        clearTimeout(timer);
-        if (res.statusCode === 401) return reject(new Error('MiniMax密钥无效'));
-        if (res.statusCode !== 200) return reject(new Error('HTTP' + res.statusCode + ': ' + data.substring(0, 200)));
-        try {
-          var json = JSON.parse(data);
-          if (json.content && Array.isArray(json.content)) {
-            var textBlock = json.content.find(function(c) { return c.type === 'text' && c.text; });
-            if (textBlock) {
-              var content = textBlock.text.trim();
-              content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-              console.log('[AI] 章节生成成功，长度:', content.length);
-              return resolve(content);
-            }
-          }
-          reject(new Error('响应格式异常: ' + JSON.stringify(json).substring(0, 200)));
-        } catch (e) { reject(new Error('JSON解析失败: ' + e.message)); }
-      });
-    });
-
-    req.on('error', function(err) {
-      if (aborted) return;
-      clearTimeout(timer);
-      reject(err);
-    });
-    req.write(body);
-    req.end();
-  });
+  throw new Error('所有AI生成渠道均不可用');
 }
 
 // ===== AI 流式生成小说章节 =====
 // onToken: callback(text) called for each token chunk
 // returns Promise<fullText>
 async function generateChapterStream(prompt, onToken) {
+  var systemPrompt = '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。';
+  var messages = [{ role: 'user', content: prompt }];
+
+  // 优先用 OpenCode 生成（非流式），再尝试 MiniMax 流式
+  if (OPENCODE_KEY) {
+    try {
+      var reply = await callOpenCode(systemPrompt, messages, 4096);
+      reply = cleanAIOutput(reply);
+      if (reply && reply.length > 50) {
+        if (onToken) onToken(reply);
+        return reply;
+      }
+    } catch(e) { console.warn('[AI] OpenCode章节流式失败:', e.message); }
+  }
+
   if (!MINIMAX_KEY) {
     throw new Error('MINIMAX_API_KEY 未配置');
   }
-
-  var systemPrompt = '你是一位校园青春小说作家，擅长描写青春期细腻的情感变化，文字清新自然，有画面感。';
 
   var body = JSON.stringify({
     model: 'MiniMax-M2.7',
@@ -664,7 +719,15 @@ async function generateSongIntro(songName, artist) {
 
   try {
     var reply = null;
-    if (MINIMAX_KEY) {
+    if (OPENCODE_KEY) {
+      try {
+        reply = await callOpenCode(systemMsg, messages, 1500);
+        console.log('[AI] OpenCode生成歌曲介绍成功:', reply ? reply.substring(0, 50) : '空');
+      } catch(e) {
+        console.warn('[AI] OpenCode生成歌曲介绍失败:', e.message);
+      }
+    }
+    if (!reply && MINIMAX_KEY) {
       try {
         reply = await callMiniMax(systemMsg, messages, 1500);
         console.log('[AI] MiniMax生成歌曲介绍成功:', reply ? reply.substring(0, 50) : '空');
@@ -822,7 +885,8 @@ async function searchSongLyrics(songName, artist) {
       var prompt = '请输出歌曲《' + songName + '》' + (artist ? '(' + artist + ')' : '') + '的歌词。只输出歌词原文，每行一句。';
       var messages = [{ role: 'user', content: [{ type: 'text', text: prompt }] }];
       var reply = null;
-      if (MINIMAX_KEY) { try { reply = await callMiniMax('只输出歌词原文', messages, 2000); } catch(e) {} }
+      if (OPENCODE_KEY) { try { reply = await callOpenCode('只输出歌词原文', messages, 2000); } catch(e) {} }
+      if (!reply && MINIMAX_KEY) { try { reply = await callMiniMax('只输出歌词原文', messages, 2000); } catch(e) {} }
       if (!reply && DEEPSEEK_KEY) { try { reply = await callDeepSeek('只输出歌词原文', messages); } catch(e) {} }
       if (reply) {
         reply = reply.replace(/<[^>]*think[^>]*>/g, '').trim();

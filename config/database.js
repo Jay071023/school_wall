@@ -84,6 +84,17 @@ async function initDB() {
     try {
       await connection.execute('ALTER TABLE users ADD COLUMN hobbies VARCHAR(500) DEFAULT \'\' COMMENT \'兴趣爱好\' AFTER gender');
     } catch (e) { console.error('[DB迁移]', e.message); }
+    // 封禁理由
+    try {
+      await connection.execute('ALTER TABLE users ADD COLUMN ban_reason VARCHAR(500) DEFAULT NULL COMMENT \'封禁原因\' AFTER status');
+    } catch (e) { console.error('[DB迁移]', e.message); }
+    // 封禁后登录尝试记录
+    try {
+      await connection.execute('ALTER TABLE users ADD COLUMN ban_attempt_ip VARCHAR(45) DEFAULT \'\' COMMENT \'封禁后最后一次登录IP\' AFTER ban_reason');
+    } catch (e) { console.error('[DB迁移]', e.message); }
+    try {
+      await connection.execute('ALTER TABLE users ADD COLUMN ban_attempt_count INT DEFAULT 0 COMMENT \'封禁后登录尝试次数\' AFTER ban_attempt_ip');
+    } catch (e) { console.error('[DB迁移]', e.message); }
 
     // 帖子表
     await connection.execute(`
@@ -821,6 +832,91 @@ async function initDB() {
       console.log('✅ password_reset_tokens 表已创建');
     } catch (e) {
       if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+
+    // ===== 积分 & 签到系统 =====
+    // users 表加 points 列
+    try {
+      await connection.execute("ALTER TABLE users ADD COLUMN points INT DEFAULT 0 COMMENT '总积分' AFTER avatar");
+      console.log('✅ users 表已添加 points 列');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+    // 签到记录表
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS checkins (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          checkin_date DATE NOT NULL COMMENT '签到日期',
+          streak INT DEFAULT 1 COMMENT '连续签到天数',
+          points_earned INT DEFAULT 0 COMMENT '本次签到获得的积分',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY unique_user_date (user_id, checkin_date),
+          INDEX idx_user_date (user_id, checkin_date DESC),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='签到记录'
+      `);
+      console.log('✅ checkins 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+    // 积分变动记录表
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS points_log (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          points INT NOT NULL COMMENT '变动积分（正=加，负=扣）',
+          balance INT DEFAULT 0 COMMENT '变动后余额',
+          reason VARCHAR(50) NOT NULL COMMENT 'checkin|post|comment|like|follow|bonus|weekly_star',
+          related_id INT DEFAULT NULL COMMENT '关联ID（帖子ID等）',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          INDEX idx_user (user_id),
+          INDEX idx_reason (reason),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分变动日志'
+      `);
+      console.log('✅ points_log 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+    // 等级头衔表
+    try {
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS level_titles (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          level INT NOT NULL COMMENT '等级',
+          min_points INT NOT NULL COMMENT '所需最低积分',
+          title_name VARCHAR(50) NOT NULL COMMENT '等级头衔名',
+          title_color VARCHAR(50) DEFAULT '#FF6B9D',
+          title_bg VARCHAR(50) DEFAULT 'rgba(255,107,157,0.1)',
+          icon VARCHAR(10) DEFAULT '⭐',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE KEY unique_level (level),
+          INDEX idx_min_points (min_points)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='等级头衔配置'
+      `);
+      console.log('✅ level_titles 表已创建');
+    } catch (e) {
+      if (e.code !== 'ER_TABLE_EXISTS_ERR') throw e;
+    }
+    // 插入默认等级
+    var defaultLevels = [
+      [1, 0, '校园新鮮人', '#A78BFA', 'rgba(167,139,250,0.1)', '🌱'],
+      [2, 10, '校园住民', '#3B82F6', 'rgba(59,130,246,0.1)', '🏠'],
+      [3, 30, '活跃分子', '#10B981', 'rgba(16,185,129,0.1)', '🔥'],
+      [4, 60, '校园达人', '#F59E0B', 'rgba(245,158,11,0.1)', '⭐'],
+      [5, 100, '人气之星', '#FF6B9D', 'rgba(255,107,157,0.1)', '🌟'],
+      [6, 200, '校园传奇', '#EF4444', 'rgba(239,68,68,0.1)', '👑']
+    ];
+    for (var li = 0; li < defaultLevels.length; li++) {
+      try {
+        await connection.execute(
+          'INSERT IGNORE INTO level_titles (level, min_points, title_name, title_color, title_bg, icon) VALUES (?, ?, ?, ?, ?, ?)',
+          defaultLevels[li]
+        );
+      } catch (e) {}
     }
 
     for (var i = 0; i < migrateFields.length; i++) {

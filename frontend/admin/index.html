@@ -1192,6 +1192,7 @@
             color: #FF6B9D;
             font-size: 0.85rem;
             text-align: center;
+            white-space: pre-line;
         }
         .login-error.show { display: block; }
         [data-theme="dark"] .login-error {
@@ -1448,16 +1449,6 @@
             .admin-mobile-toggle {
                 display: flex;
             }
-        }
-
-        /* 面板切换动画 */
-        .admin-panel {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .admin-panel.active {
-            display: block;
         }
 
         /* 概览面板网格布局 */
@@ -2057,6 +2048,8 @@
             cursor: pointer;
             outline: none;
             transition: border-color var(--transition-fast);
+            max-width: 100%;
+            min-width: 70px;
         }
 
         .role-select:hover {
@@ -3137,6 +3130,9 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.15);
         }
         
+        /* 积分运营面板 */
+        .admin-section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        
         /* 面板标题区域美化 */
         .admin-table-header,
         .panel-header-actions {
@@ -3313,7 +3309,7 @@
             border-color: #2d3348;
             background: #1a1d2e;
         }
-        
+
         .admin-table {
             width: 100%;
             min-width: 700px;
@@ -4032,9 +4028,13 @@
         }
         
         .modal-close:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
+            background: rgba(0,0,0,0.05);
         }
+        .ban-reason-btn:hover { border-color: #EF4444 !important; }
+        [data-theme="dark"] .ban-reason-btn { background: var(--bg-section); color: var(--text-primary); }
+        [data-theme="dark"] .ban-reason-btn:hover { border-color: #EF4444 !important; background: rgba(239,68,68,0.1) !important; }
+        [data-theme="dark"] .ban-reason-btn[style*="background: #fef2f2"] { background: rgba(239,68,68,0.15) !important; }
+        [data-theme="dark"] #ban-custom-reason { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); }
         
         [data-theme="dark"] .modal-close {
             background: rgba(255, 255, 255, 0.05);
@@ -4608,6 +4608,269 @@
                 padding: 8px 12px;
             }
         }
+
+        /* ================================================================
+           手机端全面适配 — 统一覆盖修补比例/尺寸/间距问题
+           ================================================================ */
+        @media (max-width: 768px) {
+            /* ---- 顶栏 ---- */
+            .admin-topbar { padding: 0 12px !important; }
+            .admin-topbar .topbar-left h1 { font-size: 0.95rem; }
+            .admin-topbar .topbar-right { gap: 4px; }
+            .admin-topbar .topbar-search { display: none !important; }
+            .admin-topbar .topbar-username { display: none !important; }
+            .admin-mobile-toggle { display: flex !important; }
+
+            /* ---- 主内容区 ---- */
+            .admin-main { margin-left: 0 !important; padding: 12px !important; width: 100% !important; }
+
+            /* ---- 面板通用 ---- */
+            .admin-panel { padding: 14px !important; border-radius: 12px; margin-bottom: 12px; }
+            .admin-panel .admin-panel-header { flex-wrap: wrap; gap: 8px; }
+
+            /* ---- 统计卡片 ---- */
+            .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+            .stat-card { padding: 14px !important; }
+            .stat-card .stat-value { font-size: 1.35rem !important; }
+            .stat-card .stat-label { font-size: 0.72rem !important; }
+            .stat-card .stat-icon { font-size: 1.4rem !important; }
+
+            /* ---- 状态标签 ---- */
+            .status-badge { padding: 2px 8px; font-size: 0.68rem; gap: 4px; border-radius: 12px; }
+            .status-badge .status-dot { width: 5px; height: 5px; }
+
+            /* ---- 角色选择 ---- */
+            .role-select { font-size: 0.7rem; padding: 4px 8px; max-width: 100%; min-width: 60px; }
+
+            /* ---- 筛选栏 ---- */
+            .filter-bar-admin { gap: 4px; padding-bottom: 6px; }
+            .filter-bar-admin .filter-btn {
+                padding: 7px 12px; font-size: 0.78rem; white-space: nowrap;
+                min-height: 36px; flex-shrink: 0;
+            }
+
+            /* ---- 表格 & 表头 ---- */
+            .admin-table-header { flex-wrap: wrap; gap: 6px !important; }
+            .admin-table-header h3 { font-size: 0.9rem; }
+            .admin-table-header > span { font-size: 0.75rem !important; }
+            .admin-table { min-width: 600px; }
+            .admin-table th,
+            .admin-table td { padding: 7px 6px !important; font-size: 0.75rem !important; }
+            .admin-table th { font-size: 0.7rem !important; }
+            .admin-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            /* ---- 分页 ---- */
+            .admin-pagination { gap: 4px; flex-wrap: wrap; }
+            .admin-pagination .page-btn {
+                min-width: 32px; height: 32px; font-size: 0.75rem;
+                border-radius: 6px !important;
+            }
+            .admin-pagination .page-info { font-size: 0.75rem; }
+
+            /* ---- 概览 ---- */
+            .overview-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .overview-section { margin-bottom: 12px !important; }
+            .overview-section .section-title { font-size: 0.9rem !important; }
+            .overview-list-item { padding: 10px 12px !important; }
+            .overview-list-item .item-title { font-size: 0.82rem !important; }
+            .overview-list-item .item-meta { font-size: 0.7rem !important; }
+            .overview-list-item .item-actions .btn { padding: 4px 8px !important; font-size: 0.7rem !important; }
+
+            /* ---- 设置面板 ---- */
+            .settings-section { padding: 14px !important; }
+            .settings-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .settings-row .settings-input { min-width: 0 !important; width: 100% !important; }
+            .settings-row .settings-textarea { min-width: 0 !important; width: 100% !important; }
+
+            /* ---- 模态框 ---- */
+            .modal { width: 95% !important; max-width: none !important; margin: 10px !important; max-height: 90vh; }
+            .modal-header { padding: 14px 16px !important; }
+            .modal-header h3 { font-size: 1rem !important; }
+            .modal-body { padding: 16px !important; }
+            .modal-footer { padding: 12px 16px !important; flex-wrap: wrap; gap: 8px; }
+            .modal-footer .btn { flex: 1; min-width: 0; text-align: center; }
+
+            /* ---- 按钮通用 ---- */
+            .btn { padding: 7px 12px !important; font-size: 0.8rem !important; min-height: 36px; }
+            .btn-sm { padding: 5px 10px !important; font-size: 0.72rem !important; min-height: 32px; }
+
+            /* ---- 搜索栏 ---- */
+            .admin-search-bar { flex-direction: column; gap: 8px; padding: 10px 12px; }
+            .admin-search-bar .admin-search-input { width: 100% !important; }
+            .admin-search-bar .btn { width: 100%; }
+
+            /* ---- 操作按钮组 ---- */
+            .table-actions { 
+                display: flex;
+                flex-wrap: wrap; 
+                gap: 5px;
+            }
+            .table-actions .action-btn-text {
+                font-size: 0.7rem !important; padding: 5px 8px !important;
+                min-height: 32px; flex: 1 1 auto;
+                max-width: 100%; text-align: center;
+            }
+            .table-actions-compact {
+                gap: 4px;
+            }
+            .table-actions-compact .action-btn-sm {
+                width: 32px; height: 32px; font-size: 0.75rem;
+            }
+
+            /* ---- posts面板: 隐藏操作列以外的次要列 ---- */
+            #panel-posts .admin-table th:nth-child(3),  /* 标题列调整 */
+            #panel-posts .admin-table td:nth-child(3) {
+                max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            #panel-posts .admin-table th:nth-child(4),  /* 作者 */
+            #panel-posts .admin-table td:nth-child(4) {
+                max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+
+            /* ---- 用户管理 ---- */
+            #panel-users .admin-table th:nth-child(1),  /* ID缩小 */
+            #panel-users .admin-table td:nth-child(1) {
+                width: 32px; min-width: 32px; max-width: 32px;
+                padding: 4px !important; font-size: 0.65rem !important; text-align: center;
+            }
+            #panel-users .admin-table th:nth-child(4),  /* 邮箱列紧凑 */
+            #panel-users .admin-table td:nth-child(4) {
+                max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+            #panel-users .admin-table th:nth-child(5),  /* 角色标签紧凑 */
+            #panel-users .admin-table td:nth-child(5) {
+                max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                padding: 4px 4px !important;
+            }
+            #panel-users .admin-table td:nth-child(5) .tag {  /* 角色标签缩小 */
+                padding: 1px 6px; font-size: 0.65rem; display: inline-block;
+                max-width: 56px; overflow: hidden; text-overflow: ellipsis;
+                white-space: nowrap; vertical-align: middle;
+            }
+            #panel-users .admin-table th:nth-child(8),  /* 隐藏最后登录列 */
+            #panel-users .admin-table td:nth-child(8) {
+                display: none;
+            }
+            #panel-users .admin-table th:nth-child(6),  /* 状态列缩小 */
+            #panel-users .admin-table td:nth-child(6) {
+                width: 36px; max-width: 36px; padding: 4px 2px !important;
+                text-align: center;
+            }
+            #panel-users .admin-table th:nth-child(7) {  /* 注册时间列 */
+                width: auto;
+            }
+            #panel-users .admin-table td:nth-child(7) > div {  /* 注册时间行内 */
+                font-size: 0.65rem !important; white-space: nowrap;
+            }
+            #panel-users .admin-table td:nth-child(7) span {  /* IP文字 */
+                font-size: 0.6rem !important;
+            }
+            #panel-users .users-toolbar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+            #panel-users .users-search-box { width: 100%; }
+            #panel-users .users-search-input { flex: 1; min-width: 0; }
+            #panel-users .role-select { font-size: 0.7rem; padding: 4px 8px; max-width: 100%; width: auto; min-width: 60px; }
+            #panel-users .table-actions { flex-wrap: wrap; gap: 2px; }
+            #panel-users .table-actions .action-btn-text { font-size: 0.62rem !important; padding: 2px 5px !important; }
+
+            /* ---- 反馈管理 ---- */
+            #panel-feedback .feedback-header-right {
+                width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+            }
+            #panel-feedback .admin-filter-select { font-size: 0.78rem; padding: 5px 10px; }
+
+            /* ---- 点歌管理 ---- */
+            #panel-songs .admin-table { min-width: 480px; }
+            #panel-songs .admin-table th,
+            #panel-songs .admin-table td {
+                padding: 5px 4px !important; font-size: 0.7rem !important;
+            }
+            #panel-songs .table-actions .action-btn-text {
+                font-size: 0.65rem !important; padding: 3px 5px !important;
+            }
+
+            /* ---- 一览表posts ---- */
+            #panel-posts .filter-bar-admin {
+                overflow-x: auto; flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                margin-bottom: 8px;
+            }
+
+            /* ---- 日志面板 ---- */
+            #panel-logs .admin-table th:nth-child(1),
+            #panel-logs .admin-table td:nth-child(1) { display: none; }
+            #panel-logs .log-clean-buttons { flex-wrap: wrap; margin-left: 0 !important; }
+            #panel-logs .log-clean-buttons select { width: 100%; margin-bottom: 6px; }
+
+            /* ---- 回收站 ---- */
+            .trash-filters { flex-wrap: wrap; gap: 6px; }
+            .trash-filters select,
+            .trash-filters input { width: 100%; }
+
+            /* ---- 消息/私信管理 ---- */
+            #panel-messages .admin-table th,
+            #panel-messages .admin-table td { padding: 6px 6px !important; font-size: 0.7rem !important; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-main { padding: 8px !important; }
+            .admin-panel { padding: 10px !important; border-radius: 10px; }
+            .stats-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .stat-card .stat-value { font-size: 1.2rem !important; }
+            .admin-table { min-width: 480px; }
+            .admin-table th,
+            .admin-table td { padding: 5px 4px !important; font-size: 0.7rem !important; }
+            .admin-topbar .topbar-right { gap: 3px; }
+
+            /* 极小屏：状态标签更小 */
+            .status-badge { padding: 1px 6px; font-size: 0.6rem; border-radius: 10px; gap: 3px; }
+            .status-badge .status-dot { width: 4px; height: 4px; }
+
+            /* 极小屏：操作按钮紧凑 */
+            .table-actions { gap: 3px; }
+            .table-actions .action-btn-text {
+                font-size: 0.65rem !important; padding: 4px 5px !important;
+                min-height: 28px;
+            }
+            .admin-topbar .topbar-right .theme-toggle,
+            .admin-topbar .topbar-right .topbar-bell,
+            .admin-topbar .topbar-right .topbar-logout-btn {
+                width: 34px; height: 34px; min-width: 34px; min-height: 34px;
+            }
+            .admin-topbar .topbar-left h1 { font-size: 0.88rem; }
+
+            /* ---- 用户管理 极小屏 ---- */
+            #panel-users .admin-table { min-width: 600px; }
+            #panel-users .admin-table td:nth-child(5) .tag {
+                max-width: 44px; font-size: 0.6rem; padding: 1px 4px;
+            }
+            #panel-users .admin-table th:nth-child(7),  /* 隐藏注册时间/IP */
+            #panel-users .admin-table td:nth-child(7) {
+                display: none;
+            }
+            #panel-users .role-select { font-size: 0.65rem; padding: 3px 6px; max-width: 100%; width: auto; min-width: 56px; }
+            #panel-users .table-actions { flex-wrap: wrap; gap: 2px; }
+            #panel-users .table-actions .action-btn-text {
+                font-size: 0.6rem !important; padding: 2px 5px !important;
+            }
+            #panel-users .admin-table td:nth-child(9) {  /* 操作列 */
+                padding: 2px !important;
+            }
+
+            /* 设置面板 */
+            .settings-section { padding: 10px !important; }
+            .settings-row { padding: 10px 0; }
+            .settings-row .settings-label { font-size: 0.82rem; }
+            .settings-row .settings-desc { font-size: 0.7rem; }
+
+            /* 分页按钮 */
+            .admin-pagination .page-btn {
+                min-width: 28px; height: 28px; font-size: 0.7rem;
+            }
+
+            /* 精选面板/小工具的通用fix */
+            .panel-title { font-size: 0.9rem; }
+            .panel-header-actions .btn { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -4796,6 +5059,12 @@
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
                             </span>
                             <span class="link-text">连载小说</span>
+                        </a>
+                        <a href="/admin/gamification.html" class="sidebar-link" data-permission="stats:view">
+                            <span class="link-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                            </span>
+                            <span class="link-text">积分运营</span>
                         </a>
                     </div>
 
@@ -4986,7 +5255,7 @@
                     <!-- 搜索和筛选栏 -->
                     <div class="users-toolbar">
                         <div class="users-search-box">
-                            <input type="text" class="users-search-input" id="users-search-input" placeholder="搜索用户名、昵称..." onkeyup="if(event.key==='Enter')searchUsers()">
+                            <input type="text" class="users-search-input" id="users-search-input" placeholder="搜索用户名、昵称、邮箱..." onkeyup="if(event.key==='Enter')searchUsers()">
                             <button class="users-search-btn" onclick="searchUsers()">🔍 搜索</button>
                         </div>
                         <div class="users-page-size">
@@ -5007,6 +5276,7 @@
                     <th>ID</th>
                     <th>用户名</th>
                     <th>昵称</th>
+                    <th>邮箱</th>
                     <th>角色</th>
                     <th>状态</th>
                     <th>注册时间 / IP</th>
@@ -6489,6 +6759,31 @@
         </div>
     </div>
 
+    <!-- ===== 封禁弹窗 ===== -->
+    <div class="modal-overlay" id="ban-modal">
+        <div class="modal" style="max-width:480px;">
+            <div class="modal-header">
+                <h3>🔒 封禁用户</h3>
+                <button class="modal-close" onclick="closeBanModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ban-user-id" value="">
+                <div style="margin-bottom:16px;font-size:0.9rem;color:var(--text-secondary);">封禁：<strong id="ban-username" style="color:var(--text-primary);"></strong></div>
+                <div style="margin-bottom:12px;font-size:0.85rem;font-weight:600;color:var(--text-primary);">选择封禁理由</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;" id="ban-reason-templates">
+                </div>
+                <div>
+                    <div style="font-size:0.85rem;font-weight:600;margin-bottom:6px;color:var(--text-primary);">或自定义理由</div>
+                    <input type="text" id="ban-custom-reason" placeholder="输入封禁理由..." style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:0.85rem;background:var(--bg-secondary);color:var(--text-primary);box-sizing:border-box;">
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-ghost" onclick="closeBanModal()">取消</button>
+                <button class="btn btn-danger" onclick="confirmBan()">确认封禁</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast 容器 -->
     <div class="toast-container" id="toast-container"></div>
 
@@ -6913,7 +7208,7 @@
         function categoryName(cat) {
             const map = {
                 daily: '日常', confession: '表白', help: '求助',
-                secondhand: '二手', club: '社团', lost: '寻物', other: '其他'
+                secondhand: '二手', club: '社团', lost_found: '失物招领', poll: '投票', lost: '寻物', other: '其他'
             };
             return map[cat] || cat || '-';
         }
@@ -7534,8 +7829,8 @@
                 if (json.code === 200) {
                     const p = json.data;
                     const images = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [];
-                    var catColors = { daily:'#10B981', confession:'#F43F5E', help:'#F59E0B', secondhand:'#8B5CF6', club:'#3B82F6', other:'#6B7280' };
-                    var catBg = { daily:'#ECFDF5', confession:'#FFF1F2', help:'#FFFBEB', secondhand:'#F5F3FF', club:'#EFF6FF', other:'#F3F4F6' };
+                    var catColors = { daily:'#10B981', confession:'#F43F5E', help:'#F59E0B', secondhand:'#8B5CF6', club:'#3B82F6', lost_found:'#F97316', poll:'#EC4899', other:'#6B7280' };
+                    var catBg = { daily:'#ECFDF5', confession:'#FFF1F2', help:'#FFFBEB', secondhand:'#F5F3FF', club:'#EFF6FF', lost_found:'#FFF7ED', poll:'#FDF2F8', other:'#F3F4F6' };
                     var catName = p.category;
                     var cc = catColors[catName] || '#6B7280';
                     var cb = catBg[catName] || '#F3F4F6';
@@ -7730,7 +8025,7 @@
 
         async function loadUsers() {
             const tbody = document.getElementById('users-tbody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9"><div class="loading-text"><span class="loading-spinner"></span>加载中...</div></td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="10"><div class="loading-text"><span class="loading-spinner"></span>加载中...</div></td></tr>';
             const params = new URLSearchParams({ 
                 page: usersPage, 
                 limit: usersPageSize 
@@ -7777,7 +8072,7 @@
         function renderUsersTable(users) {
             const tbody = document.getElementById('users-tbody');
             if (!users || users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10"><div class="admin-empty"><span class="empty-emoji">📭</span><span>暂无数据</span></div></td></tr>';
                 return;
             }
             const isSuperAdmin = currentUser && currentUser.role === 'super_admin';
@@ -7815,6 +8110,7 @@
                     <td>${u.id}</td>
                     <td>${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(u.nickname || '-')}</td>
+                    <td style="font-size:0.8rem;color:var(--text-light);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(u.email || '')}">${escapeHtml(u.email || '-')}</td>
                     <td><span class="tag ${roleTag}">${roleText}</span></td>
                     <td>${isActive ? statusBadge('active') : statusBadge('disabled')}</td>
                     <td style="white-space: nowrap; font-size: 0.8rem; color: var(--text-light);">
@@ -7825,8 +8121,8 @@
                     <td>
                         <div class="table-actions">
                             ${isActive ?
-                                `<button class="action-btn action-btn-text btn-disable" title="禁用" onclick="adminAction('disableUser', ${u.id})">🔒 禁用</button>` :
-                                `<button class="action-btn action-btn-text btn-enable" title="启用" onclick="adminAction('enableUser', ${u.id})">🔓 启用</button>`
+                                `<button class="action-btn action-btn-text btn-disable" title="封禁" onclick="banUser(${u.id}, '${escapeHtml(u.nickname || u.username)}')">🔒 封禁</button>` :
+                                `<button class="action-btn action-btn-text btn-enable" title="启用" onclick="adminAction('enableUser', ${u.id})">🔓 解封</button>`
                             }
                             ${isSuperAdmin && u.id !== currentUser.id ? `
                                 <button class="action-btn action-btn-text" title="一键登录" onclick="loginAsUser(${u.id}, '${escapeHtml(u.nickname || u.username)}')">🔑 登录</button>
@@ -8910,6 +9206,61 @@
             }
         };
 
+        // ===== 封禁用户 =====
+        const BAN_TEMPLATES = [
+            { label: '📧 邮箱乱填', reason: '邮箱乱填 — 注册邮箱无效或无法联系' },
+            { label: '💬 不当言论', reason: '发布不当言论 — 帖子内容违反社区规范' },
+            { label: '🗨 不当评论', reason: '发布不当评论 — 评论内容违规' },
+            { label: '📢 恶意刷屏', reason: '恶意刷屏 — 频繁发布相似内容' },
+            { label: '👤 冒充他人', reason: '冒充他人 — 冒用他人身份信息' },
+            { label: '⚠️ 账号异常', reason: '账号异常 — 检测到异常登录或操作行为' },
+        ];
+
+        window.banUser = function(userId, username) {
+            document.getElementById('ban-user-id').value = userId;
+            document.getElementById('ban-username').textContent = username;
+            document.getElementById('ban-custom-reason').value = '';
+            var container = document.getElementById('ban-reason-templates');
+            container.innerHTML = BAN_TEMPLATES.map(function(t, i) {
+                return '<button class="ban-reason-btn" data-reason="' + t.reason.replace(/"/g, '&quot;') + '" style="padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-section);color:var(--text-primary);cursor:pointer;font-size:0.82rem;text-align:left;transition:all 0.15s;" onclick="selectBanReason(this)">' + t.label + '</button>';
+            }).join('');
+            document.getElementById('ban-modal').classList.add('show');
+            document.getElementById('ban-modal').style.display = 'flex';
+        };
+
+        window.selectBanReason = function(btn) {
+            document.querySelectorAll('.ban-reason-btn').forEach(function(b) { b.style.borderColor = 'var(--border-color)'; b.style.background = 'var(--bg-section)'; });
+            btn.style.borderColor = '#EF4444';
+            btn.style.background = '#fef2f2';
+            document.getElementById('ban-custom-reason').value = btn.dataset.reason;
+        };
+
+        window.closeBanModal = function() {
+            document.getElementById('ban-modal').classList.remove('show');
+            document.getElementById('ban-modal').style.display = 'none';
+        };
+
+        window.confirmBan = function() {
+            var userId = document.getElementById('ban-user-id').value;
+            var reason = document.getElementById('ban-custom-reason').value.trim();
+            if (!reason) { showToast('请选择或输入封禁理由', 'error'); return; }
+            authFetch('/api/admin/users/' + userId + '/status', {
+                method: 'PUT',
+                body: JSON.stringify({ status: 0, ban_reason: reason })
+            }).then(function(r) {
+                if (!r) return;
+                r.json().then(function(d) {
+                    if (d.code === 200) {
+                        showToast('已封禁', 'success');
+                        closeBanModal();
+                        loadUsers();
+                    } else {
+                        showToast('❌ ' + (d.message || '操作失败'), 'error');
+                    }
+                });
+            });
+        };
+
         // ===== 管理操作 =====
         window.adminAction = async function(action, id, extra) {
             let url, options;
@@ -9872,8 +10223,9 @@
                                             <strong>图片：</strong>
                                             <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
                                                 ${images.map(img => `<img src="${img}" style="width: 100%; border-radius: 8px; cursor: pointer;" onclick="window.open('${img}', '_blank')">`).join('')}
-                                            </div>
-                                        </div>
+        </div>
+    </div>
+
                                     ` : ''}
                                     <div style="margin-top: 20px; display: flex; gap: 12px;">
                                         <button class="btn btn-primary" onclick="window.restorePost(${p.id}); window.closeModal('trash-post-detail-modal');">🔄 恢复帖子</button>
@@ -10357,6 +10709,14 @@
                 const u = json.data;
                 const roleNames = { user: '普通用户', reviewer: '审核员', radio_admin: '广播管理员', admin: '管理员', super_admin: '超级管理员' };
                 const statusText = u.status === 1 ? '<span style="color:#10B981;">● 正常</span>' : '<span style="color:#EF4444;">● 已禁用</span>';
+                var banInfo = '';
+                if (u.status === 0 && u.ban_reason) {
+                    banInfo = '<div style="margin-top:12px;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;">'
+                        + '<div style="font-size:0.8rem;color:#dc2626;font-weight:600;margin-bottom:6px;">🔒 封禁信息</div>'
+                        + '<div style="font-size:0.82rem;color:#991b1b;"><span style="color:#b91c1c;">原因：</span>' + escapeHtml(u.ban_reason) + '</div>'
+                        + (u.ban_attempt_ip ? '<div style="font-size:0.82rem;color:#991b1b;margin-top:4px;"><span style="color:#b91c1c;">最后尝试IP：</span>' + escapeHtml(u.ban_attempt_ip) + '（' + (u.ban_attempt_count || 1) + '次）</div>' : '')
+                        + '</div>';
+                }
                 const avatar = u.avatar || '/uploads/avatars/default.png';
                 const nickname = escapeHtml(u.nickname || u.username || '未设置');
                 const email = escapeHtml(u.email || '-');
@@ -10392,7 +10752,7 @@
                     '<div><span style="font-size:0.8rem;color:#999;">注册时间</span> ' + joinedAt + '</div>' +
                     (location || birthday ? '<div style="display:flex;gap:16px;margin-top:4px;">' + location + birthday + '</div>' : '') +
                 '</div>' +
-                bio;
+                bio + banInfo;
             } catch (err) {
                 console.error('加载用户资料失败:', err);
                 content.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">网络错误</div>';
@@ -11458,8 +11818,12 @@
                         document.getElementById('adminLoginCaptchaGroup').classList.add('show');
                         loadAdminCaptcha();
                     }
-                    errorDiv.textContent = '😅 ' + (data.message || '登录失败');
-                    errorDiv.classList.add('show');
+                    if (data.ban_reason) {
+                        showBanNotice(data.ban_reason);
+                    } else {
+                        errorDiv.textContent = '😅 ' + (data.message || '登录失败');
+                        errorDiv.classList.add('show');
+                    }
                 }
             }).catch(function() {
                 var btn = document.getElementById('adminLoginBtn');
@@ -11483,6 +11847,35 @@
                 loadAdminCaptcha();
             }
         }).catch(function() {});
+
+        // 封禁提示卡片
+        window.showBanNotice = function(reason) {
+            var existing = document.getElementById('ban-notice-overlay');
+            if (existing) existing.remove();
+            var overlay = document.createElement('div');
+            overlay.id = 'ban-notice-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+            overlay.innerHTML = '<div style="background:var(--bg-card,#fff);border-radius:20px;max-width:420px;width:100%;padding:32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:fadeIn 0.3s ease;">'
+                + '<div style="font-size:48px;margin-bottom:12px;">🔒</div>'
+                + '<h2 style="font-size:1.3rem;margin:0 0 8px;color:var(--text-primary,#1a1a2e);">账号已被封禁</h2>'
+                + '<div style="background:rgba(255,107,157,0.08);border-radius:12px;padding:14px;margin:16px 0;text-align:left;">'
+                + '<div style="font-size:0.8rem;color:var(--text-light,#888);margin-bottom:4px;">封禁原因</div>'
+                + '<div style="font-size:0.95rem;color:var(--text-primary,#1a1a2e);font-weight:500;">' + reason.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+                + '</div>'
+                + '<p style="font-size:0.85rem;color:var(--text-secondary,#666);margin:0 0 20px;line-height:1.6;">如有疑问，请联系管理员申诉</p>'
+                + '<div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:inline-flex;align-items:center;gap:8px;">'
+                + '<span style="color:white;font-size:0.85rem;">📧 2108474355@qq.com</span>'
+                + '<button onclick="navigator.clipboard.writeText(\'2108474355@qq.com\');this.textContent=\'✓已复制\';setTimeout(function(){this.textContent=\'📋复制\'},2000)" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer;">📋复制</button>'
+                + '</div>'
+                + '<button onclick="document.getElementById(\'ban-notice-overlay\').remove()" style="background:var(--bg-section,#f1f5f9);border:1px solid var(--border-color,#e2e8f0);border-radius:10px;padding:10px 24px;color:var(--text-secondary,#666);font-size:0.9rem;cursor:pointer;width:100%;">我知道了</button>'
+                + '</div>'
+                + '<style>@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}</style>';
+            document.body.appendChild(overlay);
+        };
+
+        // ===== 积分运营面板（已迁移到独立页面 gamification.html）=====
+        // 监听面板切换（在脚本末尾还有对stories的监听）
+        // gamification 面板已迁移到独立页面 gamification.html
 
     }
 

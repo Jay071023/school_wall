@@ -62,6 +62,12 @@ router.post('/:userId', auth, async (req, res) => {
       // 关注
       await pool.execute('INSERT INTO follows (follower_id, following_id) VALUES (?, ?)', [followerId, followingId]);
 
+      // 被关注者 +1 积分
+      setImmediate(function() {
+        pool.execute('UPDATE users SET points = points + 1 WHERE id = ?', [followingId]).catch(function(){});
+        pool.execute("INSERT INTO points_log (user_id, points, balance, reason) VALUES (?, 1, (SELECT points FROM users WHERE id = ?), 'follow')", [followingId, followingId]).catch(function(){});
+      });
+
       // 发送通知给被关注者
       const [me] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [followerId]);
       const myName = me[0].nickname || me[0].username || '某用户';

@@ -99,4 +99,8 @@ const requirePermission = (permission) => {
   };
 };
 
-module.exports = { auth, optionalAuth, adminOnly, isStaff, superAdminOnly, requirePermission, ROLES, ROLE_NAMES, ROLE_PERMISSIONS };
+function isStaffRole(role) {
+  return role && ROLES[role] >= 1;
+}
+
+module.exports = { auth, optionalAuth, adminOnly, isStaff, superAdminOnly, requirePermission, isStaffRole, ROLES, ROLE_NAMES, ROLE_PERMISSIONS };

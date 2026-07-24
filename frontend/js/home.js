@@ -308,13 +308,20 @@ function renderPostCard(post) {
     imageHtml = '<div class="post-images ' + gridClass + '">';
     displayImages.forEach(function(img) {
       imageHtml += '<div class="post-image-wrapper" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(img).replace(/'/g, "\\'") + '\', ' + post._cachedImagesJson + ', 0)">' +
-        '<img class="post-image" src="' + escapeHtml(img) + '" loading="lazy">' +
+        '<img class="post-image" src="' + escapeHtml(img) + '" >' +
       '</div>';
     });
     if (images.length > 3) {
       imageHtml += '<div class="post-image-more" onclick="event.stopPropagation();previewImage(\'' + escapeHtml(images[0]).replace(/'/g, "\\'") + '\', ' + post._cachedImagesJson + ', 0)">+' + (images.length - 3) + '</div>';
     }
     imageHtml += '</div>';
+  }
+
+  // 投票预览
+  var pollPreviewHtml = '';
+  if (post.poll_type) {
+    var pollLabel = post.poll_type === 'multiple' ? '多选' : '单选';
+    pollPreviewHtml = '<div class="profile-poll-preview">📊 投票 <span class="profile-poll-label">' + pollLabel + '</span></div>';
   }
 
   var safePostId = post.id || 0;
@@ -345,7 +352,7 @@ function renderPostCard(post) {
 
   return '<article class="post-card" data-id="' + safePostId + '" onclick="openPostDetail(' + safePostId + ')">' +
     '<div class="post-user">' +
-      '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '" loading="lazy" decoding="async"' + authorCardAttr + '>' +
+      '<img class="user-avatar' + authorCardClass + '" src="' + escapeHtml(authorAvatar) + '"  decoding="async"' + authorCardAttr + '>' +
       '<div class="user-info">' +
         '<div class="user-name' + authorCardClass + '"' + authorCardAttr + '>' + escapeHtml(authorName) + roleBadge + titleBadges + '</div>' +
         '<div class="post-time">' + (post.time_ago || '') + (post.ip_region ? ' · 📍' + escapeHtml(post.ip_region) : '') + '</div>' +
@@ -354,6 +361,7 @@ function renderPostCard(post) {
     titleHtml +
     '<div class="post-content">' + (post.is_pinned ? '<span style="margin-right:4px;">📌</span>' : '') + convertContentWithLinks(post.content) + '</div>' +
     imageHtml +
+    pollPreviewHtml +
     commentsPreviewHtml +
     '<div class="post-actions">' +
       '<button class="action-btn ' + (isLiked ? 'liked' : '') + '" onclick="event.stopPropagation();toggleLike(' + safePostId + ',this)">' +
@@ -899,9 +907,11 @@ function initPullToRefresh() {
         if (progress < 1) {
           refreshText.textContent = '下拉刷新';
           refreshIcon.style.transform = 'rotate(' + (progress * 360) + 'deg)';
+          indicator.classList.remove('pull-ready');
         } else {
           refreshText.textContent = '释放刷新';
           refreshIcon.style.transform = 'rotate(360deg)';
+          indicator.classList.add('pull-ready');
         }
       }
     }
@@ -1037,4 +1047,66 @@ function initPullToRefresh() {
   }
 
   setTimeout(initFalling, 1500);
+})();
+
+// ============================================
+// 签到 & 积分系统
+// ============================================
+(function() {
+  if (!isLoggedIn()) return;
+
+  function renderCheckinCard(target) {
+    var checkinCard = document.createElement('div');
+    checkinCard.className = 'side-card glass-effect' + (window.innerWidth <= 768 ? ' mobile-checkin-card' : '');
+    checkinCard.id = 'sideCheckin';
+    checkinCard.innerHTML = '<div class="side-card-icon">📅</div><div class="side-card-title">每日签到</div><div class="side-card-body" id="checkinBody"><div style="font-size:0.8rem;color:#999;text-align:center;padding:8px 0;">加载中...</div></div>';
+    target.appendChild(checkinCard);
+  }
+
+  function loadCheckinStatus() {
+    authFetch('/api/checkin/status').then(function(d) {
+      if (d.code !== 200) return;
+      var data = d.data;
+      var body = document.getElementById('checkinBody');
+      if (!body) return;
+      var isMobile = window.innerWidth <= 768;
+      var streakHtml = data.checked_in
+        ? '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:1.1rem;">✅</span><span style="font-size:0.78rem;color:var(--text-secondary);">连续 <strong>' + data.streak + '</strong> 天</span></div>'
+        : '<div style="display:flex;align-items:center;gap:6px;"><button class="btn-checkin" onclick="doCheckin()">📅 签到</button><span style="font-size:0.72rem;color:var(--text-light);">连续 <strong>' + data.streak + '</strong> 天</span></div>';
+      var extraHtml = '';
+      if (!isMobile) {
+        if (data.level) extraHtml += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border-light);display:flex;align-items:center;gap:6px;font-size:0.78rem;"><span>' + data.level.icon + '</span><span style="font-weight:600;color:' + data.level.title_color + ';">' + data.level.title_name + '</span><span style="margin-left:auto;color:var(--text-light);font-size:0.72rem;">' + data.total_points + '分</span></div>';
+        if (data.next_level) extraHtml += '<div style="font-size:0.68rem;color:var(--text-light);margin-top:3px;">下一级: ' + data.next_level.icon + ' ' + data.next_level.title_name + ' (' + data.next_level.min_points + '分)</div>';
+      }
+      body.innerHTML = streakHtml + extraHtml;
+    }).catch(function() {});
+  }
+
+  // Desktop: 插入右侧边栏首位
+  var rightGroup = document.querySelector('.side-cards-right');
+  if (rightGroup) {
+    renderCheckinCard(rightGroup);
+    var card = document.getElementById('sideCheckin');
+    if (card) rightGroup.insertBefore(card, rightGroup.firstChild);
+  }
+
+  // Mobile: 不展示签到（签到移到个人主页）
+  if (window.innerWidth <= 768) {
+    // 不做任何操作
+  }
+
+  loadCheckinStatus();
+  window.doCheckin = function() {
+    var btn = document.querySelector('.btn-checkin');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ 签到中...'; }
+    authFetch('/api/checkin', { method: 'POST' }).then(function(d) {
+      if (d.code === 200) {
+        showToast('签到成功 +' + d.data.points_earned + '分' + (d.data.bonus > 0 ? ' (连续加成+' + d.data.bonus + ')' : ''));
+        loadCheckinStatus();
+      } else {
+        showToast(d.message || '签到失败', 'error');
+        if (btn) { btn.disabled = false; btn.textContent = '📅 签到'; }
+      }
+    }).catch(function() { showToast('网络错误', 'error'); if (btn) { btn.disabled = false; btn.textContent = '📅 签到'; } });
+  };
 })();

@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     try {
-      var data = await apiFetch('/api/posts/' + postId);
+      var data = await authFetch('/api/posts/' + postId);
       if (data.code === 200) {
         postData = data.data;
         renderPostDetail(postData);
@@ -345,7 +345,68 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 渲染点赞列表（朋友圈风格）
     renderLikesList(post.likes_list, post.is_liked);
+
+    // 渲染投票区域（如果是投票帖）
+    if (post.poll_options && post.poll_options.length > 0) {
+      renderPollSection(post.poll_options, post.poll_total, post.poll_user_votes || [], post.poll_type);
+    }
   }
+
+  // ============================================
+  // 渲染投票区域
+  // ============================================
+  function renderPollSection(options, total, userVotes, pollType) {
+    var pollContainer = document.createElement('div');
+    pollContainer.className = 'poll-section';
+    var hasVoted = userVotes && userVotes.length > 0;
+    pollContainer.innerHTML = '<div class="poll-header">📊 投票 <span class="poll-total">' + total + ' 人参与</span></div>' +
+      '<div class="poll-list">' +
+        options.map(function(opt) {
+          var pct = total > 0 ? Math.round(opt.votes_count / total * 100) : 0;
+          var isVoted = userVotes && userVotes.indexOf(opt.id) !== -1;
+          return '<div class="poll-option' + (isVoted ? ' voted' : '') + '" onclick="handlePollVote(' + opt.id + ', this)" data-option-id="' + opt.id + '">' +
+            '<div class="poll-option-bar" style="width:' + (hasVoted ? pct : 0) + '%"></div>' +
+            '<span class="poll-option-text">' + escapeHtml(opt.option_text) + '</span>' +
+            (hasVoted ?
+              '<span class="poll-option-votes">' + opt.votes_count + '票 (' + pct + '%)</span>' :
+              '<span class="poll-option-count">' + opt.votes_count + '</span>') +
+          '</div>';
+        }).join('') +
+      '</div>' +
+      (pollType === 'multiple' ? '<div class="poll-hint">* 可多选</div>' : '') +
+      (hasVoted ? '<div class="poll-voted-hint">✅ 你已投票</div>' : '');
+
+    var detailEl = document.getElementById('postDetail');
+    var detailContent = detailEl.querySelector('.detail-content');
+    if (detailContent) {
+      detailContent.insertAdjacentElement('afterend', pollContainer);
+    }
+  }
+
+  // ============================================
+  // 处理投票
+  // ============================================
+  window.handlePollVote = async function(optionId, el) {
+    if (!requireLogin()) return;
+    if (!confirm('确认投这一票吗？（投票后不可更改）')) return;
+
+    try {
+      var data = await authFetch('/api/posts/' + postId + '/vote', {
+        method: 'POST',
+        body: JSON.stringify({ option_id: optionId })
+      });
+      if (data.code === 200) {
+        showToast('投票成功！');
+        // 刷新帖子
+        loadPostDetail();
+      } else {
+        showToast(data.message || '投票失败', 'error');
+      }
+    } catch (err) {
+      console.error('投票失败:', err);
+      showToast('投票失败', 'error');
+    }
+  };
 
   // ============================================
   // 渲染点赞列表（朋友圈风格）
@@ -512,8 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var iconEl = btn.querySelector('.like-icon');
         btn.classList.toggle('liked', isLiked);
         iconEl.textContent = isLiked ? '❤️' : '🤍';
-        var currentCount = parseInt(countEl.textContent) || 0;
-        countEl.textContent = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+        countEl.textContent = data.data.likes_count !== undefined ? data.data.likes_count : Math.max(0, (parseInt(countEl.textContent) || 0) + (isLiked ? 1 : -1));
       } else {
         showToast(data.message || '操作失败', 'error');
       }
@@ -561,10 +621,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var html = '';
     comments.forEach(function(comment) {
       var isAnonymous = comment.is_anonymous;
-      var cAuthorName = isAnonymous ? '匿名用户' : (comment.author_name || '未知用户');
+      var isRevealed = comment.is_anonymous_revealed === true;
+      var cAuthorName = isAnonymous ? (isRevealed ? comment.author_name : '匿名用户') : (comment.author_name || '未知用户');
       var cAuthorAvatar = isAnonymous ? '/uploads/avatars/default.png' : (comment.author_avatar || '/uploads/avatars/default.png');
       var cTime = comment.time_ago || formatTime(comment.created_at);
       var cIpRegion = comment.ip_region ? ' · 📍' + escapeHtml(comment.ip_region) : '';
+      var cRevealedHint = isRevealed ? '<span class="comment-revealed-hint" style="font-size:0.7rem;color:#FF6B9D;background:rgba(255,107,157,0.08);padding:1px 8px;border-radius:10px;margin-top:4px;display:inline-block;">🔍 此匿名者身份仅你（帖子作者）可见</span>' : '';
 
       // 处理@mention高亮
       var cContent = escapeHtml(comment.content || '').replace(/\n/g, '<br>');
@@ -603,6 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '<span class="comment-time">' + cTime + '</span>' +
           '</div>' +
           '<div class="comment-text">' + cContent + '</div>' +
+          cRevealedHint +
           '<div class="comment-actions">' +
             '<button class="comment-like-btn' + (isLiked ? ' liked' : '') + '" onclick="handleCommentLike(' + comment.id + ', this)">' +
               '<span class="like-icon">' + (isLiked ? '❤️' : '🤍') + '</span>' +
@@ -666,8 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var iconEl = btn.querySelector('.like-icon');
         btn.classList.toggle('liked', isLiked);
         iconEl.textContent = isLiked ? '❤️' : '🤍';
-        var currentCount = parseInt(countEl.textContent) || 0;
-        countEl.textContent = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+        countEl.textContent = data.data.likes_count !== undefined ? data.data.likes_count : Math.max(0, (parseInt(countEl.textContent) || 0) + (isLiked ? 1 : -1));
       } else {
         showToast(data.message || '操作失败', 'error');
       }
@@ -1198,6 +1260,50 @@ document.addEventListener('DOMContentLoaded', function() {
       showToast('网络错误，请稍后重试', 'error');
       isDeleting = false;
     }
+  }
+
+  // ============================================
+  // 两侧装饰卡片
+  // ============================================
+  renderSideCards();
+  function renderSideCards() {
+    if (window.innerWidth < 1200) return;
+    if (document.querySelector('.side-deco-card')) return;
+
+    // 左侧：一言卡片
+    var leftCard = document.createElement('div');
+    leftCard.className = 'side-deco-card side-deco-left';
+    leftCard.innerHTML = '<div class="side-deco-loading">加载中...</div>';
+    document.body.appendChild(leftCard);
+
+    fetch('/api/proxy/hitokoto').then(function(r) { return r.json(); }).then(function(d) {
+      if (d.code === 200 && d.data && d.data.hitokoto) {
+        var text = d.data.hitokoto;
+        var from = d.data.from_who || d.data.from || '';
+        leftCard.innerHTML =
+          '<div class="side-deco-icon">💬</div>' +
+          '<div class="side-deco-quote">"' + escapeHtml(text) + '"</div>' +
+          (from ? '<div class="side-deco-from">—— ' + escapeHtml(from) + '</div>' : '');
+      } else {
+        leftCard.innerHTML = '<div class="side-deco-icon">🌸</div><div class="side-deco-quote">生活明朗，万物可爱</div>';
+      }
+    }).catch(function() {
+      leftCard.innerHTML = '<div class="side-deco-icon">🌸</div><div class="side-deco-quote">生活明朗，万物可爱</div>';
+    });
+
+    // 右侧：站点卡片
+    var rightCard = document.createElement('div');
+    rightCard.className = 'side-deco-card side-deco-right';
+    var siteName = '嘉二の墙墙';
+    try {
+      var cached = localStorage.getItem('siteSettings');
+      if (cached) { var s = JSON.parse(cached); if (s.site_name) siteName = s.site_name; }
+    } catch(e) {}
+    rightCard.innerHTML =
+      '<div class="side-deco-icon">🏫</div>' +
+      '<div class="side-deco-title">' + escapeHtml(siteName) + '</div>' +
+      '<div class="side-deco-sub">今日も元気でね ✨</div>';
+    document.body.appendChild(rightCard);
   }
 
 });

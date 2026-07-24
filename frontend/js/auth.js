@@ -105,6 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
           showToast(data.message || '登录失败', 'error');
+          if (data.ban_reason) {
+            setTimeout(function() { showBanNotice(data.ban_reason); }, 300);
+          }
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;
         }
@@ -231,3 +234,30 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 });
+
+// 封禁提示卡片
+window.showBanNotice = function(reason) {
+  var existing = document.getElementById('ban-notice-overlay');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'ban-notice-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML = [
+    '<div style="background:var(--bg-card,#fff);border-radius:20px;max-width:420px;width:100%;padding:32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);animation:fadeIn 0.3s ease;">',
+      '<div style="font-size:48px;margin-bottom:12px;">🔒</div>',
+      '<h2 style="font-size:1.3rem;margin:0 0 8px;color:var(--text-primary,#1a1a2e);">账号已被封禁</h2>',
+      '<div style="background:rgba(255,107,157,0.08);border-radius:12px;padding:14px;margin:16px 0;text-align:left;">',
+        '<div style="font-size:0.8rem;color:var(--text-light,#888);margin-bottom:4px;">封禁原因</div>',
+        '<div style="font-size:0.95rem;color:var(--text-primary,#1a1a2e);font-weight:500;">' + reason.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>',
+      '</div>',
+      '<p style="font-size:0.85rem;color:var(--text-secondary,#666);margin:0 0 20px;line-height:1.6;">如有疑问，请联系管理员申诉</p>',
+      '<div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:inline-flex;align-items:center;gap:8px;">',
+        '<span style="color:white;font-size:0.85rem;">📧 2108474355@qq.com</span>',
+        '<button onclick="navigator.clipboard.writeText(\'2108474355@qq.com\');this.textContent=\'✓已复制\';setTimeout(function(){this.textContent=\'📋复制\'},2000)" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer;">📋复制</button>',
+      '</div>',
+      '<button onclick="document.getElementById(\'ban-notice-overlay\').remove()" style="background:var(--bg-section,#f1f5f9);border:1px solid var(--border-color,#e2e8f0);border-radius:10px;padding:10px 24px;color:var(--text-secondary,#666);font-size:0.9rem;cursor:pointer;width:100%;">我知道了</button>',
+    '</div>',
+    '<style>@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}</style>'
+  ].join('\n');
+  document.body.appendChild(overlay);
+};

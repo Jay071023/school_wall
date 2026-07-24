@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, isStaffRole } = require('../middleware/auth');
 const JWT_SECRET = require('../config/jwt-secret');
 const router = express.Router();
 
@@ -365,7 +365,11 @@ router.post('/login', async (req, res) => {
     const user = users[0];
     if (user.status === 0) {
       await recordLoginAttempt(clientIp, username, false);
-      return res.json({ code: 403, message: '账号已被禁用' });
+      // 记录封禁后登录尝试
+      try {
+        await pool.execute('UPDATE users SET ban_attempt_ip = ?, ban_attempt_count = ban_attempt_count + 1 WHERE id = ?', [clientIp, user.id]);
+      } catch (e) {}
+      return res.json({ code: 403, message: '账号已被封禁', ban_reason: user.ban_reason || '违规操作' });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -403,7 +407,7 @@ router.post('/login', async (req, res) => {
     res.cookie('token', token, cookieOpts);
 
     // 如果是管理员登录且IP不同，记录日志
-    if (['admin', 'super_admin', 'reviewer'].includes(user.role)) {
+    if (isStaffRole(user.role)) {
       try {
         var [lastLog] = await pool.execute(
           'SELECT last_login_ip, last_login_region FROM users WHERE id = ?', [user.id]

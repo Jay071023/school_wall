@@ -125,6 +125,7 @@ app.use('/api/notices', require('./routes/notices'));
 app.use('/api/reservations', require('./routes/reservations'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/follows', require('./routes/follows'));
+app.use('/api/checkin', require('./routes/checkin'));
 app.use('/api/wechat', require('./routes/wechat'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/mp', require('./routes/mp-draft'));
@@ -363,6 +364,15 @@ function scheduleCleanup() {
       );
       if (viewsResult.affectedRows > 0) {
         console.log(`🧹 已清理 ${viewsResult.affectedRows} 条过期浏览记录`);
+      }
+
+      // 清理过期积分日志
+      const [pointsResult] = await pool.execute(
+        'DELETE FROM points_log WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
+        [CLEANUP_DAYS]
+      );
+      if (pointsResult.affectedRows > 0) {
+        console.log(`🧹 已清理 ${pointsResult.affectedRows} 条过期积分日志`);
       }
     } catch (err) {
       console.error('清理数据失败:', err.message);

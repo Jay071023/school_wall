@@ -66,6 +66,21 @@ router.get('/', async (req, res) => {
         `, [limit]);
         break;
 
+      case 'weekly-star':
+        title = '🏆 本周之星';
+        var oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        var since = oneWeekAgo.toISOString().slice(0, 19).replace('T', ' ');
+        [data] = await pool.execute(`
+          SELECT p.id, p.title, SUBSTRING(p.content, 1, 100) as content, p.likes_count, p.created_at,
+                 u.id as user_id, u.nickname, u.username, u.avatar
+          FROM posts p
+          LEFT JOIN users u ON p.user_id = u.id
+          WHERE p.created_at >= ? AND p.is_deleted = 0 AND p.status = 'approved'
+          ORDER BY p.likes_count DESC
+          LIMIT ?
+        `, [since, limit]);
+        break;
+
       default:
         return res.json({ code: 400, message: '无效的排行榜类型' });
     }

@@ -300,6 +300,7 @@
               <option value="交友">交友</option>
               <option value="二手">二手</option>
               <option value="寻物">寻物</option>
+              <option value="投票">投票</option>
               <option value="其他">其他</option>
             </select>
           </div>
@@ -323,6 +324,15 @@
               <textarea id="postContent" class="form-textarea" placeholder="分享你的想法..." rows="8" required></textarea>
               <div class="emoji-picker" id="emojiPicker"></div>
             </div>
+          </div>
+
+          <!-- 投票选项（编辑用） -->
+          <div class="form-group" id="pollGroup" style="display:none;">
+            <label>投票选项 <span class="optional">(至少2项)</span></label>
+            <div id="pollOptionsContainer"></div>
+            <button type="button" class="btn-add-option" onclick="addEditPollOption()" style="margin-top:8px;">+ 添加选项</button>
+            <label class="poll-multiple-label" style="margin-top:10px;display:inline-flex;"><input type="checkbox" id="pollMultiple"> 允许多选</label>
+            <div class="form-hint" style="font-size:0.75rem;color:#94a3b8;margin-top:6px;">⚠️ 修改选项会清空已有投票数</div>
           </div>
 
           <!-- 图片上传 -->
@@ -358,7 +368,7 @@
     </div>
   </div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/app_v3.js"></script>
   <script src="/js/edit-post.js"></script>
   <script>
     // ===== 编辑器工具（emoji + 格式化）=====
@@ -486,11 +496,7 @@
     <a href="/new-post" class="tab-item tab-item-center" data-tab="post">
       <span class="tab-icon">✏️</span>
     </a>
-    <a href="/feedback" class="tab-item" data-tab="feedback">
-      <span class="tab-icon">💬</span>
-      <span class="tab-label">反馈</span>
-    </a>
-    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+        <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
       <span class="tab-icon">👤</span>
       <span class="tab-label">我的</span>
     </a>

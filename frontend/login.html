@@ -181,6 +181,7 @@
       background: rgba(255,107,157,0.08);
       border: 1px solid rgba(255,107,157,0.15);
       border-radius: 12px; color: #FF6B9D; font-size: 0.85rem; text-align: center;
+      white-space: pre-line;
     }
     .login-error.show { display: block; }
     [data-theme="dark"] .login-error {
@@ -311,7 +312,7 @@
     </div>
   </div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/app_v3.js"></script>
   <script src="/js/auth.js"></script>
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
@@ -338,7 +339,11 @@
     });
     document.addEventListener('loginError', function(e) {
       var errDiv = document.getElementById('loginError');
-      errDiv.textContent = e.detail;
+      var msg = e.detail;
+      if (typeof e.detail === 'object' && e.detail.ban_reason) {
+        msg = e.detail.message + '（原因：' + e.detail.ban_reason + '）\n请联系管理员 2108474355@qq.com 申诉';
+      }
+      errDiv.textContent = msg;
       errDiv.classList.add('show');
     });
     document.addEventListener('loginLoading', function(e) {

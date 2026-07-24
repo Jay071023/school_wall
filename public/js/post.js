@@ -141,6 +141,19 @@ document.addEventListener('DOMContentLoaded', function() {
       savedAt: Date.now()
     };
 
+    // 保存投票选项
+    var pollInputs = document.querySelectorAll('.poll-option-input');
+    if (pollInputs.length > 0) {
+      var pollOpts = [];
+      pollInputs.forEach(function(inp) {
+        var v = inp.value.trim();
+        if (v) pollOpts.push(v);
+      });
+      if (pollOpts.length > 0) draft.pollOptions = pollOpts;
+    }
+    var pollMultiple = document.getElementById('pollMultiple');
+    if (pollMultiple) draft.pollType = pollMultiple.checked ? 'multiple' : 'single';
+
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       showToast('草稿已保存', 'success');
@@ -166,6 +179,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (catTag) {
           document.querySelectorAll('.category-tag').forEach(function(t) { t.classList.remove('selected'); });
           catTag.classList.add('selected');
+          // 同步显示对应面板
+          var pollGroup = document.getElementById('pollGroup');
+          if (pollGroup) pollGroup.style.display = draft.category === 'poll' ? 'block' : 'none';
+          var contactGroup = document.getElementById('contactGroup');
+          if (contactGroup) contactGroup.style.display = draft.category === 'lost_found' ? 'block' : 'none';
         }
       }
       if (draft.isAnonymous && anonymousToggle) {
@@ -174,6 +192,22 @@ document.addEventListener('DOMContentLoaded', function() {
       if (draft.images && draft.images.length > 0) {
         uploadedImages = draft.images;
         renderImagePreviews();
+      }
+
+      // 恢复投票选项
+      if (draft.pollOptions && draft.pollOptions.length > 0) {
+        var container = document.getElementById('pollOptionsContainer');
+        if (container) {
+          container.innerHTML = '';
+          draft.pollOptions.forEach(function(opt, i) {
+            var div = document.createElement('div');
+            div.className = 'poll-option-row';
+            div.innerHTML = '<input type="text" class="form-input poll-option-input" placeholder="选项 ' + (i+1) + '" maxlength="100" value="' + escapeHtml(opt) + '"><button type="button" class="btn-del-option" onclick="this.parentElement.remove()">✕</button>';
+            container.appendChild(div);
+          });
+        }
+        var pollMultiple = document.getElementById('pollMultiple');
+        if (pollMultiple && draft.pollType === 'multiple') pollMultiple.checked = true;
       }
 
       if (Date.now() - draft.savedAt > 24 * 60 * 60 * 1000) {
@@ -233,6 +267,21 @@ document.addEventListener('DOMContentLoaded', function() {
       (title ? '<div class="preview-title">' + escapeHtml(title) + '</div>' : '') +
       '<div class="preview-content">' + htmlContent + '</div>' +
       imagesHtml;
+
+    // 投票选项预览
+    if (selectedCategory && selectedCategory.getAttribute('data-value') === 'poll') {
+      var pollInputs = document.querySelectorAll('.poll-option-input');
+      var pollOptionsHtml = '<div class="preview-poll-section"><div class="preview-poll-title">📊 投票选项</div>';
+      var isMultiple = document.getElementById('pollMultiple') && document.getElementById('pollMultiple').checked;
+      pollInputs.forEach(function(inp) {
+        var val = inp.value.trim();
+        if (val) {
+          pollOptionsHtml += '<div class="preview-poll-item' + (isMultiple ? ' multi' : '') + '">' + escapeHtml(val) + '</div>';
+        }
+      });
+      pollOptionsHtml += '</div>';
+      previewContent.innerHTML += pollOptionsHtml;
+    }
 
     previewModal.classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -527,7 +576,18 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ============================================
-  // 分类选择
+  function addPollOption() {
+  var container = document.getElementById("pollOptionsContainer");
+  if (!container) return;
+  var num = container.querySelectorAll(".poll-option-input").length + 1;
+  var div = document.createElement("div");
+  div.className = "poll-option-row";
+  div.innerHTML = '<input type="text" class="form-input poll-option-input" placeholder="选项 ' + num + '" maxlength="100"><button type="button" class="btn-del-option" onclick="this.parentElement.remove()">✕</button>';
+  container.appendChild(div);
+}
+window.addPollOption = addPollOption;
+
+// 分类选择
   // ============================================
   var categoryContainer = document.querySelector('.category-tags');
   if (categoryContainer) {
@@ -541,6 +601,17 @@ document.addEventListener('DOMContentLoaded', function() {
         allTags[i].classList.remove('selected');
       }
       tag.classList.add('selected');
+
+      // 失物招领显示联系方式输入框
+      var contactGroup = document.getElementById('contactGroup');
+      if (contactGroup) {
+        contactGroup.style.display = tag.getAttribute('data-value') === 'lost_found' ? 'block' : 'none';
+      }
+      // 投票显示投票选项
+      var pollGroup = document.getElementById('pollGroup');
+      if (pollGroup) {
+        pollGroup.style.display = tag.getAttribute('data-value') === 'poll' ? 'block' : 'none';
+      }
     });
   }
 
@@ -622,6 +693,10 @@ document.addEventListener('DOMContentLoaded', function() {
         images: uploadedImages,
         category: category,
         is_anonymous: isAnonymous,
+        contact: document.getElementById('contactInput')?document.getElementById('contactInput').value.trim():'',
+        pollOptions: (function(){var inputs=document.querySelectorAll('.poll-option-input');var opts=[];for(var i=0;i<inputs.length;i++){var v=inputs[i].value.trim();if(v)opts.push(v);}return opts;})(),
+        pollType: document.getElementById('pollMultiple')&&document.getElementById('pollMultiple').checked?'multiple':'single',
+        pollExpiresAt: null,
         client_ip: clientIP // 添加客户端真实IP
       };
 

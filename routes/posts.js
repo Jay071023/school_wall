@@ -1,6 +1,6 @@
 const express = require('express');
 const { pool } = require('../config/database');
-const { auth, optionalAuth } = require('../middleware/auth');
+const { auth, optionalAuth, isStaffRole } = require('../middleware/auth');
 const { getIpRegion, getClientIp } = require('../services/ip-lookup');
 const { notifyNewComment, notifyNewLike, notifyMention, notifyFollowPost, notifyAdminNewPostPending } = require('../services/email');
 const { createNotification } = require('./notifications');
@@ -185,6 +185,7 @@ router.get('/', optionalAuth, async (req, res) => {
     const [posts] = await pool.execute(`
       SELECT p.id, p.title, p.content, p.images, p.is_anonymous, p.category,
              p.likes_count, p.comments_count, p.views, p.created_at, p.ip_region, p.is_pinned,
+             p.poll_type,
              CASE WHEN p.is_anonymous = 1 THEN NULL ELSE u.nickname END as author_name,
              CASE WHEN p.is_anonymous = 1 THEN NULL ELSE u.avatar END as author_avatar,
              CASE WHEN p.is_anonymous = 1 THEN NULL ELSE u.id END as author_id,
@@ -489,7 +490,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
     // 获取评论
     const [comments] = await pool.execute(`
-      SELECT c.*, 
+      SELECT c.*,
              CASE WHEN c.is_anonymous = 1 THEN NULL ELSE u.nickname END as author_name,
              CASE WHEN c.is_anonymous = 1 THEN NULL ELSE u.avatar END as author_avatar,
              CASE WHEN c.is_anonymous = 1 THEN NULL ELSE u.role END as author_role,
@@ -500,10 +501,16 @@ router.get('/:id', optionalAuth, async (req, res) => {
       ORDER BY c.created_at ASC
     `, [req.params.id]);
 
-    post.comments = comments.map(c => ({
-      ...c,
-      time_ago: getTimeAgo(c.created_at)
-    }));
+    // 帖子作者可以看到匿名评论的真实作者
+    var isPostAuthor = req.user && req.user.id === post.actual_user_id;
+    post.comments = comments.map(function(c) {
+      var comment = Object.assign({}, c, { time_ago: getTimeAgo(c.created_at) });
+      if (isPostAuthor && c.is_anonymous && c.actual_user_id) {
+        comment.author_name = '匿名同学（仅作者可见）';
+        comment.is_anonymous_revealed = true;
+      }
+      return comment;
+    });
 
     // 检查是否点赞/收藏
     if (req.user) {
@@ -546,6 +553,32 @@ router.get('/:id', optionalAuth, async (req, res) => {
       post.author_titles = [];
     }
 
+    // 获取投票数据（如果是投票帖）
+    if (post.poll_type) {
+      try {
+        var [pollOptions] = await pool.execute(
+          'SELECT id, option_text, votes_count FROM poll_options WHERE post_id = ? ORDER BY id',
+          [req.params.id]
+        );
+        post.poll_options = pollOptions;
+        post.poll_total = pollOptions.reduce(function(s, o) { return s + o.votes_count; }, 0);
+        // 检查当前用户是否已投票
+        if (req.user) {
+          var [userVotes] = await pool.execute(
+            'SELECT option_id FROM poll_votes v JOIN poll_options o ON v.option_id = o.id WHERE o.post_id = ? AND v.user_id = ?',
+            [req.params.id, req.user.id]
+          );
+          post.poll_user_votes = userVotes.map(function(v) { return v.option_id; });
+        } else {
+          post.poll_user_votes = [];
+        }
+      } catch (e) {
+        post.poll_options = [];
+        post.poll_total = 0;
+        post.poll_user_votes = [];
+      }
+    }
+
     res.json({ code: 200, data: post });
   } catch (err) {
     console.error('获取帖子详情错误:', err);
@@ -556,7 +589,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // 发布帖子
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, content, images, is_anonymous, category, client_ip } = req.body;
+    const { title, content, images, is_anonymous, category, contact, pollOptions, pollType, pollExpiresAt, client_ip } = req.body;
     if (!content || content.trim() === '') {
       return res.json({ code: 400, message: '请输入内容' });
     }
@@ -576,8 +609,9 @@ router.post('/', auth, async (req, res) => {
 
     // 优先使用前端传来的真实IP，否则使用服务器获取的IP
     var clientIp = client_ip || getClientIp(req);
-    
+
     const imagesJson = images ? JSON.stringify(images) : null;
+    const contactValue = (category === 'lost_found' && contact) ? contact.trim() : '';
 
     // 检查是否需要审核
     const [settingRows] = await pool.execute('SELECT config_value FROM settings WHERE config_key = ?', ['post_review']);
@@ -585,8 +619,8 @@ router.post('/', auth, async (req, res) => {
     const postStatus = needReview ? 'pending' : 'approved';
 
     const [result] = await pool.execute(
-      'INSERT INTO posts (user_id, title, content, images, is_anonymous, category, ip_address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [req.user.id, title || '', content.trim(), imagesJson, finalIsAnonymous, category || '日常', clientIp, postStatus]
+      'INSERT INTO posts (user_id, title, content, images, is_anonymous, category, contact, ip_address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.user.id, title || '', content.trim(), imagesJson, finalIsAnonymous, category || '日常', contactValue, clientIp, postStatus]
     );
 
     // 异步查询IP归属地并更新（不阻塞响应）
@@ -626,6 +660,30 @@ router.post('/', auth, async (req, res) => {
         } catch (e) {
           console.error('通知关注者失败:', e.message);
         }
+      })();
+    }
+
+    // 如果有投票选项，插入投票数据
+    if (pollOptions && Array.isArray(pollOptions) && pollOptions.length >= 2) {
+      var validOptions = pollOptions.filter(function(o) { return o && o.trim(); });
+      for (var pi = 0; pi < validOptions.length; pi++) {
+        await pool.execute('INSERT INTO poll_options (post_id, option_text) VALUES (?, ?)', [result.insertId, validOptions[pi].trim()]);
+      }
+      await pool.execute('UPDATE posts SET poll_type = ?, poll_expires_at = ? WHERE id = ?', [
+        pollType || 'single',
+        pollExpiresAt || null,
+        result.insertId
+      ]);
+    }
+
+    // 发帖送积分（不阻塞）
+    if (postStatus === 'approved') {
+      var pid = result.insertId;
+      (async function() {
+        try {
+          await pool.execute('UPDATE users SET points = points + ? WHERE id = ?', [2, req.user.id]);
+          await pool.execute('INSERT INTO points_log (user_id, points, balance, reason, related_id) VALUES (?, 2, (SELECT points FROM users WHERE id = ?), ?, ?)', [req.user.id, req.user.id, 'post', pid]);
+        } catch (e) {}
       })();
     }
 
@@ -762,6 +820,14 @@ router.post('/:id/comments', auth, async (req, res) => {
       });
     }
 
+    // 评论送积分
+    (async function() {
+      try {
+        await pool.execute('UPDATE users SET points = points + ? WHERE id = ?', [1, req.user.id]);
+        await pool.execute('INSERT INTO points_log (user_id, points, balance, reason) VALUES (?, 1, (SELECT points FROM users WHERE id = ?), ?)', [req.user.id, req.user.id, 'comment']);
+      } catch (e) {}
+    })();
+
     res.json({ code: 200, message: '评论成功' });
   } catch (err) {
     console.error('评论错误:', err.message);
@@ -784,13 +850,8 @@ router.delete('/:postId/comments/:commentId', auth, async (req, res) => {
     const [posts] = await pool.execute('SELECT user_id FROM posts WHERE id = ?', [comment.post_id]);
     const isPostAuthor = posts.length > 0 && posts[0].user_id === req.user.id;
     
-    // 检查是否是管理员角色
-    const [users] = await pool.execute('SELECT role FROM users WHERE id = ?', [req.user.id]);
-    const staffRoles = ['admin', 'super_admin', 'reviewer'];
-    const isStaff = staffRoles.indexOf(users[0].role) !== -1;
-    
     // 只有评论作者、帖子作者或管理员可以删除
-    if (!isCommentAuthor && !isPostAuthor && !isStaff) {
+    if (!isCommentAuthor && !isPostAuthor && !isStaffRole(req.user.role)) {
       return res.json({ code: 403, message: '无权删除此评论' });
     }
     
@@ -960,12 +1021,7 @@ router.delete('/:postId/comments/:commentId/replies/:replyId', auth, async (req,
     const reply = replies[0];
     const isReplyAuthor = reply.user_id === req.user.id;
 
-    // 检查是否是管理员角色
-    const [users] = await pool.execute('SELECT role FROM users WHERE id = ?', [req.user.id]);
-    const staffRoles = ['admin', 'super_admin', 'reviewer'];
-    const isStaff = staffRoles.indexOf(users[0].role) !== -1;
-
-    if (!isReplyAuthor && !isStaff) {
+    if (!isReplyAuthor && !isStaffRole(req.user.role)) {
       return res.json({ code: 403, message: '无权删除此回复' });
     }
 
@@ -1083,6 +1139,16 @@ router.post('/:id/like', auth, async (req, res) => {
       // 获取最新的点赞数
       const [updated] = await connection.execute('SELECT likes_count FROM posts WHERE id = ?', [postId]);
       
+      // 给被点赞者加积分
+      setImmediate(function() {
+        pool.execute('SELECT p.user_id FROM posts p WHERE p.id = ?', [postId]).then(function(rows) {
+          if (rows[0].length > 0 && rows[0][0].user_id !== req.user.id) {
+            pool.execute('UPDATE users SET points = points + 1 WHERE id = ?', [rows[0][0].user_id]).catch(function(){});
+            pool.execute("INSERT INTO points_log (user_id, points, balance, reason, related_id) VALUES (?, 1, (SELECT points FROM users WHERE id = ?), 'like', ?)", [rows[0][0].user_id, rows[0][0].user_id, postId]).catch(function(){});
+          }
+        }).catch(function(){});
+      });
+
       // 发送点赞通知
       setImmediate(async () => {
         try {
@@ -1158,11 +1224,8 @@ router.delete('/:id', auth, async (req, res) => {
     if (posts.length === 0) {
       return res.json({ code: 404, message: '帖子不存在' });
     }
-    if (posts[0].user_id !== req.user.id) {
-      const staffRoles = ['admin', 'super_admin', 'reviewer'];
-      if (staffRoles.indexOf(req.user.role) === -1) {
-        return res.json({ code: 403, message: '无权删除' });
-      }
+    if (posts[0].user_id !== req.user.id && !isStaffRole(req.user.role)) {
+      return res.json({ code: 403, message: '无权删除' });
     }
     await pool.execute('DELETE FROM posts WHERE id = ?', [req.params.id]);
     res.json({ code: 200, message: '删除成功' });
@@ -1178,26 +1241,26 @@ router.put('/:id', auth, async (req, res) => {
     if (posts.length === 0) {
       return res.json({ code: 404, message: '帖子不存在' });
     }
-    
+
     const post = posts[0];
     if (post.user_id !== req.user.id) {
       return res.json({ code: 403, message: '无权编辑此帖子' });
     }
-    
-    const { title, content, category, images, is_anonymous } = req.body;
-    
+
+    const { title, content, category, images, is_anonymous, pollOptions, pollType } = req.body;
+
     if (!title && !content) {
       return res.json({ code: 400, message: '标题和内容不能都为空' });
     }
-    
+
     // 检查是否开启了帖子审核
     const [settingRows] = await pool.execute('SELECT config_value FROM settings WHERE config_key = ?', ['post_review']);
     const needReview = settingRows.length > 0 && settingRows[0].config_value === 'true';
     const postStatus = needReview ? 'pending' : 'approved';
-    
+
     const updateFields = [];
     const updateValues = [];
-    
+
     if (title !== undefined) {
       updateFields.push('title = ?');
       updateValues.push(title);
@@ -1218,20 +1281,44 @@ router.put('/:id', auth, async (req, res) => {
       updateFields.push('is_anonymous = ?');
       updateValues.push(is_anonymous ? 1 : 0);
     }
-    
+
     // 编辑后需要重新审核
     updateFields.push('status = ?');
     updateValues.push(postStatus);
     updateFields.push('updated_at = ?');
     updateValues.push(new Date());
-    
+
     updateValues.push(req.params.id);
-    
+
     await pool.execute(
       `UPDATE posts SET ${updateFields.join(', ')} WHERE id = ?`,
       updateValues
     );
-    
+
+    // 如果传了 pollOptions，更新投票选项
+    // 注意：编辑已有选项会清空原 votes_count，需谨慎
+    if (pollOptions && Array.isArray(pollOptions) && pollOptions.length >= 2) {
+      var validOptions = pollOptions.filter(function(o) { return o && (o.text || typeof o === 'string') && (o.text || o).trim(); });
+      if (validOptions.length >= 2) {
+        // 删除旧选项（包括 votes_count），插入新选项（votes_count 归零）
+        await pool.execute('DELETE FROM poll_votes WHERE option_id IN (SELECT id FROM poll_options WHERE post_id = ?)', [req.params.id]);
+        await pool.execute('DELETE FROM poll_options WHERE post_id = ?', [req.params.id]);
+        for (var pi = 0; pi < validOptions.length; pi++) {
+          var optText = typeof validOptions[pi] === 'string' ? validOptions[pi] : validOptions[pi].text;
+          await pool.execute('INSERT INTO poll_options (post_id, option_text) VALUES (?, ?)', [req.params.id, optText.trim()]);
+        }
+        // 更新 poll_type
+        await pool.execute('UPDATE posts SET poll_type = ? WHERE id = ?', [pollType || 'single', req.params.id]);
+      } else {
+        return res.json({ code: 400, message: '投票选项至少需要2项' });
+      }
+    } else if (!pollOptions && post.poll_type) {
+      // 原来是投票帖，现在没传投票选项，清理投票数据
+      await pool.execute('DELETE FROM poll_votes WHERE option_id IN (SELECT id FROM poll_options WHERE post_id = ?)', [req.params.id]);
+      await pool.execute('DELETE FROM poll_options WHERE post_id = ?', [req.params.id]);
+      await pool.execute('UPDATE posts SET poll_type = NULL WHERE id = ?', [req.params.id]);
+    }
+
     if (needReview) {
       res.json({ code: 200, message: '编辑成功，帖子正在等待审核', data: { status: 'pending' } });
     } else {
@@ -1247,19 +1334,29 @@ router.put('/:id', auth, async (req, res) => {
 router.get('/:id/edit', auth, async (req, res) => {
   try {
     const [posts] = await pool.execute(
-      'SELECT id, title, content, category, images, is_anonymous, user_id FROM posts WHERE id = ?',
+      'SELECT id, title, content, category, images, is_anonymous, user_id, poll_type, poll_expires_at FROM posts WHERE id = ?',
       [req.params.id]
     );
-    
+
     if (posts.length === 0) {
       return res.json({ code: 404, message: '帖子不存在' });
     }
-    
+
     const post = posts[0];
     if (post.user_id !== req.user.id) {
       return res.json({ code: 403, message: '无权编辑此帖子' });
     }
-    
+
+    // 如果是投票帖，加载投票选项
+    let pollOptions = [];
+    if (post.poll_type) {
+      const [options] = await pool.execute(
+        'SELECT id, option_text FROM poll_options WHERE post_id = ? ORDER BY id',
+        [req.params.id]
+      );
+      pollOptions = options.map(function(o) { return { id: o.id, text: o.option_text }; });
+    }
+
     res.json({
       code: 200,
       data: {
@@ -1268,11 +1365,86 @@ router.get('/:id/edit', auth, async (req, res) => {
         content: post.content,
         category: post.category,
         images: post.images ? JSON.parse(post.images) : [],
-        is_anonymous: post.is_anonymous === 1
+        is_anonymous: post.is_anonymous === 1,
+        poll_options: pollOptions,
+        poll_type: post.poll_type || 'single'
       }
     });
   } catch (err) {
     res.json({ code: 500, message: '服务器错误' });
+  }
+});
+
+// ===== 投票帖功能 =====
+
+// 投票
+router.post('/:id/vote', auth, async (req, res) => {
+  try {
+    var postId = req.params.id;
+    var userId = req.user.id;
+    var { option_id } = req.body;
+
+    if (!option_id) return res.json({ code: 400, message: '请选择投票选项' });
+
+    // 检查帖子是否存在且为投票帖
+    var [posts] = await pool.execute('SELECT id, poll_type, poll_expires_at, user_id FROM posts WHERE id = ?', [postId]);
+    if (posts.length === 0) return res.json({ code: 404, message: '帖子不存在' });
+    var post = posts[0];
+    if (!post.poll_type) return res.json({ code: 400, message: '此帖不是投票帖' });
+
+    // 检查是否过期
+    if (post.poll_expires_at && new Date(post.poll_expires_at) < new Date()) {
+      return res.json({ code: 400, message: '投票已结束' });
+    }
+
+    // 检查选项是否属于该帖子
+    var [options] = await pool.execute('SELECT id FROM poll_options WHERE id = ? AND post_id = ?', [option_id, postId]);
+    if (options.length === 0) return res.json({ code: 400, message: '投票选项不存在' });
+
+    if (post.poll_type === 'single') {
+      // 单选：检查是否已投过任何选项
+      var [existing] = await pool.execute('SELECT id FROM poll_votes WHERE option_id IN (SELECT id FROM poll_options WHERE post_id = ?) AND user_id = ?', [postId, userId]);
+      if (existing.length > 0) return res.json({ code: 400, message: '你已经投过票了' });
+    } else if (post.poll_type === 'multiple') {
+      // 多选：检查是否已投过该选项
+      var [existing] = await pool.execute('SELECT id FROM poll_votes WHERE option_id = ? AND user_id = ?', [option_id, userId]);
+      if (existing.length > 0) return res.json({ code: 400, message: '你已经投过该选项了' });
+    } else {
+      return res.json({ code: 400, message: '不支持的投票类型' });
+    }
+
+    await pool.execute('INSERT INTO poll_votes (option_id, user_id) VALUES (?, ?)', [option_id, userId]);
+    await pool.execute('UPDATE poll_options SET votes_count = votes_count + 1 WHERE id = ?', [option_id]);
+
+    return res.json({ code: 200, message: '投票成功', data: { hasVoted: true } });
+
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.json({ code: 400, message: '你已经投过票了' });
+    console.error('投票错误:', err);
+    res.json({ code: 500, message: '投票失败' });
+  }
+});
+
+// 获取投票结果
+router.get('/:id/poll', optionalAuth, async (req, res) => {
+  try {
+    var postId = req.params.id;
+    var [options] = await pool.execute('SELECT * FROM poll_options WHERE post_id = ? ORDER BY id', [postId]);
+    if (options.length === 0) return res.json({ code: 404, message: '此帖无投票' });
+
+    var totalVotes = options.reduce(function(sum, o) { return sum + o.votes_count; }, 0);
+    var userVote = null;
+    if (req.user) {
+      var [votes] = await pool.execute(
+        'SELECT option_id FROM poll_votes v JOIN poll_options o ON v.option_id = o.id WHERE o.post_id = ? AND v.user_id = ? LIMIT 1',
+        [postId, req.user.id]
+      );
+      if (votes.length > 0) userVote = votes[0].option_id;
+    }
+
+    res.json({ code: 200, data: { options: options, totalVotes: totalVotes, userVote: userVote } });
+  } catch (err) {
+    res.json({ code: 500, message: '获取投票失败' });
   }
 });
 
