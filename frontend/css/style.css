@@ -1105,7 +1105,7 @@ h3 {
 }
 
 /* ============================================
-   6. 涓诲唴瀹瑰尯鍩?
+   6. 涓主内容区域
    ============================================ */
 .main-content {
   max-width: var(--container-max);
@@ -4991,7 +4991,7 @@ select.form-input {
   margin-right: 5px;
 }
 
-/* 鎴戠殑鐐规瓕璁板綍鍗＄墖 - 宸茶縼绉诲埌 reservation.css锛屾澶勪繚鐣欐殫鑹查€傞厤 */
+/* 鎴我的点歌瓕璁板綍鍗＄墖 - 宸茶縼绉诲埌 reservation.css锛屾澶勪繚鐣欐殫鑹查€傞厤 */
 .my-song-item {
   /* 鍩虹样式鐢?reservation.css 瀹氫箟 */
 }
@@ -5047,7 +5047,7 @@ select.form-input {
 }
 
 /* ============================================
-   鏆楄壊妯″紡 - 鐐规瓕鍒楄〃 & 鎴戠殑鐐规瓕适配厤
+   暗色模式 - 点歌列表 & 鎴我的点歌瓕适配厤
    ============================================ */
 [data-theme="dark"] .playlist-item {
   background: linear-gradient(135deg, rgba(30,30,40,0.9), rgba(25,25,35,0.95));
@@ -5091,7 +5091,7 @@ select.form-input {
   color: #C4B5FD;
 }
 
-/* 鏆楄壊妯″紡 - 鎴戠殑鐐规瓕 */
+/* 鏆楄壊妯″紡 - 鎴我的点歌瓕 */
 [data-theme="dark"] .my-song-item {
   background: linear-gradient(135deg, rgba(28,28,38,0.95), rgba(24,24,32,0.98));
   border-color: rgba(255, 107, 157, 0.08);
@@ -10112,7 +10112,7 @@ select.form-input {
 
 
 /* ============================================
-   24. 缂栬緫璧勬枡椤甸潰
+   24. 编辑资料页面
    ============================================ */
 
 /* 杩斿洖鎸夐挳 */
@@ -10416,7 +10416,7 @@ select.form-input {
   box-shadow: none;
 }
 
-/* 娣辫壊妯″紡 - 缂栬緫璧勬枡椤甸潰 */
+/* 娣辫壊妯″紡 - 编辑资料页面 */
 [data-theme="dark"] .edit-profile-back-btn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
@@ -10481,7 +10481,7 @@ select.form-input {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 绉诲姩绔€傞厤 - 缂栬緫璧勬枡椤甸潰 */
+/* 绉诲姩绔€傞厤 - 编辑资料页面 */
 @media (max-width: 768px) {
   .edit-profile-header {
     padding: 24px 20px 12px;
@@ -11104,7 +11104,7 @@ select.form-input {
 }
 
 /* ============================================
-   24. 缂栬緫璧勬枡椤甸潰
+   24. 编辑资料页面
    ============================================ */
 
 /* 杩斿洖鎸夐挳 */
@@ -11440,7 +11440,7 @@ select.form-input {
   box-shadow: none;
 }
 
-/* 娣辫壊妯″紡 - 缂栬緫璧勬枡椤甸潰 */
+/* 娣辫壊妯″紡 - 编辑资料页面 */
 [data-theme="dark"] .edit-profile-back-btn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
@@ -11505,7 +11505,7 @@ select.form-input {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 绉诲姩绔€傞厤 - 缂栬緫璧勬枡椤甸潰 */
+/* 绉诲姩绔€傞厤 - 编辑资料页面 */
 @media (max-width: 768px) {
   .edit-profile-header {
     padding: 24px 20px 12px;
@@ -11551,7 +11551,7 @@ select.form-input {
 
 
 /* ============================================
-   24. 缂栬緫璧勬枡椤甸潰
+   24. 编辑资料页面
    ============================================ */
 
 /* 杩斿洖鎸夐挳 */
@@ -11929,7 +11929,7 @@ select.form-input {
   box-shadow: none;
 }
 
-/* 娣辫壊妯″紡 - 缂栬緫璧勬枡椤甸潰 */
+/* 娣辫壊妯″紡 - 编辑资料页面 */
 [data-theme="dark"] .edit-profile-back-btn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
@@ -11994,7 +11994,7 @@ select.form-input {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 绉诲姩绔€傞厤 - 缂栬緫璧勬枡椤甸潰 */
+/* 绉诲姩绔€傞厤 - 编辑资料页面 */
 @media (max-width: 768px) {
   .edit-profile-header {
     padding: 24px 20px 12px;
@@ -12040,7 +12040,7 @@ select.form-input {
 
 
 /* ============================================
-   24. 缂栬緫璧勬枡椤甸潰
+   24. 编辑资料页面
    ============================================ */
 
 /* 杩斿洖鎸夐挳 */
@@ -12449,7 +12449,7 @@ select.form-input {
   box-shadow: none;
 }
 
-/* 娣辫壊妯″紡 - 缂栬緫璧勬枡椤甸潰 */
+/* 娣辫壊妯″紡 - 编辑资料页面 */
 [data-theme="dark"] .edit-profile-back-btn {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.08);
@@ -12514,7 +12514,7 @@ select.form-input {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 绉诲姩绔€傞厤 - 缂栬緫璧勬枡椤甸潰 */
+/* 绉诲姩绔€傞厤 - 编辑资料页面 */
 @media (max-width: 768px) {
   .edit-profile-header {
     padding: 24px 20px 12px;
