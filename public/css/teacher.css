@@ -1,0 +1,695 @@
+/* ===== 教师节 · 开学季主题 =====
+   关键词：黑板、粉笔、备课纸、暖金、开学新章
+   与 520 情人节主题完全独立，不复用爱心装饰。
+*/
+
+body.mode-teacher {
+  --primary: #b94b45;
+  --primary-light: #d66d5d;
+  --primary-dark: #963c39;
+  --secondary: #2f6f68;
+  --secondary-light: #78aaa1;
+  --accent: #c9943e;
+  --accent-light: #e7c37e;
+  --bg-primary: #f7f1e6;
+  --bg-secondary: #eee5d5;
+  --bg-card: #fffdf8;
+  --bg-glass: rgba(255,253,248,.82);
+  --text-primary: #243b3a;
+  --text-secondary: #66746f;
+  --text-light: #9a9f94;
+  --border-light: #e5dac7;
+  --border-color: #d7c8b2;
+  --shadow-primary: 0 5px 18px rgba(185,75,69,.22);
+  --shadow-secondary: 0 5px 18px rgba(47,111,104,.18);
+  background:
+    radial-gradient(circle at 8% 7%, rgba(231,195,126,.22), transparent 26rem),
+    radial-gradient(circle at 92% 18%, rgba(120,170,161,.16), transparent 24rem),
+    linear-gradient(180deg, #fbf7ef 0%, #f7f1e6 62%, #f1e9da 100%) !important;
+  color: var(--text-primary);
+}
+
+body.mode-teacher::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .23;
+  background-image: radial-gradient(rgba(80,65,42,.12) .7px, transparent .7px);
+  background-size: 7px 7px;
+  mask-image: linear-gradient(to bottom, #000, transparent 82%);
+}
+
+body.mode-teacher .page-glow { opacity: .8; }
+body.mode-teacher .glow-orb-1 { background: radial-gradient(circle, rgba(185,75,69,.14), transparent 64%); }
+body.mode-teacher .glow-orb-2 { background: radial-gradient(circle, rgba(47,111,104,.13), transparent 64%); }
+body.mode-teacher .glow-orb-3 { background: radial-gradient(circle, rgba(201,148,62,.13), transparent 64%); }
+
+body.mode-teacher .navbar {
+  border-bottom: 1px solid rgba(199,148,62,.35);
+  background: rgba(255,253,248,.88);
+  box-shadow: 0 4px 20px rgba(78,68,51,.08);
+  backdrop-filter: blur(16px);
+}
+body.mode-teacher .nav-logo {
+  color: #2f6f68;
+  font-family: Georgia, 'Times New Roman', 'Noto Serif SC', serif;
+  letter-spacing: .02em;
+}
+body.mode-teacher .nav-logo::after {
+  content: '教师节';
+  display: inline-block;
+  margin-left: 9px;
+  padding: 3px 7px;
+  border: 1px solid rgba(185,75,69,.32);
+  border-radius: 4px;
+  color: #a44942;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: .62rem;
+  letter-spacing: .08em;
+  vertical-align: middle;
+}
+body.mode-back-to-school .nav-logo::after { content: '开学季'; }
+body.mode-teacher .nav-link { color: #536863; }
+body.mode-teacher .nav-link:hover,
+body.mode-teacher .nav-link.active { color: var(--primary); }
+body.mode-teacher .nav-link.active::after { background: var(--accent); }
+body.mode-teacher .btn-login { color: var(--secondary); border-color: rgba(47,111,104,.3); }
+body.mode-teacher .btn-register,
+body.mode-teacher .btn-primary,
+body.mode-teacher .btn-submit,
+body.mode-teacher .btn-comment-submit { background: var(--primary); box-shadow: var(--shadow-primary); }
+body.mode-teacher .btn-register:hover,
+body.mode-teacher .btn-primary:hover,
+body.mode-teacher .btn-submit:hover,
+body.mode-teacher .btn-comment-submit:hover { background: var(--primary-dark); }
+body.mode-teacher .theme-switch { color: var(--secondary); }
+
+body.mode-teacher.home-page .main-content::before {
+  content: '✦  教师节 · 开学季   |   向每一位老师说声谢谢  ✦';
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 15px;
+  padding: 7px 14px;
+  border: 1px solid rgba(201,148,62,.4);
+  border-radius: 999px;
+  color: #8b672c;
+  background: rgba(255,251,240,.78);
+  box-shadow: 0 5px 18px rgba(157,119,55,.08);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-align: center;
+}
+body.mode-back-to-school.home-page .main-content::before {
+  content: '✦  开学季 · 新学期   |   把新的故事写在校园里  ✦';
+}
+
+/* 首页主视觉：用黑板、粉笔纸与校印感营造教师节仪式感，不使用爱心语义。 */
+.teacher-theme-hero { display: none; }
+body.mode-teacher .teacher-theme-hero {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 82px;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  min-height: 142px;
+  margin: 0 auto 18px;
+  padding: 24px 28px;
+  overflow: hidden;
+  border: 1px solid rgba(201,148,62,.42);
+  border-radius: 18px;
+  color: #f9f4e8;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0, rgba(255,255,255,.035) 1px, transparent 1px, transparent 28px),
+    linear-gradient(115deg, rgba(23,63,59,.98), rgba(47,102,93,.95) 62%, rgba(55,91,83,.97)),
+    #2f6f68;
+  box-shadow: 0 14px 32px rgba(47,78,70,.2), inset 0 0 0 1px rgba(255,255,255,.08);
+}
+body.mode-teacher .teacher-theme-hero::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(231,195,126,.3);
+  border-radius: 11px;
+  pointer-events: none;
+}
+body.mode-teacher .teacher-theme-hero::after {
+  content: '春风化雨  ·  桃李成蹊';
+  position: absolute;
+  right: 22px;
+  bottom: 11px;
+  color: rgba(247,232,190,.63);
+  font-family: 'KaiTi', 'STKaiti', serif;
+  font-size: .75rem;
+  letter-spacing: .16em;
+  transform: rotate(-4deg);
+}
+body.mode-teacher .teacher-hero-ornament {
+  position: relative;
+  z-index: 1;
+  color: #e7c37e;
+  font-size: 2.7rem;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(231,195,126,.35);
+}
+body.mode-teacher .teacher-hero-copy { position: relative; z-index: 1; }
+body.mode-teacher .teacher-hero-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #e7c37e;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+body.mode-teacher .teacher-hero-copy h2 {
+  margin: 0;
+  color: #fffaf0;
+  font-family: 'STKaiti', 'KaiTi', Georgia, serif;
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+body.mode-teacher .teacher-hero-copy h2::after {
+  content: '——————';
+  display: block;
+  margin-top: 5px;
+  color: rgba(231,195,126,.76);
+  font-family: Georgia, serif;
+  font-size: .62rem;
+  letter-spacing: .18em;
+}
+body.mode-teacher .teacher-hero-copy p {
+  margin: 9px 0 0;
+  color: rgba(255,250,240,.78);
+  font-size: .86rem;
+  letter-spacing: .06em;
+}
+body.mode-teacher .teacher-hero-seal {
+  position: relative;
+  z-index: 1;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-content: center;
+  justify-self: end;
+  border: 2px solid rgba(245,221,161,.8);
+  border-radius: 8px;
+  color: #f5dda1;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 1.2rem;
+  line-height: 1.1;
+  text-align: center;
+  transform: rotate(6deg);
+  box-shadow: inset 0 0 0 3px rgba(185,75,69,.55), 0 4px 10px rgba(16,48,45,.22);
+}
+body.mode-teacher .teacher-hero-seal small { display: block; margin-top: 2px; font-size: .72rem; }
+
+.teacher-theme-note { display: none; }
+body.mode-teacher .teacher-theme-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  margin: -3px auto 15px;
+  color: #8b672c;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: .88rem;
+  letter-spacing: .12em;
+}
+body.mode-teacher .teacher-theme-note i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(201,148,62,.12);
+}
+body.mode-teacher .teacher-theme-note::before,
+body.mode-teacher .teacher-theme-note::after {
+  content: '';
+  width: min(15vw, 125px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,148,62,.62));
+}
+body.mode-teacher .teacher-theme-note::after { background: linear-gradient(90deg, rgba(201,148,62,.62), transparent); }
+body.mode-teacher .playlist-header { border-bottom-color: rgba(201,148,62,.3); }
+body.mode-teacher .playlist-header::after {
+  content: '开学新章';
+  margin-left: auto;
+  color: #a44942;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: .8rem;
+  letter-spacing: .1em;
+}
+
+body.mode-teacher .home-playlist-section,
+body.mode-teacher .quick-card,
+body.mode-teacher .post-card,
+body.mode-teacher .search-bar,
+body.mode-teacher .filter-bar,
+body.mode-teacher .card,
+body.mode-teacher .detail-card {
+  border-color: var(--border-light);
+  background: rgba(255,253,248,.86);
+  box-shadow: 0 8px 24px rgba(83,69,43,.07);
+}
+body.mode-teacher .home-playlist-section,
+body.mode-teacher .post-card,
+body.mode-teacher .card,
+body.mode-teacher .detail-card { position: relative; overflow: hidden; }
+body.mode-teacher .home-playlist-section::before,
+body.mode-teacher .post-card::before,
+body.mode-teacher .card::before,
+body.mode-teacher .detail-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--accent), var(--primary));
+  opacity: .75;
+}
+body.mode-teacher .post-card:hover,
+body.mode-teacher .quick-card:hover,
+body.mode-teacher .card:hover { border-color: rgba(185,75,69,.35); box-shadow: 0 12px 30px rgba(83,69,43,.12); transform: translateY(-2px); }
+body.mode-teacher .playlist-title,
+body.mode-teacher .card-title,
+body.mode-teacher .card-title a { color: #2f514d; }
+body.mode-teacher .playlist-icon { filter: saturate(.7); }
+body.mode-teacher .quick-card-song { background: linear-gradient(145deg, #fdf3dd, #fffdf8); }
+body.mode-teacher .quick-card-post { background: linear-gradient(145deg, #e8f3ef, #fffdf8); }
+body.mode-teacher .quick-card-gaokao { background: linear-gradient(145deg, #f6e6e3, #fffdf8); }
+body.mode-teacher .quick-card-hitokoto { background: linear-gradient(145deg, #e9edf7, #fffdf8); }
+body.mode-teacher .quick-card-icon { color: var(--primary); }
+body.mode-teacher .quick-card { border-top: 2px solid rgba(201,148,62,.36); }
+body.mode-teacher .quick-card:nth-child(2n) { border-top-color: rgba(47,111,104,.42); }
+body.mode-teacher .quick-card-text { color: #2f514d; }
+body.mode-teacher .quick-card-countdown,
+body.mode-teacher .quick-card-hitokoto-text { color: #78847b; }
+body.mode-teacher .search-bar:focus-within { border-color: rgba(47,111,104,.55); box-shadow: 0 0 0 4px rgba(47,111,104,.11); }
+body.mode-teacher .filter-tag.active,
+body.mode-teacher .sort-btn.active { color: #fff; border-color: var(--secondary); background: var(--secondary); box-shadow: var(--shadow-secondary); }
+body.mode-teacher .tag { border-color: rgba(47,111,104,.2); color: var(--secondary); background: #eaf3ef; }
+body.mode-teacher .post-meta,
+body.mode-teacher .card-meta { color: var(--text-secondary); }
+body.mode-teacher .like-btn.liked,
+body.mode-teacher .comment-like-btn.liked { color: var(--primary); background: #fbe9e5; }
+body.mode-teacher .comment-section { border-top-color: var(--border-light); }
+body.mode-teacher .comment-input,
+body.mode-teacher .input,
+body.mode-teacher .textarea { border-color: var(--border-color); background: rgba(255,253,248,.9); }
+body.mode-teacher .comment-input:focus,
+body.mode-teacher .input:focus,
+body.mode-teacher .textarea:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(47,111,104,.1); }
+body.mode-teacher .footer { color: #78847b; border-top-color: rgba(199,148,62,.3); }
+
+/* 个人中心也使用教师节的备课纸/校印色，不回落到旧粉色卡片。 */
+body.mode-teacher .profile-card,
+body.mode-teacher .profile-tabs-section {
+  border: 1px solid rgba(201,148,62,.28);
+  background: linear-gradient(145deg, rgba(255,253,248,.96), rgba(247,241,230,.88));
+  box-shadow: 0 12px 30px rgba(83,69,43,.1);
+}
+body.mode-teacher .profile-card::before {
+  content: '✦  师恩如光  ·  桃李成蹊  ✦';
+  color: rgba(185,75,69,.24);
+  letter-spacing: .18em;
+}
+body.mode-teacher .profile-avatar {
+  border-color: #fffdf8;
+  box-shadow: 0 5px 18px rgba(47,111,104,.2);
+}
+body.mode-teacher .profile-avatar-wrapper::after {
+  background: linear-gradient(135deg, #e7c37e, #b94b45, #2f6f68, #e7c37e);
+}
+body.mode-teacher .profile-nickname { color: #2f514d; }
+body.mode-teacher .profile-username,
+body.mode-teacher .profile-join-time,
+body.mode-teacher .profile-stat-label { color: #78847b; }
+body.mode-teacher .profile-stats {
+  border-color: rgba(201,148,62,.24);
+  background: rgba(255,253,248,.82);
+  box-shadow: 0 4px 14px rgba(83,69,43,.06);
+}
+body.mode-teacher .profile-stat + .profile-stat::before {
+  background: linear-gradient(to bottom, transparent, rgba(201,148,62,.34), transparent);
+}
+body.mode-teacher .profile-stat-number {
+  background: linear-gradient(135deg, #b94b45, #c9943e);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+body.mode-teacher .profile-tag {
+  color: #536863;
+  border-color: rgba(47,111,104,.2);
+  background: #eaf3ef;
+}
+body.mode-teacher .profile-menu-item,
+body.mode-teacher #feedbackInlineForm {
+  border-color: rgba(201,148,62,.25) !important;
+  background: rgba(255,253,248,.76) !important;
+  color: #2f514d;
+}
+body.mode-teacher .profile-menu-item:hover {
+  border-color: rgba(185,75,69,.38) !important;
+  background: #f9e9df !important;
+}
+body.mode-teacher #feedbackInlineForm input,
+body.mode-teacher #feedbackInlineForm select,
+body.mode-teacher #feedbackInlineForm textarea {
+  border-color: rgba(47,111,104,.24) !important;
+  background: #fbf7ef !important;
+  color: var(--text-primary) !important;
+}
+body.mode-teacher #feedbackInlineForm #fbSubmitBtn {
+  background: linear-gradient(135deg, #2f6f68, #4b8b80) !important;
+  box-shadow: var(--shadow-secondary);
+}
+body.mode-teacher .btn-edit-profile {
+  border-color: rgba(47,111,104,.2);
+  background: rgba(255,253,248,.84);
+  color: #2f6f68;
+}
+body.mode-teacher .btn-edit-profile:hover {
+  border-color: rgba(185,75,69,.42);
+  color: #a44942;
+  box-shadow: var(--shadow-primary);
+}
+body.mode-teacher .btn-edit-profile.btn-secondary,
+body.mode-teacher .btn-edit-profile.btn-admin {
+  border-color: rgba(201,148,62,.24);
+  background: #f3eadb;
+  color: #66746f;
+}
+body.mode-teacher .wechat-bind-card,
+body.mode-teacher .notify-settings-card,
+body.mode-teacher .profile-tabs-section {
+  border-color: rgba(201,148,62,.28);
+}
+body.mode-teacher .wechat-bind-header,
+body.mode-teacher .notify-settings-header { color: #2f514d; }
+body.mode-teacher .wechat-bind-hint,
+body.mode-teacher .notify-settings-hint { color: #78847b; }
+body.mode-teacher .btn-wechat-unbind {
+  border-color: rgba(47,111,104,.22);
+  background: #edf5f0;
+  color: #2f6f68;
+}
+body.mode-teacher .profile-tabs {
+  border-bottom-color: rgba(201,148,62,.28);
+}
+body.mode-teacher .profile-tab { color: #66746f; }
+body.mode-teacher .profile-tab:hover,
+body.mode-teacher .profile-tab.active {
+  color: #fff;
+  background: #2f6f68;
+  border-color: #2f6f68;
+  box-shadow: var(--shadow-secondary);
+}
+
+/* 其他页面沿用同一套教师节视觉：私信、协议、隐私和重置密码页也不能跳回默认粉色。 */
+body.mode-teacher .messages-container {
+  border-color: rgba(201,148,62,.28);
+  background: #fffdf8;
+  box-shadow: 0 14px 34px rgba(83,69,43,.12);
+}
+body.mode-teacher .messages-sidebar {
+  background: linear-gradient(180deg, #f3eadb, #f8f2e8);
+  border-right-color: rgba(201,148,62,.25);
+}
+body.mode-teacher .messages-main { background: #f7f1e6; }
+body.mode-teacher .messages-header-bar,
+body.mode-teacher .message-input-area,
+body.mode-teacher .modal-card { background: #fffdf8; border-color: var(--border-light); }
+body.mode-teacher .sidebar-top-actions,
+body.mode-teacher .messages-header-bar,
+body.mode-teacher .message-input-area { border-color: rgba(201,148,62,.23); }
+body.mode-teacher .btn-new-conversation,
+body.mode-teacher .btn-send { background: linear-gradient(135deg, #b94b45, #d66d5d); box-shadow: var(--shadow-primary); }
+body.mode-teacher .conversation-item { background: rgba(255,253,248,.8); border-color: transparent; }
+body.mode-teacher .conversation-item:hover { border-color: rgba(47,111,104,.28); background: #edf5f0; }
+body.mode-teacher .conversation-item.active { border-color: rgba(185,75,69,.48); background: #f9e9df; }
+body.mode-teacher .conversation-partner span,
+body.mode-teacher .partner-name,
+body.mode-teacher .modal-title { color: #2f514d; }
+body.mode-teacher .conversation-time,
+body.mode-teacher .conversation-last-message,
+body.mode-teacher .partner-status { color: #78847b; }
+body.mode-teacher .conversation-unread { background: var(--primary); }
+body.mode-teacher .btn-action { color: var(--secondary); border-color: rgba(47,111,104,.25); }
+body.mode-teacher .btn-action:hover { background: #eaf3ef; }
+body.mode-teacher .message-item.sent .message-bubble { background: linear-gradient(135deg, #2f6f68, #4b8b80); }
+body.mode-teacher .message-item.received .message-bubble { background: #fffdf8; color: #2f514d; border-color: rgba(201,148,62,.25); }
+body.mode-teacher .message-textarea,
+body.mode-teacher .modal-search-input { background: #fbf7ef; border-color: var(--border-color); color: var(--text-primary); }
+body.mode-teacher .message-textarea:focus,
+body.mode-teacher .modal-search-input:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(47,111,104,.1); }
+
+/* 点歌页沿用黑板、粉笔和备课纸的层次，避免进入页面后又跳回默认粉紫卡片。 */
+body.mode-teacher.radio-page {
+  background: radial-gradient(circle at 12% 8%, rgba(201,148,62,.1), transparent 24rem), #f7f1e6 !important;
+}
+body.mode-teacher .radio-header {
+  border-bottom-color: rgba(201,148,62,.32);
+}
+body.mode-teacher .radio-title,
+body.mode-teacher .section-title {
+  color: #2f514d;
+}
+body.mode-teacher .radio-subtitle,
+body.mode-teacher .radio-intro,
+body.mode-teacher .remaining-count,
+body.mode-teacher .char-count {
+  color: #78847b;
+}
+body.mode-teacher .radio-form-card,
+body.mode-teacher .hot-songs-section {
+  border-color: rgba(201,148,62,.3);
+  background: rgba(255,253,248,.9);
+  box-shadow: 0 12px 30px rgba(83,69,43,.08);
+}
+body.mode-teacher .radio-form-card { position: relative; overflow: hidden; }
+body.mode-teacher .radio-form-card::before,
+body.mode-teacher .hot-songs-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #e7c37e, #b94b45);
+  opacity: .78;
+}
+body.mode-teacher .form-label { color: #536863; }
+body.mode-teacher .form-input,
+body.mode-teacher .form-textarea,
+body.mode-teacher .form-select {
+  border-color: rgba(47,111,104,.24);
+  background: #fbf7ef;
+  color: #2f514d;
+}
+body.mode-teacher .form-input:focus,
+body.mode-teacher .form-textarea:focus,
+body.mode-teacher .form-select:focus {
+  border-color: #2f6f68;
+  box-shadow: 0 0 0 4px rgba(47,111,104,.1);
+}
+body.mode-teacher .slot-card-item,
+body.mode-teacher .playlist-item,
+body.mode-teacher .hot-song-item {
+  border-color: rgba(201,148,62,.22);
+  background: rgba(255,253,248,.82);
+}
+body.mode-teacher .slot-card-item.selected,
+body.mode-teacher .slot-card-item.active {
+  border-color: rgba(47,111,104,.55);
+  background: #eaf3ef;
+}
+body.mode-teacher .playlist-item::before { background: #c9943e; }
+body.mode-teacher .playlist-item .song-name,
+body.mode-teacher .hot-song-name { color: #2f514d; }
+body.mode-teacher .playlist-item .song-msg-bubble,
+body.mode-teacher .hot-song-message {
+  border-left-color: #c9943e;
+  background: #f7f1e6;
+  color: #78847b;
+}
+body.mode-teacher .hot-song-vote .vote-btn {
+  border-color: rgba(47,111,104,.28);
+  background: #edf5f0;
+}
+body.mode-teacher .hot-song-vote .vote-btn:hover {
+  background: #e0eee8;
+}
+body.mode-teacher .radio-anonymous .toggle-switch:has(input:checked) {
+  background: #2f6f68;
+}
+
+[data-theme="dark"] body.mode-teacher.radio-page {
+  background: radial-gradient(circle at 12% 8%, rgba(201,148,62,.12), transparent 24rem), #1d2928 !important;
+}
+[data-theme="dark"] body.mode-teacher .radio-form-card,
+[data-theme="dark"] body.mode-teacher .hot-songs-section,
+[data-theme="dark"] body.mode-teacher .playlist-item,
+[data-theme="dark"] body.mode-teacher .hot-song-item,
+[data-theme="dark"] body.mode-teacher .slot-card-item {
+  background: rgba(39,55,53,.9);
+  border-color: rgba(201,148,62,.3);
+}
+[data-theme="dark"] body.mode-teacher .radio-title,
+[data-theme="dark"] body.mode-teacher .section-title,
+[data-theme="dark"] body.mode-teacher .form-label,
+[data-theme="dark"] body.mode-teacher .playlist-item .song-name,
+[data-theme="dark"] body.mode-teacher .hot-song-name {
+  color: #e8d4a7;
+}
+[data-theme="dark"] body.mode-teacher .form-input,
+[data-theme="dark"] body.mode-teacher .form-textarea,
+[data-theme="dark"] body.mode-teacher .form-select {
+  background: #22312f;
+  color: #f4eee1;
+}
+
+body.mode-teacher .agreement-card,
+body.mode-teacher .privacy-card {
+  border: 1px solid rgba(201,148,62,.3);
+  background: rgba(255,253,248,.92);
+  box-shadow: 0 14px 34px rgba(83,69,43,.1);
+}
+body.mode-teacher .agreement-header,
+body.mode-teacher .privacy-header { border-bottom-color: rgba(201,148,62,.28); }
+body.mode-teacher .agreement-header h1,
+body.mode-teacher .privacy-header h1,
+body.mode-teacher .agreement-content h2,
+body.mode-teacher .privacy-content h2,
+body.mode-teacher .agreement-content h3,
+body.mode-teacher .privacy-content h3 { color: #2f6f68; }
+body.mode-teacher .agreement-content,
+body.mode-teacher .privacy-content { color: #536863; }
+body.mode-teacher .agreement-content .highlight,
+body.mode-teacher .privacy-content .highlight { color: #a44942; background: #f9e9df; }
+
+body.mode-teacher.reset-page-shell { background: linear-gradient(135deg, #e9f3ee, #f7f1e6 52%, #f6e6e3) !important; }
+body.mode-teacher .reset-card { border: 1px solid rgba(201,148,62,.35); background: rgba(255,253,248,.94); box-shadow: 0 16px 36px rgba(83,69,43,.14); }
+body.mode-teacher .reset-title { color: #2f6f68; }
+body.mode-teacher .reset-desc,
+body.mode-teacher .form-group label { color: #66746f; }
+body.mode-teacher .form-group input { border-color: var(--border-color); background: #fbf7ef; color: var(--text-primary); }
+body.mode-teacher .form-group input:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(47,111,104,.1); }
+body.mode-teacher .btn-reset { background: linear-gradient(135deg, #2f6f68, #4b8b80); }
+body.mode-teacher .login-link a { color: #a44942; }
+
+body.mode-teacher button:not(:disabled),
+body.mode-teacher a.btn-login,
+body.mode-teacher a.btn-register { -webkit-tap-highlight-color: rgba(185,75,69,.15); }
+body.mode-teacher .btn-primary:active,
+body.mode-teacher .btn-submit:active,
+body.mode-teacher .btn-comment-submit:active,
+body.mode-teacher .btn-new-conversation:active,
+body.mode-teacher .btn-send:active { transform: translateY(1px); box-shadow: 0 3px 10px rgba(185,75,69,.18); }
+
+/* 让装饰始终属于教师节语义，不显示 520 的爱心/花瓣元素。 */
+body.mode-teacher .hearts-container,
+body.mode-teacher .deco-corner { display: none !important; }
+
+[data-theme="dark"] body.mode-teacher {
+  --bg-primary: #1d2928;
+  --bg-secondary: #263634;
+  --bg-card: #273735;
+  --bg-glass: rgba(39,55,53,.86);
+  --text-primary: #f4eee1;
+  --text-secondary: #bdc9bd;
+  --text-light: #84998f;
+  --border-light: #3b514c;
+  --border-color: #4b625b;
+  background: radial-gradient(circle at 10% 0%, rgba(201,148,62,.12), transparent 25rem), #1d2928 !important;
+}
+[data-theme="dark"] body.mode-teacher .navbar { background: rgba(29,41,40,.9); border-bottom-color: rgba(201,148,62,.28); }
+[data-theme="dark"] body.mode-teacher .nav-logo,
+[data-theme="dark"] body.mode-teacher .playlist-title,
+[data-theme="dark"] body.mode-teacher .card-title,
+[data-theme="dark"] body.mode-teacher .card-title a { color: #e8d4a7; }
+[data-theme="dark"] body.mode-teacher .nav-logo::after { color: #e7c37e; border-color: rgba(231,195,126,.38); }
+[data-theme="dark"] body.mode-teacher .home-playlist-section,
+[data-theme="dark"] body.mode-teacher .quick-card,
+[data-theme="dark"] body.mode-teacher .post-card,
+[data-theme="dark"] body.mode-teacher .search-bar,
+[data-theme="dark"] body.mode-teacher .filter-bar,
+[data-theme="dark"] body.mode-teacher .card,
+[data-theme="dark"] body.mode-teacher .detail-card { background: rgba(39,55,53,.88); }
+[data-theme="dark"] body.mode-teacher.home-page .main-content::before { color: #e8d4a7; background: rgba(39,55,53,.8); }
+[data-theme="dark"] body.mode-teacher .teacher-theme-hero { background: linear-gradient(115deg, #173d3a, #285852 62%, #31564f); }
+[data-theme="dark"] body.mode-teacher .teacher-theme-note { color: #e7c37e; }
+[data-theme="dark"] body.mode-teacher .quick-card-song,
+[data-theme="dark"] body.mode-teacher .quick-card-post,
+[data-theme="dark"] body.mode-teacher .quick-card-gaokao,
+[data-theme="dark"] body.mode-teacher .quick-card-hitokoto { background: #2b3d3a; }
+[data-theme="dark"] body.mode-teacher .quick-card-text { color: #e8d4a7; }
+[data-theme="dark"] body.mode-teacher .comment-input,
+[data-theme="dark"] body.mode-teacher .input,
+[data-theme="dark"] body.mode-teacher .textarea { background: #22312f; color: var(--text-primary); }
+[data-theme="dark"] body.mode-teacher .messages-container,
+[data-theme="dark"] body.mode-teacher .modal-card,
+[data-theme="dark"] body.mode-teacher .messages-header-bar,
+[data-theme="dark"] body.mode-teacher .message-input-area { background: #273735; }
+[data-theme="dark"] body.mode-teacher .messages-sidebar { background: #22312f; }
+[data-theme="dark"] body.mode-teacher .messages-main { background: #1d2928; }
+[data-theme="dark"] body.mode-teacher .conversation-item { background: rgba(39,55,53,.8); }
+[data-theme="dark"] body.mode-teacher .conversation-item.active { background: #3d3030; }
+[data-theme="dark"] body.mode-teacher .conversation-partner span,
+[data-theme="dark"] body.mode-teacher .partner-name,
+[data-theme="dark"] body.mode-teacher .modal-title { color: #e8d4a7; }
+[data-theme="dark"] body.mode-teacher .agreement-card,
+[data-theme="dark"] body.mode-teacher .privacy-card,
+[data-theme="dark"] body.mode-teacher .reset-card { background: rgba(39,55,53,.92); }
+[data-theme="dark"] body.mode-teacher .agreement-content,
+[data-theme="dark"] body.mode-teacher .privacy-content,
+[data-theme="dark"] body.mode-teacher .reset-desc,
+[data-theme="dark"] body.mode-teacher .form-group label { color: #bdc9bd; }
+[data-theme="dark"] body.mode-teacher .form-group input,
+[data-theme="dark"] body.mode-teacher .message-textarea,
+[data-theme="dark"] body.mode-teacher .modal-search-input { background: #22312f; }
+
+@media (max-width: 600px) {
+  body.mode-teacher.home-page .main-content::before {
+    width: auto;
+    margin-left: 4px;
+    margin-right: 4px;
+    padding: 6px 10px;
+    font-size: .68rem;
+    letter-spacing: .02em;
+  }
+  body.mode-teacher .home-playlist-section::before,
+  body.mode-teacher .post-card::before,
+  body.mode-teacher .card::before,
+  body.mode-teacher .detail-card::before { width: 3px; }
+  body.mode-teacher .teacher-theme-hero {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 118px;
+    margin-bottom: 14px;
+    padding: 20px 16px;
+    border-radius: 14px;
+  }
+  body.mode-teacher .teacher-theme-hero::after { right: 14px; bottom: 8px; font-size: .62rem; }
+  body.mode-teacher .teacher-hero-ornament { font-size: 1.65rem; }
+  body.mode-teacher .teacher-hero-eyebrow { margin-bottom: 5px; font-size: .56rem; letter-spacing: .11em; }
+  body.mode-teacher .teacher-hero-copy h2 { font-size: 1.28rem; letter-spacing: .04em; }
+  body.mode-teacher .teacher-hero-copy p { margin-top: 6px; font-size: .72rem; letter-spacing: 0; }
+  body.mode-teacher .teacher-hero-seal { display: none; }
+  body.mode-teacher .nav-logo::after { display: none; }
+  body.mode-teacher .teacher-theme-note { gap: 8px; margin-top: -1px; font-size: .74rem; letter-spacing: .05em; }
+  body.mode-teacher .teacher-theme-note::before,
+  body.mode-teacher .teacher-theme-note::after { width: 10vw; }
+  body.mode-teacher .playlist-header::after { font-size: .7rem; letter-spacing: .04em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.mode-teacher *, body.mode-teacher *::before, body.mode-teacher *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

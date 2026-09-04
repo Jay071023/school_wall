@@ -1,0 +1,23 @@
+{
+  "hour": 8,
+  "minute": 0,
+  "enabled": false,
+  "activeNovelId": "default",
+  "novels": {
+    "default": {
+      "currentStoryIndex": 0,
+      "promptConfig": {
+        "novelTitle": "示例校园故事",
+        "authorRole": "你是一位校园青春小说作家，擅长细腻、积极的校园叙事。",
+        "wordCount": "800-1200字",
+        "style": "温暖、克制、校园青春",
+        "sceneRequirement": "需要出现 1-2 个新的校园场景",
+        "endingRequirement": "在章节末尾保留可继续创作的线索",
+        "titleFormat": "标题自拟（格式如“第X章 标题”）",
+        "dialogueFormat": "使用中文引号或双引号表示对话",
+        "extraRequirements": "",
+        "outputInstruction": "请直接输出章节内容，不要额外说明。"
+      }
+    }
+  }
+}

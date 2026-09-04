@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <style id="app-boot-style">
+    html.app-booting { background: #f7f1e6; }
+    html.app-booting body { visibility: hidden; }
+  </style>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add("app-booting");
+      var released = false;
+      var themeReady = false;
+      var hardTimeoutId = window.setTimeout(function () { release(true); }, 7000);
+      function release(force) {
+        if (released || (!themeReady && !force)) return;
+        released = true;
+        window.clearTimeout(hardTimeoutId);
+        root.classList.remove("app-booting");
+      }
+      window.addEventListener("festival-theme-ready", function () {
+        themeReady = true;
+        release(false);
+      }, { once: true });
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
+  <title>校园墙 - 发布动态</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="在校园墙发布你的校园动态，分享生活、求助、表白、二手交易等。">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://campus-wall.example/new-post">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="/js/theme-mode.js" defer></script>
+<script>(function(){var bp=document.createElement('script');var curProtocol=window.location.protocol.split(':')[0];if(curProtocol==='https'){bp.src='https://zz.bdstatic.com/linksubmit/push.js'}else{bp.src='http://push.zhanzhang.baidu.com/push.js'}var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bp,s)})();</script>
+</head>
+<body class="new-post-page">
+  <!-- 光晕效果背景 -->
+  <div class="page-glow">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">🏠 校园墙</a>
+      <div class="nav-links" id="navLinks">
+        <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
+        <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
+        <a href="/profile" class="nav-link" data-page="profile"><span>👤</span> 我的</a>
+        <a href="/messages.html" class="nav-link" data-page="messages"><span>💌</span> 私信</a>
+      </div>
+      <div class="nav-auth" id="navAuth">
+        <a href="/login" class="btn-login">登录</a>
+        <a href="/register" class="btn-register">注册</a>
+      </div>
+      <div class="nav-user" id="navUser" style="display:none">
+        <a href="/profile" class="nav-avatar" id="navAvatar"><img src="" alt=""></a>
+        <span class="nav-nickname" id="navNickname"></span>
+      </div>
+      <button class="theme-switch" id="themeSwitch" title="切换主题" onclick="(function(){var t=document.documentElement.getAttribute('data-theme')==='dark';if(t){document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light');this.textContent='🌙'}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark');this.textContent='☀️'}updateThemeColor();})()">🌙</button>
+      <button class="nav-mobile-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <div class="post-form-card">
+      <div class="post-form-header">
+        <h2 class="post-form-title">发布新动态</h2>
+        <p class="post-form-subtitle">分享你的想法...</p>
+      </div>
+      <form class="post-form" id="postForm">
+        <!-- 标题 -->
+        <div class="form-group">
+          <label class="form-label">标题 <span class="required-tag">必填</span></label>
+          <input type="text" id="postTitle" class="form-input" placeholder="给帖子起个标题吧~" maxlength="100" required>
+        </div>
+        <!-- 内容 -->
+        <div class="form-group">
+          <label class="form-label">内容 <span class="optional-tag">选填</span></label>
+              <div class="editor-toolbar" role="toolbar" aria-label="内容编辑工具">
+                <button type="button" class="editor-btn editor-btn-format" title="给选中文字加粗" aria-label="加粗" onclick="insertFormat('bold')"><b class="editor-btn-mark">B</b><span class="editor-btn-label">粗体</span></button>
+                <button type="button" class="editor-btn editor-btn-format" title="给选中文字加斜体" aria-label="斜体" onclick="insertFormat('italic')"><i class="editor-btn-mark">I</i><span class="editor-btn-label">斜体</span></button>
+                <button type="button" class="editor-btn editor-btn-emoji" id="postEmojiTrigger" data-emoji-trigger title="打开表情面板" aria-label="表情" aria-controls="emojiPicker" aria-expanded="false" onclick="showEmojiPicker()"><span aria-hidden="true">😊</span><span class="editor-btn-label">表情</span></button>
+                <span class="editor-toolbar-hint">选中文字后可应用格式</span>
+                <div class="word-counter"><span id="charCount">0</span> / 2000</div>
+              </div>
+          <textarea id="postContent" class="form-textarea" tabindex="-1" aria-hidden="true" hidden></textarea>
+          <div id="postContentEditor" class="form-textarea editor-surface" contenteditable="true" role="textbox" aria-multiline="true" aria-label="帖子内容" data-placeholder="说点什么..."></div>
+          <div class="emoji-picker" id="emojiPicker"></div>
+        </div>
+        <!-- 媒体上传：图片和视频共用入口，视频每条帖子最多一个 -->
+        <div class="form-group">
+          <label class="form-label">图片和视频 <span class="optional-tag">选填</span></label>
+          <div class="image-upload-area post-media-upload-area" id="uploadArea" role="button" tabindex="0" aria-controls="fileInput">
+            <div class="upload-placeholder" id="uploadPlaceholder">
+              <div class="upload-icon">📷<span class="upload-video-icon" aria-hidden="true">＋🎬</span></div>
+              <div class="upload-text">添加图片或视频</div>
+              <div class="upload-hint">最多9张图片，或1个视频（不可混用） · 视频不超过50MB</div>
+            </div>
+            <input type="file" class="upload-input" id="fileInput" multiple accept="image/*,video/mp4,video/webm,video/ogg,.mp4,.webm,.ogv">
+          </div>
+          <div class="image-preview-list media-preview-list" id="imagePreviewList"></div>
+          <div class="video-preview-wrap" id="videoPreviewWrap" hidden>
+            <div class="video-preview-stage">
+              <video id="videoPreview" controls preload="auto" playsinline webkit-playsinline muted aria-label="视频本地预览"></video>
+              <button type="button" class="video-preview-cover" id="videoPreviewCover" aria-label="点击预览视频">
+                <img id="videoPreviewPoster" alt="视频预览封面" hidden>
+                <span class="video-preview-cover-shade" aria-hidden="true"></span>
+                <span class="video-preview-play" aria-hidden="true">▶</span>
+                <span class="video-preview-cover-text" id="videoPreviewCoverText">点击预览视频</span>
+              </button>
+            </div>
+            <div class="video-preview-status" id="videoPreviewStatus" role="status" aria-live="polite"></div>
+            <button type="button" class="video-remove-btn" id="videoRemoveBtn">移除视频</button>
+          </div>
+        </div>
+        <!-- 分类选择 -->
+        <div class="form-group">
+          <label class="form-label">分类 <span class="required-tag">必填</span></label>
+          <div class="category-tags" id="categoryTags">
+            <span class="category-tag selected" data-value="daily">日常</span>
+            <span class="category-tag" data-value="confession">表白</span>
+            <span class="category-tag" data-value="help">求助</span>
+            <span class="category-tag" data-value="secondhand">二手</span>
+            <span class="category-tag" data-value="lost_found">失物招领</span>
+            <span class="category-tag" data-value="poll">投票</span>
+            <span class="category-tag" data-value="club">社团</span>
+            <span class="category-tag" data-value="other">其他</span>
+          </div>
+        </div>
+        <!-- 联系方式（失物招领用） -->
+        <div class="form-group" id="contactGroup" style="display:none;">
+          <label class="form-label">联系方式 <span class="optional-tag">选填，失物招领用</span></label>
+          <input type="text" class="form-input" id="contactInput" placeholder="微信号 / QQ / 手机号" maxlength="50">
+        </div>
+        <!-- 投票选项 -->
+        <div class="form-group" id="pollGroup" style="display:none;">
+          <label class="form-label">投票选项 <span class="required-tag">至少2项</span></label>
+          <div id="pollOptionsContainer">
+            <div class="poll-option-row"><input type="text" class="form-input poll-option-input" placeholder="选项 1" maxlength="100"></div>
+            <div class="poll-option-row"><input type="text" class="form-input poll-option-input" placeholder="选项 2" maxlength="100"></div>
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="addPollOption()" style="margin-top:8px;">+ 添加选项</button>
+          <div style="margin-top:8px;">
+            <label class="poll-multiple-label"><input type="checkbox" id="pollMultiple"> 允许多选</label>
+          </div>
+        </div>
+        <div class="toggle-switch-wrapper" id="anonymousOption" style="display: none;">
+          <span>匿名发布</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="anonymousToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-hint">开启后将以匿名身份发布</span>
+        </div>
+        <!-- 提交按钮 -->
+        <div class="form-actions">
+          <button type="button" class="btn-preview" id="previewBtn" onclick="showPreview()">预览效果</button>
+          <button type="button" class="btn-save-draft" id="saveDraftBtn" onclick="saveDraft()">保存草稿</button>
+          <button type="submit" class="btn-publish" id="publishBtn">发布动态</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 预览弹窗 -->
+  <div class="preview-modal" id="previewModal">
+    <div class="preview-modal-content">
+      <div class="preview-modal-header">
+        <span>内容预览</span>
+        <button class="preview-modal-close" onclick="closePreview()">✕</button>
+      </div>
+      <div class="preview-modal-body" id="previewContent"></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/post-editor.js"></script>
+  <script src="/js/post.js"></script>
+  <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
+  <script>
+    (function() {
+      var defaultSiteName = '校园墙';
+      var cachedSettings = localStorage.getItem('siteSettings');
+      if (cachedSettings) {
+        try {
+          var settings = JSON.parse(cachedSettings);
+          applySiteSettings(settings);
+        } catch(e) {}
+      }
+      var siteInfoRequest = window.CampusWallSiteInfoPromise;
+      if (!siteInfoRequest) {
+        siteInfoRequest = fetch('/api/site-info', { credentials: 'same-origin', cache: 'no-store' })
+          .then(function(res) { return res.ok ? res.json() : null; })
+          .catch(function() { return null; });
+        window.CampusWallSiteInfoPromise = siteInfoRequest;
+      }
+      siteInfoRequest
+        .then(function(data) {
+          if (data.code === 200 && data.data) {
+            var settings = data.data;
+            localStorage.setItem('siteSettings', JSON.stringify(settings));
+            applySiteSettings(settings);
+          }
+        })
+        .catch(function() {});
+      function applySiteSettings(settings) {
+        var siteName = settings.site_name || defaultSiteName;
+        document.title = siteName + ' - 发布动态';
+        var navLogo = document.querySelector('.nav-logo');
+        if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+      }
+    })();
+  </script>
+  
+  <!-- 移动端底部导航 -->
+  <nav class="bottom-tab-bar" id="bottomTabBar">
+    <a href="/" class="tab-item" data-tab="home">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a href="/radio" class="tab-item" data-tab="radio">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">点歌</span>
+    </a>
+    <a href="/new-post" class="tab-item active tab-item-center" data-tab="post">
+      <span class="tab-icon">✏️</span>
+    </a>
+    <a href="/messages.html" class="tab-item" data-tab="messages">
+      <span class="tab-icon">💌</span>
+      <span class="tab-label">私信</span>
+    </a>
+    <a href="/profile" class="tab-item" data-tab="profile" id="tabProfile">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我的</span>
+    </a>
+  </nav>
+  
+  <footer class="footer">
+    <p>&copy; 2026 校园墙 All Rights Reserved</p>
+    <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
+  </footer>
+
+  <style>
+    .post-form-card {
+      padding: 32px !important;
+    }
+    .post-form-header {
+      margin-bottom: 28px !important;
+    }
+    .form-group {
+      margin-bottom: 24px !important;
+    }
+    .form-label {
+      margin-bottom: 10px !important;
+    }
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(248, 250, 249, .96), rgba(255, 250, 238, .96));
+      border: 1px solid rgba(47, 111, 104, .16);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      margin-bottom: -1px;
+    }
+    .editor-btn {
+      min-height: 38px;
+      padding: 6px 10px;
+      border: 1px solid rgba(47, 111, 104, .16);
+      background: rgba(255, 255, 255, .9);
+      border-radius: 10px;
+      cursor: pointer;
+      color: #2f6f68;
+      font-size: 0.86rem;
+      font-weight: 700;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .editor-btn:hover, .editor-btn:focus-visible {
+      background: #fff;
+      border-color: rgba(47, 111, 104, .38);
+      box-shadow: 0 5px 14px rgba(47, 111, 104, .12);
+      outline: none;
+      transform: translateY(-1px);
+    }
+    .editor-btn-mark { font-size: 1rem; line-height: 1; }
+    .editor-btn-label { white-space: nowrap; }
+    .editor-toolbar-hint { color: #78918c; font-size: .76rem; white-space: nowrap; }
+    .word-counter {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: #6c757d;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.04);
+      border-radius: 4px;
+    }
+    .word-counter.warning { color: #dc3545; background: rgba(220,53,69,0.1); }
+    .form-textarea {
+      border-radius: 0 0 10px 10px !important;
+      padding: 14px !important;
+      line-height: 1.6 !important;
+    }
+    .emoji-picker {
+      display: none;
+      position: absolute;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 100;
+      max-width: 320px;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+    .emoji-picker.show { display: flex; }
+    .emoji-item {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    .emoji-item:hover {
+      background: #f0f0f0;
+      transform: scale(1.15);
+    }
+    .form-group { position: relative; }
+    .btn-preview, .btn-save-draft {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-preview {
+      background: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+    .btn-preview:hover {
+      background: #e9ecef;
+      transform: translateY(-1px);
+    }
+    .btn-save-draft {
+      background: linear-gradient(135deg, #fff3cd, #ffeeba);
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .btn-save-draft:hover {
+      background: linear-gradient(135deg, #ffeeba, #ffeaa7);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 234, 167, 0.5);
+    }
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+    .btn-publish {
+      padding: 14px 32px !important;
+      margin-left: auto;
+    }
+    .preview-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-modal.show { display: flex; }
+    .preview-modal-content {
+      background: #fff;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .preview-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    .preview-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #999;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .preview-modal-close:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+    .preview-modal-body { padding: 24px; }
+    .preview-category-tag {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #FF6B9D, #FF8E53);
+      color: #fff;
+      font-weight: 500;
+    }
+    .preview-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #333;
+    }
+    .preview-content {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #495057;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .preview-images {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .preview-images img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .preview-images img:hover {
+      transform: scale(1.03);
+    }
+    .preview-video { display: block; width: 100%; max-height: 300px; margin-top: 18px; border-radius: 12px; background: #172c2a; }
+    .post-media-upload-area {
+      min-height: 124px;
+      border-color: rgba(47,111,104,.28);
+      background: linear-gradient(135deg, rgba(232,244,238,.75), rgba(255,249,231,.88));
+    }
+    .post-media-upload-area:hover, .post-media-upload-area:focus-visible {
+      border-color: #2f6f68;
+      background: linear-gradient(135deg, rgba(224,241,233,.9), rgba(255,247,218,.94));
+      outline: none;
+      box-shadow: 0 8px 20px rgba(47,111,104,.1);
+    }
+    .post-media-upload-area .upload-icon { display: inline-flex; align-items: center; gap: 4px; font-size: 2rem; }
+    .upload-video-icon { font-size: 1.35rem; }
+    .media-preview-list { margin-top: 12px; }
+    .video-preview-wrap { display: grid; gap: 10px; margin-top: 12px; }
+    .video-preview-stage { position: relative; width: min(100%, 520px); aspect-ratio: 16 / 9; max-height: 340px; margin: 0 auto; overflow: hidden; border-radius: 14px; background: #172c2a; }
+    .video-preview-wrap video { display: block; width: 100%; height: 100%; border: 0; border-radius: inherit; background: #172c2a; object-fit: contain; }
+    .video-preview-cover { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; padding: 0; overflow: hidden; border: 0; color: #fff; background: linear-gradient(135deg, #264a46, #172c2a); cursor: pointer; touch-action: manipulation; }
+    .video-preview-cover[hidden] { display: none; }
+    .video-preview-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .video-preview-cover-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,44,42,.06), rgba(23,44,42,.68)); }
+    .video-preview-play, .video-preview-cover-text { position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,.28); }
+    .video-preview-play { display: grid; place-items: center; width: 52px; height: 52px; padding-left: 3px; border: 1px solid rgba(255,255,255,.72); border-radius: 50%; background: rgba(255,255,255,.18); font-size: 1.25rem; }
+    .video-preview-cover-text { font-size: .86rem; }
+    .video-preview-status { min-height: 1.25em; color: #6b7d79; font-size: .82rem; line-height: 1.5; }
+    .video-preview-status[data-state="success"] { color: #2f6f68; }
+    .video-preview-status[data-state="error"] { color: #b94b45; }
+    .video-preview-wrap.is-uploading video { box-shadow: 0 0 0 2px rgba(47,111,104,.12); }
+    .video-preview-wrap.is-error video { box-shadow: 0 0 0 2px rgba(185,75,69,.16); }
+    .video-remove-btn { justify-self: start; border: 0; border-radius: 999px; padding: 8px 14px; background: rgba(185,75,69,.1); color: #b94b45; cursor: pointer; }
+    .video-preview-wrap[hidden] { display: none !important; }
+    @media (max-width: 768px) {
+      .post-form-card { padding: 20px !important; }
+      .form-actions { flex-direction: column; }
+      .btn-preview, .btn-save-draft, .btn-publish { width: 100%; }
+      .btn-publish { margin-left: 0; }
+      .form-group { margin-bottom: 20px !important; }
+      .preview-modal-content { border-radius: 16px 16px 0 0; }
+      .video-preview-stage { max-height: 260px; }
+      .editor-toolbar-hint { flex: 1 1 100%; order: 3; }
+      .editor-btn-label { font-size: .78rem; }
+    }
+  </style>
+  <style id="new-post-page-responsive-polish">
+    html, body {
+      width: 100%; min-width: 0; max-width: 100%;
+      overflow-x: hidden; overflow-x: clip;
+    }
+    body.new-post-page .main-content {
+      box-sizing: border-box; width: min(100%, 800px); min-width: 0;
+      padding: calc(var(--navbar-height, 64px) + 18px) 16px 116px;
+    }
+    body.new-post-page .post-form-card,
+    body.new-post-page .post-form,
+    body.new-post-page .form-group,
+    body.new-post-page .editor-wrapper,
+    body.new-post-page .form-actions { min-width: 0; box-sizing: border-box; }
+    body.new-post-page .post-form-card { width: 100%; overflow: visible; }
+    body.new-post-page .post-form-title,
+    body.new-post-page .post-form-subtitle,
+    body.new-post-page .form-label,
+    body.new-post-page .upload-text,
+    body.new-post-page .upload-hint,
+    body.new-post-page .toggle-hint { overflow-wrap: anywhere; word-break: break-word; }
+    body.new-post-page .form-input,
+    body.new-post-page .form-textarea,
+    body.new-post-page .poll-option-input {
+      display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+    }
+    body.new-post-page #postContent[hidden] { display: none !important; }
+    body.new-post-page .editor-surface {
+      min-height: 220px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+      cursor: text; outline: none;
+    }
+    body.new-post-page .editor-surface:empty::before {
+      content: attr(data-placeholder); color: var(--text-light, #94a3b8); pointer-events: none;
+    }
+    body.new-post-page .editor-surface strong { font-weight: 800; }
+    body.new-post-page .editor-surface em { font-style: italic; }
+    body.new-post-page .editor-toolbar { min-width: 0; flex-wrap: wrap; }
+    body.new-post-page .editor-btn { flex: 0 0 auto; min-width: 40px; min-height: 40px; }
+    body.new-post-page .word-counter { min-width: 0; max-width: 100%; margin-left: auto; overflow-wrap: anywhere; }
+    body.new-post-page .image-upload-area,
+    body.new-post-page .image-preview-list,
+    body.new-post-page .category-tags,
+    body.new-post-page #pollOptionsContainer { min-width: 0; max-width: 100%; box-sizing: border-box; }
+    body.new-post-page .category-tags { display: flex; flex-wrap: wrap; }
+    body.new-post-page .poll-option-row { min-width: 0; max-width: 100%; }
+    body.new-post-page .form-actions { width: auto; max-width: calc(100% + 16px); }
+    body.new-post-page .btn-preview,
+    body.new-post-page .btn-save-draft,
+    body.new-post-page .btn-publish {
+      min-width: 0; max-width: 100%; min-height: 46px; white-space: normal;
+    }
+    body.new-post-page .emoji-picker {
+      display: none; box-sizing: border-box; z-index: 12000;
+      width: min(320px, calc(100vw - 32px)); max-width: calc(100vw - 32px);
+      max-height: min(280px, 42vh); overflow-y: auto;
+      grid-template-columns: repeat(8, minmax(30px, 1fr)); gap: 4px;
+      padding: 10px; border: 1px solid rgba(47,111,104,.18); border-radius: 16px;
+      background: var(--bg-card, #fff); box-shadow: 0 18px 46px rgba(42,35,62,.2);
+    }
+    body.new-post-page .emoji-picker.show { display: grid; }
+    body.new-post-page .emoji-item {
+      width: auto; min-width: 0; min-height: 36px; padding: 0;
+      border: 0; background: transparent; border-radius: 10px; line-height: 1;
+      touch-action: manipulation;
+    }
+    body.new-post-page .emoji-item:hover,
+    body.new-post-page .emoji-item:focus-visible { background: rgba(47,111,104,.1); transform: none; outline: none; }
+    body.new-post-page .preview-modal { box-sizing: border-box; padding: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom, 12px)); }
+    body.new-post-page .preview-modal-content {
+      box-sizing: border-box; width: 100%; max-width: 560px; min-width: 0;
+      max-height: min(88svh, 760px);
+    }
+    body.new-post-page .preview-modal-header,
+    body.new-post-page .preview-modal-body { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+    @media (max-width: 768px) {
+      body.new-post-page { overscroll-behavior-y: auto; touch-action: pan-y; }
+      body.new-post-page .main-content,
+      body.new-post-page .post-form,
+      body.new-post-page .post-form-card { touch-action: pan-y; }
+      body.new-post-page .main-content { padding-left: 12px; padding-right: 12px; padding-bottom: 112px; }
+      body.new-post-page .post-form-card { padding: 20px 16px !important; border-radius: 20px; }
+      body.new-post-page .editor-surface { min-height: 220px; }
+      body.new-post-page .form-actions { position: static; z-index: auto; margin: 24px 0 0; padding: 0; background: none; }
+      body.new-post-page .form-actions { gap: 8px; margin-left: -4px; margin-right: -4px; padding-left: 4px; padding-right: 4px; }
+      body.new-post-page .preview-modal-content { border-radius: 18px; }
+      body.new-post-page .emoji-picker {
+        position: fixed !important; top: auto !important; right: 12px !important;
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        left: 12px !important; width: auto !important; max-width: none !important;
+        max-height: min(42vh, 320px); transform: none !important;
+        grid-template-columns: repeat(8, minmax(30px, 1fr));
+      }
+      body.new-post-page .emoji-item { min-height: 40px; font-size: 1.35rem; }
+    }
+    @media (max-width: 480px) {
+      body.new-post-page .editor-toolbar { gap: 6px; padding: 8px; }
+      body.new-post-page .editor-btn { min-width: 38px; min-height: 38px; padding-left: 9px; padding-right: 9px; }
+      body.new-post-page .word-counter { flex: 1 1 100%; width: 100%; margin-left: 0; text-align: right; }
+      body.new-post-page .image-upload-area { padding: 26px 14px; }
+      body.new-post-page .preview-modal { align-items: flex-end; padding: 0; }
+      body.new-post-page .preview-modal-content { max-height: 90svh; border-radius: 18px 18px 0 0; }
+      body.new-post-page .preview-modal-body { padding: 18px 16px; }
+    }
+    @media (max-width: 360px) {
+      body.new-post-page .main-content { padding-left: 8px; padding-right: 8px; }
+      body.new-post-page .post-form-card { padding-left: 12px !important; padding-right: 12px !important; }
+      body.new-post-page .form-label { font-size: 0.9rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.new-post-page *, body.new-post-page *::before, body.new-post-page *::after {
+        animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important; transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</body>
+</html>

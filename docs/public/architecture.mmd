@@ -1,0 +1,46 @@
+flowchart LR
+  classDef client fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:1.5px
+  classDef app fill:#ecfdf5,stroke:#0f766e,color:#134e4a,stroke-width:1.5px
+  classDef data fill:#fff7ed,stroke:#ea580c,color:#7c2d12,stroke-width:1.5px
+  classDef external fill:#fdf2f8,stroke:#db2777,color:#831843,stroke-width:1.5px
+
+  subgraph Client[Web clients]
+    Desktop[Desktop browser]:::client
+    Mobile[Mobile browser]:::client
+    Admin[Admin browser]:::client
+  end
+
+  subgraph App[Campus Wall application]
+    Static[Static pages\nfrontend and public mirrors]:::app
+    Server[Express server]:::app
+    Routes[Routes and middleware]:::app
+    Services[Domain services\nmedia, mail, notifications, drafts]:::app
+  end
+
+  subgraph Data[Data and media]
+    DB[(MySQL)]:::data
+    Uploads[(Runtime uploads)]:::data
+    Jobs[Cleanup and scheduled tasks]:::data
+  end
+
+  subgraph Integrations[Optional integrations]
+    Mail[SMTP mail]:::external
+    AI[AI provider]:::external
+    Official[Public-account API]:::external
+    Video[ffmpeg and ffprobe]:::external
+  end
+
+  Desktop --> Static
+  Mobile --> Static
+  Admin --> Static
+  Static --> Server
+  Server --> Routes --> Services
+  Routes --> DB
+  Services --> DB
+  Services --> Uploads
+  Jobs --> Uploads
+  Jobs --> DB
+  Services -. optional .-> Mail
+  Services -. optional .-> AI
+  Services -. optional .-> Official
+  Services -. optional .-> Video

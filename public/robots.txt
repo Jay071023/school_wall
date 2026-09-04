@@ -1,0 +1,27 @@
+# 校园墙 robots.txt
+# https://campus-wall.example
+
+User-agent: *
+Allow: /
+
+# 禁止抓取后台管理
+Disallow: /admin/
+Disallow: /api/notifications
+Disallow: /api/messages
+
+# 允许 sitemap（虽然它在 /api/ 下）
+Allow: /api/sitemap.xml
+
+# 禁止抓取用户隐私相关
+Disallow: /profile
+Disallow: /edit-profile
+Disallow: /notifications
+
+# 允许抓取公开页面
+Allow: /radio
+Allow: /feedback
+Allow: /login
+Allow: /register
+
+# Sitemap 地址（动态生成，包含所有帖子）
+Sitemap: https://campus-wall.example/api/sitemap.xml

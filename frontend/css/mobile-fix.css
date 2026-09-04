@@ -1,0 +1,3162 @@
+/* ===== 移动端全面优化 ===== */
+
+/* 0. 全局复选框样式 */
+@media (max-width: 768px) {
+    input[type="checkbox"] {
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        accent-color: var(--primary) !important;
+    }
+    
+    /* 管理后台登录页复选框优化 */
+    .admin-login-container input[type="checkbox"] {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+        accent-color: #FF6B9D !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .admin-login-container .login-remember {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        margin-bottom: 20px !important;
+        cursor: pointer !important;
+    }
+    
+    .admin-login-container .login-remember span {
+        font-size: 1rem !important;
+        color: #555 !important;
+    }
+}
+
+/* 1. 修改密码面板样式 - 全局定义 */
+.password-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.password-panel.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.password-panel-inner {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.password-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.password-panel-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.password-panel-header .header-icon {
+    font-size: 1.3rem;
+}
+
+.password-panel-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #999;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.password-panel-close:hover {
+    color: #333;
+}
+
+.password-panel-body {
+    padding: 24px;
+}
+
+.password-field {
+    margin-bottom: 20px;
+}
+
+.password-field:last-of-type {
+    margin-bottom: 0;
+}
+
+.password-field-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.password-field-label .field-icon {
+    font-size: 1rem;
+}
+
+.password-field-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-field-input {
+    width: 100%;
+    padding: 12px 45px 12px 14px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: #fafafa;
+}
+
+.password-field-input:focus {
+    border-color: #FF6B9D;
+    box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+    background: white;
+    outline: none;
+}
+
+.password-visibility-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    font-size: 1.1rem;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.password-visibility-btn:hover {
+    color: #666;
+}
+
+.password-strength-meter {
+    margin-top: 8px;
+}
+
+.strength-meter-bar {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.strength-meter-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s;
+    border-radius: 2px;
+}
+
+.strength-meter-fill.weak {
+    width: 33%;
+    background: #EF4444;
+}
+
+.strength-meter-fill.medium {
+    width: 66%;
+    background: #F59E0B;
+}
+
+.strength-meter-fill.strong {
+    width: 100%;
+    background: #10B981;
+}
+
+.strength-meter-text {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.password-panel-footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.password-panel-footer .btn-cancel,
+.password-panel-footer .btn-confirm {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.password-panel-footer .btn-cancel {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.password-panel-footer .btn-cancel:hover {
+    background: #e8e8e8;
+}
+
+.password-panel-footer .btn-confirm {
+    background: linear-gradient(135deg, #FF6B9D 0%, #FF8A80 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.password-panel-footer .btn-confirm:hover {
+    box-shadow: 0 6px 18px rgba(255, 107, 157, 0.4);
+    transform: translateY(-1px);
+}
+
+.password-panel-footer .btn-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 1. 弹窗/模态框优化 - 防止全屏 */
+@media (max-width: 768px) {
+    /* 修改密码面板移动端优化 */
+    .password-panel {
+        align-items: flex-start !important;
+        padding-top: 50px !important;
+        padding-bottom: 20px !important;
+    }
+    
+    .password-panel-inner {
+        max-height: 85vh !important;
+        width: 92% !important;
+        border-radius: 14px !important;
+    }
+    
+    .password-panel-header {
+        padding: 16px 18px !important;
+    }
+    
+    .password-panel-header h3 {
+        font-size: 1.1rem !important;
+    }
+    
+    .password-panel-body {
+        padding: 18px !important;
+    }
+    
+    .password-field-input {
+        padding: 11px 42px 11px 12px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .password-panel-footer {
+        padding: 16px 18px !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    .password-panel-footer .btn-cancel,
+    .password-panel-footer .btn-confirm {
+        width: 100% !important;
+        padding: 11px !important;
+    }
+    
+    /* 其他模态框优化 */
+    .modal-overlay {
+        padding: 16px !important;
+        align-items: flex-start !important;
+        padding-top: 60px !important;
+    }
+    
+    .modal-content,
+    .modal {
+        max-width: 95vw !important;
+        width: 100% !important;
+        max-height: 85vh !important;
+        margin: 0 auto !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+    }
+    
+    .modal-header {
+        padding: 16px 20px !important;
+    }
+    
+    .modal-body {
+        padding: 16px 20px !important;
+        max-height: 60vh !important;
+        overflow-y: auto !important;
+    }
+    
+    .modal-footer {
+        padding: 12px 20px !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    .modal-footer .btn {
+        width: 100% !important;
+    }
+}
+
+/* 2. Toast提示优化 - 防止过大 */
+@media (max-width: 768px) {
+    .toast {
+        max-width: 85vw !important;
+        width: auto !important;
+        min-width: 120px !important;
+        padding: 10px 16px !important;
+        font-size: 0.85rem !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        text-align: center !important;
+        line-height: 1.4 !important;
+        left: 50% !important;
+        transform: translateX(-50%) translateY(-10px) !important;
+        border-radius: 12px !important;
+    }
+    
+    .toast.show {
+        transform: translateX(-50%) translateY(0) !important;
+    }
+}
+
+/* 3. 登录/注册页面按钮优化 - 精致圆润风格 */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 28px 22px !important;
+        margin: 24px 16px !important;
+        border-radius: 20px !important;
+        background: linear-gradient(180deg, #ffffff 0%, #fff9fb 100%) !important;
+        box-shadow: 0 8px 32px rgba(255, 107, 157, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    .auth-title {
+        font-size: 1.55rem !important;
+        font-weight: 700 !important;
+        background: linear-gradient(135deg, #FF6B9D 0%, #FF8A80 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
+    }
+
+    .auth-subtitle {
+        font-size: 0.9rem !important;
+        color: var(--text-secondary);
+        margin-top: 6px !important;
+    }
+
+    /* 输入框 - 统一圆角与精致边框（排除搜索框） */
+    .form-input,
+    .input,
+    input[type="text"]:not(.search-input):not(#searchInput),
+    input[type="password"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+        padding: 13px 16px !important;
+        font-size: 0.95rem !important;
+        height: auto !important;
+        min-height: 48px;
+        border-radius: 12px !important;
+        border: 1.5px solid #f0e6ea !important;
+        background: #faf7f9 !important;
+        transition: all 0.25s ease !important;
+    }
+
+    /* 搜索框 - 手机端超紧凑 */
+    .search-bar {
+        padding: 8px 14px !important;
+        margin-bottom: 10px !important;
+        gap: 6px !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        min-height: 40px !important;
+        height: auto !important;
+        border-radius: 20px !important;
+        transform: none !important;
+        background: #fff !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .search-bar::before { display: none !important; }
+
+    .search-bar:focus-within {
+        transform: none !important;
+        box-shadow: 0 1px 8px rgba(255, 107, 157, 0.12) !important;
+        border-color: rgba(255, 107, 157, 0.3) !important;
+        background: #fff !important;
+    }
+
+    .search-bar:focus-within::before { display: none !important; }
+
+    .search-bar input[type="text"],
+    .search-input,
+    input.search-input,
+    #searchInput {
+        padding: 0 4px !important;
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+        min-height: auto !important;
+        height: auto !important;
+        line-height: 1.4 !important;
+        border-radius: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        font-weight: 500 !important;
+    }
+
+    .search-bar svg {
+        width: 16px !important;
+        height: 16px !important;
+        flex-shrink: 0 !important;
+        margin-left: 0 !important;
+        color: #bbb !important;
+        filter: none !important;
+    }
+
+    .search-clear {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.6rem !important;
+        margin-right: 0 !important;
+        background: #f0f0f0 !important;
+        color: #999 !important;
+        border-radius: 50% !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .search-clear:active {
+        transform: scale(0.85) !important;
+    }
+
+    .search-input::placeholder {
+        font-size: 0.82rem !important;
+        color: #ccc !important;
+        font-weight: 400 !important;
+    }
+
+    .form-input:focus,
+    .input:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #FF6B9D !important;
+        box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1) !important;
+        background: #fff !important;
+        outline: none !important;
+    }
+
+    .search-input:focus,
+    #searchInput:focus {
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+    }
+
+    /* 移动端签到（已移至个人主页） */
+
+    /* 编辑资料返回按钮 */
+    .edit-profile-back {
+        margin-bottom: 10px !important;
+    }
+
+    .edit-profile-back-btn {
+        padding: 6px 16px !important;
+        font-size: 0.78rem !important;
+        border-radius: 99px !important;
+    }
+
+    /* 移动端意见反馈美化 */
+    #feedbackToggleBtn {
+        border-radius: 14px !important;
+        padding: 14px 18px !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    #feedbackToggleBtn::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    #feedbackInlineForm {
+        border-radius: 14px !important;
+        padding: 18px 16px !important;
+        position: relative !important;
+        background: linear-gradient(135deg, #fff8fa 0%, #f8f4ff 100%) !important;
+        border: 1px solid rgba(255, 107, 157, 0.15) !important;
+        box-shadow: 0 4px 20px rgba(255, 107, 157, 0.08) !important;
+    }
+
+    #feedbackInlineForm::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 3px !important;
+        background: linear-gradient(90deg, #FF6B9D, #C084FC, #60A5FA) !important;
+        border-radius: 14px 14px 0 0 !important;
+    }
+
+    #feedbackInlineForm select,
+    #feedbackInlineForm input,
+    #feedbackInlineForm textarea {
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+        border: 1.5px solid rgba(0,0,0,0.06) !important;
+        background: #fff !important;
+        font-size: 0.88rem !important;
+        transition: all 0.2s !important;
+    }
+
+    #feedbackInlineForm select:focus,
+    #feedbackInlineForm input:focus,
+    #feedbackInlineForm textarea:focus {
+        border-color: #C084FC !important;
+        box-shadow: 0 0 0 4px rgba(192,132,252,0.12) !important;
+    }
+
+    #feedbackInlineForm textarea {
+        min-height: 90px !important;
+    }
+
+    #fbSubmitBtn {
+        border-radius: 12px !important;
+        padding: 13px !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 4px 16px rgba(255,107,157,0.25) !important;
+    }
+
+    #fbSubmitBtn:active {
+        transform: scale(0.97) !important;
+    }
+
+    #fbHistory {
+        font-size: 0.82rem !important;
+    }
+
+    /* 按钮 - 渐变精致风格 */
+    .btn-primary,
+    .btn-register,
+    .btn-register-submit,
+    .btn-login {
+        padding: 13px 24px !important;
+        font-size: 0.96rem !important;
+        height: auto !important;
+        min-height: 50px;
+        border-radius: 14px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-primary,
+    .btn-register,
+    .btn-register-submit {
+        background: linear-gradient(135deg, #FF6B9D 0%, #FF8A80 100%) !important;
+        box-shadow: 0 4px 15px rgba(255, 107, 157, 0.35), 0 2px 6px rgba(255, 107, 157, 0.15) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    .btn-primary:hover,
+    .btn-register:hover,
+    .btn-register-submit:hover {
+        box-shadow: 0 6px 22px rgba(255, 107, 157, 0.45), 0 3px 10px rgba(255, 107, 157, 0.25) !important;
+        transform: translateY(-2px) !important;
+        background: linear-gradient(135deg, #FF558B 0%, #FF7A70 100%) !important;
+    }
+
+    .btn-login {
+        background: linear-gradient(135deg, #ffffff 0%, #fffaf5 100%) !important;
+        box-shadow: 0 3px 12px rgba(255, 107, 157, 0.18), 0 1px 4px rgba(255, 107, 157, 0.08) !important;
+        border: 1.5px solid rgba(255, 107, 157, 0.25) !important;
+        color: #FF6B9D !important;
+    }
+
+    .btn-login:hover {
+        box-shadow: 0 5px 18px rgba(255, 107, 157, 0.28), 0 2px 8px rgba(255, 107, 157, 0.14) !important;
+        transform: translateY(-2px) !important;
+        border-color: #FF6B9D !important;
+    }
+
+    /* 表单组间距 */
+    .form-group {
+        margin-bottom: 18px !important;
+    }
+    
+    /* 导航栏登录/注册按钮 - 移动端隐藏，用底部Tab替代 */
+    .navbar .nav-auth {
+        display: none !important;
+    }
+    
+    /* 按钮尺寸定义（其他场景使用） */
+    .navbar .btn-login {
+        padding: 4px 10px !important;
+        font-size: 0.72rem !important;
+        font-weight: 500 !important;
+        border-width: 1px !important;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+    }
+
+    .navbar .btn-register {
+        padding: 4px 10px !important;
+        font-size: 0.72rem !important;
+        font-weight: 500 !important;
+        border-radius: 14px !important;
+        box-shadow: 0 1px 4px rgba(255, 107, 157, 0.2) !important;
+    }
+
+    .form-group label {
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
+        color: #444 !important;
+        margin-bottom: 6px !important;
+        display: block !important;
+    }
+
+    /* 链接样式 */
+    .auth-link {
+        font-size: 0.88rem !important;
+        padding: 10px 0 !important;
+        color: #FF6B9D !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .auth-link:hover {
+        color: #FF558B !important;
+    }
+
+    /* 验证码输入区域 */
+    .captcha-row {
+        display: flex !important;
+        gap: 10px !important;
+        align-items: center !important;
+    }
+
+    .captcha-row input {
+        flex: 1 !important;
+    }
+
+    .captcha-img {
+        height: 48px !important;
+        min-width: 90px !important;
+        border-radius: 10px !important;
+    }
+}
+
+/* 认证页面（登录/注册）移动端优化 */
+@media (max-width: 480px) {
+    .auth-page {
+        padding: 16px 12px !important;
+        min-height: calc(100vh - 90px) !important;
+    }
+    
+    .auth-card {
+        padding: 20px 16px !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+    }
+    
+    .auth-emoji {
+        font-size: 2.2rem !important;
+    }
+    
+    .auth-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .auth-subtitle {
+        font-size: 0.85rem !important;
+    }
+    
+    .auth-form .form-group {
+        margin-bottom: 14px !important;
+    }
+    
+    .auth-form .form-input {
+        height: 46px !important;
+        font-size: 1rem !important;
+        padding: 0 12px !important;
+        border-radius: 10px !important;
+    }
+    
+    .auth-remember {
+        margin: 10px 0 16px !important;
+        font-size: 0.9rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        cursor: pointer !important;
+        padding: 4px 0 !important;
+    }
+    
+    .auth-remember input[type="checkbox"] {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        accent-color: #FF6B9D !important;
+        cursor: pointer !important;
+        vertical-align: middle !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .auth-remember span {
+        vertical-align: middle !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+    }
+    
+    .auth-form .btn-login,
+    .auth-form .btn-login-submit,
+    .auth-form .btn-register,
+    .auth-form .btn-register-submit {
+        height: 48px !important;
+        font-size: 1rem !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+    }
+    
+    .auth-link {
+        margin-top: 14px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .beian-text {
+        margin-top: 16px !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* 4. 管理后台移动端优化 */
+@media (max-width: 768px) {
+    /* 侧边栏优化 */
+    .admin-sidebar {
+        width: 280px !important;
+        max-width: 85vw !important;
+    }
+    
+    /* 主内容区优化 */
+    .admin-main {
+        width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    .admin-panel {
+        padding: 16px 12px !important;
+    }
+    
+    /* 顶栏优化 */
+    .admin-topbar {
+        padding: 12px !important;
+    }
+    
+    .topbar-search {
+        max-width: 120px !important;
+        width: 120px !important;
+    }
+    
+    .topbar-search input {
+        font-size: 0.8rem !important;
+        padding: 6px 10px !important;
+        height: 32px !important;
+    }
+    
+    /* 统计卡片优化 */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    
+    .stat-card {
+        padding: 14px 12px !important;
+    }
+    
+    .stat-value {
+        font-size: 1.3rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem !important;
+    }
+    
+    /* 表格优化 */
+    .admin-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: 0 -12px !important;
+        padding: 0 12px !important;
+    }
+    
+    .admin-table {
+        min-width: 600px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* 筛选按钮优化 */
+    .filter-bar-admin {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+        padding-bottom: 8px !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .filter-bar-admin .filter-btn {
+        flex: 0 0 auto !important;
+        white-space: nowrap !important;
+        padding: 8px 14px !important;
+        font-size: 0.82rem !important;
+    }
+    
+    /* 操作按钮优化 */
+    .table-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    .action-btn {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* 模态框优化 */
+    .modal-overlay {
+        padding: 12px !important;
+    }
+    
+    .modal {
+        max-width: 95vw !important;
+        max-height: 90vh !important;
+    }
+    
+    /* 分页优化 */
+    .admin-pagination {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    .page-btn {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+    }
+}
+
+/* 5. 小屏手机额外优化 */
+@media (max-width: 480px) {
+    /* 分页控件移动端优化 */
+    .pagination-container {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        padding: 10px !important;
+    }
+    
+    .page-info {
+        font-size: 0.8rem !important;
+        order: -1 !important;
+        width: 100% !important;
+        text-align: center !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .page-btn {
+        min-width: 28px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .page-jump-input {
+        width: 50px !important;
+        height: 28px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .admin-panel {
+        padding: 12px 8px !important;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+    
+    .stat-card {
+        padding: 12px 10px !important;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .admin-table {
+        min-width: 500px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .filter-bar-admin .filter-btn {
+        padding: 7px 12px !important;
+        font-size: 0.78rem !important;
+    }
+    
+    .action-btn {
+        padding: 5px 8px !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* 6. 点歌页面底部导航与内容留白 */
+@media (max-width: 768px) {
+    /* 页面实际使用 .bottom-tab-bar，统一由公共底部导航样式负责定位 */
+    body.radio-page .main-content {
+        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+        scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* 13. 点歌页第三轮视觉整理：桌面有层次，手机优先保证阅读和触控 */
+body.radio-page .main-content {
+    max-width: 820px;
+    width: calc(100% - 32px);
+}
+
+body.radio-page .radio-header {
+    text-align: left;
+    padding: 4px 2px 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+body.radio-page .radio-title {
+    font-size: clamp(1.35rem, 2vw, 1.65rem);
+    letter-spacing: -0.02em;
+}
+
+body.radio-page .radio-subtitle {
+    margin-top: 6px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+body.radio-page .radio-section {
+    margin-bottom: 26px;
+}
+
+body.radio-page .section-title {
+    margin-bottom: 12px;
+    font-size: 1.08rem;
+    letter-spacing: -0.01em;
+}
+
+body.radio-page .hot-songs-section {
+    padding: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 12px 34px rgba(31, 41, 55, 0.055);
+}
+
+body.radio-page .hot-songs-section .radio-intro {
+    margin: 0 0 16px;
+    color: var(--text-secondary) !important;
+    font-size: 0.86rem !important;
+    line-height: 1.55;
+}
+
+body.radio-page .hot-songs-list {
+    gap: 8px;
+}
+
+body.radio-page .hot-song-item {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 68px;
+    box-sizing: border-box;
+    padding: 10px 12px 10px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 3px 12px rgba(31, 41, 55, 0.035);
+    transform: none;
+}
+
+body.radio-page .hot-song-item:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 107, 157, 0.2);
+    box-shadow: 0 8px 20px rgba(31, 41, 55, 0.07);
+}
+
+body.radio-page .hot-song-rank {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #f3f4f8;
+    color: #64748b;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+body.radio-page .hot-song-rank.rank-1 {
+    background: #fff3d6;
+    color: #a16207;
+}
+
+body.radio-page .hot-song-rank.rank-2 {
+    background: #eef2f7;
+    color: #64748b;
+}
+
+body.radio-page .hot-song-rank.rank-3 {
+    background: #ffeadf;
+    color: #c2410c;
+}
+
+body.radio-page .hot-song-content {
+    min-width: 0;
+}
+
+body.radio-page .hot-song-name {
+    display: block;
+    min-width: 0;
+    margin-bottom: 5px;
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.radio-page .hot-song-artist {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+body.radio-page .hot-song-meta {
+    min-width: 0;
+    gap: 6px;
+    overflow: hidden;
+    font-size: 0.74rem;
+    line-height: 1.35;
+}
+
+body.radio-page .hot-song-author,
+body.radio-page .hot-song-recipient {
+    max-width: 42%;
+    overflow: hidden;
+    padding: 3px 8px;
+    border: 1px solid rgba(148, 163, 184, 0.13);
+    border-radius: 7px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.radio-page .hot-song-author {
+    background: #f5f6f8;
+    color: var(--text-secondary);
+}
+
+body.radio-page .hot-song-recipient {
+    background: #fff2f7;
+    border-color: rgba(255, 107, 157, 0.12);
+    color: #d9467a;
+}
+
+body.radio-page .hot-song-message {
+    max-width: 100%;
+    margin-top: 5px;
+    overflow: hidden;
+    color: var(--text-light);
+    font-size: 0.74rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.radio-page .hot-song-vote {
+    align-self: center;
+}
+
+body.radio-page .hot-song-vote .vote-btn {
+    display: inline-flex;
+    min-width: 58px;
+    min-height: 38px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 9px;
+    border: 1px solid rgba(255, 107, 157, 0.18);
+    border-radius: 10px;
+    background: #fff7fb;
+    box-shadow: none;
+}
+
+body.radio-page .hot-song-vote .vote-btn:hover {
+    background: #fff0f6;
+    box-shadow: 0 5px 12px rgba(255, 107, 157, 0.12);
+    transform: translateY(-1px);
+}
+
+body.radio-page .hot-song-vote .vote-icon {
+    font-size: 0.95rem;
+}
+
+body.radio-page .hot-song-vote .vote-count {
+    font-size: 0.78rem;
+}
+
+/* 签到卡：固定侧栏和移动端主内容共用一套紧凑结构 */
+#sideCheckin {
+    width: 148px;
+    min-width: 148px;
+    box-sizing: border-box;
+    padding: 11px 10px;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid rgba(80, 154, 119, 0.18) !important;
+    border-radius: 17px;
+    background: #f3faf6 !important;
+    box-shadow: 0 8px 22px rgba(73, 156, 121, 0.11) !important;
+}
+
+#sideCheckin:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 11px 25px rgba(73, 156, 121, 0.15) !important;
+}
+
+#sideCheckin .checkin-card-heading {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#sideCheckin .side-card-icon {
+    display: flex;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.82);
+    font-size: 1.15rem;
+    filter: none;
+}
+
+#sideCheckin .checkin-card-copy {
+    min-width: 0;
+    padding-top: 1px;
+}
+
+#sideCheckin .side-card-title {
+    overflow: hidden;
+    color: var(--text-primary);
+    font-size: 0.84rem;
+    line-height: 1.3;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#sideCheckin .checkin-card-subtitle {
+    margin-top: 3px;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.59rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#sideCheckin .side-card-body {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+#sideCheckin .checkin-action-row,
+#sideCheckin .checkin-status-row {
+    display: flex;
+    width: 100%;
+    min-height: 38px;
+    box-sizing: border-box;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: space-between;
+    gap: 6px !important;
+    padding: 4px 5px;
+    border: 1px solid rgba(231, 186, 91, 0.22);
+    border-radius: 12px;
+    background: rgba(255, 252, 246, 0.82);
+}
+
+#sideCheckin .checkin-streak {
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+#sideCheckin .checkin-streak strong {
+    color: #b7791f;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+#sideCheckin .btn-checkin {
+    min-width: 43px;
+    min-height: 28px;
+    padding: 4px 8px !important;
+    border: 1px solid #acd6c0;
+    border-radius: 8px;
+    background: #dff2e8;
+    color: #287256;
+    box-shadow: none;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+#sideCheckin .btn-checkin:hover {
+    border-color: #8fc6aa;
+    background: #d2ecdf;
+    box-shadow: 0 4px 9px rgba(73, 156, 121, 0.12);
+    transform: translateY(-1px);
+}
+
+#sideCheckin .checkin-done {
+    color: #398866;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.mobile-checkin-slot {
+    display: none;
+}
+
+[data-theme="dark"] body.radio-page .hot-songs-section {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(42, 31, 51, 0.68);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] body.radio-page .hot-song-item {
+    border-color: rgba(255, 255, 255, 0.07);
+    background: rgba(42, 31, 51, 0.82);
+}
+
+[data-theme="dark"] body.radio-page .hot-song-author {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] body.radio-page .hot-song-vote .vote-btn {
+    border-color: rgba(255, 107, 157, 0.25);
+    background: rgba(255, 107, 157, 0.08);
+}
+
+[data-theme="dark"] #sideCheckin {
+    border-color: rgba(120, 205, 163, 0.2) !important;
+    background: #243a32 !important;
+}
+
+@media (max-width: 768px) {
+    body.radio-page .main-content {
+        width: auto;
+        max-width: none;
+    }
+
+    body.radio-page .radio-header {
+        padding: 2px 0 14px;
+        margin-bottom: 18px;
+    }
+
+    body.radio-page .radio-title {
+        font-size: 1.28rem;
+    }
+
+    body.radio-page .radio-subtitle {
+        font-size: 0.8rem;
+    }
+
+    body.radio-page .hot-songs-section {
+        padding: 14px 0 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    body.radio-page .hot-songs-section .radio-intro {
+        margin-bottom: 12px;
+        font-size: 0.79rem !important;
+    }
+
+    body.radio-page .hot-songs-list {
+        gap: 8px;
+    }
+
+    body.radio-page .hot-song-item {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 8px;
+        min-height: 62px;
+        padding: 9px 9px 9px 8px;
+        border-radius: 13px;
+    }
+
+    body.radio-page .hot-song-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+
+    body.radio-page .hot-song-name {
+        margin-bottom: 4px;
+        font-size: 0.89rem;
+        line-height: 1.3;
+    }
+
+    body.radio-page .hot-song-artist {
+        display: block;
+        overflow: hidden;
+        margin-top: 2px;
+        font-size: 0.74rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.radio-page .hot-song-meta {
+        gap: 4px;
+        font-size: 0.69rem;
+    }
+
+    body.radio-page .hot-song-author,
+    body.radio-page .hot-song-recipient {
+        max-width: 45%;
+        padding: 2px 6px;
+    }
+
+    body.radio-page .hot-song-message {
+        margin-top: 4px;
+        font-size: 0.69rem;
+    }
+
+    body.radio-page .hot-song-vote .vote-btn {
+        min-width: 48px;
+        min-height: 36px;
+        gap: 3px;
+        padding: 5px 7px;
+        border-radius: 9px;
+    }
+
+    body.radio-page .hot-song-vote .vote-icon {
+        font-size: 0.86rem;
+    }
+
+    body.radio-page .hot-song-vote .vote-count {
+        font-size: 0.72rem;
+    }
+
+    .mobile-checkin-slot {
+        display: block;
+        margin: 0 0 14px;
+    }
+
+    .mobile-checkin-slot #sideCheckin {
+        width: 100%;
+        min-width: 0;
+        padding: 11px 12px;
+        border-radius: 16px;
+    }
+
+    .mobile-checkin-slot #sideCheckin .checkin-card-heading {
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .mobile-checkin-slot #sideCheckin .checkin-card-copy {
+        flex: 1;
+    }
+
+    .mobile-checkin-slot #sideCheckin .checkin-card-subtitle {
+        font-size: 0.62rem;
+    }
+
+    .mobile-checkin-slot #sideCheckin .side-card-body {
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        margin-left: 0;
+    }
+}
+
+/* 签到请求失败时保留明确的可恢复入口，不让卡片永久停留在“加载中”。 */
+.checkin-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+    padding: 7px 2px 1px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+.checkin-error > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.checkin-retry {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border: 1px solid rgba(91, 172, 142, 0.28);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #398866;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.checkin-retry:hover {
+    background: rgba(255, 255, 255, 0.96);
+}
+
+@media (max-width: 360px) {
+    body.radio-page .hot-song-item {
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 7px;
+        padding-right: 7px;
+    }
+
+    body.radio-page .hot-song-rank {
+        width: 28px;
+        height: 28px;
+    }
+
+    body.radio-page .hot-song-vote .vote-btn {
+        min-width: 44px;
+        padding: 5px 6px;
+    }
+
+    .mobile-checkin-slot #sideCheckin .side-card-body {
+        min-width: 122px;
+    }
+}
+
+/* 7. 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+    .btn,
+    .action-btn,
+    .filter-btn,
+    .page-btn,
+    .sidebar-link,
+    input,
+    select,
+    textarea {
+        min-height: 44px !important;
+    }
+    
+    .btn-sm,
+    .action-btn {
+        min-height: 40px !important;
+    }
+}
+
+/* 8. 防止横向滚动 */
+@media (max-width: 768px) {
+    html,
+    body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+    
+    * {
+        max-width: 100vw !important;
+    }
+}
+
+/* 9. 输入框防键盘遮挡 */
+@media (max-width: 768px) {
+    /* 表单页面底部留白 */
+    .form-page {
+        padding-bottom: 100px !important;
+    }
+    
+    /* 输入框聚焦时自动滚动 */
+    input:focus,
+    textarea:focus,
+    select:focus {
+        scroll-margin-bottom: 100px !important;
+    }
+    
+    /* 模态框输入框优化 */
+    .modal-overlay input:focus,
+    .modal-overlay textarea:focus {
+        scroll-margin-bottom: 200px !important;
+    }
+    
+    /* 评论区输入框 */
+    .comment-input-wrapper {
+        position: relative;
+        z-index: 100;
+    }
+    
+    /* 底部固定输入栏 */
+    .fixed-input-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-card);
+        padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border-light);
+        z-index: 999;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+}
+
+/* 10. 移动端下拉刷新 */
+@media (max-width: 768px) {
+    .pull-refresh-indicator {
+        position: fixed;
+        top: calc(var(--navbar-height, 64px) + 6px);
+        left: 50%;
+        transform: translateX(-50%) translateY(-120px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 20px 8px 16px;
+        background: var(--bg-glass);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: var(--radius-full);
+        box-shadow: var(--shadow-lg);
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        opacity: 0;
+        z-index: 999;
+        pointer-events: none;
+        border: 1px solid rgba(255, 107, 157, 0.15);
+    }
+
+    .pull-refresh-indicator.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    .pull-refresh-indicator .refresh-icon {
+        display: block;
+        color: var(--primary);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
+    }
+
+    .pull-refresh-indicator .refresh-text {
+        white-space: nowrap;
+        transition: color 0.25s ease;
+    }
+
+    .pull-refresh-indicator.pull-ready .refresh-text {
+        color: var(--primary);
+    }
+
+    .pull-refresh-indicator.refreshing .refresh-icon {
+        animation: pullSpin 0.8s linear infinite;
+    }
+
+    @keyframes pullSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+}
+
+/* 11. 手机端操作体验优化 */
+@media (max-width: 768px) {
+    /* 左滑删除/操作提示 */
+    .swipe-actions {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .swipe-actions.show {
+        transform: translateX(0);
+    }
+    
+    .swipe-action-btn {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .swipe-action-btn.delete {
+        background: #FEE2E2;
+        color: #EF4444;
+    }
+    
+    .swipe-action-btn.edit {
+        background: #DBEAFE;
+        color: #3B82F6;
+    }
+    
+    .swipe-action-btn:active {
+        transform: scale(0.9);
+    }
+    
+    /* 帖子卡片支持左滑 */
+    .post-card {
+        position: relative;
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+    
+    .post-card.swiping {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* 双击点赞动画 */
+    @keyframes doubleTapLike {
+        0% { transform: scale(0); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 0; }
+    }
+    
+    .double-tap-heart {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 4rem;
+        pointer-events: none;
+        animation: doubleTapLike 0.8s ease-out forwards;
+        z-index: 100;
+    }
+    
+    /* 长按复制提示 */
+    .long-press-hint {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        z-index: 9999;
+        animation: fadeInOut 2s ease forwards;
+    }
+    
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+        20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        80% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    
+    /* 滚动进度条 */
+    .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        z-index: 11000;
+        transition: width 0.1s ease;
+    }
+    
+    /* 返回顶部按钮优化 */
+    .back-to-top {
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 999;
+        opacity: 0;
+        transform: scale(0.8);
+        pointer-events: none;
+    }
+    
+    .back-to-top.show {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: auto;
+    }
+    
+    .back-to-top:active {
+        transform: scale(0.9);
+    }
+    
+    /* 触摸反馈增强 */
+    .touch-ripple {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .touch-ripple::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 107, 157, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s, opacity 0.6s;
+        opacity: 0;
+    }
+    
+    .touch-ripple:active::after {
+        width: 200px;
+        height: 200px;
+        opacity: 1;
+    }
+    
+    /* 图片预览优化 */
+    .image-preview-modal img {
+        touch-action: pan-x pan-y;
+    }
+    
+    /* 输入框优化 - 排除checkbox和radio，保持原生样式 */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="search"],
+    input[type="url"],
+    textarea,
+    select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    /* 表情选择器移动端适配 */
+    .emoji-picker {
+        position: fixed !important;
+        bottom: 80px !important;
+        top: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%);
+        width: calc(100vw - 40px) !important;
+        max-width: 360px;
+        max-height: 45vh;
+        z-index: 1000 !important;
+    }
+
+    .emoji-grid {
+        grid-template-columns: repeat(7, 1fr) !important;
+    }
+
+    .emoji-item {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.6rem !important;
+    }
+
+    .comment-input-wrapper {
+        padding-bottom: 8px;
+    }
+    
+    /* 防止文本选择干扰触摸操作 */
+    .no-select {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* 可选择文本 */
+    .selectable {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* 评论区移动端优化 */
+    .comment-section {
+        padding: 16px;
+        border-radius: 14px;
+        margin-top: 16px;
+    }
+    .comment-item {
+        padding: 14px;
+        gap: 10px;
+    }
+    .comment-item .comment-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    .comment-input-wrapper {
+        padding: 12px;
+    }
+    .comment-input {
+        min-height: 56px;
+        padding: 12px 14px;
+        font-size: 0.9rem;
+    }
+    .comment-input-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .comment-tools {
+        justify-content: flex-start;
+    }
+    .btn-comment-submit {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+    .emoji-picker {
+        width: 280px;
+        max-height: 240px;
+    }
+    .emoji-grid {
+        grid-template-columns: repeat(7, 1fr);
+    }
+    .back-home-btn {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 8px;
+        font-size: 0.82rem;
+    }
+    .comment-reply-item {
+        padding: 10px 12px;
+    }
+    .reply-avatar {
+        width: 28px;
+        height: 28px;
+    }
+    .comment-title {
+        font-size: 1rem;
+    }
+    .comment-item .comment-text {
+        font-size: 0.9rem;
+    }
+    .comment-sort-bar {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}
+
+@media (max-width: 400px) {
+    .comment-section {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    .comment-item {
+        padding: 12px 10px;
+        border-radius: 12px;
+    }
+    .comment-item .comment-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    .comment-item .comment-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* 9. 点歌页面移动端紧密排版优化 */
+@media (max-width: 768px) {
+    .radio-header {
+        margin-bottom: 18px;
+    }
+    .radio-title {
+        font-size: 1.25rem;
+    }
+    .radio-section {
+        margin-bottom: 18px;
+    }
+    .section-title {
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+    }
+    .radio-form-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .radio-form .form-group {
+        margin-bottom: 10px;
+    }
+    .form-group .form-label {
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    .form-group .form-input,
+    .form-group .form-textarea,
+    .form-group .form-select {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    .form-group .form-textarea {
+        min-height: 60px;
+    }
+    .radio-anonymous {
+        margin: 10px 0;
+    }
+    .radio-anonymous .toggle-switch {
+        width: 36px;
+        height: 20px;
+    }
+    .radio-anonymous .toggle-slider {
+        width: 36px;
+        height: 20px;
+    }
+    .radio-anonymous .toggle-slider::before {
+        width: 16px;
+        height: 16px;
+    }
+    .radio-anonymous span:last-child {
+        font-size: 0.85rem;
+    }
+    .form-actions {
+        margin-top: 6px;
+    }
+    .form-actions .btn-publish {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    .remaining-count {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        margin-bottom: 10px;
+    }
+
+    /* 播放列表卡片 */
+    .playlist {
+        gap: 10px;
+        max-height: none;
+        padding-right: 0;
+    }
+    .playlist-item {
+        border-radius: 12px;
+    }
+    .playlist-item .song-main {
+        padding: 12px 14px 12px 10px;
+        gap: 10px;
+    }
+    .playlist-item .song-index {
+        width: 26px;
+        height: 26px;
+        font-size: 0.7rem;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    .playlist-item .song-name {
+        font-size: 0.9rem;
+    }
+    .playlist-item .song-name::before {
+        font-size: 0.85rem;
+    }
+    .playlist-item .song-artist {
+        font-size: 0.75rem;
+        padding: 1px 6px;
+    }
+    .playlist-item .song-footer {
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 0.72rem;
+    }
+    .playlist-item .song-author {
+        font-size: 0.72rem;
+        padding: 1px 8px;
+    }
+    .playlist-item .song-tag {
+        font-size: 0.68rem;
+        padding: 2px 8px;
+    }
+    .playlist-item .song-tag.to-whom {
+        font-size: 0.68rem;
+    }
+    .playlist-item .song-msg-bubble {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+        margin-top: 6px;
+        white-space: normal;
+        text-overflow: clip;
+        display: block;
+    }
+    .playlist-item .song-status-area {
+        padding-right: 12px;
+        min-width: auto;
+        gap: 4px;
+    }
+    .playlist-item .song-status {
+        font-size: 0.65rem;
+        padding: 4px 10px;
+        white-space: nowrap;
+    }
+    .playlist-item .song-status::before {
+        display: none;
+    }
+
+    /* 热门歌曲 */
+    .hot-songs-list {
+        gap: 10px;
+    }
+    .hot-song-item {
+        padding: 12px;
+        gap: 10px;
+        border-radius: 12px;
+    }
+    .hot-song-rank {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+    .hot-song-content {
+        min-width: 0;
+    }
+    .hot-song-name {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+    .hot-song-name .hot-song-artist {
+        font-size: 0.78rem;
+    }
+    .hot-song-meta {
+        gap: 8px;
+        font-size: 0.72rem;
+    }
+    .hot-song-author,
+    .hot-song-recipient,
+    .hot-song-message {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+    }
+    .hot-song-vote {
+        flex-shrink: 0;
+    }
+    .hot-song-vote .vote-btn {
+        padding: 6px 8px;
+        font-size: 0.72rem;
+    }
+    .hot-song-vote .vote-icon {
+        font-size: 0.85rem;
+    }
+    .hot-song-vote .vote-count {
+        font-size: 0.75rem;
+    }
+
+    .radio-section p[style] {
+        font-size: 0.8rem !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* 我的点歌记录 */
+    #mySongsList .my-song-item {
+        padding: 14px;
+        gap: 10px;
+    }
+    #mySongsList .my-song-title {
+        font-size: 0.9rem;
+    }
+    #mySongsList .my-song-title::before {
+        font-size: 0.9rem;
+    }
+    #mySongsList .my-song-date {
+        font-size: 0.72rem;
+        padding: 2px 8px;
+    }
+    #mySongsList .my-song-status {
+        font-size: 0.68rem;
+        padding: 2px 10px;
+    }
+    #mySongsList .my-song-recipient {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+    }
+    #mySongsList .my-song-msg {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+    }
+    #mySongsList .my-song-cancel {
+        padding: 8px 14px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .radio-title {
+        font-size: 1.1rem;
+    }
+    .radio-subtitle {
+        font-size: 0.8rem;
+    }
+    .radio-form-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+    .form-group .form-input,
+    .form-group .form-textarea,
+    .form-group .form-select {
+        font-size: 0.85rem;
+        padding: 9px 10px;
+    }
+    .form-actions .btn-publish {
+        padding: 11px;
+        font-size: 0.9rem;
+    }
+    .playlist-item .song-main {
+        padding: 10px 10px 10px 8px;
+        gap: 8px;
+    }
+    .playlist-item .song-name {
+        font-size: 0.85rem;
+    }
+    .playlist-item .song-footer {
+        font-size: 0.68rem;
+    }
+    .playlist-item .song-status-area {
+        padding-right: 8px;
+    }
+    .playlist-item .song-status {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+    .hot-song-item {
+        padding: 10px;
+        gap: 8px;
+    }
+    .hot-song-name {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 380px) {
+    body.radio-page .playlist-item .song-main {
+        flex-direction: column !important;
+        align-items: flex-start;
+    }
+    .playlist-item .song-index {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+    .playlist-item .song-status-area {
+        flex-direction: row;
+        padding: 0 10px 8px;
+        justify-content: flex-end;
+    }
+}
+
+/* 12. 点歌页移动端第二轮排版：减少标签堆叠，保持稳定的信息层级 */
+@media (max-width: 768px) {
+    body.radio-page .playlist-item {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-card);
+        border-radius: 14px;
+        box-shadow: 0 1px 8px rgba(31, 41, 55, 0.06);
+        transform: none;
+    }
+
+    body.radio-page .playlist-item:hover {
+        transform: none;
+        box-shadow: 0 1px 8px rgba(31, 41, 55, 0.06);
+    }
+
+    body.radio-page .playlist-item::before {
+        width: 100%;
+        height: 3px;
+        flex-shrink: 0;
+        background: #6366F1;
+        box-shadow: none;
+    }
+
+    body.radio-page .playlist-item .song-main {
+        display: flex;
+        flex-direction: row !important;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 13px 13px 8px !important;
+    }
+
+    body.radio-page .playlist-item .song-index {
+        position: static !important;
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        font-size: 0.7rem;
+        box-shadow: none;
+        flex-shrink: 0;
+    }
+
+    body.radio-page .playlist-item .song-index::before {
+        display: none;
+    }
+
+    body.radio-page .playlist-item .song-content {
+        min-width: 0;
+        padding: 0 !important;
+    }
+
+    body.radio-page .playlist-item .song-name {
+        font-size: 0.95rem;
+        line-height: 1.35;
+        gap: 5px;
+    }
+
+    body.radio-page .playlist-item .song-name::before {
+        content: none;
+    }
+
+    body.radio-page .playlist-item .song-artist {
+        padding: 0;
+        margin-left: 0;
+        background: transparent;
+        border-radius: 0;
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    body.radio-page .playlist-item .song-footer {
+        gap: 4px;
+        margin-top: 6px;
+        font-size: 0.72rem;
+        line-height: 1.35;
+    }
+
+    body.radio-page .playlist-item .song-author,
+    body.radio-page .playlist-item .song-details {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        font-size: 0.72rem;
+        font-weight: 500;
+    }
+
+    body.radio-page .playlist-item .song-author {
+        color: var(--text-secondary);
+    }
+
+    body.radio-page .playlist-item .song-details {
+        color: var(--text-light);
+    }
+
+    body.radio-page .playlist-item .song-details::before {
+        content: '·';
+        margin-right: 5px;
+        color: var(--text-light);
+    }
+
+    body.radio-page .playlist-item .song-tag {
+        padding: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+    }
+
+    body.radio-page .playlist-item .song-msg-bubble {
+        margin: 7px 0 0;
+        padding: 5px 8px;
+        background: #F8F7FC;
+        border: 0;
+        border-left: 2px solid #C4B5FD;
+        border-radius: 0 7px 7px 0;
+        color: var(--text-light);
+        font-size: 0.74rem;
+        line-height: 1.4;
+    }
+
+    body.radio-page .playlist-item .song-msg-bubble::before {
+        content: none;
+    }
+
+    body.radio-page .playlist-item .song-status-area {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        min-width: auto;
+        padding: 0 13px 12px;
+    }
+
+    body.radio-page .playlist-item .song-status {
+        padding: 4px 9px;
+        border-radius: 8px;
+        box-shadow: none;
+        font-size: 0.68rem;
+        letter-spacing: 0;
+    }
+
+    body.radio-page .playlist-item .song-status::before {
+        display: none;
+    }
+
+    body.radio-page .hot-songs-list {
+        gap: 8px;
+    }
+
+    body.radio-page .hot-song-item {
+        gap: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        box-shadow: 0 1px 8px rgba(31, 41, 55, 0.06);
+    }
+
+    body.radio-page .hot-song-item:hover {
+        transform: none;
+        box-shadow: 0 1px 8px rgba(31, 41, 55, 0.06);
+    }
+
+    body.radio-page .hot-song-rank {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #F3F4F6;
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+    }
+
+    body.radio-page .hot-song-rank.rank-1 {
+        background: #FEF3C7;
+        color: #B45309;
+    }
+
+    body.radio-page .hot-song-rank.rank-2 {
+        background: #F1F5F9;
+        color: #64748B;
+    }
+
+    body.radio-page .hot-song-rank.rank-3 {
+        background: #FDEAD7;
+        color: #C2410C;
+    }
+
+    body.radio-page .hot-song-name {
+        margin-bottom: 4px;
+        font-size: 0.92rem;
+        line-height: 1.35;
+    }
+
+    body.radio-page .hot-song-artist {
+        font-size: 0.76rem;
+    }
+
+    body.radio-page .hot-song-meta {
+        gap: 0;
+        font-size: 0.72rem;
+        line-height: 1.35;
+    }
+
+    body.radio-page .hot-song-author,
+    body.radio-page .hot-song-recipient {
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    body.radio-page .hot-song-recipient::before {
+        content: '·';
+        margin: 0 5px;
+        color: var(--text-light);
+    }
+
+    body.radio-page .hot-song-message {
+        display: block;
+        max-width: 100%;
+        margin-top: 4px;
+        padding: 0;
+        background: transparent;
+        font-size: 0.72rem;
+        font-style: normal;
+        line-height: 1.35;
+    }
+
+    body.radio-page .hot-song-vote .vote-btn {
+        min-width: 52px;
+        min-height: 42px;
+        flex-direction: row;
+        gap: 4px;
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 107, 157, 0.22);
+        border-radius: 10px;
+        background: transparent;
+    }
+
+    body.radio-page .hot-song-vote .vote-icon {
+        font-size: 0.95rem;
+    }
+
+    body.radio-page .hot-song-vote .vote-count {
+        font-size: 0.78rem;
+    }
+}
+
+/* 点歌页移动端最终覆盖：放在文件末尾，确保不被历史兼容规则反向覆盖 */
+@media (max-width: 768px) {
+    body.radio-page .hot-song-item {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 8px;
+        min-height: 62px;
+        padding: 9px 9px 9px 8px;
+        border-radius: 13px;
+        box-shadow: 0 3px 12px rgba(31, 41, 55, 0.035);
+    }
+
+    body.radio-page .hot-song-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+
+    body.radio-page .hot-song-name {
+        margin-bottom: 4px;
+        font-size: 0.89rem;
+        line-height: 1.3;
+    }
+
+    body.radio-page .hot-song-artist {
+        display: block;
+        overflow: hidden;
+        margin-top: 2px;
+        font-size: 0.74rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.radio-page .hot-song-meta {
+        gap: 4px;
+        font-size: 0.69rem;
+    }
+
+    body.radio-page .hot-song-author,
+    body.radio-page .hot-song-recipient {
+        max-width: 45%;
+        padding: 2px 6px;
+    }
+
+    body.radio-page .hot-song-message {
+        margin-top: 4px;
+        font-size: 0.69rem;
+    }
+
+    body.radio-page .hot-song-vote .vote-btn {
+        min-width: 48px;
+        min-height: 36px;
+        gap: 3px;
+        padding: 5px 7px;
+        border-radius: 9px;
+    }
+
+    body.radio-page .hot-song-vote .vote-icon {
+        font-size: 0.86rem;
+    }
+
+    body.radio-page .hot-song-vote .vote-count {
+        font-size: 0.72rem;
+    }
+}
+
+@media (max-width: 360px) {
+    body.radio-page .hot-song-item {
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 7px;
+        padding-right: 7px;
+    }
+
+    body.radio-page .hot-song-rank {
+        width: 28px;
+        height: 28px;
+    }
+
+    body.radio-page .hot-song-vote .vote-btn {
+        min-width: 44px;
+        padding: 5px 6px;
+    }
+}
+
+/* ===== 最终交互收口：与底部导航及安全区保持一致 ===== */
+#sideCheckin {
+    width: 130px;
+    min-width: 130px;
+}
+
+@media (max-width: 768px) {
+    body.home-page .main-content,
+    body.profile-page .main-content,
+    body.feedback-screen .main-content {
+        padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .mobile-checkin-slot #sideCheckin {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.home-page .post-card .action-btn,
+    body.post-detail-page .detail-actions button,
+    body.post-detail-page .btn-comment-submit,
+    body.radio-page .hot-song-vote .vote-btn {
+        min-height: 44px !important;
+    }
+
+    #sideCheckin.mobile-checkin-card .btn-checkin,
+    .mobile-checkin-slot .checkin-retry {
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ===== 首页桌面布局修复 =====
+   桌面端使用宽版内容流；足够宽时保留两侧信息卡，签到卡挂在右栏首位。 */
+@media (min-width: 769px) {
+    body.home-page .main-content {
+        width: min(calc(100% - 48px), 1120px);
+        max-width: 1120px;
+        box-sizing: border-box;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+    .side-cards-container {
+        display: none !important;
+    }
+}
+
+/* 普通桌面宽度也保留右侧信息栏，主内容预留出稳定空间，避免卡片压住帖子。 */
+@media (min-width: 1201px) and (max-width: 1599px) {
+    body.home-page .main-content {
+        width: min(calc(100% - 300px), 1120px);
+        max-width: 1120px;
+        box-sizing: border-box;
+    }
+
+    .side-cards-container {
+        display: flex !important;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .side-cards-group {
+        gap: 16px;
+    }
+
+    .side-cards-group > .side-card {
+        width: 116px;
+        min-width: 116px;
+    }
+
+    #sideCheckin {
+        width: 126px;
+        min-width: 126px;
+        padding-left: 9px;
+        padding-right: 9px;
+    }
+}
+
+@media (min-width: 1600px) {
+    body.home-page .main-content {
+        width: min(calc(100% - 48px), 1120px);
+        max-width: 1120px;
+        box-sizing: border-box;
+    }
+
+    .side-cards-container {
+        padding-left: clamp(28px, 2.4vw, 52px);
+        padding-right: clamp(28px, 2.4vw, 52px);
+    }
+
+    .side-cards-group {
+        gap: 26px;
+    }
+
+    .side-cards-group > .side-card {
+        width: 138px;
+        min-width: 138px;
+    }
+
+    #sideCheckin {
+        width: 148px;
+        min-width: 148px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* 帖子正文留出呼吸边距，长文本阅读不贴卡片边缘。 */
+@media (min-width: 769px) {
+    body.home-page .post-card .post-title,
+    body.home-page .post-card .post-content {
+        padding-inline: 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    body.home-page .post-card .post-title,
+    body.home-page .post-card .post-content {
+        padding-inline: 4px;
+    }
+}
+
+/* 首页桌面滚轮和视频媒体：视频居中显示，避免宽卡片右侧留下突兀空白。 */
+@media (min-width: 769px) {
+    body.home-page {
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: auto;
+    }
+
+    body.home-page .post-card .post-video-wrap {
+        width: min(100%, 780px);
+        aspect-ratio: 16 / 9;
+        box-sizing: border-box;
+        margin: 16px auto 20px;
+        border: 1px solid rgba(39, 83, 77, 0.22);
+        border-radius: 20px;
+        background: linear-gradient(145deg, #173d3a, #244f49);
+        box-shadow: 0 14px 30px rgba(35, 75, 69, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    body.home-page .post-card .post-video {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        aspect-ratio: 16 / 9;
+        object-fit: contain;
+        background: #142c2a;
+    }
+}
+
+@media (max-width: 768px) {
+    body.home-page,
+    body.home-page .main-content,
+    body.home-page #postList,
+    body.home-page .post-card {
+        touch-action: pan-y;
+    }
+
+    body.home-page {
+        overscroll-behavior-y: auto;
+    }
+
+    body.home-page .post-card .post-video-wrap {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        margin: 14px 0 18px;
+        border-radius: 16px;
+    }
+
+    body.home-page .post-card .post-video {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        object-fit: contain;
+    }
+}
+
+/* ===== 首页社区流最终排版 =====
+   首页保持校园墙的轻量卡片感，但互动区按朋友圈的信息层级收口。 */
+body.home-page .post-card {
+    border: 1px solid rgba(226, 232, 240, 0.72);
+    box-shadow: 0 8px 24px rgba(30, 41, 59, 0.05);
+}
+
+body.home-page .post-card .post-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    column-gap: 2px;
+    row-gap: 0;
+    margin-top: 14px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(226, 232, 240, 0.58);
+}
+
+body.home-page .post-card .action-btn {
+    min-width: 0;
+    min-height: 40px;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 11px;
+    background: rgba(241, 243, 248, 0.72);
+    color: var(--text-secondary, #64748b);
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: inherit;
+    line-height: 1.2;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+body.home-page .post-card .action-btn:hover,
+body.home-page .post-card .action-btn:focus-visible {
+    background: rgba(255, 107, 157, 0.1);
+    color: var(--primary-dark, #e5558a);
+}
+
+body.home-page .post-card .action-btn:active {
+    transform: scale(0.97);
+}
+
+body.home-page .post-card .action-btn.liked,
+body.home-page .post-card .action-btn.favorited {
+    background: transparent;
+    color: #9a627f;
+}
+
+body.home-page .post-card .action-btn.liked:hover,
+body.home-page .post-card .action-btn.liked:focus-visible,
+body.home-page .post-card .action-btn.favorited:hover,
+body.home-page .post-card .action-btn.favorited:focus-visible {
+    background: rgba(177, 126, 153, 0.15);
+    color: #8d5673;
+}
+
+body.home-page .post-card .action-icon {
+    flex: 0 0 auto;
+    font-size: 1rem;
+}
+
+body.home-page .post-card .post-comments-preview {
+    margin-top: 10px;
+    padding: 8px 10px 6px;
+    border-radius: 9px;
+    border: 1px solid rgba(220, 211, 227, 0.42);
+    background: rgba(244, 241, 247, 0.62);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+body.home-page .post-card .comment-preview-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+    padding: 2px 0;
+    line-height: 1.55;
+}
+
+body.home-page .post-card .comment-preview-author {
+    flex: 0 0 auto;
+    max-width: 42%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--secondary, #7c5fc3);
+    font-weight: 600;
+}
+
+body.home-page .post-card .comment-preview-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    color: var(--text-secondary, #64748b);
+}
+
+body.home-page .post-card .comment-preview-more {
+    margin-top: 5px;
+    color: var(--primary-dark, #e5558a);
+    font-weight: 600;
+}
+
+[data-theme="dark"] body.home-page .post-card .action-btn {
+    color: #c7c0ca;
+}
+
+[data-theme="dark"] body.home-page .post-card .action-btn:hover,
+[data-theme="dark"] body.home-page .post-card .action-btn:focus-visible {
+    background: rgba(205, 172, 194, 0.12);
+    color: #e0c4d4;
+}
+
+[data-theme="dark"] body.home-page .post-card .action-btn.liked,
+[data-theme="dark"] body.home-page .post-card .action-btn.favorited {
+    background: transparent;
+    color: #e4b8cd;
+}
+
+[data-theme="dark"] body.home-page .post-card .comment-preview-author,
+[data-theme="dark"] body.home-page .post-card .comment-preview-more {
+    color: #d5b9ca;
+}
+
+[data-theme="dark"] body.home-page .post-card .post-comments-preview {
+    border-color: rgba(205, 172, 194, 0.2);
+    background: rgba(58, 50, 64, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] body.home-page .post-card .post-actions {
+    border-top-color: rgba(205, 196, 210, 0.24);
+}
+
+/* 顶部通知与退出共用同一组浅色状态，退出按钮与通知文字保持舒适间距。 */
+.navbar {
+    --wall-nav-ink: #68717b;
+    --wall-nav-hover: #806a7c;
+    --wall-nav-surface: rgba(123, 108, 133, 0.08);
+    --wall-nav-border: rgba(189, 180, 194, 0.58);
+    --wall-nav-focus: rgba(141, 119, 146, 0.46);
+    --wall-nav-divider: rgba(214, 208, 216, 0.78);
+}
+
+.navbar .nav-notification,
+.navbar .nav-logout {
+    color: var(--wall-nav-ink);
+}
+
+.navbar .nav-logout {
+    margin-left: 28px;
+}
+
+.navbar .nav-notification::before,
+.navbar .nav-logout::before {
+    left: -14px;
+    background: var(--wall-nav-divider);
+}
+
+.navbar .nav-control-icon {
+    border-color: var(--wall-nav-border);
+    background: rgba(250, 249, 251, 0.78);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.88) inset;
+}
+
+.navbar .nav-notification:hover,
+.navbar .nav-logout:hover,
+.navbar .nav-notification:focus-visible,
+.navbar .nav-logout:focus-visible {
+    color: var(--wall-nav-hover);
+    transform: none;
+}
+
+.navbar .nav-notification:hover .nav-control-icon,
+.navbar .nav-logout:hover .nav-control-icon,
+.navbar .nav-notification:focus-visible .nav-control-icon,
+.navbar .nav-logout:focus-visible .nav-control-icon {
+    background: var(--wall-nav-surface);
+    border-color: var(--wall-nav-border);
+    box-shadow: 0 2px 8px rgba(123, 108, 133, 0.1);
+}
+
+.navbar .nav-notification:focus-visible,
+.navbar .nav-logout:focus-visible {
+    outline: 2px solid var(--wall-nav-focus);
+    outline-offset: 3px;
+}
+
+[data-theme="dark"] .navbar {
+    --wall-nav-ink: #b8b2bc;
+    --wall-nav-hover: #e0c4d4;
+    --wall-nav-surface: rgba(205, 172, 194, 0.12);
+    --wall-nav-border: rgba(205, 172, 194, 0.34);
+    --wall-nav-focus: rgba(225, 192, 211, 0.58);
+    --wall-nav-divider: rgba(205, 196, 210, 0.28);
+}
+
+[data-theme="dark"] .navbar .nav-control-icon {
+    background: rgba(42, 38, 47, 0.72);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+@media (max-width: 768px) {
+    body.home-page .post-card .post-actions {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    body.home-page .post-card .action-btn {
+        min-height: 42px;
+        padding-inline: 4px;
+        font-size: 0.76rem;
+    }
+
+    body.home-page .post-card .post-comments-preview {
+        padding: 9px 10px;
+    }
+}
+
+/* ===== 首页侧栏与签到卡最终布局 =====
+   宽屏将签到放入左侧栏首位；中等桌面保留主内容备用位，手机继续使用主内容流。 */
+.desktop-checkin-slot {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    body.home-page .main-content {
+        box-sizing: border-box;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1599px) {
+    .side-cards-container {
+        display: none !important;
+    }
+
+    .desktop-checkin-slot {
+        display: block;
+        margin: 0 0 14px;
+    }
+
+    .desktop-checkin-slot #sideCheckin {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-radius: 16px;
+    }
+
+    .desktop-checkin-slot #sideCheckin .checkin-card-heading {
+        flex: 1 1 auto;
+        flex-direction: row;
+        align-items: center;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .desktop-checkin-slot #sideCheckin .checkin-card-copy {
+        min-width: 0;
+    }
+
+    .desktop-checkin-slot #sideCheckin .checkin-card-subtitle {
+        white-space: normal;
+    }
+
+    .desktop-checkin-slot #sideCheckin .side-card-body {
+        width: auto;
+        min-width: 180px;
+        margin-left: 16px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .side-cards-container {
+        box-sizing: border-box;
+        align-items: center;
+        padding: calc(var(--navbar-height, 64px) + 28px) clamp(24px, 2.5vw, 48px) 28px;
+    }
+
+    .side-cards-group {
+        gap: 20px;
+    }
+
+    .side-cards-left {
+        align-items: stretch;
+    }
+
+    .side-cards-right {
+        align-items: flex-end;
+    }
+
+    .side-cards-group > .side-card {
+        box-sizing: border-box;
+    }
+
+    .side-cards-left > .side-card,
+    .side-cards-right > .side-card {
+        width: 148px;
+        min-width: 148px;
+    }
+
+    #sideCheckin {
+        width: 148px;
+        min-width: 148px;
+        padding: 14px 12px 12px;
+    }
+
+    #sideCheckin .checkin-card-heading {
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    #sideCheckin .side-card-title {
+        font-size: 0.9rem;
+        text-align: center;
+    }
+
+    #sideCheckin .checkin-card-subtitle {
+        line-height: 1.4;
+        text-align: center;
+        white-space: normal;
+    }
+
+    #sideCheckin .checkin-action-row,
+    #sideCheckin .checkin-status-row {
+        min-height: 44px;
+        padding: 6px 5px;
+    }
+
+    #sideCheckin .btn-checkin {
+        min-width: 44px;
+        min-height: 30px;
+        padding: 5px 7px !important;
+    }
+
+    #sideHitokoto {
+        align-items: stretch;
+    }
+
+    #sideHitokoto .side-card-content {
+        max-height: 3.2rem;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    #sideHotsearch {
+        align-items: stretch;
+        padding: 16px 12px 18px;
+    }
+
+    #sideHotsearch .hotsearch-list {
+        max-height: 360px;
+        gap: 7px;
+        padding-right: 3px;
+    }
+
+    #sideHotsearch .hotsearch-item.history-item {
+        gap: 7px;
+        padding: 9px 8px;
+        font-size: 0.76rem;
+        line-height: 1.45;
+        text-align: left;
+    }
+
+    #sideHotsearch .history-event {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+}
+
+/* 移动端底部导航不再显示 active 小圆点。 */
+@media (max-width: 768px) {
+    .bottom-tab-bar .tab-item.active::after {
+        display: none !important;
+        content: none !important;
+    }
+}
