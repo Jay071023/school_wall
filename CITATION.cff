@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use Campus Wall in a paper, article, product introduction, or derivative project, please cite it as below."
+title: "Campus Wall"
+authors:
+  - family-names: "Jay071023"
+repository-code: "https://github.com/Jay071023/school_wall"
+license: "Apache-2.0"
+version: "0.1.0"
+date-released: 2026-09-08

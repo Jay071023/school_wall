@@ -96,6 +96,12 @@ GitHub Actions 会在 `main` 推送和 Pull Request 上执行同一组公开版�
 
 提交前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。Issue 和 Pull Request 模板已经要求说明复现、行为变化和实际验证。安全问题请走 [SECURITY.md](SECURITY.md) 的私密反馈流程，不要公开漏洞细节。
 
+## 许可证与署名
+
+代码以 [Apache-2.0](LICENSE) 发布，版权所有 `Copyright 2026 Jay071023`。二次分发或衍生项目必须保留 [LICENSE](LICENSE) 和 [NOTICE](NOTICE) 中与本项目相关的版权及归属声明。
+
+论文、文章、产品介绍或衍生项目的说明页请标注：`Campus Wall · developed by Jay071023`，并链接到本仓库。GitHub 会从 [CITATION.cff](CITATION.cff) 提供标准引用信息。
+
 ## 公开镜像边界
 
 - 不提交真实投稿、用户资料、上传媒体、日志、备份、私有地址或凭据。

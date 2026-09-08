@@ -30,3 +30,5 @@ State the commands actually run and any checks you could not run in the pull-req
 ## Review expectations
 
 Pull requests need a clear trigger, expected behavior and focused diff. Maintainers may request tests, responsive evidence or removal of material that could identify a real school, student, service or credential.
+
+By submitting a contribution, you agree that it is provided under the repository's [Apache-2.0 license](LICENSE). Preserve [NOTICE](NOTICE) when distributing the project or a derivative.

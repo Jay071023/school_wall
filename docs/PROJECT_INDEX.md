@@ -7,6 +7,7 @@
 ## 公开协作入口
 
 - `README.md`：公开项目首页，说明产品能力、原创实现、脱敏边界和本地启动方式。
+- `LICENSE`、`NOTICE`、`CITATION.cff`：Apache-2.0 许可、Jay071023 归属声明和标准引用信息。
 - `CONTRIBUTING.md`：Issue、分支、镜像同步和 Pull Request 的贡献规则。
 - `CODE_OF_CONDUCT.md`：公开协作的行为与隐私边界。
 - `SECURITY.md`：私密安全问题反馈规则；漏洞细节不得进入公开 Issue。
