@@ -1,11 +1,10 @@
-# Agent 工作入口
+# Campus Wall public mirror
 
-开始任何修改前，先阅读 [`docs/PROJECT_INDEX.md`](docs/PROJECT_INDEX.md)，按代码地图定位入口，避免扫描整个仓库。
+This worktree is a public, sanitized mirror. Read `docs/PROJECT_INDEX.md` before making a change.
 
-必须遵守：
-
-1. 修改 `frontend/` 后同步 `public/`，并运行 `npm run check:mirrors`。
-2. `769px+` 走桌面布局，`768px-` 才走移动布局。
-3. 修改后运行相关测试和 `git diff --check`，保留用户已有改动。
-4. 部署前推送 Gitee `main`，部署后核对服务器提交号、`wall` 状态和健康检查。
-5. 新增重要入口时同步更新 `docs/PROJECT_INDEX.md`。
+- Do not add production data, uploads, logs, backups, real credentials, private endpoints or deployment configuration.
+- Do not run production deployments from this mirror. GitHub `main` is for reviewed public-source updates only.
+- Keep `frontend/` and `public/` mirrored after HTML, page JavaScript or CSS changes; run `npm run check:mirrors`.
+- Use `769px+` for desktop layout and `768px-` for mobile layout. Check empty, loading, error and permission states when they are affected.
+- Run affected tests, `npm run check:privacy`, `npm run check:deployment` and `git diff --check` before a pull request.
+- Update `docs/PROJECT_INDEX.md` when a public page, route, service, test or documentation entry changes responsibility or location.

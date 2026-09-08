@@ -2,6 +2,17 @@
 
 > 本文件按当前源码整理，目标是让后续维护可以先定位入口，再阅读局部代码。路径均相对于项目根目录。
 
+> 公开镜像约定：这里不包含生产数据、凭据或部署配置，也不得用它部署生产环境。
+
+## 公开协作入口
+
+- `README.md`：公开项目首页，说明产品能力、原创实现、脱敏边界和本地启动方式。
+- `CONTRIBUTING.md`：Issue、分支、镜像同步和 Pull Request 的贡献规则。
+- `CODE_OF_CONDUCT.md`：公开协作的行为与隐私边界。
+- `SECURITY.md`：私密安全问题反馈规则；漏洞细节不得进入公开 Issue。
+- `.github/workflows/ci.yml`：GitHub `main` 推送和 Pull Request 的 Node 20 验证流程，不发布 npm 包或生产服务。
+- `.github/ISSUE_TEMPLATE/` 与 `.github/pull_request_template.md`：公开协作模板，要求移除真实内容、凭据、私有地址和安全细节。
+
 ## 运行与部署入口
 
 - `server.js`：Express 服务启动入口，负责静态资源、路由挂载和服务启动。
