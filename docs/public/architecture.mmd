@@ -4,43 +4,42 @@ flowchart LR
   classDef data fill:#fff7ed,stroke:#ea580c,color:#7c2d12,stroke-width:1.5px
   classDef external fill:#fdf2f8,stroke:#db2777,color:#831843,stroke-width:1.5px
 
-  subgraph Client[Web clients]
-    Desktop[Desktop browser]:::client
-    Mobile[Mobile browser]:::client
-    Admin[Admin browser]:::client
+  subgraph Client[使用者入口]
+    Desktop[桌面端浏览器]:::client
+    Mobile[移动端浏览器]:::client
+    Admin[管理后台]:::client
   end
 
-  subgraph App[Campus Wall application]
-    Static[Static pages\nfrontend and public mirrors]:::app
-    Server[Express server]:::app
-    Routes[Routes and middleware]:::app
-    Services[Domain services\nmedia, mail, notifications, drafts]:::app
+  subgraph App[校墙应用]
+    Static[静态页面<br/>frontend / public 镜像]:::app
+    Server[Express 服务]:::app
+    Routes[路由与认证中间件]:::app
+    Services[业务服务<br/>媒体、邮件、通知、草稿]:::app
+    Jobs[定时清理任务]:::app
   end
 
-  subgraph Data[Data and media]
+  subgraph Data[数据与媒体]
     DB[(MySQL)]:::data
-    Uploads[(Runtime uploads)]:::data
-    Jobs[Cleanup and scheduled tasks]:::data
+    Uploads[(运行时上传文件)]:::data
   end
 
-  subgraph Integrations[Optional integrations]
-    Mail[SMTP mail]:::external
-    AI[AI provider]:::external
-    Official[Public-account API]:::external
-    Video[ffmpeg and ffprobe]:::external
+  subgraph Integrations[可选集成]
+    Mail[SMTP 邮件]:::external
+    AI[AI 服务]:::external
+    Official[微信公众号接口]:::external
+    Video[ffmpeg / ffprobe]:::external
   end
 
   Desktop --> Static
   Mobile --> Static
   Admin --> Static
-  Static --> Server
-  Server --> Routes --> Services
+  Static --> Server --> Routes --> Services
   Routes --> DB
   Services --> DB
   Services --> Uploads
   Jobs --> Uploads
   Jobs --> DB
-  Services -. optional .-> Mail
-  Services -. optional .-> AI
-  Services -. optional .-> Official
-  Services -. optional .-> Video
+  Services -. 可选 .-> Mail
+  Services -. 可选 .-> AI
+  Services -. 可选 .-> Official
+  Services -. 可选 .-> Video

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
-  <title id="title">Campus Wall architecture</title>
-  <desc id="desc">Generic public architecture for the Campus Wall web application.</desc>
+  <title id="title">校墙公开版技术架构</title>
+  <desc id="desc">校墙由桌面端、移动端和后台访问静态页面；Express 提供路由、权限与业务服务，并连接 MySQL、上传文件及可选第三方服务。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#f8fafc"/>
@@ -13,96 +13,99 @@
       <path d="M0,0 L9,4.5 L0,9z" fill="#64748b"/>
     </marker>
     <style>
-      .heading { font: 700 27px Arial, sans-serif; fill: #0f172a; }
-      .subheading { font: 400 15px Arial, sans-serif; fill: #64748b; }
-      .group { font: 700 15px Arial, sans-serif; fill: #334155; letter-spacing: .4px; }
-      .node-title { font: 700 15px Arial, sans-serif; fill: #1e293b; }
-      .node-text { font: 400 12px Arial, sans-serif; fill: #64748b; }
-      .flow { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrow); }
-      .flow-dash { fill: none; stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 6 6; marker-end: url(#arrow); }
+      .heading { font: 700 30px 'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill: #0f172a; }
+      .subheading { font: 400 15px 'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill: #64748b; }
+      .group { font: 700 16px 'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill: #334155; letter-spacing: .5px; }
+      .node-title { font: 700 17px 'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill: #1e293b; }
+      .node-text { font: 400 13px 'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif; fill: #64748b; }
+      .flow { fill: none; stroke: #64748b; stroke-width: 2.2; marker-end: url(#arrow); }
+      .flow-dash { fill: none; stroke: #94a3b8; stroke-width: 2; stroke-dasharray: 7 6; marker-end: url(#arrow); }
     </style>
   </defs>
+
   <rect width="1440" height="820" fill="url(#bg)"/>
-  <text class="heading" x="48" y="55">Campus Wall architecture</text>
-  <text class="subheading" x="48" y="82">Public mirror · generic labels only · no production infrastructure details</text>
+  <text class="heading" x="48" y="56">校墙 · 公开版技术架构</text>
+  <text class="subheading" x="48" y="84">仅展示可复用的技术边界；不包含真实域名、生产基础设施或第三方凭据</text>
 
   <g filter="url(#shadow)">
-    <rect x="40" y="118" width="270" height="612" rx="20" fill="#eef2ff" stroke="#c7d2fe"/>
-    <rect x="335" y="118" width="450" height="612" rx="20" fill="#ecfdf5" stroke="#99f6e4"/>
-    <rect x="810" y="118" width="250" height="612" rx="20" fill="#fff7ed" stroke="#fed7aa"/>
-    <rect x="1085" y="118" width="315" height="612" rx="20" fill="#fdf2f8" stroke="#fbcfe8"/>
+    <rect x="40" y="120" width="270" height="622" rx="20" fill="#eef2ff" stroke="#c7d2fe"/>
+    <rect x="335" y="120" width="450" height="622" rx="20" fill="#ecfdf5" stroke="#99f6e4"/>
+    <rect x="810" y="120" width="250" height="622" rx="20" fill="#fff7ed" stroke="#fed7aa"/>
+    <rect x="1085" y="120" width="315" height="622" rx="20" fill="#fdf2f8" stroke="#fbcfe8"/>
   </g>
 
-  <text class="group" x="64" y="154">WEB CLIENTS</text>
-  <text class="group" x="359" y="154">CAMPUS WALL APPLICATION</text>
-  <text class="group" x="834" y="154">DATA &amp; MEDIA</text>
-  <text class="group" x="1109" y="154">OPTIONAL INTEGRATIONS</text>
+  <text class="group" x="64" y="157">使用者入口</text>
+  <text class="group" x="359" y="157">校墙应用</text>
+  <text class="group" x="834" y="157">数据与媒体</text>
+  <text class="group" x="1109" y="157">可选集成</text>
 
   <g>
-    <rect x="64" y="194" width="222" height="90" rx="14" fill="#fff" stroke="#a5b4fc"/>
-    <text class="node-title" x="84" y="229">Desktop browser</text>
-    <text class="node-text" x="84" y="252">Feed · radio · profile</text>
-    <rect x="64" y="320" width="222" height="90" rx="14" fill="#fff" stroke="#a5b4fc"/>
-    <text class="node-title" x="84" y="355">Mobile browser</text>
-    <text class="node-text" x="84" y="378">Safe-area responsive UI</text>
-    <rect x="64" y="446" width="222" height="90" rx="14" fill="#fff" stroke="#a5b4fc"/>
-    <text class="node-title" x="84" y="481">Admin browser</text>
-    <text class="node-text" x="84" y="504">Moderation · draft workspace</text>
-  </g>
-
-  <g>
-    <rect x="359" y="194" width="190" height="90" rx="14" fill="#fff" stroke="#5eead4"/>
-    <text class="node-title" x="379" y="229">Static pages</text>
-    <text class="node-text" x="379" y="252">Mirrored frontend / public</text>
-    <rect x="573" y="194" width="188" height="90" rx="14" fill="#fff" stroke="#5eead4"/>
-    <text class="node-title" x="593" y="229">Express server</text>
-    <text class="node-text" x="593" y="252">Security and static delivery</text>
-    <rect x="359" y="360" width="190" height="90" rx="14" fill="#fff" stroke="#5eead4"/>
-    <text class="node-title" x="379" y="395">Routes &amp; middleware</text>
-    <text class="node-text" x="379" y="418">Access control · API contracts</text>
-    <rect x="573" y="360" width="188" height="90" rx="14" fill="#fff" stroke="#5eead4"/>
-    <text class="node-title" x="593" y="395">Domain services</text>
-    <text class="node-text" x="593" y="418">Media · mail · drafts · jobs</text>
-    <rect x="359" y="527" width="402" height="90" rx="14" fill="#fff" stroke="#5eead4"/>
-    <text class="node-title" x="379" y="562">Scheduled cleanup</text>
-    <text class="node-text" x="379" y="585">Expires unpublished media and maintains runtime files</text>
+    <rect x="64" y="198" width="222" height="92" rx="14" fill="#fff" stroke="#a5b4fc"/>
+    <text class="node-title" x="84" y="234">桌面端浏览器</text>
+    <text class="node-text" x="84" y="258">内容流 · 广播站 · 个人中心</text>
+    <rect x="64" y="325" width="222" height="92" rx="14" fill="#fff" stroke="#a5b4fc"/>
+    <text class="node-title" x="84" y="361">移动端浏览器</text>
+    <text class="node-text" x="84" y="385">响应式布局 · 安全区适配</text>
+    <rect x="64" y="452" width="222" height="92" rx="14" fill="#fff" stroke="#a5b4fc"/>
+    <text class="node-title" x="84" y="488">管理后台</text>
+    <text class="node-text" x="84" y="512">审核 · 点歌 · 草稿工作台</text>
   </g>
 
   <g>
-    <rect x="834" y="244" width="202" height="90" rx="14" fill="#fff" stroke="#fdba74"/>
-    <text class="node-title" x="854" y="279">MySQL</text>
-    <text class="node-text" x="854" y="302">Accounts · posts · state</text>
-    <rect x="834" y="451" width="202" height="90" rx="14" fill="#fff" stroke="#fdba74"/>
-    <text class="node-title" x="854" y="486">Runtime uploads</text>
-    <text class="node-text" x="854" y="509">Images · videos · transient media</text>
+    <rect x="359" y="198" width="190" height="92" rx="14" fill="#fff" stroke="#5eead4"/>
+    <text class="node-title" x="379" y="234">静态页面</text>
+    <text class="node-text" x="379" y="258">frontend / public 镜像</text>
+    <rect x="573" y="198" width="188" height="92" rx="14" fill="#fff" stroke="#5eead4"/>
+    <text class="node-title" x="593" y="234">Express 服务</text>
+    <text class="node-text" x="593" y="258">安全头 · 限流 · 静态交付</text>
+    <rect x="359" y="370" width="190" height="92" rx="14" fill="#fff" stroke="#5eead4"/>
+    <text class="node-title" x="379" y="406">路由与认证</text>
+    <text class="node-text" x="379" y="430">API 契约 · 权限控制</text>
+    <rect x="573" y="370" width="188" height="92" rx="14" fill="#fff" stroke="#5eead4"/>
+    <text class="node-title" x="593" y="406">业务服务</text>
+    <text class="node-text" x="593" y="430">媒体 · 邮件 · 通知 · 草稿</text>
+    <rect x="359" y="548" width="402" height="92" rx="14" fill="#fff" stroke="#5eead4"/>
+    <text class="node-title" x="379" y="584">定时清理任务</text>
+    <text class="node-text" x="379" y="608">回收过期未发布媒体，维护运行时文件</text>
   </g>
 
   <g>
-    <rect x="1109" y="194" width="267" height="76" rx="14" fill="#fff" stroke="#f9a8d4"/>
-    <text class="node-title" x="1129" y="225">SMTP mail</text>
-    <text class="node-text" x="1129" y="246">Verification and notification</text>
-    <rect x="1109" y="303" width="267" height="76" rx="14" fill="#fff" stroke="#f9a8d4"/>
-    <text class="node-title" x="1129" y="334">AI provider</text>
-    <text class="node-text" x="1129" y="355">Optional content workflow</text>
-    <rect x="1109" y="412" width="267" height="76" rx="14" fill="#fff" stroke="#f9a8d4"/>
-    <text class="node-title" x="1129" y="443">Public-account API</text>
-    <text class="node-text" x="1129" y="464">Draft and media synchronization</text>
-    <rect x="1109" y="521" width="267" height="76" rx="14" fill="#fff" stroke="#f9a8d4"/>
-    <text class="node-title" x="1129" y="552">ffmpeg / ffprobe</text>
-    <text class="node-text" x="1129" y="573">Compatible video conversion</text>
+    <rect x="834" y="250" width="202" height="92" rx="14" fill="#fff" stroke="#fdba74"/>
+    <text class="node-title" x="854" y="286">MySQL</text>
+    <text class="node-text" x="854" y="310">账号 · 内容 · 状态 · 排期</text>
+    <rect x="834" y="462" width="202" height="92" rx="14" fill="#fff" stroke="#fdba74"/>
+    <text class="node-title" x="854" y="498">运行时上传文件</text>
+    <text class="node-text" x="854" y="522">图片 · 视频 · 临时媒体</text>
   </g>
 
-  <path class="flow" d="M286 239 H359"/>
-  <path class="flow" d="M286 365 H335 V239 H359"/>
-  <path class="flow" d="M286 491 H335 V239 H359"/>
-  <path class="flow" d="M549 239 H573"/>
-  <path class="flow" d="M667 284 V360"/>
-  <path class="flow" d="M549 405 H573"/>
-  <path class="flow" d="M761 405 H810 V289 H834"/>
-  <path class="flow" d="M761 405 H800 V496 H834"/>
-  <path class="flow" d="M560 617 H800 V496 H834"/>
-  <path class="flow-dash" d="M761 405 H1045 V232 H1109"/>
-  <path class="flow-dash" d="M761 405 H1085 V341 H1109"/>
-  <path class="flow-dash" d="M761 405 H1109"/>
-  <path class="flow-dash" d="M761 405 H1045 V559 H1109"/>
+  <g>
+    <rect x="1109" y="198" width="267" height="78" rx="14" fill="#fff" stroke="#f9a8d4"/>
+    <text class="node-title" x="1129" y="231">SMTP 邮件</text>
+    <text class="node-text" x="1129" y="254">验证码与通知</text>
+    <rect x="1109" y="310" width="267" height="78" rx="14" fill="#fff" stroke="#f9a8d4"/>
+    <text class="node-title" x="1129" y="343">AI 服务</text>
+    <text class="node-text" x="1129" y="366">文本与图像能力</text>
+    <rect x="1109" y="422" width="267" height="78" rx="14" fill="#fff" stroke="#f9a8d4"/>
+    <text class="node-title" x="1129" y="455">微信公众号接口</text>
+    <text class="node-text" x="1129" y="478">回调 · 草稿 · 模板消息</text>
+    <rect x="1109" y="534" width="267" height="78" rx="14" fill="#fff" stroke="#f9a8d4"/>
+    <text class="node-title" x="1129" y="567">ffmpeg / ffprobe</text>
+    <text class="node-text" x="1129" y="590">视频兼容处理</text>
+  </g>
+
+  <path class="flow" d="M286 244 H359"/>
+  <path class="flow" d="M286 371 H359"/>
+  <path class="flow" d="M286 498 H359"/>
+  <path class="flow" d="M549 244 H573"/>
+  <path class="flow" d="M667 290 V370 H549"/>
+  <path class="flow" d="M549 416 H573"/>
+  <path class="flow" d="M761 416 H834 V296"/>
+  <path class="flow" d="M761 416 H800 V508 H834"/>
+  <path class="flow" d="M560 640 V680 H935 V554"/>
+  <path class="flow-dash" d="M761 416 H1068 V237 H1109"/>
+  <path class="flow-dash" d="M761 416 H1068 V349 H1109"/>
+  <path class="flow-dash" d="M761 416 H1068 V461 H1109"/>
+  <path class="flow-dash" d="M761 416 H1068 V573 H1109"/>
+
+  <text class="subheading" x="48" y="785">公开版持续检查：镜像一致性 · 隐私边界 · 部署静态约定 · 行为测试</text>
 </svg>

@@ -18,6 +18,7 @@
 
 - `server.js`：Express 服务启动入口，负责静态资源、路由挂载和服务启动。
 - `config/database.js`：数据库连接池配置。
+- `scripts/create-initial-admin.js`：公开版首次搭建的显式管理员初始化命令；先初始化数据库结构，再创建不覆盖已有账号的 `super_admin`。
 - `routes/`：HTTP 路由层；认证在 `routes/auth.js`，站点信息/主题在 `routes/site.js`，后台设置在 `routes/admin.js`，部署在 `routes/deploy.js`。
 - `services/`：邮件、AI、头像、微信公众号等业务服务；路由层只编排请求和响应。
 - `deploy.sh`：服务器端更新脚本；部署前要核对 `server.js`、`routes/deploy.js` 和服务器上的进程管理配置。

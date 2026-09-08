@@ -26,6 +26,7 @@
     "check:privacy": "node scripts/check-sensitive-files.js",
     "check:deployment": "node scripts/test-deployment-static.js",
     "check:routes": "node scripts/test-route-stability.js",
+    "bootstrap:admin": "node scripts/create-initial-admin.js",
     "cleanup:avatars": "node scripts/cleanup-orphan-avatars.js",
     "build": "vite build",
     "preview": "vite preview"

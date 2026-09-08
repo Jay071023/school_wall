@@ -1,86 +1,200 @@
-# Campus Wall
+# 校墙 · Campus Wall
 
-[![Verify](https://github.com/Jay071023/school_wall/actions/workflows/ci.yml/badge.svg)](https://github.com/Jay071023/school_wall/actions/workflows/ci.yml)
+<p align="center">
+  <strong>把表达、回应、点歌与内容运营，收进一个真正能落地的校园社区。</strong>
+</p>
 
-> 把校园里最常见的事——表达、回应、点歌和运营——收进一个能真正运行的社区系统。
+<p align="center">
+  <a href="https://github.com/Jay071023/school_wall/stargazers"><img src="https://img.shields.io/github/stars/Jay071023/school_wall?style=for-the-badge&amp;logo=github&amp;label=Star" alt="GitHub Stars"></a>
+  <a href="https://github.com/Jay071023/school_wall/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Jay071023/school_wall/ci.yml?branch=main&amp;style=for-the-badge&amp;label=公开版检查" alt="公开版检查"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/许可证-Apache--2.0-8a2be2?style=for-the-badge" alt="Apache-2.0"></a>
+  <a href="https://github.com/Jay071023/school_wall"><img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&amp;logo=node.js&amp;logoColor=white" alt="Node.js 20+"></a>
+</p>
 
-Campus Wall 是一个可自托管的校园社区 Web 应用。它不是只展示信息流的页面模板，而是覆盖投稿、互动、私信、点歌、内容审核、公众号草稿和站点运营的一套完整闭环。后端使用 Node.js + Express，前端使用原生 HTML、CSS 和 JavaScript，适合希望保留自主可控能力的校园社群、学生组织或小型内容社区。
+> 如果它对你的校园社群有帮助，欢迎点一个 **Star**。你的关注会让这个公开项目持续被维护、被看见。
 
-> 这是公开的**脱敏镜像**：不包含生产数据库、真实用户内容、上传媒体、日志、服务器地址、第三方凭据或运维配置。它不会连接或部署到生产环境。
+校墙是一个可自托管的校园社区 Web 应用。它不是单页信息流模板：从投稿、互动、匿名选择、私信、点歌，到内容审核、公众号草稿和站点运营，代码围绕真实的使用链路组织。前端坚持原生 HTML / CSS / JavaScript，后端使用 Node.js + Express，数据库为 MySQL，适合学生组织、校园媒体、兴趣社群和小型内容团队二次部署。
 
-## 先看产品
+> [!IMPORTANT]
+> 这里是**公开脱敏镜像**。不含真实学校、用户、投稿、上传媒体、日志、服务器地址、第三方凭据或生产运维配置。它可用于本地搭建、学习和协作，不能直接连接原项目的生产服务。
 
-| 社区首页 | 移动端体验 | 运营工作台 |
+## 先看它长什么样
+
+| 社区首页 | 移动端 | 运营工作台 |
+| :---: | :---: | :---: |
+| ![校墙桌面端社区首页](docs/public/screenshots/home-desktop-preview.png) | ![校墙移动端预览](docs/public/screenshots/mobile-preview.png) | ![校墙后台运营预览](docs/public/screenshots/admin-preview.png) |
+| 内容流、互动卡片与侧栏信息 | 为拇指操作重新排布，而非缩小桌面页 | 审核、点歌、发布和站点设置集中处理 |
+
+截图均为脱敏示意，不含真实学校、用户或投稿内容。
+
+## 为什么做校墙
+
+校园里的内容并不只是一条帖子。有人想匿名说一句话，有人想在评论里被回应，有人想点一首歌，也有人要审核内容、排期、通知和把合适的素材整理到公众号。把这些环节拆到多个工具里，运营会很快变成反复复制、截图和对表。
+
+校墙想解决的就是这件事：
+
+- **给表达一个完整去处**：发帖、评论、点赞、收藏、匿名、个人资料和私信在同一个账号体系里协作。
+- **给运营一条连续链路**：审核、点歌时段、预约、通知、公众号草稿和站点设置集中在后台，不靠手工拼接多个表格。
+- **让移动端成为一等公民**：不是把桌面卡片压窄，而是对布局、可点击区域、溢出和安全区单独处理。
+- **让公开协作不伤害真实服务**：以脱敏源码、示意图和环境模板公开项目，同时隔离真实内容、凭据与生产基础设施。
+
+## 功能一览
+
+| 面向谁 | 能做什么 | 实现位置 |
 | --- | --- | --- |
-| ![Desktop community preview](docs/public/screenshots/home-desktop-preview.png) | ![Mobile community preview](docs/public/screenshots/mobile-preview.png) | ![Admin publishing preview](docs/public/screenshots/admin-preview.png) |
+| 学生与访客 | 发帖、图片或视频投稿、匿名选择、评论、点赞、收藏、个人主页 | `frontend/`、`routes/posts.js`、`routes/upload.js` |
+| 社群成员 | 私信、关注、通知、签到、头衔与积分 | `routes/messages.js`、`routes/follows.js`、`routes/notifications.js` |
+| 点歌用户 | 浏览广播站、提交点歌、查看排期与预约 | `frontend/radio.html`、`routes/songs.js`、`routes/reservations.js` |
+| 审核与运营人员 | 内容审核、用户角色、通知、公告、点歌时段、后台设置 | `frontend/admin/`、`routes/admin.js` |
+| 公众号运营人员 | 从热点内容生成图文预览和草稿，同步时保留媒体处理结果与失败反馈 | `frontend/admin/mp-draft.html`、`routes/mp-draft.js` |
+| 部署维护者 | 健康检查、静态镜像校验、隐私检查、聚焦行为测试 | `routes/health.js`、`scripts/` |
 
-所有图片都是脱敏示意图，不含真实学校、用户或投稿内容。
+### 做得不止“能用”的地方
 
-## 它解决什么
-
-- **让表达有去处**：发帖、评论、点赞、收藏、匿名选择、个人主页和私信组成完整互动链路。
-- **让运营不靠手工拼凑**：后台集中处理内容审核、通知、站点设置、点歌排期和公众号草稿。
-- **让移动端不是桌面的缩小版**：首页、卡片、广播站和后台均按 `768px/769px` 响应式边界维护。
-- **让媒体可以安全流动**：帖子支持最多 9 张图片或 1 个视频；未发布媒体会清理，已发布媒体保留引用关系。
-- **让视觉有连续性**：主题在首屏就绪后再释放页面，避免慢网络下出现未加载主题的闪屏。
-
-## 校墙的原创实现
-
-本仓库中的业务代码、页面组织和以下工作流由校墙项目自行设计与实现。这里展示的是可复用的工程思路，未包含任何真实校园数据。
-
-| 设计 | 它解决的问题 |
+| 设计 | 为什么这样实现 |
 | --- | --- |
-| `frontend/` 与 `public/` 双静态树镜像检查 | 同一套页面可由不同运行入口稳定提供，避免只改一边造成线上表现不一致。 |
-| 从投稿视频到公众号草稿的媒体链路 | 原站视频保持不变；公众号侧使用兼容转换和文章链接兜底，避免内容二次同步丢失。 |
-| 点歌排期与运营草稿工作台 | 将用户点歌、时段管理、审核与运营发布放进连续流程，而不是散落在多个表单。 |
-| 首屏主题门控 | 页面等待主题状态确认后再显示，减少节日主题和常规主题切换时的视觉闪烁。 |
-| 公开脱敏镜像工作流 | 用公开代码、示意图和环境模板支持协作，同时把生产数据、凭据和运维边界隔离在镜像外。 |
+| `frontend/` 与 `public/` 双静态树 | Node 服务和独立静态入口都能提供同一页面。镜像检查防止只改一边、线上两套表现不一致。 |
+| 首屏主题门控 | 先确认主题状态再显示页面，避免节日主题在慢网络下先闪出普通样式。 |
+| 帖子视频到公众号草稿的链路 | 站内原视频不被改写；同步端按兼容格式处理并保留原帖入口，降低二次发布丢内容的概率。 |
+| 点歌排期工作流 | 把时段、日期、审核、播放状态和预约写进有约束的业务流程，避免“能提交但没有归宿”。 |
+| 未发布媒体清理 | 图片和视频在未发布状态下按规则回收，已通过的帖子维持引用，兼顾空间和内容完整性。 |
+| 权限放在服务端 | 页面入口只是体验层，路由和中间件仍是角色与敏感操作的实际边界。 |
 
-## Quick start
+这些业务代码、页面组织和工程约定由校墙项目自行设计与实现；公开版展示可复用思路，不公开真实校园数据。
 
-需要 Node.js 20+ 和 MySQL 8+。在 PowerShell 中执行：
+## 技术实现与架构
+
+![校墙公开版架构图](docs/public/architecture.svg)
+
+<details>
+<summary>查看可编辑 Mermaid 图源</summary>
+
+```mermaid
+flowchart LR
+  A[桌面浏览器] --> D[静态页面<br/>frontend / public 镜像]
+  B[移动浏览器] --> D
+  C[管理后台] --> D
+  D --> E[Node.js + Express]
+  E --> F[路由与认证中间件]
+  F --> G[业务服务<br/>媒体、邮件、通知、草稿]
+  F --> H[(MySQL)]
+  G --> H
+  G --> I[(运行时上传文件)]
+  J[定时清理任务] --> H
+  J --> I
+  G -. 可选集成 .-> K[SMTP / AI / 微信 API / ffmpeg]
+```
+
+</details>
+
+| 层次 | 技术与职责 |
+| --- | --- |
+| 页面层 | 原生 HTML、CSS、JavaScript；`frontend/` 与 `public/` 保持镜像；`768px` 及以下为移动布局。 |
+| 服务层 | Node.js 20+、Express、Helmet、限流、压缩、Cookie 与 JWT。 |
+| 业务层 | `routes/` 定义 HTTP 契约和权限入口，`services/` 处理邮件、AI、媒体、清理、公众号草稿等领域逻辑。 |
+| 数据层 | MySQL 8+；首次初始化自动创建数据库和业务表，启动过程也会做兼容字段迁移。 |
+| 文件层 | 图片与视频以运行时上传目录保存；定时任务清理未发布且超过保留期的媒体。 |
+| 可选集成 | SMTP 邮件、智谱 GLM、微信公众号接口、`ffmpeg` / `ffprobe`；不配置时只影响对应能力。 |
+
+更细的入口和关联关系见 [代码索引](docs/PROJECT_INDEX.md)。
+
+## 从零开始本地搭建
+
+以下流程对应当前公开版源码。完成后可访问完整的本地站点、注册普通用户，并创建首位超级管理员。
+
+### 1. 准备环境
+
+- [Node.js](https://nodejs.org/) **20 或更高版本**
+- MySQL **8 或更高版本**，并准备一个可创建数据库和表的本地账号
+- Windows、macOS 或 Linux 均可；下面命令以 PowerShell 为例
+
+### 2. 克隆并安装依赖
 
 ```powershell
-npm install
+git clone https://github.com/Jay071023/school_wall.git
+Set-Location school_wall
+npm ci
 Copy-Item .env.example .env
-npm start
 ```
 
-服务默认运行在 `http://localhost:3000`，健康检查为 `GET /api/health`。将 `.env` 中的 MySQL 参数与 `JWT_SECRET` 替换为本地值；不要提交 `.env`、上传目录、日志或数据库文件。
+### 3. 填写最小配置
 
-## 配置边界
+打开 `.env`，至少填好 MySQL 和下列两项管理员配置：
 
-| Variable | Required | Purpose |
-| --- | --- | --- |
-| `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Yes | MySQL connection |
-| `JWT_SECRET` | Yes | Session signing secret |
-| `GLM_API_KEY` | Optional | AI text and image capability |
-| `WECHAT_APPID`, `WECHAT_TOKEN` | Optional | Public-account and OAuth integration |
-| `FFMPEG_PATH`, `FFPROBE_PATH` | Optional | Override video conversion tools |
+```dotenv
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=你的 MySQL 用户名
+DB_PASSWORD=你的 MySQL 密码
+DB_NAME=campus_wall
 
-`config/auto-publish.json` 和内置故事配置均为无生产数据的示例，自动发布默认关闭。
+# 用每个部署实例自己的随机值替换；不要复用示例或提交到 Git。
+JWT_SECRET=替换为至少 32 字符的随机密钥
 
-## 架构与目录
-
-![Campus Wall architecture](docs/public/architecture.svg)
-
-可编辑图源见 [docs/public/architecture.mmd](docs/public/architecture.mmd)。它只描述公开版的通用边界，不包含生产端点和基础设施。
-
-```text
-frontend/ and public/  镜像静态页面树
-routes/                HTTP 接口与权限控制
-services/              邮件、媒体、AI、通知与草稿工作流
-middleware/            认证与请求公共层
-config/                本地配置模板与数据库访问
-scripts/               聚焦的静态和行为检查
-docs/                  代码地图、架构与协作文档
+INITIAL_ADMIN_USERNAME=wall_admin
+INITIAL_ADMIN_PASSWORD=替换为至少 12 位的管理员密码
+INITIAL_ADMIN_NICKNAME=站点管理员
 ```
 
-修改 `frontend/` 的 HTML、页面 JavaScript 或 CSS 时，必须同步 `public/`；`npm run check:mirrors` 会验证这一约定。
-
-## 验证
+可用以下命令生成 `JWT_SECRET`：
 
 ```powershell
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+### 4. 初始化数据库与首位管理员
+
+```powershell
+npm run bootstrap:admin
+```
+
+该命令会创建缺失的数据库和表，然后创建一个 `super_admin`。它**不会**在普通 `npm start` 时悄悄创建管理员，也**不会**修改同名的已有账号；若账号已存在会直接停止并说明原因。
+
+### 5. 启动与核对
+
+```powershell
+npm start
+Invoke-RestMethod http://localhost:3000/api/health
+```
+
+看到 `{ code: 200, status: 'ok' }` 后，打开：
+
+- 社区首页：<http://localhost:3000>
+- 登录页：<http://localhost:3000/login>
+- 管理后台：<http://localhost:3000/admin>
+
+使用第 3 步设置的管理员账号登录即可。不要直接用 `file://` 打开 HTML：页面需要 Node 服务和 MySQL 提供 API。
+
+### 搭建结果与边界
+
+| 项目 | 结果 |
+| --- | --- |
+| 数据库与基础表 | `npm run bootstrap:admin` / `npm start` 均会调用初始化逻辑创建缺失结构。 |
+| 首位超级管理员 | 仅 `npm run bootstrap:admin` 在明确填写配置后创建，且不覆盖同名账号。 |
+| 社区、账号、帖子、点歌、后台 | 使用本地 MySQL 和本地上传目录运行。 |
+| 邮件、AI、微信公众号、视频转码 | 需要额外配置相应凭据或工具；未配置时不应把它们当作已启用能力。 |
+| 生产部署 | 本公开镜像不携带生产部署配置。上线前需自行设置 HTTPS、域名、备份、进程守护与私有环境变量。 |
+
+## 配置说明
+
+| 配置 | 是否必填 | 用途 |
+| --- | :---: | --- |
+| `DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME` | 是 | MySQL 连接与数据库名称。 |
+| `JWT_SECRET` | 是 | 登录令牌签名密钥，必须为部署实例独有的随机值。 |
+| `INITIAL_ADMIN_*` | 仅首次初始化 | 创建首位管理员；创建成功后可从 `.env` 删除密码值。 |
+| `PORT`、`HOST` | 否 | 默认 `3000` 与 `0.0.0.0`。 |
+| `ALLOWED_ORIGINS`、`SITE_URL`、`PUBLIC_WALL_ORIGIN` | 部署域名时建议 | 跨域、邮件链接、公众号内容中的站点地址。 |
+| `GLM_API_KEY` | 否 | 启用 AI 文本或图像能力。 |
+| `WECHAT_*`、`MP_DEFAULT_THUMB_MEDIA_ID` | 否 | 微信登录、回调、模板消息和公众号草稿。 |
+| `SMTP_*` | 否 | 邮箱验证码与通知邮件。 |
+| `FFMPEG_PATH`、`FFPROBE_PATH` | 否 | 为公众号侧的视频兼容处理指定工具路径。 |
+
+完整占位项见 [.env.example](.env.example)。`.env`、`.env.local`、上传文件、日志与数据库文件都已在 `.gitignore` 中排除，仍请在提交前自行检查 `git diff`。
+
+## 开发、验证与贡献
+
+```powershell
+# 页面镜像、公开版隐私边界、部署静态约定与全部行为测试
 npm run check:mirrors
 npm run check:privacy
 npm run check:deployment
@@ -88,22 +202,23 @@ npm test
 git diff --check
 ```
 
-GitHub Actions 会在 `main` 推送和 Pull Request 上执行同一组公开版检查。
+GitHub Actions 会在每次推送 `main` 和每个 Pull Request 上运行同一组公开版检查。修改 HTML、页面 JavaScript 或 CSS 时，务必同步 `frontend/` 与 `public/`，并在桌面端、移动端以及 `768px / 769px` 边界检查卡片、溢出、加载、空状态、错误状态和权限状态。
 
-## 一起完善它
+欢迎从这些方向参与：移动端体验、无障碍、审核工具、内容工作流、测试覆盖和脱敏示例。提交前请阅读 [贡献指南](CONTRIBUTING.md)；安全问题请依照 [安全策略](SECURITY.md) 私密反馈，不要在公开 Issue 中附上漏洞细节、真实内容或凭据。
 
-欢迎提交能让校园社区更好用的改进：无障碍体验、移动端细节、审核工具、内容工作流、测试覆盖和脱敏的文档示例都很有价值。
+## 许可证、署名与引用
 
-提交前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。Issue 和 Pull Request 模板已经要求说明复现、行为变化和实际验证。安全问题请走 [SECURITY.md](SECURITY.md) 的私密反馈流程，不要公开漏洞细节。
+代码以 [Apache-2.0](LICENSE) 发布，版权所有 `Copyright 2026 Jay071023`。二次分发或衍生项目必须保留 [LICENSE](LICENSE) 与 [NOTICE](NOTICE) 中的版权和归属声明。
 
-## 许可证与署名
+如果你在论文、文章、产品介绍或衍生项目中使用校墙，请标注：
 
-代码以 [Apache-2.0](LICENSE) 发布，版权所有 `Copyright 2026 Jay071023`。二次分发或衍生项目必须保留 [LICENSE](LICENSE) 和 [NOTICE](NOTICE) 中与本项目相关的版权及归属声明。
+> `Campus Wall · developed by Jay071023`<br>
+> <https://github.com/Jay071023/school_wall>
 
-论文、文章、产品介绍或衍生项目的说明页请标注：`Campus Wall · developed by Jay071023`，并链接到本仓库。GitHub 会从 [CITATION.cff](CITATION.cff) 提供标准引用信息。
+GitHub 可从 [CITATION.cff](CITATION.cff) 生成标准引用信息。欢迎 Star、Fork、提出想法，也欢迎把你的二次开发成果带回来交流。
 
 ## 公开镜像边界
 
-- 不提交真实投稿、用户资料、上传媒体、日志、备份、私有地址或凭据。
-- 所有集成参数都是占位示例；真实值只放在本地环境变量或私有部署配置中。
-- 本仓库不会自动发布到生产服务；Pull Request 只代表公开源码审查。
+- 不提交真实投稿、用户资料、上传媒体、日志、备份、私有地址或任何凭据。
+- 所有第三方参数都是占位示例；真实值只放进本地环境变量或私有部署配置。
+- 本仓库的 CI 只验证公开源码，不会发布 npm 包，也不会部署任何生产服务。
