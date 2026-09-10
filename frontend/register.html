@@ -27,13 +27,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
-  <title>校园墙 - 注册</title>
+  <title>嘉二の墙墙 - 注册</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   
   <!-- SEO Meta Tags -->
-  <meta name="description" content="注册校园墙账号，加入校园信息交流平台，与同学们一起畅所欲言。">
+  <meta name="description" content="注册嘉二の墙墙账号，加入校园信息交流平台，与同学们一起畅所欲言。">
   <meta name="robots" content="noindex, nofollow">
-  <link rel="canonical" href="https://campus-wall.example/register">
+  <link rel="canonical" href="https://wall.jay23.cn/register">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
@@ -306,7 +306,7 @@
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">🏠 校园墙</a>
+      <a href="/" class="nav-logo">🏠 嘉二の墙墙</a>
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
@@ -351,8 +351,8 @@
       <div class="register-card">
       <div class="register-header">
         <span class="reg-emoji">🎉</span>
-        <h1 class="register-title">加入校园墙</h1>
-        <p class="register-subtitle">创建你的校园墙账号 💕</p>
+        <h1 class="register-title">加入嘉二の墙墙</h1>
+        <p class="register-subtitle">创建你的嘉二の墙墙账号 💕</p>
       </div>
       <form id="registerForm">
         <div class="form-group">
@@ -432,7 +432,7 @@
               </div>
               <div class="reg-step">
                 <span class="step-num">2</span>
-                <span class="step-text">将验证码发送到微信公众号"校园墙"</span>
+                <span class="step-text">将验证码发送到微信公众号"嘉二校园墙"</span>
               </div>
               <div class="reg-step">
                 <span class="step-num">3</span>
@@ -444,6 +444,13 @@
               <button type="button" class="btn-copy-code" onclick="copyRegCode()">📋 复制</button>
             </div>
             <button type="button" class="btn-wechat-reg" id="getRegCodeBtn" onclick="getRegCode()">📱 获取微信验证码</button>
+            <div class="wechat-reg-resume">
+              <button type="button" class="btn-resume-reg" id="resumeRegToggle" onclick="toggleRegRecovery()">已有验证码？检查并继续注册</button>
+              <div class="wechat-reg-resume-row" id="resumeRegRow" hidden>
+                <input type="text" id="resumeRegCode" class="form-input" placeholder="粘贴已确认的 REG 验证码" autocomplete="one-time-code" maxlength="11">
+                <button type="button" class="btn-resume-submit" onclick="resumeRegCode()">检查并继续</button>
+              </div>
+            </div>
             <div id="regCodeStatus" class="reg-code-status"></div>
           </div>
         </div>
@@ -676,6 +683,39 @@
       transition: all 0.3s;
     }
     .btn-copy-code:hover { opacity: 0.9; }
+    .wechat-reg-resume { margin-top: 10px; text-align: center; }
+    .btn-resume-reg {
+      padding: 4px 8px;
+      border: 0;
+      background: transparent;
+      color: #16885a;
+      font-size: 0.82rem;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .wechat-reg-resume-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .wechat-reg-resume-row[hidden] { display: none; }
+    .wechat-reg-resume-row .form-input {
+      min-width: 0;
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .btn-resume-submit {
+      flex: 0 0 auto;
+      border: 1px solid rgba(7, 193, 96, 0.34);
+      border-radius: 8px;
+      padding: 0 14px;
+      background: #f4fff8;
+      color: #087b3d;
+      font-weight: 600;
+      cursor: pointer;
+    }
     .reg-code-status {
       margin-top: 10px;
       padding: 8px 12px;
@@ -732,10 +772,10 @@
   var agreements = {
     user: {
       title: '用户协议',
-      content: '<h4>校园墙 用户协议</h4>' +
-        '<p>欢迎使用校园墙服务！在使用本服务之前，请仔细阅读本协议。</p>' +
+      content: '<h4>嘉二の墙墙 用户协议</h4>' +
+        '<p>欢迎使用嘉二の墙墙服务！在使用本服务之前，请仔细阅读本协议。</p>' +
         '<h5>一、服务说明</h5>' +
-        '<p>1.1 校园墙是一个校园匿名社交平台，为用户提供发帖、评论、点歌等功能。</p>' +
+        '<p>1.1 嘉二の墙墙是一个校园匿名社交平台，为用户提供发帖、评论、点歌等功能。</p>' +
         '<p>1.2 用户在使用本服务时，应遵守当地法律法规，不得发布违法违规内容。</p>' +
         '<h5>二、用户行为规范</h5>' +
         '<p>2.1 用户不得发布以下内容：</p>' +
@@ -753,8 +793,8 @@
     },
     privacy: {
       title: '隐私政策',
-      content: '<h4>校园墙 隐私政策</h4>' +
-        '<p>校园墙非常重视用户的隐私保护，本政策说明了我们如何收集、使用和保护您的个人信息。</p>' +
+      content: '<h4>嘉二の墙墙 隐私政策</h4>' +
+        '<p>嘉二の墙墙非常重视用户的隐私保护，本政策说明了我们如何收集、使用和保护您的个人信息。</p>' +
         '<h5>一、信息收集</h5>' +
         '<p>1.1 我们收集的信息包括：</p>' +
         '<ul><li>注册信息：用户名、昵称、密码（加密存储）</li><li>使用信息：发帖、评论、点歌记录</li><li>设备信息：IP地址、设备类型</li><li>其他您主动提供的信息</li></ul>' +
@@ -891,8 +931,99 @@
   // 页面加载时自动加载验证码（脚本在body末尾，DOM已就绪）
   setTimeout(function() { window.loadCaptcha(); }, 100);
 
-  // 微信注册验证码
+  // 微信注册验证码：验证码由服务端保存注册资料，浏览器仅保留十分钟的恢复入口。
   var currentRegCode = '';
+  var REG_CODE_STORAGE_KEY = 'wechatRegisterCode';
+  var regCodePollInFlight = false;
+  var regCodePollTimer = null;
+
+  function clearRegCodePollTimer() {
+    if (regCodePollTimer) {
+      clearTimeout(regCodePollTimer);
+      regCodePollTimer = null;
+    }
+  }
+
+  function scheduleRegCodeStatusCheck() {
+    clearRegCodePollTimer();
+    if (!currentRegCode) return;
+    regCodePollTimer = setTimeout(function() {
+      pollRegCodeStatus();
+    }, 3000);
+  }
+
+  function saveRegCode(code) {
+    currentRegCode = code;
+    try {
+      sessionStorage.setItem(REG_CODE_STORAGE_KEY, JSON.stringify({ code: code, savedAt: Date.now() }));
+    } catch (e) {}
+  }
+
+  function clearRegCode() {
+    currentRegCode = '';
+    clearRegCodePollTimer();
+    try { sessionStorage.removeItem(REG_CODE_STORAGE_KEY); } catch (e) {}
+  }
+
+  function showRegCode(code) {
+    var display = document.getElementById('regCodeDisplay');
+    var row = document.getElementById('regCodeRow');
+    if (display) display.value = code;
+    if (row) row.style.display = 'flex';
+  }
+
+  function setRegStatus(type, message) {
+    var status = document.getElementById('regCodeStatus');
+    if (!status) return;
+    status.className = 'reg-code-status ' + type;
+    status.style.display = 'block';
+    status.textContent = message;
+  }
+
+  window.toggleRegRecovery = function() {
+    var row = document.getElementById('resumeRegRow');
+    var toggle = document.getElementById('resumeRegToggle');
+    if (!row) return;
+    var isHidden = row.hidden;
+    row.hidden = !isHidden;
+    if (toggle) toggle.textContent = isHidden ? '收起验证码恢复' : '已有验证码？检查并继续注册';
+    if (isHidden) {
+      var input = document.getElementById('resumeRegCode');
+      if (input) input.focus();
+    }
+  }
+
+  function enableWechatRegistration(message) {
+    var row = document.getElementById('regCodeRow');
+    var btn = document.getElementById('getRegCodeBtn');
+    if (row) row.style.display = 'none';
+    if (!btn) return;
+    btn.style.display = 'block';
+    btn.textContent = message || '✅ 验证并注册';
+    btn.disabled = false;
+    btn.onclick = wechatRegister;
+  }
+
+  function waitForWechatVerification(message) {
+    var btn = document.getElementById('getRegCodeBtn');
+    showRegCode(currentRegCode);
+    if (btn) btn.style.display = 'none';
+    setRegStatus('waiting', message || ('⏳ 请在微信公众号发送验证码：' + currentRegCode + '。'));
+  }
+
+  window.resumeRegCode = function() {
+    var input = document.getElementById('resumeRegCode');
+    var code = input ? input.value.trim().toUpperCase() : '';
+    if (!/^REG[A-Z0-9]{6,8}$/.test(code)) {
+      setRegStatus('error', '请输入完整的 REG 验证码');
+      if (input) input.focus();
+      return;
+    }
+    saveRegCode(code);
+    waitForWechatVerification('⏳ 正在检查微信验证状态，请稍候…');
+    pollRegCodeStatus({ manual: true });
+  }
+
   async function getRegCode() {
     var username = document.getElementById('username').value.trim();
     var nickname = document.getElementById('nickname').value.trim();
@@ -930,14 +1061,8 @@
       });
       var data = await res.json();
       if (data.code === 200) {
-        currentRegCode = data.data.regCode;
-        document.getElementById('regCodeDisplay').value = currentRegCode;
-        document.getElementById('regCodeRow').style.display = 'flex';
-        var status = document.getElementById('regCodeStatus');
-        status.className = 'reg-code-status waiting';
-        status.style.display = 'block';
-        status.textContent = '⏳ 请在微信公众号发送验证码：' + currentRegCode + '，验证完成后点击"验证并注册"';
-        btn.style.display = 'none';
+        saveRegCode(data.data.regCode);
+        waitForWechatVerification('⏳ 请在微信公众号发送验证码：' + currentRegCode + '。收到“微信验证已完成”后，回到这里点击“验证并注册”。');
         // 开始轮询验证状态
         pollRegCodeStatus();
       } else {
@@ -953,39 +1078,77 @@
     }
   }
 
-  async function pollRegCodeStatus() {
-    if (!currentRegCode) return;
-    var status = document.getElementById('regCodeStatus');
+  async function pollRegCodeStatus(options) {
+    options = options || {};
+    if (!currentRegCode) return false;
+    if (regCodePollInFlight) {
+      if (options.manual) setRegStatus('waiting', '⏳ 正在核验微信验证状态，请稍候…');
+      return false;
+    }
+
+    regCodePollInFlight = true;
+    var shouldContinuePolling = true;
     try {
       var res = await fetch('/api/auth/check-reg-code-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ regCode: currentRegCode })
       });
-      var data = await res.json();
-      if (data.code === 200 && data.data.verified) {
-        status.className = 'reg-code-status success';
-        status.textContent = '✅ 微信验证成功！点击下方按钮完成注册';
-        // 替换"获取验证码"按钮为"验证并注册"
-        var row = document.getElementById('regCodeRow');
-        row.style.display = 'none';
-        var btn = document.getElementById('getRegCodeBtn');
-        btn.style.display = 'block';
-        btn.textContent = '✅ 验证并注册';
-        btn.disabled = false;
-        btn.onclick = wechatRegister;
-        return;
-      } else if (data.code === 200 && data.data.expired) {
-        status.className = 'reg-code-status error';
-        status.textContent = '❌ 验证码已过期，请重新获取';
-        var btn = document.getElementById('getRegCodeBtn');
-        btn.disabled = false;
-        btn.textContent = '📱 重新获取验证码';
-        return;
+      var data;
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        throw new Error('服务器返回异常');
       }
-    } catch (e) {}
-    // 继续轮询
-    setTimeout(pollRegCodeStatus, 3000);
+      if (!res.ok || !data || data.code !== 200 || !data.data) {
+        throw new Error((data && data.message) || '暂时无法检查验证状态');
+      }
+
+      if (data.data.used) {
+        clearRegCode();
+        setRegStatus('success', '🎉 此验证码已完成注册，请直接登录。');
+        enableWechatRegistration('前往登录');
+        var completedBtn = document.getElementById('getRegCodeBtn');
+        if (completedBtn) completedBtn.onclick = function() { window.location.href = '/login'; };
+        return true;
+      }
+      if (data.data.verified) {
+        shouldContinuePolling = false;
+        setRegStatus('success', '✅ 微信验证已完成，现在点击下方“验证并注册”即可完成账号创建。');
+        enableWechatRegistration('✅ 验证并注册');
+        return true;
+      }
+      if (data.data.expired) {
+        shouldContinuePolling = false;
+        clearRegCode();
+        setRegStatus('error', '❌ 验证码已过期，请重新获取');
+        var expiredBtn = document.getElementById('getRegCodeBtn');
+        if (expiredBtn) {
+          expiredBtn.style.display = 'block';
+          expiredBtn.disabled = false;
+          expiredBtn.textContent = '📱 重新获取验证码';
+          expiredBtn.onclick = getRegCode;
+        }
+        return true;
+      }
+
+      waitForWechatVerification('⏳ 还未收到微信确认。请确认已从绑定的微信向公众号发送：' + currentRegCode + '。');
+    } catch (e) {
+      shouldContinuePolling = false;
+      setRegStatus('error', '❌ ' + (e && e.message ? e.message : '检查微信验证状态失败') + '，请点击“检查并继续”。');
+      var retryBtn = document.getElementById('getRegCodeBtn');
+      if (retryBtn) {
+        retryBtn.style.display = 'block';
+        retryBtn.disabled = false;
+        retryBtn.textContent = '🔄 检查并继续';
+        retryBtn.onclick = function() { pollRegCodeStatus({ manual: true }); };
+      }
+      return false;
+    } finally {
+      regCodePollInFlight = false;
+      if (shouldContinuePolling && currentRegCode) scheduleRegCodeStatusCheck();
+    }
+    return false;
   }
 
   window.copyEmailCode = async function() {
@@ -1059,6 +1222,7 @@
       });
       var data = await res.json();
       if (data.code === 200) {
+        clearRegCode();
         showToast('🎉 注册成功！');
         saveAuth(data.data.token, data.data.user, true);
         window.location.href = '/';
@@ -1115,11 +1279,25 @@
         // 图片验证码模式：auth.js 会处理
       });
     }
+
+    try {
+      var saved = JSON.parse(sessionStorage.getItem(REG_CODE_STORAGE_KEY) || 'null');
+      if (saved && /^REG[A-Z0-9]{6,8}$/.test(String(saved.code || '')) && Date.now() - Number(saved.savedAt || 0) < 10 * 60 * 1000) {
+        saveRegCode(String(saved.code).toUpperCase());
+        waitForWechatVerification('⏳ 已恢复本次微信注册，正在检查验证状态…');
+        switchVerifyMethod('wechat');
+        pollRegCodeStatus();
+      } else if (saved) {
+        clearRegCode();
+      }
+    } catch (e) {
+      clearRegCode();
+    }
   });
   </script>
   <script>
     (function() {
-      var defaultSiteName = '校园墙';
+      var defaultSiteName = '嘉二の墙墙';
       var cachedSettings = localStorage.getItem('siteSettings');
       if (cachedSettings) {
         try {
