@@ -1,5 +1,5 @@
 /**
- * 校园墙 - 可视化帖子编辑器
+ * 示例校园墙 - 可视化帖子编辑器
  * 编辑时使用 contenteditable 直接显示粗体/斜体，提交时兼容站内已有的 Markdown 标记。
  */
 (function (window, document) {

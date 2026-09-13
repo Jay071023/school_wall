@@ -10,7 +10,7 @@ let expireAt = 0;  // 过期时间戳（提前 3 分钟过期防临界）
 let pendingTokenPromise = null;
 
 function getWechatConfig() {
-  const appId = process.env.WECHAT_APPID || 'wx0000000000000000';
+  const appId = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
   const secret = process.env.WECHAT_SECRET;
   if (!secret) throw new Error('缺少环境变量 WECHAT_SECRET');
   return { appId, secret };

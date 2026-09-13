@@ -24,12 +24,12 @@ const MP_VIDEO_TRANSCODE_TIMEOUT_MS = 180000;
 const MP_VIDEO_PROBE_TIMEOUT_MS = 15000;
 const MP_VIDEO_TEMP_PREFIX = 'campus-wall-mp-video-';
 const CONTROLLED_VIDEO_RELATIVE_RE = /^uploads\/videos\/video_[A-Za-z0-9_-]+\.(?:mp4|webm|ogv)$/i;
-const PUBLIC_WALL_ORIGIN = (process.env.PUBLIC_WALL_ORIGIN || 'https://campus-wall.example').replace(/\/$/, '');
+const PUBLIC_WALL_ORIGIN = (process.env.PUBLIC_WALL_ORIGIN || 'http://localhost:3000').replace(/\/$/, '');
 const FFMPEG_COMMAND = process.env.FFMPEG_PATH || 'ffmpeg';
 const FFPROBE_COMMAND = process.env.FFPROBE_PATH || 'ffprobe';
 
 // 微信公众号配置（与 wechat.js 共用 wechat-token.js 统一缓存）
-const WECHAT_APPID = process.env.WECHAT_APPID || 'wx0000000000000000';
+const WECHAT_APPID = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
 const WECHAT_SECRET = process.env.WECHAT_SECRET;
 if (!WECHAT_SECRET) {
   throw new Error('[mp-draft] 缺少环境变量 WECHAT_SECRET，请检查 .env 配置');
@@ -43,6 +43,174 @@ const CONFIG = {
   // 一言API配置
   HITOKOTO_API: 'https://v1.hitokoto.cn/?c=i&c=d&c=k', // 诗词、文学、动画
 };
+
+// 公众号标题应简洁、可读，并且只能来自已选内容。这里不调用 AI：草稿预览和一键发布
+// 需要同一份可复现的标题，运营人员也能准确知道标题为何这样生成。
+const ARTICLE_TITLE_MAX_LENGTH = 64;
+const ARTICLE_DIGEST_MAX_LENGTH = 120;
+
+function truncateText(value, maxLength) {
+  var chars = Array.from(String(value || ''));
+  if (chars.length <= maxLength) return chars.join('');
+  return chars.slice(0, Math.max(1, maxLength - 1)).join('') + '…';
+}
+
+/**
+ * 将投稿/歌曲等用户输入收敛成可以直接传给公众号 API 的纯文本。
+ * 不解码 HTML 实体，避免把实体形式的标签重新变成可执行标记。
+ */
+function sanitizeArticleText(value, maxLength) {
+  var text = String(value == null ? '' : value)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, ' ')
+    .replace(/[<>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return truncateText(text, maxLength || ARTICLE_TITLE_MAX_LENGTH);
+}
+
+/**
+ * 预览、同步和微信 draft/add 共用这一份标准化结果。
+ * 除标题/摘要外完全保留调用方字段（包括视频媒体字段、URL 和封面信息）。
+ */
+function normalizeDraftArticle(article) {
+  var normalized = Object.assign({}, article || {});
+  normalized.title = sanitizeArticleText(normalized.title || normalized.digest, ARTICLE_TITLE_MAX_LENGTH) || '校园新鲜事';
+  normalized.digest = sanitizeArticleText(normalized.digest || normalized.title, ARTICLE_DIGEST_MAX_LENGTH) || normalized.title;
+  return normalized;
+}
+
+/**
+ * 微信 draft/add 的单篇文章 payload。调用方可离线验证此结构，避免预览与实际发送漂移。
+ */
+function toWechatDraftArticle(article) {
+  article = normalizeDraftArticle(article);
+  // 先复制调用方完整对象，再覆写微信公众号的标准文章字段。视频 media_id、
+  // 转码结果、站内 URL 等非标准字段也必须随对象保留，供后续媒体处理链使用。
+  var payload = Object.assign({}, article);
+  function normalizeFlag(value, fallback) {
+    if (value === undefined || value === null || value === '') return fallback;
+    return value === false || value === 0 || value === '0' ? 0 : 1;
+  }
+
+  payload.title = article.title;
+  payload.author = article.author || '示例校园校园墙';
+  payload.digest = article.digest;
+  payload.content_source_url = article.content_source_url || 'http://localhost:3000';
+  payload.show_cover_pic = normalizeFlag(article.show_cover_pic, 1);
+  payload.need_open_comment = normalizeFlag(article.need_open_comment, 1);
+  payload.only_fans_can_comment = normalizeFlag(article.only_fans_can_comment, 0);
+  return payload;
+}
+
+function getDateLabel(dateInfo) {
+  var raw = sanitizeArticleText(dateInfo && dateInfo.date, 32);
+  var match = raw.match(/(?:\d{4}年)?(\d{1,2})月(\d{1,2})日/);
+  return match ? (match[1] + '月' + match[2] + '日') : '';
+}
+
+function getPostTopics(posts, maxTopics) {
+  var topics = [];
+  var seen = {};
+  (Array.isArray(posts) ? posts : []).forEach(function(post) {
+    if (topics.length >= (maxTopics || 2)) return;
+    post = post || {};
+    var topic = sanitizeArticleText(post.title, 22) || sanitizeArticleText(post.content, 22);
+    if (!topic || seen[topic]) return;
+    seen[topic] = true;
+    topics.push(topic);
+  });
+  return topics;
+}
+
+function getSongTopics(songs, maxSongs) {
+  var topics = [];
+  var seen = {};
+  (Array.isArray(songs) ? songs : []).forEach(function(song) {
+    if (topics.length >= (maxSongs || 2)) return;
+    song = song || {};
+    var name = sanitizeArticleText(song.song_name || song.title || song.name, 20);
+    var artist = sanitizeArticleText(song.artist || song.singer, 16);
+    var topic = name ? ('《' + name + '》' + (artist ? '—' + artist : '')) : '';
+    if (!topic || seen[topic]) return;
+    seen[topic] = true;
+    topics.push(topic);
+  });
+  return topics;
+}
+
+function makeTopicSuffix(topics, total, unit) {
+  if (topics.length === 0) return '';
+  var suffix = topics.join('、');
+  if (total > topics.length) suffix += '等' + total + unit;
+  return suffix;
+}
+
+/**
+ * 基于真实投稿或歌曲生成一个可读、不过度承诺的公众号标题和摘要。
+ * type: daily | post | song | weekly-song；其它值会按单篇帖子处理，便于旧调用方渐进接入。
+ */
+function generateArticleTitle(options) {
+  options = options || {};
+  var type = String(options.type || 'post').toLowerCase();
+  var posts = Array.isArray(options.posts) ? options.posts : [];
+  var songs = Array.isArray(options.songs) ? options.songs : [];
+  var dateLabel = getDateLabel(options.dateInfo);
+  var title;
+  var digest;
+  var topics;
+
+  if (type === 'weekly-song') {
+    var weeklyLabel = sanitizeArticleText(options.weekLabel, 32) || dateLabel;
+    var periodLabel = sanitizeArticleText(options.periodLabel, 8) || '本周';
+    title = weeklyLabel ? (periodLabel + '点歌播放表｜' + weeklyLabel) : (periodLabel + '点歌播放表');
+    digest = songs.length
+      ? (periodLabel + '待播放 ' + songs.length + ' 首点歌，已按日期和时段排好。')
+      : (periodLabel + '待播放点歌已按日期和时段排好。');
+  } else if (type === 'song' || (type === 'daily' && posts.length === 0 && songs.length > 0)) {
+    topics = getSongTopics(songs, 2);
+    var songSuffix = makeTopicSuffix(topics, songs.length, '首');
+    title = songSuffix ? ('一首歌的时间｜' + songSuffix) : '一首歌的时间｜今天想分享给你';
+    digest = songSuffix ? ('留一点时间给 ' + songSuffix + '，愿它陪你度过一段校园时光。') : '今天挑了几首歌，想和你分享。';
+    type = 'song';
+  } else if (type === 'daily') {
+    topics = getPostTopics(posts, 2);
+    var postSuffix = makeTopicSuffix(topics, posts.length, '个话题');
+    var letterSuffix = postSuffix.replace(/等(\d+)个话题$/, '等$1封来信');
+    var songTopics = getSongTopics(songs, 1);
+    var featuredSong = songTopics[0] || '';
+    if (featuredSong) {
+      // 合集同时带有来信和推歌时，标题与摘要都要让读者一眼知道两种内容，
+      // 不使用“今晚”之类依赖实际发送时间的词，也不把来信误称为“新鲜事”。
+      title = letterSuffix ? ('一封来信，一首歌｜' + letterSuffix) : '一封来信，一首歌｜校园里的片刻分享';
+      digest = topics.length === 1
+        ? ('关于“' + topics[0] + '”的一封校园来信，和' + featuredSong + '一起送达。')
+        : ('校园来信，和' + featuredSong + '一起送达。');
+    } else {
+      title = letterSuffix ? ('校园来信｜' + letterSuffix) : ((dateLabel ? dateLabel : '今天') + '的校园来信');
+      digest = topics.length === 1
+        ? ('关于“' + topics[0] + '”的一封校园来信。')
+        : (letterSuffix ? ('今天的校园来信，聊聊 ' + letterSuffix + '。') : '来自校园的一页真实日常。');
+    }
+  } else {
+    var post = posts[0] || options.post || {};
+    var topic = sanitizeArticleText(post.title, 38) || sanitizeArticleText(post.content || options.content, 38);
+    title = topic ? ('想和你说｜' + topic) : '校园来信｜今天的一页日常';
+    digest = topic ? ('想和你分享这件校园小事：' + topic) : '来自校园墙的一页真实日常。';
+    type = 'post';
+  }
+
+  return {
+    title: sanitizeArticleText(title, ARTICLE_TITLE_MAX_LENGTH) || '校园新鲜事',
+    digest: sanitizeArticleText(digest, ARTICLE_DIGEST_MAX_LENGTH) || '来自校园墙的真实分享。',
+    meta: {
+      strategy: 'content-based-v1',
+      type: type,
+      source_count: (type === 'song' || type === 'weekly-song') ? songs.length : posts.length,
+      date_label: dateLabel || undefined
+    }
+  };
+}
 
 async function uploadMedia(imageUrl, type = 'image') {
   try {
@@ -801,6 +969,8 @@ async function getDefaultThumbMediaId() {
 
   try {
     var candidates = [
+      // 校园号默认封面：无独立文章封面时上传为微信永久素材。
+      path.join(__dirname, '..', 'public', 'images', 'mp-campus-cover-2026.png'),
       path.join(__dirname, '..', 'public', 'images', 'default-cover.png'),
       path.join(__dirname, '..', 'public', 'favicon.png')
     ];
@@ -851,27 +1021,9 @@ async function createDraft(articles) {
       }
     }
 
-    function normalizeText(value, fallback, maxLength) {
-      var text = String(value || fallback || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-      return text.length > maxLength ? text.substring(0, maxLength - 1) + '…' : text;
-    }
-    function flag(value, defaultValue) {
-      return value === undefined || value === null ? defaultValue : (value ? 1 : 0);
-    }
-
     const data = {
       articles: articles.map(function(article) {
-        return {
-          title: normalizeText(article.title, '校园动态', 64),
-          author: normalizeText(article.author, '校园墙', 16),
-          digest: normalizeText(article.digest, article.title, 120),
-          content: article.content,
-          content_source_url: article.content_source_url || 'https://campus-wall.example',
-          thumb_media_id: article.thumb_media_id,
-          show_cover_pic: flag(article.show_cover_pic, 1),
-          need_open_comment: flag(article.need_open_comment, 1),
-          only_fans_can_comment: flag(article.only_fans_can_comment, 0)
-        };
+        return toWechatDraftArticle(article);
       })
     };
 
@@ -1120,7 +1272,7 @@ async function getWeather(city = CONFIG.WEATHER_CITY) {
           city: city,
           weather: translateWeather(c.weatherDesc ? c.weatherDesc[0].value : '未知'),
           temperature: c.temp_C + '°C',
-          wind: c.winddir16Point + ' ' + c.windspeedKmph + 'km/h',
+          wind: translateWindDirection(c.winddir16Point) + ' ' + c.windspeedKmph + 'km/h',
           humidity: c.humidity + '%',
           icon: getWeatherEmoji(c.weatherDesc ? c.weatherDesc[0].value : '')
         };
@@ -1184,20 +1336,32 @@ function getWeekdayName(dayIndex) {
 }
 
 /**
- * 根据天气文字获取emoji
+ * 根据天气文字获取标准天气 emoji。
+ * 不使用旧的替代字符（例如雾天的 ▒），避免看起来像乱码。
  */
 function getWeatherEmoji(text) {
-  // 微信编辑器对 1.0+ emoji(☀️⛅🌧️❄️🌫️⛈️)不渲染显示空圆,改用 BMP 内基础符号
-  if (!text) return '☀';
+  if (!text) return '☀️';
   var lower = text.toLowerCase();
-  if (lower.includes('晴') || lower.includes('clear') || lower.includes('sunny') || lower.includes('fair')) return '☀';
-  if (lower.includes('阴')) return '☁';
-  if (lower.includes('云') || lower.includes('cloud') || lower.includes('overcast')) return '☁';
-  if (lower.includes('雨') || lower.includes('rain') || lower.includes('drizzle') || lower.includes('shower')) return '☂';
-  if (lower.includes('雪') || lower.includes('snow') || lower.includes('sleet')) return '❅';
-  if (lower.includes('雾') || lower.includes('fog') || lower.includes('mist') || lower.includes('haze')) return '▒';
-  if (lower.includes('雷') || lower.includes('thunder') || lower.includes('storm')) return '⚡';
-  return '☀';
+  if (lower.includes('雷') || lower.includes('thunder') || lower.includes('storm')) return '⛈️';
+  if (lower.includes('雪') || lower.includes('snow') || lower.includes('sleet')) return '❄️';
+  if (lower.includes('雨') || lower.includes('rain') || lower.includes('drizzle') || lower.includes('shower')) return '🌧️';
+  if (lower.includes('雾') || lower.includes('fog') || lower.includes('mist') || lower.includes('haze')) return '🌫️';
+  if (lower.includes('阴')) return '☁️';
+  if (lower.includes('云') || lower.includes('cloud') || lower.includes('overcast')) return '☁️';
+  if (lower.includes('晴') || lower.includes('clear') || lower.includes('sunny') || lower.includes('fair')) return '☀️';
+  return '🌤️';
+}
+
+function translateWindDirection(direction) {
+  var normalized = String(direction || '').trim().toUpperCase();
+  var directions = {
+    N: '北风', NNE: '东北风', NE: '东北风', ENE: '东北风',
+    E: '东风', ESE: '东南风', SE: '东南风', SSE: '东南风',
+    S: '南风', SSW: '西南风', SW: '西南风', WSW: '西南风',
+    W: '西风', WNW: '西北风', NW: '西北风', NNW: '西北风',
+    VAR: '风向多变', CALM: '静风'
+  };
+  return directions[normalized] || String(direction || '').trim();
 }
 
 /**
@@ -1269,9 +1433,16 @@ async function createDraftWithConfig(article, config) {
   });
 
   // 上传默认封面
-  var defaultImgPath = path.join(__dirname, '..', 'public', 'images', 'default-cover.png');
+  var testCoverCandidates = [
+    path.join(__dirname, '..', 'public', 'images', 'mp-campus-cover-2026.png'),
+    path.join(__dirname, '..', 'public', 'images', 'default-cover.png'),
+    path.join(__dirname, '..', 'public', 'favicon.png')
+  ];
+  var defaultImgPath = testCoverCandidates.find(function(candidate) {
+    return fs.existsSync(candidate);
+  });
   var thumbMediaId = null;
-  if (fs.existsSync(defaultImgPath)) {
+  if (defaultImgPath && fs.existsSync(defaultImgPath)) {
     thumbMediaId = await uploadMediaWithToken(defaultImgPath, token);
   }
   if (!thumbMediaId) {
@@ -1279,19 +1450,8 @@ async function createDraftWithConfig(article, config) {
   }
 
   // 使用 draft/add API（测试号支持）
-  var draftData = {
-    articles: [{
-      title: article.title,
-      author: article.author || '校园墙',
-      digest: article.digest || article.title.substring(0, 50),
-      content: article.content,
-      content_source_url: article.content_source_url || 'https://campus-wall.example',
-      thumb_media_id: thumbMediaId,
-      show_cover_pic: 1,
-      need_open_comment: 1,
-      only_fans_can_comment: 0
-    }]
-  };
+  var draftArticle = Object.assign({}, article, { thumb_media_id: thumbMediaId });
+  var draftData = { articles: [toWechatDraftArticle(draftArticle)] };
 
   return new Promise(function(resolve, reject) {
     var url = `https://api.weixin.qq.com/cgi-bin/draft/add?access_token=${token}`;
@@ -1415,5 +1575,9 @@ module.exports = {
   getWeather,
   getHitokoto,
   getDateInfo,
-  getTodayInHistory
+  getTodayInHistory,
+  sanitizeArticleText,
+  generateArticleTitle,
+  normalizeDraftArticle,
+  toWechatDraftArticle
 };

@@ -9,9 +9,11 @@ const crypto = require('crypto');
 const router = express.Router();
 const { pool } = require('../config/database');
 const mpDraftService = require('../services/mp-draft');
+const { generateCoverPrompt } = require('../services/cover-prompt');
 const { escapeHtml } = require('../services/html-utils');
-const { auth, isStaff } = require('../middleware/auth');
+const { auth, isStaff, superAdminOnly, requirePermission } = require('../middleware/auth');
 const { getPagination } = require('../services/pagination');
+const { getChinaDate, getChinaDayOfWeek } = require('../services/date');
 
 function normalizeWeeklyPeriod(period) {
   return period === 'month'
@@ -65,7 +67,7 @@ async function getActiveUsers(period, userIds, limit) {
 
 function renderWechatVideoCard(post) {
   if (!post || !post.video_url) return '';
-  const postUrl = `https://campus-wall.example/post/${encodeURIComponent(post.id)}`;
+  const postUrl = `http://localhost:3000/post/${encodeURIComponent(post.id)}`;
   return '<table width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0;"><tr><td style="background:#F3F0FF;padding:16px;text-align:center;border:1px solid #E7DEFF;">' +
     '<div style="font-size:22px;margin-bottom:6px;">🎬</div>' +
     '<div style="font-size:15px;font-weight:bold;color:#6554C0;margin-bottom:6px;">本帖包含视频</div>' +
@@ -74,8 +76,225 @@ function renderWechatVideoCard(post) {
     '</td></tr></table>';
 }
 
-// 所有公众号素材管理路由都需要登录且是管理后台用户
-router.use(auth, isStaff);
+// 每日推歌的发布状态只由“同步到公众号草稿箱”成功的流程推进。
+// 已同步的歌保留三天，方便编辑重新生成；超过窗口后不再进入候选列表。
+const DAILY_SONG_REUSE_DAYS = 3;
+const DAILY_SONG_REUSE_MS = DAILY_SONG_REUSE_DAYS * 24 * 60 * 60 * 1000;
+
+function normalizeDailySongIds(value) {
+  if (value == null) return { ok: true, ids: [] };
+  if (!Array.isArray(value) || value.length > 50) return { ok: false, ids: [] };
+
+  const ids = [];
+  const seen = new Set();
+  for (const valueId of value) {
+    if (!Number.isSafeInteger(valueId) || valueId <= 0 || seen.has(valueId)) {
+      return { ok: false, ids: [] };
+    }
+    seen.add(valueId);
+    ids.push(valueId);
+  }
+  return { ok: true, ids };
+}
+
+function isDailySongCandidate(song, now) {
+  if (!song) return false;
+  if (song.candidate_hidden_at) return false;
+  if (song.status === 'pending') return true;
+  if (song.status !== 'published') return false;
+  // 旧数据曾只写入 status 而遗漏 published_at。不能让它因此从候选曲库
+  // “消失”，但仍严格按三天窗口处理；created_at 是唯一可靠的旧记录回退。
+  const publishedAt = new Date(song.published_at || song.created_at || 0).getTime();
+  return Number.isFinite(publishedAt) && publishedAt >= now.getTime() - DAILY_SONG_REUSE_MS;
+}
+
+function dailySongCandidateSql(alias) {
+  const prefix = alias ? alias + '.' : '';
+  // published_at 缺失的历史数据按创建时间回退，防止同步完成后在候选页被筛掉。
+  return `${prefix}candidate_hidden_at IS NULL AND (${prefix}status = 'pending' OR (${prefix}status = 'published' AND COALESCE(${prefix}published_at, ${prefix}created_at) >= DATE_SUB(NOW(), INTERVAL ${DAILY_SONG_REUSE_DAYS} DAY)))`;
+}
+
+async function getSyncableDailySongs(dbPool, ids, article) {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => '?').join(',');
+  const [songs] = await dbPool.execute(
+    `SELECT id, song_name, status, published_at FROM daily_song_recs WHERE id IN (${placeholders}) AND ${dailySongCandidateSql()}`,
+    ids
+  );
+  if (songs.length !== ids.length) {
+    const error = new Error('存在不存在、已超过三天复用期或不可同步的每日推歌');
+    error.code = 'DAILY_SONG_NOT_SYNCABLE';
+    throw error;
+  }
+
+  // 只接受确实出现在本次 article 中的歌曲，避免客户端把未随文推送的歌误标为已发布。
+  const articleText = [article.title, article.digest, article.content].filter(Boolean).join('\n');
+  const absentSong = songs.find(song => {
+    const songName = String(song.song_name || '');
+    return !songName || (articleText.indexOf(songName) < 0 && articleText.indexOf(escapeHtml(songName)) < 0);
+  });
+  if (absentSong) {
+    const error = new Error('每日推歌“' + absentSong.song_name + '”不在本次同步文章中');
+    error.code = 'DAILY_SONG_NOT_IN_ARTICLE';
+    throw error;
+  }
+  return songs;
+}
+
+function createDailySongMarkConflict(requested, affected) {
+  const error = new Error('每日推歌状态已变化，仅成功标记 ' + affected + '/' + requested + ' 首；请刷新候选列表，勿重复同步已创建草稿');
+  error.code = 'DAILY_SONG_MARK_CONFLICT';
+  error.requested = requested;
+  error.affected = affected;
+  error.markResult = { requested, affected, changed: affected, affectedRows: affected };
+  return error;
+}
+
+async function markDailySongsPublished(dbPool, ids) {
+  if (!ids.length) return { requested: 0, affected: 0, changed: 0, affectedRows: 0 };
+  const placeholders = ids.map(() => '?').join(',');
+  const updateSql = `UPDATE daily_song_recs
+     SET status = 'published',
+         published_at = COALESCE(published_at, NOW())
+     WHERE id IN (${placeholders})
+       AND candidate_hidden_at IS NULL
+       AND status IN ('pending', 'published')`;
+
+  // 生产连接池走事务并锁定候选行：已发布且仍在三天复用窗口内的歌曲
+  // 不需要再次改写 published_at，但仍要计入逻辑影响量；被管理员移出候选
+  // 或在窗口内失效的行则明确报冲突，不能静默少标记。
+  if (typeof dbPool.getConnection === 'function') {
+    const connection = await dbPool.getConnection();
+    let transactionStarted = false;
+    try {
+      await connection.beginTransaction();
+      transactionStarted = true;
+      const [rows] = await connection.execute(
+        `SELECT id FROM daily_song_recs
+         WHERE id IN (${placeholders})
+           AND candidate_hidden_at IS NULL
+           AND (status = 'pending' OR (status = 'published' AND COALESCE(published_at, created_at) >= DATE_SUB(NOW(), INTERVAL ${DAILY_SONG_REUSE_DAYS} DAY)))
+         FOR UPDATE`,
+        ids
+      );
+      const affected = Array.isArray(rows) ? rows.length : 0;
+      if (affected !== ids.length) throw createDailySongMarkConflict(ids.length, affected);
+      const [result] = await connection.execute(updateSql, ids);
+      await connection.commit();
+      transactionStarted = false;
+      const changed = Number(result && result.affectedRows) || 0;
+      return { requested: ids.length, affected, changed, affectedRows: changed };
+    } catch (err) {
+      if (transactionStarted) {
+        try { await connection.rollback(); } catch (rollbackError) {}
+      }
+      throw err;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // 兼容离线测试使用的最小 executor，同时保留 affectedRows 校验。
+  const [result] = await dbPool.execute(updateSql, ids);
+  const affected = Number(result && result.affectedRows) || 0;
+  if (affected !== ids.length) throw createDailySongMarkConflict(ids.length, affected);
+  return { requested: ids.length, affected, changed: affected, affectedRows: affected };
+}
+
+// 草稿创建失败时绝不写入 published。若草稿已创建但状态更新失败，
+// 在异常上挂出 mediaId，调用方必须把它作为“已创建、不可重试”的终态返回。
+async function finalizeDailySongSync(createDraft, markPublished, articles, dailySongIds) {
+  const mediaId = await createDraft(articles);
+  try {
+    if (dailySongIds.length) {
+      const markResult = await markPublished(dailySongIds);
+      if (!markResult || markResult.affected !== dailySongIds.length) {
+        throw createDailySongMarkConflict(
+          dailySongIds.length,
+          markResult && Number.isSafeInteger(markResult.affected) ? markResult.affected : 0
+        );
+      }
+    }
+  } catch (err) {
+    err.draftCreated = true;
+    err.mediaId = mediaId;
+    err.dailySongIds = dailySongIds.slice();
+    if (!err.code) err.code = 'DAILY_SONG_MARK_FAILED';
+    throw err;
+  }
+  return mediaId;
+}
+
+function formatDraftCreatedMarkFailure(err) {
+  const mark = err && err.markResult;
+  if (mark && Number.isSafeInteger(mark.requested) && Number.isSafeInteger(mark.affected)) {
+    return '草稿已创建，但每日推歌状态只更新了 ' + mark.affected + '/' + mark.requested + ' 首；请刷新候选列表核对，勿重复同步此草稿';
+  }
+  return '草稿已创建，但每日推歌状态更新未确认；请先刷新候选列表和公众号草稿箱，勿重复同步此草稿';
+}
+
+function mpEscape(value) {
+  return escapeHtml(value == null ? '' : String(value));
+}
+
+function addBusinessDays(dateValue, offsetDays) {
+  const match = String(dateValue || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]) + offsetDays));
+  return date.toISOString().slice(0, 10);
+}
+
+function formatMonthDay(dateValue) {
+  const match = String(dateValue || '').match(/^\d{4}-(\d{2})-(\d{2})$/);
+  return match ? (Number(match[1]) + '月' + Number(match[2]) + '日') : '';
+}
+
+function getWeeklySongScheduleRange(weekOffset) {
+  const today = getChinaDate();
+  const weekDay = getChinaDayOfWeek(today);
+  const weekStart = addBusinessDays(today, 1 - weekDay);
+  // 周末主要是在准备下一周的公众号内容：无参数时自动切到下周，
+  // 但仍允许前端用 week=current 明确查看本周剩余安排。
+  const normalizedOffset = weekOffset === 1 ? 1 : 0;
+  const targetStart = addBusinessDays(weekStart, normalizedOffset * 7);
+  const weekEnd = addBusinessDays(targetStart, 7);
+  // “本周”按完整自然周展示，不能因为今天已经过了周一就漏掉本周前几天的排期；
+  // 下周则从下周一开始，方便周末提前整理公众号内容。
+  const scheduleStart = targetStart;
+  const periodLabel = normalizedOffset === 1 ? '下周' : '本周';
+  return {
+    today,
+    weekStart: targetStart,
+    weekEnd,
+    scheduleStart,
+    weekOffset: normalizedOffset,
+    periodLabel,
+    label: formatMonthDay(scheduleStart) + '—' + formatMonthDay(addBusinessDays(weekEnd, -1))
+  };
+}
+
+function parseWeeklySongWeekOffset(value, today) {
+  if (value === 'next' || value === '1' || value === 1) return 1;
+  if (value === 'current' || value === '0' || value === 0) return 0;
+  // 中国时区周六、周日默认准备下周；工作日仍显示本周剩余安排。
+  return getChinaDayOfWeek(today) >= 6 ? 1 : 0;
+}
+
+// 公众号推送及其素材接口属于最高管理员专属能力，普通广播推送员不可进入或调用。
+router.use(auth, isStaff, superAdminOnly);
+
+// 推送页封面提示词走 /api/mp/，避免部分站点防火墙把 /api/admin/ 下的 AI 请求误判为后台高频接口。
+// 必须放在统一 auth 之后，确保 requirePermission 能拿到已解析的 req.user。
+router.post('/cover-prompt', requirePermission('songs:review'), async (req, res) => {
+  try {
+    const data = await generateCoverPrompt(req.body);
+    res.json({ code: 200, data: data });
+  } catch (err) {
+    const status = Number(err.status) || 502;
+    if (status >= 500) console.error('[AI] 生成封面提示词失败:', err.message);
+    res.status(status).json({ code: status, message: err.message || '封面提示词生成失败，请稍后重试' });
+  }
+});
 
 /**
  * 获取今日热点帖子
@@ -256,7 +475,8 @@ async function uploadImagesToWeixin(htmlContent) {
  * 保证手动同步和“一键发布”不会走两套不同的媒体语义。
  */
 async function prepareArticleForWeixin(article, onVideoProgress) {
-  var articleCopy = JSON.parse(JSON.stringify(article || {}));
+  // 同一份 article 先按服务端规则标准化，再按既有顺序处理视频永久素材和正文图片。
+  var articleCopy = mpDraftService.normalizeDraftArticle(JSON.parse(JSON.stringify(article)));
   var videoUpload = await uploadVideosToWeixin(articleCopy.content || '', onVideoProgress);
   articleCopy.content = videoUpload.content;
 
@@ -276,7 +496,7 @@ async function prepareArticleForWeixin(article, onVideoProgress) {
   };
 }
 
-const PUBLIC_WALL_ORIGIN = (process.env.PUBLIC_WALL_ORIGIN || 'https://campus-wall.example').replace(/\/$/, '');
+const PUBLIC_WALL_ORIGIN = (process.env.PUBLIC_WALL_ORIGIN || 'http://localhost:3000').replace(/\/$/, '');
 
 function getPostVideoUrl(value) {
   var pathname = getControlledPostVideoPath(value);
@@ -427,6 +647,14 @@ function buildPostVideoHTML(post) {
  * 2. 其次按单换行
  * 3. 最后按句号/感叹号/问号等句末标点分组，每2-3句一段
  */
+function formatRichTextInline(text) {
+  var safe = mpEscape(String(text || ''));
+  return safe
+    .replace(/\*\*\*([^*\n]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+}
+
 function autoFormatContent(text) {
   if (!text) return '';
   var blocks = [];
@@ -463,25 +691,44 @@ function autoFormatContent(text) {
   }
 
   return blocks.filter(function(b) { return b.trim(); }).map(function(b) {
-    return '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + b.trim() + '</p>';
+    return '<p style="text-indent:2em;line-height:2.1;margin-bottom:14px;font-size:15px;color:#444;margin-top:0;letter-spacing:0.5px;">' + formatRichTextInline(b.trim()) + '</p>';
   }).join('\n');
 }
 
 /**
  * 生成精美卡片HTML（卡哇伊风，兼容微信编辑器）
  */
-function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeSongs) {
+function generateTextStatsHTML(readMinutes, postCount) {
+  var html = '<!-- mp-text-stats-start --><table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;table-layout:fixed;border-collapse:collapse;"><tr><td style="background:#FFFFF0;padding:12px;border-radius:10px;">';
+  html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;"><tr>';
+  html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:6px 0;border-right:1px dashed #E8D5B5;overflow:hidden;"><div style="font-size:15px;font-weight:bold;color:#D4876A;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">__MP_VISIBLE_TEXT_COUNT__</div><div style="font-size:11px;color:#756b78;margin-top:3px;white-space:nowrap;">全文字数</div></td>';
+  html += '<td width="3%" style="width:3% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+  html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:6px 0;border-right:1px dashed #E8D5B5;overflow:hidden;"><div style="font-size:15px;font-weight:bold;color:#8A5AA8;line-height:1.2;white-space:nowrap;">' + readMinutes + '</div><div style="font-size:11px;color:#756b78;margin-top:3px;white-space:nowrap;">阅读分钟</div></td>';
+  html += '<td width="3%" style="width:3% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+  html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:6px 0;overflow:hidden;"><div style="font-size:15px;font-weight:bold;color:#C23F78;line-height:1.2;white-space:nowrap;">' + postCount + '</div><div style="font-size:11px;color:#756b78;margin-top:3px;white-space:nowrap;">精选帖子</div></td>';
+  html += '</tr></table></td></tr></table><!-- mp-text-stats-end -->';
+  return html;
+}
+
+function generateWeatherMetaHTML(value, icon) {
+  var clean = String(value || '').trim();
+  var content = clean ? (icon + ' ' + mpEscape(clean)) : '&nbsp;';
+  return '<div style="font-size:11px;color:#999;margin-top:4px;line-height:16px;min-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + content + '</div>';
+}
+
+function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songs, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeSongs, articleTitle) {
   const today = dateInfo.date;
   const week = dateInfo.week;
+  const safeArticleTitle = mpEscape(articleTitle || '校园来信');
 
   var html = '';
   html += '<div style="padding:6px 0;">';
 
   // ===== 头部 =====
   html += '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#F8F0FF);padding:22px 16px 18px;text-align:center;">';
-  html += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:2px;">📖 今日校园精选</div>';
-  html += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:1px;">🌸 今日校园精选</div>';
-  html += '<div style="color:#bbb;font-size:12px;margin-top:8px;">' + today + ' ' + week + '</div>';
+  html += '<div style="color:#A78BFA;font-size:13px;margin-bottom:6px;letter-spacing:1px;">示例校园校园墙 · 校园来信</div>';
+  html += '<div style="color:#FF69B4;font-size:22px;font-weight:bold;letter-spacing:0.5px;line-height:1.45;">' + safeArticleTitle + '</div>';
+  html += '<div style="color:#999;font-size:12px;margin-top:8px;">' + mpEscape(today) + ' ' + mpEscape(week) + ' · 把今天的校园日常，写给你</div>';
   html += '<div style="width:40px;height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA);margin:14px auto 0;"></div>';
   html += '</td></tr></table>';
 
@@ -491,38 +738,33 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     totalChars += (posts[pc].content || '').replace(/\s/g, '').length;
   }
   var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
-  html += '<!-- mp-text-stats-start --><table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:#FFFFF0;padding:12px;border-radius:10px;">';
-  html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
-  html += '<td style="text-align:center;width:50%;padding:4px;border-right:1px dashed #E8D5B5;">';
-  html += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div>';
-  html += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">__MP_VISIBLE_TEXT_COUNT__ 字</div>';
-  html += '</td>';
-  html += '<td style="text-align:center;width:50%;padding:4px;">';
-  html += '<div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div>';
-  html += '<div style="font-size:16px;font-weight:bold;color:#D4876A;">约 ' + readMinutes + ' 分钟</div>';
-  html += '</td>';
-  html += '</tr></table></td></tr></table><!-- mp-text-stats-end -->';
+  html += generateTextStatsHTML(readMinutes, posts.length);
 
   // ===== 天气卡片 =====
   if (weather && weather.temperature) {
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr><td style="background:linear-gradient(135deg,#E8F4FD,#E0F0FF);padding:16px;">';
-    html += '<div style="font-size:13px;color:#888;margin-bottom:10px;font-weight:500;">🌤️ ' + (weather.city || '') + ' 天气预报</div>';
-    html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
-    html += '<td style="width:50%;text-align:center;padding:4px;border-right:1px dashed #B0D4F1;">';
+    html += '<div style="font-size:13px;color:#666;margin-bottom:10px;font-weight:600;">☁️ ' + mpEscape(weather.city || '') + ' 校园天气</div>';
+    // 微信手机端不依赖 flex；单元格无内边距，间距单独占 4%，避免百分比宽度和 padding 被叠加计算。
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;"><tr>';
+    html += '<td width="48%" style="width:48% !important;vertical-align:top;text-align:center;padding:0;overflow:hidden;">';
+    html += '<div style="box-sizing:border-box;overflow:hidden;padding:8px 2px;border-right:1px dashed #B0D4F1;">';
     html += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">今日</div>';
-    html += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.icon || '🌤') + ' ' + (weather.temperature || '') + '</div>';
-    html += '<div style="font-size:12px;color:#666;margin-top:2px;">' + (weather.weather || '') + '</div>';
-    html += '<div style="font-size:11px;color:#999;margin-top:4px;">💨 ' + (weather.wind || '') + ' 💧 ' + (weather.humidity || '') + '</div>';
-    html += '</td>';
+    html += '<div style="font-size:17px;font-weight:bold;color:#4A90D9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mpEscape(weather.icon || '☀️') + ' ' + mpEscape(weather.temperature || '') + '</div>';
+    html += '<div style="font-size:12px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mpEscape(weather.weather || '') + '</div>';
+    html += generateWeatherMetaHTML(weather.wind, '💨');
+    html += generateWeatherMetaHTML(weather.humidity, '💧');
+    html += '</div></td><td width="4%" style="width:4% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
     if (weather.tomorrow) {
-      html += '<td style="width:50%;text-align:center;padding:4px;">';
-      html += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">' + (weather.tomorrow.week || '周五') + '</div>';
-      html += '<div style="font-size:20px;font-weight:bold;color:#4A90D9;">' + (weather.tomorrow.icon || '☀️') + ' ' + (weather.tomorrow.tempRange || '') + '</div>';
-      html += '<div style="font-size:12px;color:#666;margin-top:2px;">' + (weather.tomorrow.weather || '') + '</div>';
-      html += '<div style="font-size:11px;color:#999;margin-top:4px;">📍 预报</div>';
-      html += '</td>';
+      html += '<td width="48%" style="width:48% !important;vertical-align:top;text-align:center;padding:0;overflow:hidden;">';
+      html += '<div style="box-sizing:border-box;overflow:hidden;padding:8px 2px;">';
+      html += '<div style="font-size:11px;color:#aaa;margin-bottom:4px;">明日 ' + mpEscape(weather.tomorrow.week || '') + '</div>';
+      html += '<div style="font-size:17px;font-weight:bold;color:#4A90D9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mpEscape(weather.tomorrow.icon || '☀️') + ' ' + mpEscape(weather.tomorrow.tempRange || '') + '</div>';
+      html += '<div style="font-size:12px;color:#666;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + mpEscape(weather.tomorrow.weather || '') + '</div>';
+      html += generateWeatherMetaHTML(weather.tomorrow.wind, '💨');
+      html += generateWeatherMetaHTML(weather.tomorrow.humidity, '💧');
+      html += '</div></td>';
     } else {
-      html += '<td style="width:50%;text-align:center;padding:4px;color:#ccc;font-size:13px;">🌤️ 暂无预报</td>';
+      html += '<td width="48%" style="width:48% !important;vertical-align:top;text-align:center;padding:8px 2px;color:#999;font-size:12px;">明日预报暂未更新</td>';
     }
     html += '</tr></table>';
     html += '</td></tr></table>';
@@ -604,12 +846,12 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
       var s = songs[si];
       var authorStr = s.is_anonymous ? '匿名同学' : (s.nickname || s.username || '同学');
       html += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:8px 0;">';
-      html += '<div style="font-size:14px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#aaa;">' + escapeHtml(s.artist) + '</span>' : '') + '</div>';
+      html += '<div style="font-size:14px;color:#555;line-height:1.6;">🎶 <strong>' + mpEscape(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#aaa;">' + mpEscape(s.artist) + '</span>' : '') + '</div>';
       html += '<div style="font-size:12px;color:#bbb;margin-top:3px;line-height:1.5;">';
-      if (s.slot_name || s.play_date || s.req_date) html += '📅 ' + (s.slot_name || '') + ((s.play_date || s.req_date) ? ' · ' + (s.play_date || s.req_date) : '') + (s.start_time && s.end_time ? ' ' + s.start_time.substring(0,5) + '-' + s.end_time.substring(0,5) : '');
-      if (s.message) html += ' &nbsp;💬 ' + escapeHtml(s.message); // 不再截断点歌留言
-      if (s.to_whom) html += ' &nbsp;💝 ' + escapeHtml(s.to_whom);
-      html += ' &nbsp;👤 ' + escapeHtml(authorStr);
+      if (s.slot_name || s.play_date || s.req_date) html += '📅 ' + mpEscape(s.slot_name || '') + ((s.play_date || s.req_date) ? ' · ' + mpEscape(s.play_date || s.req_date) : '') + (s.start_time && s.end_time ? ' ' + mpEscape(s.start_time.substring(0,5)) + '-' + mpEscape(s.end_time.substring(0,5)) : '');
+      if (s.message) html += ' &nbsp;💬 ' + mpEscape(s.message); // 不再截断点歌留言
+      if (s.to_whom) html += ' &nbsp;💝 ' + mpEscape(s.to_whom);
+      html += ' &nbsp;👤 ' + mpEscape(authorStr);
       html += '</div>';
       html += '</div>';
     }
@@ -621,28 +863,35 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     var medals = ['🥇', '🥈', '🥉'];
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF9F9;padding:14px 14px 18px;">';
     html += '<div style="font-size:13px;color:#999;margin-bottom:10px;">⭐ 每周之星</div>';
-    html += '<table width="100%" cellpadding="0" cellspacing="0"><tr>';
-    for (var wi = 0; wi < weeklyStar.length; wi++) {
-      var w = weeklyStar[wi];
-      var wName = w.nickname || w.username || '同学';
-      html += '<td style="text-align:center;width:' + (100 / weeklyStar.length) + '%;padding:4px;">';
-      html += '<div style="font-size:20px;">' + (medals[wi] || '🏅') + '</div>';
-      html += '<div style="font-weight:600;font-size:13px;color:#555;margin-top:4px;">' + escapeHtml(wName) + '</div>';
-      html += '<div style="font-size:11px;color:#bbb;margin-top:2px;">📝' + (w.post_count || 0) + ' 💬' + (w.comment_count || 0) + '</div>';
-      html += '</td>';
+    for (var wsStart = 0; wsStart < weeklyStar.length; wsStart += 3) {
+      var wsRow = weeklyStar.slice(wsStart, wsStart + 3);
+      var wsWidth = ((100 - ((wsRow.length - 1) * 2)) / wsRow.length).toFixed(2) + '%';
+    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;' + (wsStart ? 'margin-top:8px;' : '') + '"><tr>';
+      for (var wi = 0; wi < wsRow.length; wi++) {
+        var w = wsRow[wi];
+        var wName = w.nickname || w.username || '同学';
+        if (wi > 0) html += '<td width="2%" style="width:2% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+        html += '<td width="' + wsWidth + '" style="width:' + wsWidth + ' !important;text-align:center;vertical-align:top;padding:0;overflow:hidden;">';
+        html += '<div style="width:100%;box-sizing:border-box;overflow:hidden;">';
+        html += '<div style="font-size:20px;">' + (medals[(wsStart + wi) % medals.length] || '🏅') + '</div>';
+        html += '<div style="font-weight:600;font-size:13px;color:#555;margin-top:4px;word-break:break-all;">' + escapeHtml(wName) + '</div>';
+        html += '<div style="font-size:11px;color:#bbb;margin-top:2px;word-break:break-all;">📝' + (w.post_count || 0) + ' 💬' + (w.comment_count || 0) + '</div>';
+        html += '</div></td>';
+      }
+      html += '</tr></table>';
     }
-    html += '</tr></table></td></tr></table>';
+    html += '</td></tr></table>';
   }
 
   // ===== 每日推歌卡片 =====
   if (dailySongs && dailySongs.length > 0) {
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;"><tr><td style="background:#FFF0F5;padding:14px;">';
-    html += '<div style="font-size:13px;color:#999;margin-bottom:10px;">🎵 每日推歌</div>';
+    html += '<div style="font-size:13px;color:#A2376C;font-weight:700;margin-bottom:10px;">🎵 一首歌的时间</div>';
     for (var si = 0; si < dailySongs.length; si++) {
       var s = dailySongs[si];
       html += '<div style="border-top:' + (si > 0 ? '1px dashed #FFD1DC;' : 'none;') + ';padding:10px 0;">';
-      html += '<div style="font-size:15px;color:#555;line-height:1.6;">🎶 <strong>' + escapeHtml(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#aaa;">' + escapeHtml(s.artist) + '</span>' : '') + '</div>';
-      html += '<div style="font-size:12px;color:#bbb;margin-top:4px;line-height:1.5;">';
+      html += '<div style="font-size:15px;color:#2E2438;line-height:1.6;">🎶 <strong>' + escapeHtml(s.song_name || '') + '</strong>' + (s.artist ? ' - <span style="color:#75677B;">' + escapeHtml(s.artist) + '</span>' : '') + '</div>';
+      html += '<div style="font-size:12px;color:#6F6077;margin-top:4px;line-height:1.5;">';
       if (s.to_whom) html += '💝 送给 ' + escapeHtml(s.to_whom) + ' &nbsp;';
       if (s.message) html += '💬 ' + escapeHtml(s.message) + ' &nbsp;';
       html += '👤 ' + escapeHtml(s.submitter || '同学');
@@ -670,11 +919,11 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     try { if (p.images) { var parsed = JSON.parse(p.images); if (Array.isArray(parsed)) allImgs = parsed; } } catch(e) {}
     var coverImgs = '';
     for (var ii = 0; ii < allImgs.length; ii++) {
-      coverImgs += (ii > 0 ? '<div style="border-top:1px dashed #eee;margin:8px 0;"></div>' : '') + '<img src="' + escapeHtml(allImgs[ii]) + '" style="width:100%;" alt="封面">';
+      coverImgs += (ii > 0 ? '<div style="border-top:1px dashed #eee;margin:8px 0;"></div>' : '') + '<img src="' + mpEscape(allImgs[ii]) + '" style="width:100%;" alt="帖子配图">';
     }
     var videoHtml = buildPostVideoHTML(p);
     var safeTitle = (p.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    var content = (p.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); // 不再截断，显示完整内容
+    var content = p.content || ''; // 富文本标记在 autoFormatContent 内安全转换
 
     html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;"><tr><td style="border-top:3px solid ' + c + ';background:' + bg + ';padding:16px;">';
     html += '<div style="color:' + c + ';font-weight:bold;font-size:13px;margin-bottom:6px;">#' + (i+1) + ' · 热门帖子</div>';
@@ -683,7 +932,7 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
     html += videoHtml;
     html += '<div style="margin:12px 0 0 0;">' + autoFormatContent(content) + '</div>';
     html += '<div style="font-size:13px;color:#bbb;margin-top:12px;padding-top:10px;border-top:1px solid #eee;line-height:1.6;">';
-    html += '👤 ' + (p.author || '匿名同学') + '&nbsp;&nbsp;&nbsp;❤️ ' + (p.likes_count || 0) + '&nbsp;&nbsp;&nbsp;💬 ' + (p.comment_count || 0) + '</div>';
+    html += '👤 ' + mpEscape(p.author || '匿名同学') + '&nbsp;&nbsp;&nbsp;❤️ ' + (p.likes_count || 0) + '&nbsp;&nbsp;&nbsp;💬 ' + (p.comment_count || 0) + '</div>';
     // 展示评论
     if (commentsByPost && commentsByPost[p.id] && commentsByPost[p.id].length > 0) {
       html += '<div style="margin-top:10px;">';
@@ -705,18 +954,18 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
 
   // ===== 尾部 =====
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr><td style="background:linear-gradient(135deg,#FFF0F5,#FFE4E1);padding:24px 20px;text-align:center;border-radius:16px;">';
-  html += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 校园故事站</div>';
-  html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">扫码关注 · 分享身边的美好</div>';
+  html += '<div style="font-size:18px;color:#FF69B4;font-weight:bold;margin-bottom:6px;">🌸 示例校园校园墙</div>';
+  html += '<div style="font-size:13px;color:#DDA0DD;margin-bottom:16px;">同学正在发生的事，等你来聊</div>';
   html += '<table align="center" style="margin:0 auto;"><tr><td style="background:linear-gradient(135deg,#FF69B4,#FFB6C1);padding:4px;border-radius:16px;">';
   html += '<table style="width:100%;background:#fff;border-radius:12px;"><tr><td style="padding:12px;">';
-  html += '<img src="https://campus-wall.example/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
+  html += '<img src="http://localhost:3000/images/gzh.jpg" style="width:200px;display:block;border-radius:6px;margin:0 auto;height:auto;" alt="校园墙二维码">';
   html += '</td></tr></table>';
   html += '</td></tr></table>';
   html += '<p style="color:#bbb;font-size:12px;margin:14px 0 4px 0;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</p>';
-  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">https://campus-wall.example</p>';
+  html += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</p>';
   html += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
   html += '</td></tr></table>';
-  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 校园墙 ❀ ❀</p>';
+  html += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 示例校园校园墙 ❀ ❀</p>';
   html += '</div>';
 
   return html;
@@ -729,6 +978,9 @@ function generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories,
 router.post('/generate-content', async (req, res) => {
   try {
     const { postIds, template = 'daily-summary', includeWeather = true, includeHitokoto = true, includeWeeklyStar = true, includeGaokao = true, includeSongs = true, weeklyStarUserIds = [] } = req.body;
+    // 每日推歌是最高管理员专属能力；普通广播推送员只能生成普通图文。
+    const canPushDailySongs = req.user && req.user.role === 'super_admin';
+    const includeDailySongs = canPushDailySongs && includeSongs !== false;
 
     if (!postIds || !Array.isArray(postIds)) {
       return res.json({ code: 400, message: '请提供帖子ID列表' });
@@ -800,7 +1052,7 @@ router.post('/generate-content', async (req, res) => {
     const weeklyStar = weeklyStarResult || [];
     const commentsByPost = commentsResult || {};
 
-    var dailySongs = (includeSongs !== false && Array.isArray(req.body.dailySongs)) ? req.body.dailySongs : [];
+    var dailySongs = (includeDailySongs && Array.isArray(req.body.dailySongs)) ? req.body.dailySongs : [];
     if (posts.length === 0 && dailySongs.length === 0) {
       return res.json({ code: 404, message: '未找到帖子' });
     }
@@ -817,18 +1069,22 @@ router.post('/generate-content', async (req, res) => {
     if (template === 'daily-summary') {
       // 根据开关决定是否包含推歌
       // 只有显式传入 includeSongs=true 且有选择歌曲时才包含
-      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeSongs);
+      const titleInfo = mpDraftService.generateArticleTitle({
+        type: 'daily', posts: posts, songs: dailySongs, dateInfo: dateInfo
+      });
+      const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, stats, categories, songReq, todayHistory, weeklyStar, commentsByPost, includeGaokao, dailySongs, includeDailySongs, titleInfo.title);
 
-      articles.push({
-        title: `今日校园精选 | ${dateInfo.date}`,
-        author: '校园墙',
-        digest: `今日${posts.length}条热门帖子精选，含天气、一言等丰富内容`,
+      articles.push(mpDraftService.normalizeDraftArticle({
+        title: titleInfo.title,
+        title_meta: titleInfo.meta,
+        author: '示例校园校园墙',
+        digest: titleInfo.digest,
         content: contentHtml,
-        content_source_url: 'https://campus-wall.example',
+        content_source_url: 'http://localhost:3000',
         show_cover_pic: 1,
         need_open_comment: 1,
         only_fans_can_comment: 0
-      });
+      }));
     } else {
       // 单篇帖子
       posts.forEach(post => {
@@ -836,26 +1092,25 @@ router.post('/generate-content', async (req, res) => {
         try { postImages = JSON.parse(post.images || '[]'); } catch (e) {}
         if (!Array.isArray(postImages)) postImages = [];
         const coverImg = postImages.map(function(src) {
-          return '<img src="' + escapeHtml(src) + '" style="width:100%;margin:10px 0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">';
+          return '<img src="' + mpEscape(src) + '" style="width:100%;margin:10px 0;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">';
         }).join('');
         const videoHtml = buildPostVideoHTML(post);
+        const titleInfo = mpDraftService.generateArticleTitle({ type: 'post', post: post, dateInfo: dateInfo });
 
-        const safeContent = (post.content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        const rawContent = post.content || '';
         const safeTitle = (post.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         const safeAuthor = (post.author || '匿名').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var postChars = (post.content || '').replace(/\s/g, '').length;
         var postReadMin = Math.max(1, Math.ceil(postChars / 300));
-        var readingCard = '<!-- mp-text-stats-start --><table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="background:#FFFFF0;padding:10px;border-radius:10px;"><table width="100%" cellpadding="0" cellspacing="0"><tr>' +
-          '<td style="text-align:center;width:50%;padding:4px;border-right:1px dashed #E8D5B5;"><div style="font-size:11px;color:#bbb;margin-bottom:2px;">📝 全文字数</div><div style="font-size:15px;font-weight:bold;color:#D4876A;">__MP_VISIBLE_TEXT_COUNT__ 字</div></td>' +
-          '<td style="text-align:center;width:50%;padding:4px;"><div style="font-size:11px;color:#bbb;margin-bottom:2px;">⏱ 阅读时长</div><div style="font-size:15px;font-weight:bold;color:#D4876A;">约 ' + postReadMin + ' 分钟</div></td>' +
-          '</tr></table></td></tr></table><!-- mp-text-stats-end -->';
+        var readingCard = generateTextStatsHTML(postReadMin, 1);
         const contentHtml = `
           <section style="padding: 20px; font-family: -apple-system, sans-serif;">
-            <h2 style="color: #667eea; font-size: 22px;">${safeTitle}</h2>
+            <div style="color:#A78BFA;font-size:12px;letter-spacing:1px;margin-bottom:6px;">示例校园校园墙 · 想和你说</div>
+            <h2 style="color: #667eea; font-size: 22px;line-height:1.45;">${mpEscape(titleInfo.title)}</h2>
             ${coverImg}
             ${videoHtml}
             ${readingCard}
-            ${autoFormatContent(safeContent)}
+            ${autoFormatContent(rawContent)}
             <section style="margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; font-size: 13px; color: #999;">
               <span>👤 ${safeAuthor}</span>
               <span>❤️ ${post.likes_count} 赞</span>
@@ -864,16 +1119,17 @@ router.post('/generate-content', async (req, res) => {
           </section>
         `;
 
-        articles.push({
-          title: post.title || '校园动态',
+        articles.push(mpDraftService.normalizeDraftArticle({
+          title: titleInfo.title,
+          title_meta: titleInfo.meta,
           author: post.author || '匿名',
-          digest: post.content, // 使用完整内容作为摘要
+          digest: titleInfo.digest,
           content: contentHtml,
-          content_source_url: `https://campus-wall.example/post/${post.id}`,
+          content_source_url: `http://localhost:3000/post/${post.id}`,
           show_cover_pic: 1,
           need_open_comment: 1,
           only_fans_can_comment: 0
-        });
+        }));
       });
     }
 
@@ -975,14 +1231,17 @@ router.post('/create-draft', async (req, res) => {
  * 获取每日推歌列表
  * GET /api/mp/daily-songs
  */
-router.get('/daily-songs', async (req, res) => {
+router.get('/daily-songs', superAdminOnly, async (req, res) => {
   try {
     const { status } = req.query;
+    const candidate = req.query.candidate === '1' || req.query.candidate === 'true';
     const limit = getPagination(req.query, { defaultLimit: 20, maxLimit: 50 }).limit;
     let sql = 'SELECT * FROM daily_song_recs WHERE 1=1';
     const params = [];
 
-    if (status) {
+    if (candidate) {
+      sql += ' AND ' + dailySongCandidateSql();
+    } else if (status) {
       sql += ' AND status = ?';
       params.push(status);
     }
@@ -999,11 +1258,65 @@ router.get('/daily-songs', async (req, res) => {
 });
 
 /**
+ * 本周待播放点歌单。只读取已审核、排期仍开放的点歌；与每日推歌发布状态完全独立。
+ * GET /api/mp/weekly-song-schedule
+ */
+router.get('/weekly-song-schedule', superAdminOnly, async (req, res) => {
+  try {
+    const range = getWeeklySongScheduleRange(parseWeeklySongWeekOffset(req.query.week, getChinaDate()));
+    const [songs] = await pool.execute(`
+      SELECT sr.id, sr.song_name, sr.artist, sr.message, sr.to_whom, sr.is_anonymous, sr.play_order,
+             COALESCE(u.nickname, u.username) AS requester_name,
+             DATE_FORMAT(sd.play_date, '%Y-%m-%d') AS play_date,
+             DATE_FORMAT(sd.play_date, '%m月%d日') AS play_date_label,
+             CASE DAYOFWEEK(sd.play_date)
+               WHEN 1 THEN '周日' WHEN 2 THEN '周一' WHEN 3 THEN '周二' WHEN 4 THEN '周三'
+               WHEN 5 THEN '周四' WHEN 6 THEN '周五' ELSE '周六'
+             END AS weekday,
+             ts.name AS slot_name,
+             TIME_FORMAT(ts.start_time, '%H:%i') AS start_time,
+             TIME_FORMAT(ts.end_time, '%H:%i') AS end_time
+      FROM song_requests sr
+      JOIN slot_dates sd ON sr.slot_date_id = sd.id
+      JOIN time_slots ts ON sd.slot_id = ts.id
+      LEFT JOIN users u ON sr.user_id = u.id
+      WHERE sr.status = 'approved' AND sr.deleted_at IS NULL
+        AND sd.is_active = 1 AND ts.is_active = 1
+        AND (ts.effective_start_date IS NULL OR sd.play_date >= ts.effective_start_date)
+        AND sd.play_date >= ? AND sd.play_date < ?
+      ORDER BY sd.play_date, ts.start_time, COALESCE(sr.play_order, 2147483647), sr.created_at, sr.id
+    `, [range.scheduleStart, range.weekEnd]);
+    const titleInfo = mpDraftService.generateArticleTitle({
+      type: 'weekly-song', songs, weekLabel: range.label, periodLabel: range.periodLabel
+    });
+    res.json({
+      code: 200,
+      data: {
+        songs,
+        week_start: range.weekStart,
+        schedule_start: range.scheduleStart,
+        week_end: addBusinessDays(range.weekEnd, -1),
+        week_label: range.label,
+        period_label: range.periodLabel,
+        week_offset: range.weekOffset,
+        title: titleInfo.title,
+        digest: titleInfo.digest,
+        title_meta: titleInfo.meta
+      }
+    });
+  } catch (err) {
+    console.error('[MP素材] 获取本周点歌排期失败:', err.message);
+    res.json({ code: 500, message: '获取本周点歌排期失败，请稍后重试' });
+  }
+});
+
+/**
  * 一键生成并发布今日精选（增强版）
  * POST /api/mp/publish-daily
  */
-router.post('/publish-daily', async (req, res) => {
+router.post('/publish-daily', requirePermission('songs:review'), async (req, res) => {
   try {
+    const canPushDailySongs = req.user && req.user.role === 'super_admin';
     const requestedHours = Number.parseInt(req.body.hours, 10);
     const hours = Number.isFinite(requestedHours) && requestedHours > 0 ? Math.min(requestedHours, 24 * 30) : 24;
     const requestedLimit = parseInt(req.body.limit, 10);
@@ -1038,38 +1351,55 @@ router.post('/publish-daily', async (req, res) => {
       Promise.resolve(mpDraftService.getDateInfo())
     ]);
 
-    // 获取每日推歌数据
+    // 仅取未发布，或已同步未满三天、可调整后复用的歌曲。
     var dailySongs = [];
     try {
-      dailySongs = await pool.execute(
-        'SELECT * FROM daily_song_recs WHERE status = "published" ORDER BY published_at DESC LIMIT 10'
-      ).then(r => r[0]);
+      if (!canPushDailySongs) {
+        dailySongs = [];
+      } else {
+        dailySongs = await pool.execute(
+          'SELECT * FROM daily_song_recs WHERE ' + dailySongCandidateSql() + ' ORDER BY CASE WHEN status = "pending" THEN 0 ELSE 1 END, created_at DESC LIMIT 10'
+        ).then(r => r[0]);
+      }
     } catch(e) {}
 
-    // 3. 生成精美卡片内容
-    const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, null, null, [], null, [], {}, true, dailySongs);
+    const titleInfo = mpDraftService.generateArticleTitle({
+      type: 'daily', posts: posts, songs: dailySongs, dateInfo: dateInfo
+    });
+    // 3. 标题、摘要与正文先组成同一个 article，再直接发送到草稿箱。
+    const contentHtml = generateCardHTML(posts, weather, hitokoto, dateInfo, null, null, [], null, [], {}, true, dailySongs, canPushDailySongs, titleInfo.title);
 
-    const articles = [{
-      title: `📚 今日校园精选 | ${dateInfo.date}`,
-      author: '校园墙',
-      digest: `今日${posts.length}条热门帖子精选，含天气、一言等丰富内容`,
+    const articles = [mpDraftService.normalizeDraftArticle({
+      title: titleInfo.title,
+      title_meta: titleInfo.meta,
+      author: '示例校园校园墙',
+      digest: titleInfo.digest,
       content: contentHtml,
-      content_source_url: 'https://campus-wall.example',
+      content_source_url: 'http://localhost:3000',
       show_cover_pic: 1,
       need_open_comment: 1,
       only_fans_can_comment: 0
-    }];
+    })];
 
     // 4. 和手动同步走同一套媒体处理链：视频上传永久素材，图片上传微信 CDN。
     // 过去这里直接 createDraft，导致“一键发布”只生成站内视频占位卡，视频并未同步。
     const prepared = await prepareArticleForWeixin(articles[0]);
-    const mediaId = await mpDraftService.createDraft([prepared.article]);
     const videoFailureDetails = formatVideoFailureDetails(prepared.video);
     const hasVideoFailures = Boolean(prepared.video && prepared.video.failed > 0);
+    // 草稿创建成功后，才将本次实际包含的每日推歌推进为已发布。
+    // 先完成既有的视频转码/永久素材和图片 CDN 链路，不能绕开该顺序。
+    const dailySongIds = dailySongs.map(song => song.id).filter(Number.isSafeInteger);
+    const mediaId = await finalizeDailySongSync(
+      draftArticles => mpDraftService.createDraft(draftArticles),
+      ids => markDailySongsPublished(pool, ids),
+      [prepared.article],
+      dailySongIds
+    );
 
     res.json({
-      // 草稿可能已创建，但视频未完成时不能给前端伪造“成功”。
-      code: hasVideoFailures ? 502 : 200,
+      // 草稿创建成功就是本次同步的终态；视频失败仅作为草稿内的明确警告，
+      // 因为每日推歌已经按同一草稿成功标记，不能提示用户重新同步。
+      code: 200,
       data: { 
         media_id: mediaId,
         post_count: posts.length,
@@ -1077,16 +1407,29 @@ router.post('/publish-daily', async (req, res) => {
         hitokoto: hitokoto ? hitokoto.text.substring(0, 30) + '...' : null,
         image: prepared.image,
         video: prepared.video,
-        sync_status: hasVideoFailures ? 'video_failed' : 'done',
+        sync_status: hasVideoFailures ? 'done_with_video_warning' : 'done',
+        daily_song_count: dailySongIds.length,
         failure_reason: videoFailureDetails || null,
         text_stats: prepared.article.text_stats
       },
       message: hasVideoFailures
-        ? '草稿已创建，但视频素材同步失败：' + videoFailureDetails + '；正文已保留封面和站内观看入口'
+        ? '草稿已创建，但视频素材同步失败：' + videoFailureDetails + '；正文已保留封面和站内观看入口；每日推歌已按草稿标记，请勿重复同步'
         : '草稿创建成功，请在公众号后台审核后发布'
     });
   } catch (err) {
     console.error('[MP素材] 一键发布失败:', err.message);
+    if (err && err.draftCreated) {
+      return res.status(409).json({
+        code: 409,
+        data: {
+          media_id: err.mediaId,
+          sync_status: 'draft_created_mark_failed',
+          daily_song_ids: err.dailySongIds || [],
+          mark_result: err.markResult || null
+        },
+        message: formatDraftCreatedMarkFailure(err)
+      });
+    }
     res.json({ code: 500, message: '发布失败，请稍后重试' });
   }
 });
@@ -1148,14 +1491,14 @@ var syncCleanupTimer = setInterval(function() {
     }
   }
 }, 5 * 60 * 1000);
-if (syncCleanupTimer.unref) syncCleanupTimer.unref();
+if (syncCleanupTimer && syncCleanupTimer.unref) syncCleanupTimer.unref();
 
 /**
  * 同步草稿到公众号（图片上传到微信CDN，视频上传为永久 MP4 素材）
  * POST /api/mp/sync-draft
  */
-router.post('/sync-draft', async (req, res) => {
-  var { article } = req.body;
+router.post('/sync-draft', requirePermission('songs:review'), async (req, res) => {
+  var { article, dailySongIds } = req.body;
   if (!article || typeof article !== 'object') {
     return res.json({ code: 400, message: '请先生成图文内容' });
   }
@@ -1164,6 +1507,22 @@ router.post('/sync-draft', async (req, res) => {
   }
   if (!article.content || !String(article.content).trim()) {
     return res.json({ code: 400, message: '文章正文不能为空' });
+  }
+
+  const normalizedSongIds = normalizeDailySongIds(dailySongIds);
+  if (!normalizedSongIds.ok) {
+    return res.status(400).json({ code: 400, message: '每日推歌参数无效' });
+  }
+  if (normalizedSongIds.ids.length > 0 && (!req.user || req.user.role !== 'super_admin')) {
+    return res.status(403).json({ code: 403, message: '仅超级管理员可同步每日推歌' });
+  }
+
+  let syncedDailySongs;
+  try {
+    syncedDailySongs = await getSyncableDailySongs(pool, normalizedSongIds.ids, article);
+  } catch (err) {
+    const status = err.code === 'DAILY_SONG_NOT_SYNCABLE' || err.code === 'DAILY_SONG_NOT_IN_ARTICLE' ? 409 : 500;
+    return res.status(status).json({ code: status, message: err.message || '每日推歌校验失败' });
   }
 
   if (typeof article.content !== 'string') {
@@ -1201,7 +1560,9 @@ router.post('/sync-draft', async (req, res) => {
     createdAt: createdAt,
     ownerId: ownerId,
     image: { total: needUpload.length, success: 0, failed: 0 },
-    video: { total: videoCount, success: 0, failed: 0, items: [] }
+    video: { total: videoCount, success: 0, failed: 0, items: [] },
+    daily_song_count: syncedDailySongs.length,
+    daily_song_ids: normalizedSongIds.ids
   };
 
   // 立即回复前端，不给 524 机会
@@ -1225,7 +1586,6 @@ router.post('/sync-draft', async (req, res) => {
         pendingSyncs[syncId].image = prepared.image;
       }
 
-      var mediaId = await mpDraftService.createDraft([articleCopy]);
       var video = prepared.video;
       var videoFailureDetails = formatVideoFailureDetails(video);
       var hasVideoFailures = Boolean(video && video.failed > 0);
@@ -1233,11 +1593,20 @@ router.post('/sync-draft', async (req, res) => {
         ? '，视频成功 ' + video.success + '/' + video.total + (video.failed > 0 ? '，失败 ' + video.failed + '（正文已保留封面和观看入口）' : '')
         : '';
       var currentState = pendingSyncs[syncId] || {};
+      // 仅在本次草稿真正创建成功后标记实际随文同步的歌曲；预览和异常路径不会写状态。
+      var mediaId = await finalizeDailySongSync(
+        draftArticles => mpDraftService.createDraft(draftArticles),
+        ids => markDailySongsPublished(pool, ids),
+        [articleCopy],
+        normalizedSongIds.ids
+      );
       pendingSyncs[syncId] = {
-        // 草稿可能已创建，但视频未完成时必须进入 fail 分支，前端才能明确提示用户。
-        status: hasVideoFailures ? 'fail' : 'done',
+        // 草稿创建成功就是同步终态；视频失败保留为可见警告，避免歌曲已经标记
+        // 后前端显示普通失败并再次创建重复草稿。
+        status: 'done',
+        sync_status: hasVideoFailures ? 'done_with_video_warning' : 'done',
         msg: hasVideoFailures
-          ? '同步未完成：视频素材处理失败（' + videoFailureDetails + '）；正文已保留封面和观看入口'
+          ? '草稿已创建；视频素材处理失败（' + videoFailureDetails + '），正文已保留封面和观看入口；每日推歌已按草稿标记，请勿重复同步'
           : '同步成功（图片 ' + prepared.image.success + '/' + prepared.image.total + videoMessage + '）',
         media_id: mediaId,
         image: prepared.image,
@@ -1245,10 +1614,31 @@ router.post('/sync-draft', async (req, res) => {
         failure_reason: videoFailureDetails || null,
         text_stats: articleCopy.text_stats,
         createdAt: currentState.createdAt || createdAt,
-        ownerId: ownerId
+        ownerId: ownerId,
+        daily_song_count: syncedDailySongs.length,
+        daily_song_ids: normalizedSongIds.ids
       };
     } catch (err) {
       console.error('[MP同步] 后台失败:', err.message);
+      if (err && err.draftCreated) {
+        const currentState = pendingSyncs[syncId] || {};
+        pendingSyncs[syncId] = {
+          // 草稿已经存在，必须让前端看到终态并阻止用户按普通失败重试。
+          status: 'done',
+          sync_status: 'draft_created_mark_failed',
+          msg: formatDraftCreatedMarkFailure(err),
+          media_id: err.mediaId,
+          failure_reason: err.message,
+          image: currentState.image,
+          video: currentState.video,
+          createdAt: currentState.createdAt || createdAt,
+          ownerId: ownerId,
+          daily_song_count: syncedDailySongs.length,
+          daily_song_ids: normalizedSongIds.ids,
+          mark_result: err.markResult || null
+        };
+        return;
+      }
       pendingSyncs[syncId] = {
         status: 'fail',
         msg: err.message,
@@ -1272,5 +1662,16 @@ router.get('/sync-status', async (req, res) => {
   }
   res.json({ code: 200, data: pendingSyncs[syncId] });
 });
+
+// 仅供离线状态机测试使用；不暴露为 HTTP 接口。
+router._dailySongState = {
+  DAILY_SONG_REUSE_DAYS,
+  normalizeDailySongIds,
+  isDailySongCandidate,
+  dailySongCandidateSql,
+  markDailySongsPublished,
+  finalizeDailySongSync,
+  formatDraftCreatedMarkFailure
+};
 
 module.exports = router;

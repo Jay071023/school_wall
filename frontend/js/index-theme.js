@@ -1,5 +1,5 @@
 /**
- * 校园墙 - 首页主题切换模块
+ * 示例校园墙 - 首页主题切换模块
  * P1-19: 从 inline JS 抽出,挂到 public/js/
  * 依赖:无(只读 localStorage.theme,操作 document.documentElement)
  */

@@ -1,0 +1,402 @@
+/*
+ * Campus UI polish styles split from global style.css.
+ */
+🎓 Campus Wall (校墙) 专属场景与身份标签增强
+   ======================================================= */
+
+/* --- 1. 校园分类标签色彩系统 (情绪化配色) --- */
+.category-tag[data-value="confession"],
+.tag-confess,
+.filter-tag[data-category="confession"] {
+  background: rgba(255, 101, 132, 0.1) !important;
+  color: #FF477E !important;
+  border-color: rgba(255, 101, 132, 0.25) !important;
+}
+
+.category-tag[data-value="help"],
+.tag-treehole,
+.filter-tag[data-category="help"] {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: #8B5CF6 !important;
+  border-color: rgba(139, 92, 246, 0.25) !important;
+}
+
+.category-tag[data-value="lost_found"],
+.tag-lost,
+.filter-tag[data-category="lost_found"] {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #059669 !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+.category-tag[data-value="club"],
+.tag-study,
+.filter-tag[data-category="club"] {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #D97706 !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+/* 激活选中状态时提升亮度 */
+.filter-tag.active {
+  box-shadow: 0 4px 15px rgba(255, 101, 132, 0.3) !important;
+}
+
+/* --- 2. 匿名发帖人 / 学院班级认证胶囊角标 --- */
+.user-name .anonymous-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #64748B;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.user-name .campus-verify-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 101, 132, 0.12), rgba(139, 92, 246, 0.12));
+  color: var(--primary);
+  border: 1px solid rgba(255, 101, 132, 0.2);
+}
+
+/* --- 3. 校园倒计时挂件 (高考 / 考研 / 放假倒计时) --- */
+.quick-card-gaokao,
+.side-card-countdown {
+  background: linear-gradient(145deg, #FFFDF8 0%, #FFF8EA 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.22) !important;
+}
+
+.side-card-countdown .countdown-number,
+.quick-card-countdown {
+  font-family: 'DIN Alternate', -apple-system, sans-serif;
+  font-size: 1.4rem !important;
+  font-weight: 800;
+  color: #D97706 !important;
+  text-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+}
+
+/* --- 4. 校园广播点歌台单曲卡片美化 --- */
+.playlist-item {
+  background: var(--bg-card) !important;
+  border: 1px solid rgba(139, 92, 246, 0.12) !important;
+  border-radius: 16px !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.playlist-item:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  box-shadow: 0 10px 25px -4px rgba(139, 92, 246, 0.15) !important;
+}
+
+/* 点歌寄语小气泡（送给TA的话） */
+.playlist-item .song-msg-bubble {
+  background: linear-gradient(135deg, rgba(255, 101, 132, 0.06), rgba(139, 92, 246, 0.06)) !important;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: 0 10px 10px 0 !important;
+  padding: 6px 12px !important;
+  color: #6D28D9 !important;
+  font-size: 0.78rem !important;
+  font-style: normal !important;
+}
+
+[data-theme="dark"] .playlist-item .song-msg-bubble {
+  color: #DDD6FE !important;
+  background: rgba(139, 92, 246, 0.12) !important;
+}
+
+/* =======================================================
+   🌟 示例校园墙 - 核心排版精修版
+   ======================================================= */
+
+/* --- 1. 互动栏轻量化 --- */
+.post-card .post-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding-top: 12px !important;
+  margin-top: 12px !important;
+  border-top: 1px dashed rgba(255, 107, 157, 0.15) !important;
+}
+
+.post-card .action-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: unset !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  padding: 5px 12px !important;
+  color: #8E9BAE !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.post-card .action-btn:hover {
+  background: rgba(255, 107, 157, 0.08) !important;
+  color: #FF6B9D !important;
+  transform: translateY(-2px);
+}
+
+.post-card .action-btn:active { transform: scale(0.92); }
+
+.post-card .action-btn.liked {
+  background: rgba(255, 71, 87, 0.1) !important;
+  color: #FF4757 !important;
+  border-color: rgba(255, 71, 87, 0.2) !important;
+}
+
+.post-card .action-btn.favorited {
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #F59E0B !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+/* --- 2. 侧栏悬浮卡片磨砂化 --- */
+.side-cards-left .side-card,
+.side-cards-right .side-card,
+.side-card {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 10px 30px -4px rgba(100, 116, 139, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.side-card:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 14px 34px -4px rgba(255, 107, 157, 0.15) !important;
+}
+
+.hotsearch-item.history-item {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+  margin-bottom: 6px !important;
+  border: 1px solid rgba(0, 0, 0, 0.02) !important;
+}
+
+.hotsearch-item.history-item .history-event {
+  font-size: 0.73rem !important;
+  color: #475569 !important;
+  line-height: 1.45 !important;
+}
+
+/* --- 3. 评论预览气泡 --- */
+.post-card .post-comments-preview {
+  background: #F8FAFC !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-left: 3px solid #C084FC !important;
+  border-radius: 0 12px 12px 0 !important;
+  padding: 9px 12px !important;
+  margin-top: 12px !important;
+}
+
+.post-card .comment-preview-author {
+  color: #7C3AED !important;
+  font-weight: 700 !important;
+}
+
+.post-card .comment-preview-text {
+  color: #64748B !important;
+  font-size: 0.84rem !important;
+}
+
+/* 移动端继续使用三列互动按钮布局，避免被桌面精修规则覆盖。 */
+@media (max-width: 768px) {
+  body.home-page .post-card .post-actions {
+    display: grid !important;
+    justify-content: initial !important;
+  }
+
+  body.home-page .post-card .action-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+[data-theme="dark"] .side-card {
+  background: rgba(31, 41, 55, 0.84) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+[data-theme="dark"] .post-card .post-comments-preview {
+  background: rgba(30, 41, 59, 0.86) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  border-left-color: #C084FC !important;
+}
+
+[data-theme="dark"] .post-card .comment-preview-author { color: #D8B4FE !important; }
+[data-theme="dark"] .post-card .comment-preview-text { color: #CBD5E1 !important; }
+
+/* =======================================================
+   🌟 每日签到挂件精修：暖金成就感 + iOS 磨砂组件
+   ======================================================= */
+#sideCheckin {
+  width: 140px !important;
+  min-width: 140px !important;
+  box-sizing: border-box !important;
+  padding: 14px 12px 12px !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(255, 250, 245, 0.9)) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 20px !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.12), 0 2px 8px -2px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+#sideCheckin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, #FF6584, #F59E0B, #10B981);
+  border-radius: 20px 20px 0 0;
+}
+
+#sideCheckin:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  box-shadow: 0 16px 32px -4px rgba(245, 158, 11, 0.2) !important;
+}
+
+#sideCheckin .checkin-card-heading {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+#sideCheckin .side-card-icon {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #FFF7ED, #FFEDD5) !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15) !important;
+  font-size: 1.25rem !important;
+}
+
+#sideCheckin .side-card-title {
+  color: #1E293B !important;
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.01em !important;
+  text-align: left !important;
+  text-shadow: none !important;
+}
+
+#sideCheckin .checkin-card-subtitle {
+  margin-top: 2px !important;
+  color: #94A3B8 !important;
+  font-size: 0.62rem !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+}
+
+#sideCheckin .checkin-action-row,
+#sideCheckin .checkin-status-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 36px !important;
+  gap: 6px !important;
+  padding: 5px 8px !important;
+  background: rgba(248, 250, 252, 0.8) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 12px !important;
+}
+
+#sideCheckin .checkin-streak {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 2px !important;
+  color: #64748B !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+}
+
+#sideCheckin .checkin-streak strong {
+  color: #F59E0B !important;
+  font-family: 'DIN Alternate', -apple-system, sans-serif !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+}
+
+#sideCheckin .btn-checkin {
+  min-width: 46px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 0 8px !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #FF6584, #FF8A65) !important;
+  color: #FFF !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 10px rgba(255, 101, 132, 0.3) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+#sideCheckin .btn-checkin:hover { transform: translateY(-1px) scale(1.05) !important; box-shadow: 0 5px 14px rgba(255, 101, 132, 0.4) !important; }
+#sideCheckin .btn-checkin:active { transform: scale(0.92) !important; }
+
+#sideCheckin .btn-checkin:disabled,
+#sideCheckin .btn-checkin.checked,
+#sideCheckin .checkin-done {
+  padding: 2px 6px !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-radius: 8px !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #059669 !important;
+  box-shadow: none !important;
+  cursor: default !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  transform: none !important;
+}
+
+[data-theme="dark"] #sideCheckin {
+  background: linear-gradient(160deg, rgba(30, 27, 42, 0.95), rgba(23, 20, 32, 0.9)) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+[data-theme="dark"] #sideCheckin .side-card-icon { background: rgba(245, 158, 11, 0.15) !important; box-shadow: none !important; }
+[data-theme="dark"] #sideCheckin .side-card-title { color: #F1F5F9 !important; }
+[data-theme="dark"] #sideCheckin .checkin-action-row,
+[data-theme="dark"] #sideCheckin .checkin-status-row { background: rgba(255, 255, 255, 0.04) !important; border-color: rgba(255, 255, 255, 0.06) !important; }
+[data-theme="dark"] #sideCheckin .checkin-streak { color: #94A3B8 !important; }
+
+@media (max-width: 768px) {
+  .mobile-checkin-slot #sideCheckin { width: 100% !important; min-width: 0 !important; padding: 11px 12px !important; border-radius: 16px !important; }
+}

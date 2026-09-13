@@ -4,7 +4,7 @@ const { pool } = require('../config/database');
 const { getChinaDate, toChinaDate } = require('../services/date');
 
 const router = express.Router();
-const SITE_URL = (process.env.SITE_URL || 'https://campus-wall.example').replace(/\/+$/, '');
+const SITE_URL = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 const WEATHER_CACHE_MS = 3 * 60 * 1000;
 const HISTORY_CACHE_MS = 5 * 60 * 1000;
 let weatherCache = null;
@@ -24,6 +24,12 @@ function normalizeFestivalTheme(value) {
   // 旧 back_to_school 只兼容归一化到教师节，不再作为独立前台主题。
   if (value === 'back_to_school') return 'teachers_day';
   return FESTIVAL_THEMES.has(value) ? value : 'teachers_day';
+}
+
+function invalidateSiteInfoCache() {
+  siteInfoCache = null;
+  siteInfoCacheTime = 0;
+  siteInfoRequest = null;
 }
 
 // 公开的站点设置 API（无需登录）。
@@ -64,7 +70,7 @@ router.get('/site-info', async (req, res) => {
     return {
       code: 200,
       data: {
-        site_name: settings.site_name || '校园墙',
+        site_name: settings.site_name || '示例校园墙',
         site_description: settings.site_description || '',
         anon_post: settings.anon_post === 'true',
         anon_comment: settings.anon_comment === 'true',
@@ -86,7 +92,7 @@ router.get('/site-info', async (req, res) => {
     return res.json({
       code: 200,
       data: {
-        site_name: '校园墙',
+        site_name: '示例校园墙',
         site_description: '',
         anon_post: false,
         anon_comment: false,
@@ -292,5 +298,7 @@ function escapeXml(value) {
     '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;'
   }[char]));
 }
+
+router.invalidateSiteInfoCache = invalidateSiteInfoCache;
 
 module.exports = router;

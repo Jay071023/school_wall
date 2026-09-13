@@ -1854,7 +1854,7 @@
             }
             h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
             h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
-            h += '<div style="font-size:10px;color:#ddd;">📮 校园墙</div>';
+            h += '<div style="font-size:10px;color:#ddd;">📮 示例校园墙</div>';
             h += '</div>';
             h += musicPlaceholderHtml(s, c);
             h += '</div>';
@@ -1890,7 +1890,7 @@
             }
             h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
             h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-            h += '<span>校园墙</span>';
+            h += '<span>示例校园墙</span>';
             h += '</div>';
             h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
             h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
@@ -1943,7 +1943,7 @@
             h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
             h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
             h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
-            h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">校园墙·音乐角</div></div>';
+            h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">示例校园墙·音乐角</div></div>';
             h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
             h += '</div>';
             h += '<div style="display:flex;padding:20px;gap:16px;align-items:center;">';
@@ -2070,10 +2070,10 @@
                     if (newTitle.length > 64) newTitle = newTitle.substring(0, 62) + '…';
                     generatedArticles = [{
                         title: newTitle,
-                        author: '校园墙',
+                        author: '示例校园墙',
                         digest: '校园墙今日精选 · ' + (data.postData.length || 0) + ' 篇热门帖子 · 同学心声',
                         content: previewHtml,
-                        content_source_url: 'https://campus-wall.example',
+                        content_source_url: 'http://localhost:3000',
                         show_cover_pic: 1,
                         need_open_comment: 1,
                         only_fans_can_comment: 0
@@ -2420,13 +2420,13 @@
             previewHtml += '<span style="font-size:12px;color:#999;">你的支持是我们持续更新的动力</span>';
             previewHtml += '</div></div>';
             previewHtml += '<div style="display:inline-block;padding:6px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.1);margin-bottom:16px;">';
-            previewHtml += '<img src="https://campus-wall.example/images/gzh.jpg" style="width:180px;display:block;border-radius:10px;" alt="校园墙二维码"></div>';
+            previewHtml += '<img src="http://localhost:3000/images/gzh.jpg" style="width:180px;display:block;border-radius:10px;" alt="校园墙二维码"></div>';
             previewHtml += '<div style="font-size:12px;color:#bbb;margin-bottom:8px;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</div>';
-            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">https://campus-wall.example</div>';
+            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</div>';
             previewHtml += '</div>';
             previewHtml += '<div style="height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA,#FFB6C1);"></div></div>';
             previewHtml += '<div style="text-align:center;color:#ddd;font-size:12px;margin:24px 16px 32px;padding:16px;background:#fff;border-radius:16px;">';
-            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 校园墙 ❀</div>';
+            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 示例校园墙 ❀</div>';
             previewHtml += '<div style="font-size:11px;color:#ccc;">感谢阅读 · 期待下次相见</div>';
             previewHtml += renderEditorSignature();
             previewHtml += '</div></div>';
@@ -2462,7 +2462,7 @@
               +   '<div style="font-size:9px;color:#B8A878;letter-spacing:6px;text-transform:uppercase;margin-bottom:6px;font-family:Georgia,serif;">— CURATED FOR YOU —</div>'
               +   sigSvg
               +   '<div style="position:absolute;left:14px;bottom:10px;width:30px;height:30px;border:1.5px solid #C44569;border-radius:4px;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);opacity:0.75;">'
-              +     '<span style="font-family:Georgia,serif;font-size:9px;color:#C44569;font-weight:700;letter-spacing:0.5px;">JAY</span>'
+              +     '<span style="font-family:Georgia,serif;font-size:9px;color:#C44569;font-weight:700;letter-spacing:0.5px;">ExampleAdmin</span>'
               +   '</div>'
               + '</div>';
         }
@@ -3130,15 +3130,15 @@
             previewHtml += '</div>';
             // 二维码卡片
             previewHtml += '<div style="display:inline-block;padding:6px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.1);margin-bottom:16px;">';
-            previewHtml += '<img src="https://campus-wall.example/images/gzh.jpg?t=' + Date.now() + '" style="width:180px;height:180px;display:block;border-radius:10px;object-fit:cover;" alt="校园墙二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:13px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>校园墙</b></div>\');">';
+            previewHtml += '<img src="http://localhost:3000/images/gzh.jpg?t=' + Date.now() + '" style="width:180px;height:180px;display:block;border-radius:10px;object-fit:cover;" alt="校园墙二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:13px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>示例校园墙</b></div>\');">';
             previewHtml += '</div>';
             previewHtml += '<div style="font-size:12px;color:#bbb;margin-bottom:8px;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</div>';
-            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">https://campus-wall.example</div>';
+            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</div>';
             previewHtml += '</div>';
             previewHtml += '<div style="height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA,#FFB6C1);"></div>';
             previewHtml += '</div>';
             previewHtml += '<div style="text-align:center;color:#ddd;font-size:12px;margin:24px 16px 32px;padding:16px;background:#fff;border-radius:16px;">';
-            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 校园墙 ❀</div>';
+            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 示例校园墙 ❀</div>';
             previewHtml += '<div style="font-size:11px;color:#ccc;">感谢阅读 · 期待下次相见</div>';
             previewHtml += renderEditorSignature();
             previewHtml += '</div>';
@@ -3151,10 +3151,10 @@
                 if (newTitle.length > 64) newTitle = newTitle.substring(0, 62) + '…';
                 generatedArticles = [{
                     title: newTitle,
-                    author: '校园墙',
+                    author: '示例校园墙',
                     digest: '校园墙今日精选 · ' + (postData.length || 0) + ' 篇热门帖子 · 同学心声',
                     content: previewHtml,
-                    content_source_url: 'https://campus-wall.example',
+                    content_source_url: 'http://localhost:3000',
                     show_cover_pic: 1,
                     need_open_comment: 1,
                     only_fans_can_comment: 0
@@ -3653,7 +3653,7 @@
                 // 底部签名
                 h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
                 h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
-                h += '<div style="font-size:10px;color:#ddd;">📮 校园墙</div>';
+                h += '<div style="font-size:10px;color:#ddd;">📮 示例校园墙</div>';
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
@@ -3691,7 +3691,7 @@
                 }
                 h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span>校园墙</span>';
+                h += '<span>示例校园墙</span>';
                 h += '</div>';
                 h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
                 h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
@@ -3747,7 +3747,7 @@
                 h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
                 h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
                 h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
-                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">校园墙·音乐角</div></div>';
+                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">示例校园墙·音乐角</div></div>';
                 h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
                 h += '</div>';
                 // 黑胶展示区
@@ -3904,8 +3904,8 @@
             html += '</div>';
             // 关注校墙
             html += '<div style="margin-top:14px;padding:16px;background:#FAFBFC;border-radius:12px;text-align:center;">';
-            html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注校园墙</div>';
-            html += '<img src="https://campus-wall.example/images/gzh.jpg?t=' + Date.now() + '" style="width:160px;height:160px;display:block;border-radius:8px;margin:0 auto;object-fit:cover;" alt="公众号二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:12px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>校园墙</b></div>\');">';
+            html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注示例校园墙</div>';
+            html += '<img src="http://localhost:3000/images/gzh.jpg?t=' + Date.now() + '" style="width:160px;height:160px;display:block;border-radius:8px;margin:0 auto;object-fit:cover;" alt="公众号二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:12px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>示例校园墙</b></div>\');">';
             html += '<div style="font-size:11px;color:#bbb;margin-top:8px;">微信扫一扫 · 获取更多精彩</div>';
             html += '</div>';
             html += '</div>';
@@ -3917,7 +3917,7 @@
             html += '<div style="font-size:16px;font-weight:700;color:#FF6B9D;margin-top:4px;">你也想推荐一首歌？</div>';
             html += '</div>';
             var steps = [
-                { num: '1', title: '关注公众号', desc: '搜索「校园墙」关注' },
+                { num: '1', title: '关注公众号', desc: '搜索「示例校园墙」关注' },
                 { num: '2', title: '发送指令', desc: '回复「推歌」或「每日推歌」' },
                 { num: '3', title: '发送歌名', desc: '直接发送歌曲名（可加歌手名）' },
                 { num: '4', title: '确认提交', desc: '回复「确认」完成推歌' }
@@ -3930,7 +3930,7 @@
                 html += '<div style="font-size:11px;color:#aaa;margin-top:1px;">' + step.desc + '</div></div>';
                 html += '</div>';
             });
-            html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:#ddd;letter-spacing:1px;">校园墙 · 让音乐连接你我</div>';
+            html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:#ddd;letter-spacing:1px;">示例校园墙 · 让音乐连接你我</div>';
             html += renderEditorSignature();
             html += '</div>';
 
@@ -3979,10 +3979,10 @@
 
             generatedArticles = [{
                 title: titleStr,
-                author: '校园墙',
+                author: '示例校园墙',
                 digest: digestStr,
                 content: html,
-                content_source_url: 'https://campus-wall.example',
+                content_source_url: 'http://localhost:3000',
                 show_cover_pic: 1,
                 need_open_comment: 1,
                 only_fans_can_comment: 0
@@ -4035,7 +4035,7 @@
                 return;
             }
 
-            var fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>校园墙 · 今日精选</title></head><body style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</body></html>';
+            var fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>示例校园墙 · 今日精选</title></head><body style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</body></html>';
 
             var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
             var url = URL.createObjectURL(blob);

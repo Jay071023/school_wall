@@ -29,8 +29,8 @@ function buildTextReply(openid, accountId, text) {
 
 function buildNewsReply(openid, accountId, title, description, picUrl, linkUrl) {
   var ts = Math.floor(Date.now() / 1000);
-  if (!picUrl) picUrl = 'https://campus-wall.example/images/show.png';
-  if (!linkUrl) linkUrl = 'https://campus-wall.example';
+  if (!picUrl) picUrl = 'http://localhost:3000/images/show.png';
+  if (!linkUrl) linkUrl = 'http://localhost:3000';
   return '<xml>' +
     '<ToUserName><![CDATA[' + cdata(openid) + ']]></ToUserName>' +
     '<FromUserName><![CDATA[' + cdata(accountId) + ']]></FromUserName>' +
@@ -56,7 +56,8 @@ var KEYWORD_HANDLERS = {
   '每日推歌': 'startPushSong', '推歌': 'startPushSong', '分享歌曲': 'startPushSong', '每日推': 'startPushSong', '推个歌': 'startPushSong',
   '校园点歌': 'guideRadioSong', '怎么点歌': 'guideRadioSong', '点歌': 'guideRadioSong',
   '帮助': 'helpMenu', 'help': 'helpMenu', '菜单': 'helpMenu', '功能': 'helpMenu',
-  '绑定': 'bindGuide', '绑定账号': 'bindGuide',
+  '绑定': 'bindGuide', '绑定账号': 'bindGuide', 'bind': 'bindGuide',
+  '注册': 'regGuide', '注册账号': 'regGuide', 'reg': 'regGuide', 'register': 'regGuide',
   '怎么投稿': 'howToSubmit',
   '找回密码': 'resetPassword', '重置密码': 'resetPassword', '忘记密码': 'resetPassword', '改密码': 'resetPassword',
   '天气': 'weather', '今日天气': 'weather', 'weather': 'weather',
@@ -118,6 +119,10 @@ handlers.bindGuide = async function() {
   return { text: T.bindGuide() };
 };
 
+handlers.regGuide = async function() {
+  return { text: T.regGuide() };
+};
+
 handlers.howToSubmit = async function() {
   return { text: T.submitNeedBind() };
 };
@@ -176,15 +181,24 @@ async function handleBindCode(openid, code) {
 
 async function handleRegCode(openid, code) {
   try {
+    var [users] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
+    if (users.length > 0) return { text: T.regAlreadyBound() };
+
+    // 每个微信在十分钟内只保留一个已验证、尚未完成网页提交的注册流程。
+    // 否则用户在页面刷新后反复生成并发送 REG，会留下多条待注册记录。
+    var [pending] = await pool.execute(
+      'SELECT code FROM wechat_reg_codes WHERE openid = ? AND verified = 1 AND used = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) ORDER BY verified_at DESC LIMIT 1',
+      [openid]
+    );
+    if (pending.length > 0) return { text: T.regCodePending(pending[0].code) };
+
     var [codes] = await pool.execute(
       'SELECT id FROM wechat_reg_codes WHERE code = ? AND verified = 0 AND used = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1',
       [code]
     );
     if (codes.length === 0) return { text: T.regCodeInvalid() };
-    var [users] = await pool.execute('SELECT id FROM users WHERE openid = ?', [openid]);
-    if (users.length > 0) return { text: T.regAlreadyBound() };
     await pool.execute('UPDATE wechat_reg_codes SET verified = 1, openid = ?, verified_at = NOW() WHERE id = ?', [openid, codes[0].id]);
-    return { text: T.regCodeConfirm() };
+    return { text: T.regCodeConfirm(code) };
   } catch (e) {
     console.error('[reply] handleRegCode 失败:', e.message);
     return { text: T.regError() };
@@ -217,19 +231,27 @@ async function handleText(openid, accountId, text) {
   text = text.trim();
   if (text.length > 200) return buildTextReply(openid, accountId, T.tooLong());
 
-  // 1. 状态机（投稿/推歌流程）
+  // 1. 注册/绑定指令必须优先走固定回复或验证码处理，不能被状态机或 AI 吞掉。
+  //    REG 验证码由注册页生成：REG + 8 位大写十六进制字符；保留 6 位兼容旧码。
+  var normalizedCommand = text.toLowerCase();
+  if (normalizedCommand === 'reg' || normalizedCommand === 'register' || text === '注册' || text === '注册账号') {
+    return buildTextReply(openid, accountId, T.regGuide());
+  }
+  if (normalizedCommand === 'bind' || text === '绑定' || text === '绑定账号') {
+    return buildTextReply(openid, accountId, T.bindGuide());
+  }
+  if (/^BIND[A-Z0-9]{4}$/i.test(text)) {
+    var bindResult = await handleBindCode(openid, text.toUpperCase());
+    return buildTextReply(openid, accountId, bindResult.text);
+  }
+  if (/^REG[A-Z0-9]{6,8}$/i.test(text)) {
+    var regResult = await handleRegCode(openid, text.toUpperCase());
+    return buildTextReply(openid, accountId, regResult.text);
+  }
+
+  // 2. 状态机（投稿/推歌流程）
   var flowResult = await routeStateMachine(openid, text);
   if (flowResult) return buildTextReply(openid, accountId, flowResult.text);
-
-  // 2. 验证码
-  if (/^BIND[A-Z0-9]{4}$/i.test(text)) {
-    var result = await handleBindCode(openid, text.toUpperCase());
-    return buildTextReply(openid, accountId, result.text);
-  }
-  if (/^REG[A-Z0-9]{6}$/i.test(text)) {
-    var result = await handleRegCode(openid, text.toUpperCase());
-    return buildTextReply(openid, accountId, result.text);
-  }
 
   // 3. 关键字路由
   var matched = matchKeyword(text);
@@ -253,7 +275,7 @@ async function handleImage(openid, accountId, mediaId) {
   if (result) return buildTextReply(openid, accountId, result.text);
   try {
     var image = await wechatService.downloadImageMedia(mediaId);
-    var imagePrompt = '请看看这张图片，用中文简短告诉我：画面主要内容是什么？如果有清晰可读的文字，请提取最重要的文字。不要猜测人物身份、地点或隐私信息。';
+    var imagePrompt = '请用中文简短回答：图片中能确认的主要内容是什么？如有清晰可读文字，只提取与问题相关的关键文字。模糊处请说明看不清，不要猜测人物身份、地点、联系方式或其他隐私信息。只描述可见事实，不要编故事。';
     var reply = await aiService.getAIImageReply(imagePrompt, image.base64, openid);
     return buildTextReply(openid, accountId, reply);
   } catch (e) {

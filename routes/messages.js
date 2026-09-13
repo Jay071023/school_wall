@@ -43,7 +43,7 @@ async function sendMessageNotification(senderId, recipientId, content) {
           <div style="background:#FFF8FA;border:1px solid rgba(255,107,157,0.15);border-radius:12px;padding:16px;margin-bottom:20px;">
             <p style="color:#333;font-size:14px;line-height:1.7;margin:0;">${safeContentPreview}</p>
           </div>
-          <a href="https://campus-wall.example/messages.html" style="display:inline-block;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;padding:12px 28px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;">查看私信 →</a>
+          <a href="http://localhost:3000/messages.html" style="display:inline-block;background:linear-gradient(135deg,#FF6B9D,#C084FC);color:#fff;padding:12px 28px;border-radius:24px;text-decoration:none;font-weight:600;font-size:14px;">查看私信 →</a>
         </div>
       </div>
     `;

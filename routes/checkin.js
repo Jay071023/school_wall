@@ -1,6 +1,6 @@
 const express = require('express');
 const { pool } = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, superAdminOnly } = require('../middleware/auth');
 const { getPagination } = require('../services/pagination');
 const { getChinaDate } = require('../services/date');
 const router = express.Router();
@@ -173,13 +173,9 @@ async function checkLevelTitle(userId, db = pool, knownPoints) {
 
 // ===== 本周之星（管理员调用） =====
 
-router.post('/weekly-star', auth, async (req, res) => {
+router.post('/weekly-star', auth, superAdminOnly, async (req, res) => {
   let connection;
   try {
-    // 仅管理员可用
-    if (req.user.role !== 'super_admin' && req.user.role !== 'admin') {
-      return res.json({ code: 403, message: '无权操作' });
-    }
     // 以中国业务日期作为边界，避免服务器时区在凌晨切日时改变榜单范围。
     const since = `${getChinaDate(-7)} 00:00:00`;
     connection = await pool.getConnection();

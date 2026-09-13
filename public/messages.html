@@ -1,38 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <style id="app-boot-style">
-    html.app-booting { background: #f7f1e6; }
-    html.app-booting body { visibility: hidden; }
-  </style>
-  <script>
-    (function () {
-      var root = document.documentElement;
-      root.classList.add("app-booting");
-      var released = false;
-      var themeReady = false;
-      var hardTimeoutId = window.setTimeout(function () { release(true); }, 7000);
-      function release(force) {
-        if (released || (!themeReady && !force)) return;
-        released = true;
-        window.clearTimeout(hardTimeoutId);
-        root.classList.remove("app-booting");
-      }
-      window.addEventListener("festival-theme-ready", function () {
-        themeReady = true;
-        release(false);
-      }, { once: true });
-    })();
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
-  <title>校园墙 - 私信</title>
+  <title>示例校园墙 - 私信</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
   <link rel="stylesheet" href="/css/messages.css">
-  <script src="/js/theme-mode.js" defer></script>
+  <link rel="stylesheet" href="/css/messages-polish-enhanced.css">
 <meta name="robots" content="noindex, nofollow">
   <script>(function(){var bp=document.createElement('script');var curProtocol=window.location.protocol.split(':')[0];if(curProtocol==='https'){bp.src='https://zz.bdstatic.com/linksubmit/push.js'}else{bp.src='http://push.zhanzhang.baidu.com/push.js'}var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bp,s)})();</script>
 </head>
@@ -40,7 +17,7 @@
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">🏠 校园墙</a>
+      <a href="/" class="nav-logo">🏠 示例校园墙</a>
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>

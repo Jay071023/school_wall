@@ -20,9 +20,11 @@ const ROLE_NAMES = {
 
 const ROLE_PERMISSIONS = {
   user: [],
-  reviewer: ['posts:review', 'posts:delete', 'songs:review', 'stats:view'],
+  // 审核员只处理帖子审核，不接触点歌、积分、私信或其他运营模块。
+  reviewer: ['posts:review'],
   radio_admin: ['songs:review', 'songs:delete', 'slots:manage', 'stats:view'],
-  admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage', 'stats:view', 'stories:review', 'logs:view', 'wechat:review', 'post-views:view'],
+  // 管理员只保留日常运营所需的用户、帖子、点歌、时段、公告、反馈、邮件和回收站能力。
+  admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'notices:manage', 'feedbacks:manage'],
   super_admin: ['posts:review', 'posts:delete', 'songs:review', 'songs:delete', 'slots:manage', 'users:view', 'users:status', 'users:role', 'admin:manage', 'stats:view', 'logs:view', 'notices:manage', 'settings:view', 'feedbacks:manage', 'stories:review', 'post-views:view', 'wechat:review']
 };
 

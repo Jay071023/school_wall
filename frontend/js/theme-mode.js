@@ -41,29 +41,48 @@
       if (timeoutId) window.clearTimeout(timeoutId);
       callback(loaded);
     }
+    // ensureStylesheet 会在 append 前创建该 Promise。动态 CSS 命中缓存时，
+    // load 事件可能在本函数添加监听前触发；复用已登记的结果避免误判失败。
+    if (link.__campusThemeLoad) {
+      timeoutId = window.setTimeout(function () { finish(false); }, 6500);
+      link.__campusThemeLoad.then(finish);
+      return;
+    }
     link.addEventListener('load', function () { finish(true); }, { once: true });
     link.addEventListener('error', function () { finish(false); }, { once: true });
     // 页面 boot gate 最长等待 7 秒；慢网下不能 2.5 秒就放行默认主题导致闪烁。
     timeoutId = window.setTimeout(function () { finish(false); }, 6500);
   }
 
-  function createStylesheetLink(definition) {
-    var link = document.getElementById(definition.id);
-    if (link) return link;
-    link = document.createElement('link');
-    link.id = definition.id;
-    link.rel = 'stylesheet';
-    link.href = definition.href;
-    link.disabled = true;
-    document.head.appendChild(link);
+  // 不要先 append 一个 disabled stylesheet 再启用：部分浏览器会请求文件却不创建
+  // CSSStyleSheet，最终触发“加载失败”回退，让后台已开启的主题在前台完全不显示。
+  // 主题确定后才插入对应的 link，既避免这个兼容问题，也不会无谓加载另一套主题。
+  function ensureStylesheet(definition, stylesheets, key) {
+    var link = stylesheets[key] || document.getElementById(definition.id);
+    if (!link) {
+      link = document.createElement('link');
+      link.id = definition.id;
+      link.rel = 'stylesheet';
+      link.href = definition.href;
+      link.__campusThemeLoad = new Promise(function (resolve) {
+        var completed = false;
+        function finish(loaded) {
+          if (completed) return;
+          completed = true;
+          resolve(loaded);
+        }
+        link.addEventListener('load', function () { finish(true); }, { once: true });
+        link.addEventListener('error', function () { finish(false); }, { once: true });
+      });
+      document.head.appendChild(link);
+    }
+    link.disabled = false;
+    stylesheets[key] = link;
     return link;
   }
 
   function createThemeStylesheets() {
-    return {
-      teacher: createStylesheetLink(THEME_STYLES.teacher),
-      fiveTwenty: createStylesheetLink(THEME_STYLES.fiveTwenty)
-    };
+    return { teacher: null, fiveTwenty: null };
   }
 
   function normalizeThemeName(settings) {
@@ -244,8 +263,10 @@
   }
 
   function setThemeStylesheets(state, stylesheets) {
-    stylesheets.teacher.disabled = !state.teacher;
-    stylesheets.fiveTwenty.disabled = !state.fiveTwenty;
+    if (state.teacher) ensureStylesheet(THEME_STYLES.teacher, stylesheets, 'teacher');
+    else if (stylesheets.teacher) stylesheets.teacher.disabled = true;
+    if (state.fiveTwenty) ensureStylesheet(THEME_STYLES.fiveTwenty, stylesheets, 'fiveTwenty');
+    else if (stylesheets.fiveTwenty) stylesheets.fiveTwenty.disabled = true;
   }
 
   function updateThemeColorMeta(state) {
@@ -258,9 +279,12 @@
   }
 
   function finishTheme(state, teacherElements, stylesheets, loaded) {
-    if (state.teacher && loaded) revealTeacherThemeElements(teacherElements);
-    if (state.fiveTwenty && loaded) start520Effects();
-    else if (state.teacher || state.fiveTwenty) {
+    if (state.teacher && loaded) {
+      revealTeacherThemeElements(teacherElements);
+      clear520Effects();
+    } else if (state.fiveTwenty && loaded) {
+      start520Effects();
+    } else if (state.teacher || state.fiveTwenty) {
       // 活动主题 CSS 加载失败时，撤销主题类并停用对应样式，回退到基础主题。
       // 不能留下 mode-teacher/mode-festival-520 造成“半套主题”。
       var baseState = { teacher: false, fiveTwenty: false, legacyBackToSchool: false };
@@ -277,8 +301,8 @@
 
   function waitForActiveTheme(state, stylesheets, teacherElements) {
     var complete = function (loaded) { finishTheme(state, teacherElements, stylesheets, loaded); };
-    if (state.teacher) waitForStylesheet(stylesheets.teacher, complete);
-    else if (state.fiveTwenty) waitForStylesheet(stylesheets.fiveTwenty, complete);
+    if (state.teacher) waitForStylesheet(ensureStylesheet(THEME_STYLES.teacher, stylesheets, 'teacher'), complete);
+    else if (state.fiveTwenty) waitForStylesheet(ensureStylesheet(THEME_STYLES.fiveTwenty, stylesheets, 'fiveTwenty'), complete);
     else {
       clear520Effects();
       signalThemeReady();

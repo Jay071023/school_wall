@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const { getAccessToken } = require('./wechat-token');
 
 // 微信公众号配置
-const WECHAT_APPID = process.env.WECHAT_APPID || 'wx0000000000000000';
+const WECHAT_APPID = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
 const WECHAT_SECRET = process.env.WECHAT_SECRET;
 if (!WECHAT_SECRET) {
   throw new Error('[wechat] 缺少环境变量 WECHAT_SECRET，请检查 .env 配置');
@@ -98,7 +98,7 @@ async function sendFollowPostNotify(openid, posterNickname, postTitle, postId) {
     keyword3: { value: new Date().toLocaleString('zh-CN'), color: '#B8A9D4' },
     remark: { value: '点击查看TA的新帖子', color: '#C084FC' }
   };
-  var url = `https://campus-wall.example/post/${postId}`;
+  var url = `http://localhost:3000/post/${postId}`;
   return sendTemplateMessage(openid, templateId, data, url);
 }
 
@@ -114,7 +114,7 @@ async function sendCommentNotify(openid, commenterNickname, postTitle, postId) {
     keyword3: { value: new Date().toLocaleString('zh-CN'), color: '#B8A9D4' },
     remark: { value: '点击查看评论内容', color: '#C084FC' }
   };
-  var url = `https://campus-wall.example/post/${postId}`;
+  var url = `http://localhost:3000/post/${postId}`;
   return sendTemplateMessage(openid, templateId, data, url);
 }
 
@@ -130,7 +130,7 @@ async function sendSongPlayedNotify(openid, songName, artist) {
     keyword3: { value: new Date().toLocaleString('zh-CN'), color: '#B8A9D4' },
     remark: { value: '感谢你的参与，继续加油点歌哦~', color: '#C084FC' }
   };
-  var url = 'https://campus-wall.example/radio';
+  var url = 'http://localhost:3000/radio';
   return sendTemplateMessage(openid, templateId, data, url);
 }
 

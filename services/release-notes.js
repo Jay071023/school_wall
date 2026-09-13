@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const RELEASE_NOTES_FILE = path.join(__dirname, '..', 'config', 'release-notes.json');
-const MAX_RELEASE_NOTES = 20;
+// 更新记录只保留最近 6 条，避免设置页变成长篇档案；详细变更仍在 Git 提交与发布日志中留存。
+const MAX_RELEASE_NOTES = 6;
 
 function isCalendarDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;

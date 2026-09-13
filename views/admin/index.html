@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>校园墙 - 管理后台</title>
+    <title>示例校园墙 - 管理后台</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -7046,7 +7046,7 @@
             <div class="sidebar-header">
                 <a href="/" class="sidebar-logo" id="sidebar-logo" title="返回首页">
                     <svg class="logo-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    <span class="logo-text">校园墙管理 <span style="font-size:0.75em;opacity:0.5;">by JAY</span></span>
+                    <span class="logo-text">示例校园墙管理 <span style="font-size:0.75em;opacity:0.5;">by ExampleAdmin</span></span>
                 </a>
                 <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="收起菜单">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -7871,7 +7871,7 @@
 
                         <div class="email-form-group">
                             <label class="email-form-label"> 跳转链接（可选）</label>
-                            <input type="url" class="email-input" id="emailLink" placeholder="https://campus-wall.example（邮件底部按钮的跳转地址）">
+                            <input type="url" class="email-input" id="emailLink" placeholder="http://localhost:3000（邮件底部按钮的跳转地址）">
                         </div>
 
                         <div class="email-actions">
@@ -8352,7 +8352,7 @@
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
                                 <div class="story-form-group">
                                     <label>小说标题</label>
-                                    <input type="text" id="pc-novelTitle" value="示例校园故事">
+                                    <input type="text" id="pc-novelTitle" value="致那个夏天的你">
                                 </div>
                                 <div class="story-form-group">
                                     <label>字数要求</label>
@@ -8572,7 +8572,7 @@
                             <div class="settings-label">站点名称</div>
                             <div class="settings-desc">显示在页面标题和导航栏</div>
                         </div>
-                        <input type="text" class="settings-input" id="setting-site-name" placeholder="校园墙" oninput="autoSaveSettings()">
+                        <input type="text" class="settings-input" id="setting-site-name" placeholder="示例校园墙" oninput="autoSaveSettings()">
                     </div>
                 </div>
                 <div class="settings-section">
@@ -8730,7 +8730,7 @@
                             <div class="settings-label">发件人名称</div>
                             <div class="settings-desc">格式：名称 &lt;邮箱地址&gt;</div>
                         </div>
-                        <input type="text" class="settings-input" id="setting-smtp-from" placeholder="校园墙 &lt;noreply@campus-wall.example&gt;" style="max-width:350px;" onchange="autoSaveSettings()">
+                        <input type="text" class="settings-input" id="setting-smtp-from" placeholder="示例校园墙 &lt;noreply@localhost:3000&gt;" style="max-width:350px;" onchange="autoSaveSettings()">
                     </div>
                     <div class="settings-row" style="border:none;padding-bottom:0;">
                         <div></div>
@@ -13600,15 +13600,15 @@
                             <div style="background:linear-gradient(135deg,#FF9ABF 0%,#C084FC 50%,#93C5FD 100%);padding:24px;text-align:center;border-radius:16px 16px 0 0;">
                                 <div style="font-size:36px;margin-bottom:8px;">💌</div>
                                 <h2 style="color:#fff;margin:0;font-size:1.3rem;">${escapeHtml(subject)}</h2>
-                                <div style="color:rgba(255,255,255,0.8);font-size:0.85rem;margin-top:8px;">来自 校园墙 的一封信</div>
+                                <div style="color:rgba(255,255,255,0.8);font-size:0.85rem;margin-top:8px;">来自 示例校园墙 的一封信</div>
                             </div>
                             <div style="padding:20px;background:#FFFCFA;">
                                 <p style="font-size:14px;color:#4A3F5C;line-height:1.8;margin:0 0 12px;">亲爱的同学：</p>
                                 <div style="font-size:14px;color:#4A3F5C;line-height:1.8;white-space:pre-wrap;">${escapeHtml(content)}</div>
-                                <p style="font-size:14px;color:#B8A9D4;margin:16px 0 0;"> 来自 校园墙 的温馨提醒</p>
+                                <p style="font-size:14px;color:#B8A9D4;margin:16px 0 0;"> 来自 示例校园墙 的温馨提醒</p>
                             </div>
                             <div style="padding:16px;text-align:center;background:#F8F5FF;border-top:1px solid rgba(255,107,157,0.06);">
-                                <div style="color:#B8A9D4;font-size:12px;">🪄 校园墙 — 校园信息交流平台</div>
+                                <div style="color:#B8A9D4;font-size:12px;">🪄 示例校园墙 — 校园信息交流平台</div>
                             </div>
                         </div>
                     </div>
@@ -14346,7 +14346,7 @@
     function showCreateNovel() {
         var title = prompt('请输入小说标题：');
         if (!title) return;
-        var author = prompt('请输入作者（默认为示例编辑部）：') || '示例编辑部';
+        var author = prompt('请输入作者（默认为示例校园校园墙编辑部）：') || '示例校园校园墙编辑部';
         var desc = prompt('请输入简介（可选）：') || '';
         createNovel(title, author, desc);
     }
@@ -14452,7 +14452,7 @@
             '</div>' +
             '<div class="story-form-group">' +
                 '<label>作者</label>' +
-                '<input type="text" id="story-edit-author" value="' + escapeHtml(s.author || '示例编辑部') + '">' +
+                '<input type="text" id="story-edit-author" value="' + escapeHtml(s.author || '示例校园校园墙编辑部') + '">' +
             '</div>' +
             '<div class="story-form-group">' +
                 '<label>章节内容</label>' +
@@ -14616,7 +14616,7 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
                 },
-                body: JSON.stringify({ title: title, content: '', author: '示例编辑部', novelId: currentNovelId })
+                body: JSON.stringify({ title: title, content: '', author: '示例校园校园墙编辑部', novelId: currentNovelId })
             });
             var json = await res.json();
             if (json.code === 200) {

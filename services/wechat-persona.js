@@ -4,26 +4,26 @@
  * 改语气只改这一个文件
  */
 
-var SITE = 'https://campus-wall.example';
+var SITE = 'http://localhost:3000';
 
 module.exports = {
   // ===== 通用 =====
   about: function() {
-    return '我是墙墙，校园墙的学姐助手～🌸\n\n' +
+    return '我是墙墙，示例校园校园墙的学姐助手～🌸\n\n' +
       '我可以陪你聊天，也能帮你投稿、推荐歌曲、查看点歌说明和绑定账号。\n' +
       '想看功能菜单就回复「帮助」吧~';
   },
 
   greet: function(name) {
     name = name || '同学';
-    return '嗨 ' + name + '～我是墙墙，校园墙的学姐助手！有什么可以帮你的吗？🌸\n\n回复「帮助」看看我能做什么吧~';
+    return '嗨 ' + name + '～我是墙墙，示例校园校园墙的学姐助手！有什么可以帮你的吗？🌸\n\n回复「帮助」看看我能做什么吧~';
   },
 
   help: function() {
     return '🌸 学姐小助手 · 功能菜单\n\n' +
       '📝 **投稿** —— 跟我说「投稿」就能在微信里直接发帖~\n' +
       '🎵 **校园点歌** —— 想去广播站放歌？去网站操作哦 👉 ' + SITE + '/radio\n' +
-      '🎶 **推歌** —— 有好歌想分享到公众号每日图文？跟我说「推歌」~\n' +
+      '🎶 **推歌** —— 推荐一首歌，投递到公众号「一首歌的时间」~\n' +
       '🔗 **绑定微信** —— 回复「绑定」把账号和微信连起来\n' +
       '🔑 **找回密码** —— 回复「找回密码」重置\n' +
       '🌤️ **天气** —— 回复「天气」看看今天冷不冷\n\n' +
@@ -31,7 +31,7 @@ module.exports = {
   },
 
   noActiveFlow: function() {
-    return '诶？现在没有进行中的操作哦😅\n\n📝 想发帖就说「投稿」\n🎶 想推荐歌曲就说「推歌」\n📖 回复「帮助」看全部功能~';
+    return '诶？现在没有进行中的操作哦😅\n\n📝 想发帖就说「投稿」\n🎶 想投递「一首歌的时间」就说「推歌」\n📖 回复「帮助」看全部功能~';
   },
 
   tooLong: function() {
@@ -39,7 +39,7 @@ module.exports = {
   },
 
   aiFallback: function() {
-    return '不好意思呀，我现在有点卡卡的😅\n\n📝 发「投稿」可以发帖\n🎶 发「推歌」推荐歌曲到每日图文\n📖 发「帮助」查看所有功能\n🌐 ' + SITE;
+    return '不好意思呀，我现在有点卡卡的😅\n\n📝 发「投稿」可以发帖\n🎶 发「推歌」投递公众号「一首歌的时间」\n📖 发「帮助」查看所有功能\n🌐 ' + SITE;
   },
 
   // ===== 投稿 =====
@@ -105,9 +105,9 @@ module.exports = {
     return '😅 投稿时出了点问题，稍后再试试？\n或者去 ' + SITE + ' 直接发帖~';
   },
 
-  // ===== 推歌（公众号每日图文）=====
+  // ===== 推歌（公众号「一首歌的时间」）=====
   songStartPush: function() {
-    return '🎶 每日推歌 —— 推荐歌曲到公众号每日图文\n\n请告诉学姐想推荐的**歌曲名**是什么？🎵\n\n（回复「取消」可以随时终止）';
+    return '🎶 一首歌的时间 · 把一首歌留给今天\n\n入选后会出现在公众号「一首歌的时间」。先告诉我想推荐的**歌曲名**吧 🎵\n\n（回复「取消」可以随时终止）';
   },
 
   songAskArtist: function(name) {
@@ -115,7 +115,7 @@ module.exports = {
   },
 
   songAskIntro: function() {
-    return '✍️ 写一段推荐语吧~\n\n用几句话说说你为什么推荐这首歌，或者这首歌让你想到了什么。\n\n（回复「跳过」跳过，学姐帮你写~）';
+    return '✍️ 留一句听歌理由吧~\n\n它适合谁、适合哪个时刻，或让你想到了什么？越具体越容易被选中。\n\n（回复「跳过」跳过，学姐帮你写~）';
   },
 
   songAskNickname: function() {
@@ -124,7 +124,7 @@ module.exports = {
 
   songConfirm: function(name, artist) {
     var info = '🎵 ' + name + (artist ? ' - ' + artist : '');
-    return '━━━━━━━━━━━━━━\n' + info + '\n━━━━━━━━━━━━━━\n\n确认推荐这首歌曲吗？\n✅ 回复「确认」发布\n❌ 回复「取消」重填';
+    return '━━━━━━━━━━━━━━\n' + info + '\n━━━━━━━━━━━━━━\n\n确认投递到「一首歌的时间」吗？\n✅ 回复「确认」提交\n❌ 回复「取消」重填';
   },
 
   songConfirmRetry: function(name, artist) {
@@ -138,7 +138,7 @@ module.exports = {
 
   songPushSuccess: function(name, artist) {
     var info = '🎵 ' + name + (artist ? ' - ' + artist : '');
-    return '🎉 推歌成功！\n\n' + info + '\n\n你的推荐有机会出现在每日图文推送中哦~ 让更多人听到这首歌吧！🎶\n\n🌐 ' + SITE;
+    return '🎉 已收到这首歌！\n\n' + info + '\n\n它已进入「一首歌的时间」候选，审核入选后会随公众号图文和大家见面。🎶\n\n🌐 ' + SITE;
   },
 
   songPushFail: function() {
@@ -147,7 +147,7 @@ module.exports = {
 
   // ===== 点歌（校园广播） =====
   radioSongGuide: function() {
-    return '🎵 校园广播站点歌\n\n在校园广播播放歌曲需要通过网站操作哦~\n\n👇 点击下方链接打开点歌页面：\n🌐 ' + SITE + '/radio\n\n💡 如果是想推荐歌曲到**公众号每日图文**，回复「推歌」即可~';
+    return '🎵 校园广播站点歌\n\n在校园广播播放歌曲需要通过网站操作哦~\n\n👇 点击下方链接打开点歌页面：\n🌐 ' + SITE + '/radio\n\n💡 如果是想推荐歌曲到公众号「一首歌的时间」，回复「推歌」即可~';
   },
 
   // ===== 绑定 =====
@@ -177,16 +177,28 @@ module.exports = {
   },
 
   // ===== 注册 =====
+  regGuide: function() {
+    return '📝 注册 / 微信绑定\n\n' +
+      '1️⃣ 打开 ' + SITE + '/register 完成注册\n' +
+      '2️⃣ 注册完成后，页面会生成一串以 REG 开头的验证码\n' +
+      '3️⃣ 把完整验证码直接发给我，我会为你确认微信\n\n' +
+      '验证码 10 分钟内有效；如果你已经有账号，请回复「绑定」进行绑定~';
+  },
+
   regCodeInvalid: function() {
     return '❌ 注册验证码无效或已过期，请登录网站重新获取~\n🌐 ' + SITE;
   },
 
   regAlreadyBound: function() {
-    return '❌ 这个微信已绑定其他账号了，无需重新注册哦~\n直接去 ' + SITE + ' 登录吧~';
+    return '✅ 这个微信已经完成账号注册或绑定，无需再发送 REG 验证码。\n\n请直接去 ' + SITE + '/login 登录吧~';
   },
 
-  regCodeConfirm: function() {
-    return '✅ 验证码已确认！🎉\n\n请回到注册页面点击「验证并注册」即可完成注册~\n🌐 ' + SITE + '/register';
+  regCodeConfirm: function(code) {
+    return '✅ 微信验证已完成！🎉\n\n还差最后一步：回到刚才的注册页，点击「验证并注册」才会真正创建账号。\n请不要再发送新的 REG 验证码。\n\n如果注册页被刷新了，在网页里点「已有验证码？继续注册」，填回：' + code + '\n🌐 ' + SITE + '/register';
+  },
+
+  regCodePending: function(code) {
+    return '⏳ 你已经完成微信验证，账号还在等待网页端最后提交。\n\n无需再发送新的 REG 验证码；回到注册页点击「验证并注册」即可。\n如果页面刷新了，点「已有验证码？继续注册」并填写：' + code + '\n🌐 ' + SITE + '/register';
   },
 
   regError: function() {
@@ -277,7 +289,7 @@ module.exports = {
 
   // ===== 事件 =====
   welcome: function() {
-    return '👋 欢迎关注校园墙！我是墙墙，你的学姐助手~🌸\n\n可以直接跟我聊天，或者去 ' + SITE + ' 逛逛哦~\n投稿、吃瓜、点歌都行~ 有什么想问的尽管说！';
+    return '👋 欢迎关注示例校园校园墙！我是墙墙，你的学姐助手~🌸\n\n可以直接跟我聊天，或者去 ' + SITE + ' 逛逛哦~\n投稿、吃瓜、点歌都行~ 有什么想问的尽管说！';
   },
 
   cancel: function() {

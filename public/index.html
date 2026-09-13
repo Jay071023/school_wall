@@ -4,7 +4,7 @@
   <style id="app-boot-style">
     html.app-booting { background: #f7f1e6; }
     html.app-booting body { visibility: hidden; }
-    html.app-booting::before { content: "✦ 校园墙 · 正在加载"; position: fixed; inset: 0; z-index: 2147483646; display: flex; align-items: center; justify-content: center; padding-bottom: 42px; box-sizing: border-box; background: linear-gradient(135deg, #f8f3e9, #eaf3ee); color: #2f6f68; font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; letter-spacing: .12em; }
+    html.app-booting::before { content: "✦ 示例校园墙 · 正在加载"; position: fixed; inset: 0; z-index: 2147483646; display: flex; align-items: center; justify-content: center; padding-bottom: 42px; box-sizing: border-box; background: linear-gradient(135deg, #f8f3e9, #eaf3ee); color: #2f6f68; font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; letter-spacing: .12em; }
     .pull-refresh-indicator { position: fixed; top: calc(var(--navbar-height, 64px) + 6px); left: 50%; z-index: 2147483645; display: flex; align-items: center; gap: 10px; box-sizing: border-box; padding: 8px 20px 8px 16px; transform: translateX(-50%) translateY(-120px); border: 1px solid rgba(255, 107, 157, .2); border-radius: 9999px; background: rgba(255, 255, 255, .94); box-shadow: 0 8px 30px rgba(30, 41, 59, .14); color: #1e293b; font: 500 .82rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; opacity: 0; visibility: hidden; pointer-events: none; transition: transform .25s ease, opacity .25s ease, visibility .25s ease; }
     .pull-refresh-indicator.show { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
     .pull-refresh-indicator .refresh-icon { display: block; width: 20px; height: 20px; flex: 0 0 auto; color: #ff6b9d; }
@@ -41,38 +41,38 @@
   <meta name="msvalidate.01" content="8DA0B640EFE57429657B25E97269E4DA" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>校园墙 - 校园信息交流平台</title>
+  <title>示例校园墙 - 校园信息交流平台</title>
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" href="/favicon.png" sizes="180x180">
   <link rel="logo" href="/logo-search.png" type="image/png">
-  <meta name="application-name" content="校园墙">
+  <meta name="application-name" content="示例校园墙">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
 
   <!-- SEO Meta Tags -->
-  <meta name="description" content="校园墙 — 校园信息交流平台。匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
-  <meta name="keywords" content="示例中学,示例校园,校园墙,校园信息,匿名发帖,校园广播,点歌,表白墙,求助,二手交易,校园社区,上海市嘉定区第二中学">
-  <meta name="author" content="校园墙">
-  <link rel="canonical" href="https://campus-wall.example/">
-  
+  <meta name="description" content="示例校园墙 — 校园信息交流平台。匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
+  <meta name="keywords" content="示例校园,示例校园,校园墙,校园信息,匿名发帖,校园广播,点歌,表白墙,求助,二手交易,校园社区,上海市嘉定区第二中学">
+  <meta name="author" content="示例校园墙">
+  <link rel="canonical" href="http://localhost:3000/">
+
   <!-- 搜索引擎验证 -->
   <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE">
   <meta name="360-site-verification" content="YOUR_360_VERIFICATION_CODE">
   <meta name="sogou_site_verification" content="YOUR_SOGOU_VERIFICATION_CODE"/>
-  
+
   <!-- QQ/微信分享 Open Graph -->
-  <meta property="og:title" content="校园墙 - 校园信息交流平台">
+  <meta property="og:title" content="示例校园墙 - 校园信息交流平台">
   <meta property="og:description" content="匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://campus-wall.example">
-  <meta property="og:site_name" content="校园墙">
+  <meta property="og:url" content="http://localhost:3000">
+  <meta property="og:site_name" content="示例校园墙">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:image" content="https://campus-wall.example/images/show.jpg">
-  
+  <meta property="og:image" content="http://localhost:3000/images/show.jpg">
+
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="校园墙 - 校园信息交流平台">
+  <meta name="twitter:title" content="示例校园墙 - 校园信息交流平台">
   <meta name="twitter:description" content="匿名发帖畅所欲言，校园广播站点歌为你传递心声，快来体验吧！">
-  <meta name="twitter:image" content="https://campus-wall.example/images/show.jpg">
+  <meta name="twitter:image" content="http://localhost:3000/images/show.jpg">
   <link rel="preconnect" href="https://v1.hitokoto.cn" crossorigin>
 
   <!-- P0-1: 关键 CSS 内联 - variables + base + 关键首屏样式 -->
@@ -138,6 +138,7 @@
   </style>
 
   <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/campus-ui-polish.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
@@ -165,7 +166,7 @@
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">🏠 校园墙</a>
+      <a href="/" class="nav-logo">🏠 示例校园墙</a>
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
@@ -193,7 +194,7 @@
   <!-- 主内容区 -->
   <div class="main-content">
     <!-- SEO H1标签（视觉隐藏但对搜索引擎可见） -->
-    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">校园墙 - 校园信息交流平台，匿名发帖、校园点歌、表白求助</h1>
+    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">示例校园墙 - 校园信息交流平台，匿名发帖、校园点歌、表白求助</h1>
 
     <!-- 教师节主题寄语：默认隐藏，仅在管理员开启教师节模式时展示 -->
     <section class="teacher-theme-hero" aria-label="教师节主题寄语" hidden>
@@ -208,7 +209,7 @@
     <div class="teacher-theme-note" aria-label="教师节主题短句" hidden>
       <span>一支粉笔</span><i aria-hidden="true"></i><span>三尺讲台</span><i aria-hidden="true"></i><span>万千桃李</span>
     </div>
-    
+
     <!-- 歌单展示区 -->
     <div class="home-playlist-section" id="homePlaylistSection">
       <div class="playlist-header">
@@ -465,10 +466,10 @@
 
   <!-- 页脚 -->
   <footer class="footer">
-    <p>&copy; 2026 校园墙 All Rights Reserved</p>
+    <p>&copy; 2026 示例校园墙 All Rights Reserved</p>
     <p>
-      <a href="/agreement" target="_blank">用户协议</a> | 
-      <a href="/privacy" target="_blank">隐私政策</a> | 
+      <a href="/agreement" target="_blank">用户协议</a> |
+      <a href="/privacy" target="_blank">隐私政策</a> |
       <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a>
     </p>
   </footer>
@@ -478,22 +479,22 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "校园墙",
-    "alternateName": ["示例中学校园墙", "示例校园信息交流平台", "上海市嘉定区第二中学校园墙"],
-    "url": "https://campus-wall.example/",
-    "description": "示例中学校园信息交流平台。匿名发帖畅所欲言，校园广播站点歌为你传递心声。",
+    "name": "示例校园墙",
+    "alternateName": ["示例校园校园墙", "示例校园信息交流平台", "上海市嘉定区第二中学校园墙"],
+    "url": "http://localhost:3000/",
+    "description": "示例校园校园信息交流平台。匿名发帖畅所欲言，校园广播站点歌为你传递心声。",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://campus-wall.example/?search={search_term_string}",
+      "target": "http://localhost:3000/?search={search_term_string}",
       "query-input": "required name=search_term_string"
     },
     "publisher": {
       "@type": "Organization",
-      "name": "校园墙",
-      "url": "https://campus-wall.example/",
+      "name": "示例校园墙",
+      "url": "http://localhost:3000/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://campus-wall.example/logo-search.png",
+        "url": "http://localhost:3000/logo-search.png",
         "width": 220,
         "height": 220
       }
@@ -510,7 +511,7 @@
       "@type": "ListItem",
       "position": 1,
       "name": "首页",
-      "item": "https://campus-wall.example/"
+      "item": "http://localhost:3000/"
     }]
   }
   </script>
@@ -624,7 +625,7 @@
     (function() {
       const notificationBtn = document.getElementById('navNotification');
       const notificationBadge = document.getElementById('notificationBadge');
-      
+
       // 创建侧边栏弹窗
       function createNotificationSidebar() {
         var sidebar = document.createElement('div');
@@ -664,11 +665,11 @@
           document.body.style.paddingRight = scrollBarWidth + 'px';
         }
         document.body.style.overflow = 'hidden';
-        
+
         // 加载通知列表
         loadNotifications();
       };
-      
+
       // 关闭侧边栏
       window.closeNotificationSidebar = function() {
         var sidebar = document.getElementById('notificationSidebar');
@@ -678,14 +679,14 @@
           document.body.style.overflow = '';
         }
       };
-      
+
       // 加载通知列表
       async function loadNotifications() {
         const listEl = document.getElementById('notificationList');
         if (!listEl) return;
 
         listEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light,#94A3B8);">加载中...</div>';
-        
+
         try {
           const res = await fetch('/api/notifications', {
             headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || sessionStorage.getItem('token') || '') }
@@ -711,7 +712,7 @@
           listEl.innerHTML = '<div class="notification-empty"><div class="notification-empty-icon">⚠️</div><div class="notification-empty-text">加载失败</div></div>';
         }
       }
-      
+
       // 处理通知点击
       window.handleNotificationClick = function(notifId) {
         // 标记为已读
@@ -719,11 +720,11 @@
           method: 'PUT',
           headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('token') || sessionStorage.getItem('token') || '') }
         }).catch(function() {});
-        
+
         // 关闭侧边栏
         closeNotificationSidebar();
       };
-      
+
       // 绑定点击事件
       if (notificationBtn) {
         notificationBtn.addEventListener('click', function() {
@@ -734,7 +735,7 @@
           }
         });
       }
-      
+
       // 更新通知徽章数字
       function updateNotificationBadge(count) {
         if (notificationBadge) {
@@ -746,7 +747,7 @@
           }
         }
       }
-      
+
       // ===== 用户资料弹窗 =====
       window.showUserProfileModal = function(userId) {
         var modal = document.getElementById('userProfileModal');
@@ -818,7 +819,7 @@
             }
           });
       };
-      
+
       window.closeUserProfileModal = function() {
         var modal = document.getElementById('userProfileModal');
         if (modal) {
@@ -826,7 +827,7 @@
           document.body.style.overflow = '';
         }
       };
-      
+
       // 点击弹窗背景关闭
       document.addEventListener('click', function(e) {
         var modal = document.getElementById('userProfileModal');
@@ -834,7 +835,7 @@
           closeUserProfileModal();
         }
       });
-      
+
       // 暴露到全局
       window.updateNotificationBadge = updateNotificationBadge;
     })();
@@ -999,10 +1000,10 @@
         };
         return types[type] || '';
       }
-      
+
       // 快速加载，不阻塞页面渲染
       setTimeout(load, 100);
-      
+
       // 点击刷新按钮
       if (refreshBtn) {
         refreshBtn.addEventListener('click', function(e) {
@@ -1011,7 +1012,7 @@
           load();
         });
       }
-      
+
       // 点击整个卡片刷新
       if (sideHitokoto) {
         sideHitokoto.addEventListener('click', function(e) {
@@ -1021,7 +1022,7 @@
           }
         });
       }
-      
+
       // 原有的一言卡片点击
       var hitokotoCard = document.getElementById('hitokotoCard');
       if (hitokotoCard) {
@@ -1166,7 +1167,7 @@
 
       // 快速加载天气，不阻塞页面渲染
       setTimeout(load, 100);
-      
+
       // 点击卡片刷新
       if (sideWeather) {
         sideWeather.addEventListener('click', function() {
@@ -1298,11 +1299,11 @@
 
       let currentImages = [];
       let currentIndex = 0;
-      
+
       // 打开预览
       window.previewImage = function(imgSrc, allImages, index) {
         if (!modal) return;
-        
+
         if (allImages && allImages.length > 0) {
           currentImages = allImages;
           currentIndex = index || 0;
@@ -1310,7 +1311,7 @@
           currentImages = [imgSrc];
           currentIndex = 0;
         }
-        
+
         updatePreview();
         modal.style.display = 'flex';
         setTimeout(function() {
@@ -1318,7 +1319,7 @@
         }, 10);
         document.body.style.overflow = 'hidden';
       };
-      
+
       // 更新预览图片
       function updatePreview() {
         if (!previewImg || currentImages.length === 0) return;
@@ -1326,12 +1327,12 @@
         if (counter) {
           counter.textContent = (currentIndex + 1) + ' / ' + currentImages.length;
         }
-        
+
         // 显示/隐藏导航按钮
         if (prevBtn) prevBtn.style.display = currentImages.length > 1 ? 'flex' : 'none';
         if (nextBtn) nextBtn.style.display = currentImages.length > 1 ? 'flex' : 'none';
       }
-      
+
       // 关闭预览
       function closePreview() {
         if (!modal) return;
@@ -1341,21 +1342,21 @@
         }, 300);
         document.body.style.overflow = '';
       }
-      
+
       // 上一张
       function prevImage() {
         if (currentImages.length <= 1) return;
         currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
         updatePreview();
       }
-      
+
       // 下一张
       function nextImage() {
         if (currentImages.length <= 1) return;
         currentIndex = (currentIndex + 1) % currentImages.length;
         updatePreview();
       }
-      
+
       // 事件绑定
       if (closeBtn) closeBtn.addEventListener('click', closePreview);
       if (prevBtn) prevBtn.addEventListener('click', function(e) { e.stopPropagation(); prevImage(); });
@@ -1365,7 +1366,7 @@
           if (e.target === modal) closePreview();
         });
       }
-      
+
       // 键盘事件
       document.addEventListener('keydown', function(e) {
         if (!modal || modal.style.display === 'none') return;
@@ -1373,7 +1374,7 @@
         if (e.key === 'ArrowLeft') prevImage();
         if (e.key === 'ArrowRight') nextImage();
       });
-      
+
       // 触摸滑动
       let touchStartX = 0;
       let touchEndX = 0;
@@ -1382,7 +1383,7 @@
         modal.addEventListener('touchstart', function(e) {
           touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
-        
+
         modal.addEventListener('touchend', function(e) {
           touchEndX = e.changedTouches[0].screenX;
           var diff = touchStartX - touchEndX;
@@ -1396,7 +1397,7 @@
 
     // ===== 动态加载站点设置 =====
     (function() {
-      const defaultSiteName = '校园墙';
+      const defaultSiteName = '示例校园墙';
       const defaultSiteDesc = '校园信息交流平台';
       const CACHE_KEY = 'siteSettings';
       const CACHE_TTL = 3600 * 1000; // 1 小时

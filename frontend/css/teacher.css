@@ -505,8 +505,16 @@ body.mode-teacher .hot-song-item {
 }
 body.mode-teacher .slot-card-item.selected,
 body.mode-teacher .slot-card-item.active {
-  border-color: rgba(47,111,104,.55);
-  background: #eaf3ef;
+  border-color: #245f59;
+  background: linear-gradient(135deg, #286d66 0%, #1d5650 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(32, 94, 86, .24), inset 0 1px 0 rgba(255, 255, 255, .16);
+}
+body.mode-teacher .slot-card-item.selected .slot-card-time,
+body.mode-teacher .slot-card-item.selected .slot-card-remaining,
+body.mode-teacher .slot-card-item.active .slot-card-time,
+body.mode-teacher .slot-card-item.active .slot-card-remaining {
+  color: rgba(255, 255, 255, .88);
 }
 body.mode-teacher .playlist-item::before { background: #c9943e; }
 body.mode-teacher .playlist-item .song-name,

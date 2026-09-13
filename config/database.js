@@ -303,7 +303,8 @@ async function initDB() {
         start_time TIME NOT NULL COMMENT '播放开始时间',
         end_time TIME NOT NULL COMMENT '播放结束时间',
         is_active TINYINT DEFAULT 1 COMMENT '1启用 0禁用',
-        weekdays VARCHAR(20) DEFAULT '1,2,3,4,5' COMMENT '生效的星期，1-7',
+        weekdays VARCHAR(20) DEFAULT '1,2,3,4,5' COMMENT '生效的星期，周日0至周六6',
+        effective_start_date DATE DEFAULT NULL COMMENT '周期从此日期开始生效，NULL表示立即生效',
         max_songs INT DEFAULT 10 COMMENT '最多点歌数',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -320,6 +321,17 @@ async function initDB() {
       // 表可能不存在，忽略错误
     }
 
+    // 周期时段的生效日期。NULL 兼容旧时段，表示不限制起始日。
+    try {
+      const [timeStartDateColumns] = await connection.execute('SHOW COLUMNS FROM time_slots LIKE "effective_start_date"');
+      if (timeStartDateColumns.length === 0) {
+        await connection.execute('ALTER TABLE time_slots ADD COLUMN effective_start_date DATE DEFAULT NULL COMMENT \'周期从此日期开始生效，NULL表示立即生效\' AFTER weekdays');
+        console.log('✅ time_slots 表已添加周期生效日期字段');
+      }
+    } catch (e) {
+      console.error('time_slots 生效日期字段检查失败:', e.message);
+    }
+
     // 时段日期表 (slot_dates)
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS slot_dates (
@@ -328,23 +340,36 @@ async function initDB() {
         play_date DATE NOT NULL COMMENT '播放日期',
         max_songs INT DEFAULT 10 COMMENT '最大点歌数',
         is_active TINYINT DEFAULT 1 COMMENT '1启用 0禁用',
+        manual_override TINYINT DEFAULT 0 COMMENT '1为管理员单日例外，不随星期周期重置',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY unique_slot_date (slot_id, play_date)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
-    // 确保 slot_dates 表有 is_active 字段，并修复已有数据
+    // 确保 slot_dates 表有 is_active 字段。is_active=0 是管理员保留的
+    // “该日期不开放投稿”例外，绝不能在启动时重置，否则自动补齐会让
+    // 已关闭日期重新对用户开放。
     try {
       const [dateColumns] = await connection.execute('SHOW COLUMNS FROM slot_dates LIKE "is_active"');
       if (dateColumns.length === 0) {
         await connection.execute('ALTER TABLE slot_dates ADD COLUMN is_active TINYINT DEFAULT 1 COMMENT \'1启用 0禁用\' AFTER max_songs');
         console.log('✅ slot_dates 表已添加 is_active 字段');
       }
-      // 修复所有日期为启用状态
-      await connection.execute('UPDATE slot_dates SET is_active = 1 WHERE is_active = 0 OR is_active IS NULL');
-      console.log('✅ slot_dates 表已修复所有日期为启用状态');
+      await connection.execute('UPDATE slot_dates SET is_active = 1 WHERE is_active IS NULL');
     } catch (e) {
       console.error('slot_dates 表检查/修复失败:', e.message);
+    }
+
+    // 单日例外：允许在编辑日历中临时加播或停播，后续改星期时不能被周期维护覆盖。
+    try {
+      const [overrideColumns] = await connection.execute('SHOW COLUMNS FROM slot_dates LIKE "manual_override"');
+      if (overrideColumns.length === 0) {
+        await connection.execute('ALTER TABLE slot_dates ADD COLUMN manual_override TINYINT DEFAULT 0 COMMENT \'1为管理员单日例外，不随星期周期重置\' AFTER is_active');
+        console.log('✅ slot_dates 表已添加单日例外字段');
+      }
+      await connection.execute('UPDATE slot_dates SET manual_override = 0 WHERE manual_override IS NULL');
+    } catch (e) {
+      console.error('slot_dates 单日例外字段检查失败:', e.message);
     }
 
     // 点歌时段表 (song_slots)
@@ -455,7 +480,7 @@ async function initDB() {
 
     // 插入默认系统设置
     const defaultSettings = [
-      { key: 'site_name', value: '校园墙' },
+      { key: 'site_name', value: '示例校园墙' },
       { key: 'site_description', value: '校园信息交流平台' },
       { key: 'allow_register', value: 'true' },
       { key: 'register_email_verify_enabled', value: 'false' },
@@ -861,8 +886,9 @@ async function initDB() {
           source ENUM('wechat','manual') DEFAULT 'wechat' COMMENT '来源',
           submitter VARCHAR(100) COMMENT '提交者昵称',
           openid VARCHAR(64) COMMENT '微信openid',
-          status ENUM('pending','published') DEFAULT 'pending' COMMENT '状态',
-          published_at TIMESTAMP NULL COMMENT '发布时间',
+          status ENUM('pending','published') DEFAULT 'pending' COMMENT '同步状态: pending未发布/published已同步公众号草稿',
+          published_at TIMESTAMP NULL COMMENT '公众号草稿同步成功时间',
+          candidate_hidden_at TIMESTAMP NULL COMMENT '从公众号候选中移出时间，不改变同步状态',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='每日推歌推荐'
       `);
@@ -875,6 +901,15 @@ async function initDB() {
     try {
       await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN intro TEXT COMMENT 'AI生成的歌曲介绍' AFTER published_at");
       console.log('✅ daily_song_recs 表已添加 intro 字段');
+    } catch (e) {
+      if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
+    }
+
+    // 候选可见性独立于发布状态：管理员可以先将不再需要的推荐移出候选，
+    // 但不能伪造“已同步公众号”的 published / published_at。
+    try {
+      await connection.execute("ALTER TABLE daily_song_recs ADD COLUMN candidate_hidden_at TIMESTAMP NULL COMMENT '从公众号候选中移出时间，不改变同步状态' AFTER published_at");
+      console.log('✅ daily_song_recs 表已添加候选移出字段');
     } catch (e) {
       if (e.code !== 'ER_DUP_FIELDNAME') console.error('[DB迁移]', e.message);
     }
@@ -913,6 +948,7 @@ async function initDB() {
 
     const dailySongIndexes = [
       ['idx_daily_status_published', '(`status`, `published_at`, `created_at`)'],
+      ['idx_daily_candidate_visible', '(`candidate_hidden_at`, `status`, `published_at`)'],
       ['idx_daily_created', '(`created_at`)']
     ];
     for (const [indexName, indexDefinition] of dailySongIndexes) {

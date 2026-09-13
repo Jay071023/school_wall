@@ -1,39 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <style id="app-boot-style">
-    html.app-booting { background: #f7f1e6; }
-    html.app-booting body { visibility: hidden; }
-  </style>
-  <script>
-    (function () {
-      var root = document.documentElement;
-      root.classList.add("app-booting");
-      var released = false;
-      var themeReady = false;
-      var hardTimeoutId = window.setTimeout(function () { release(true); }, 7000);
-      function release(force) {
-        if (released || (!themeReady && !force)) return;
-        released = true;
-        window.clearTimeout(hardTimeoutId);
-        root.classList.remove("app-booting");
-      }
-      window.addEventListener("festival-theme-ready", function () {
-        themeReady = true;
-        release(false);
-      }, { once: true });
-    })();
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
-  <title>校园墙 - 个人主页</title>
+  <title>示例校园墙 - 个人主页</title>
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/campus-ui-polish.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/animations.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <link rel="stylesheet" href="/css/mobile-fix.css">
   <link rel="stylesheet" href="/css/user-card.css">
+  <link rel="stylesheet" href="/css/profile-polish-enhanced.css">
+  <link rel="stylesheet" href="/css/profile-polish.css">
+  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <script src="/js/theme-mode.js" defer></script>
   <style>
     .wechat-bind-card { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
@@ -176,426 +158,6 @@
       .wechat-modal-qr { width: 130px; height: 130px; }
     }
   </style>
-  <style id="page-responsive-fix">
-    /* 个人中心页面级布局：覆盖公共窄容器，但不改变公共 CSS/JS。 */
-    @media (min-width: 769px) {
-      body.profile-page .navbar .nav-inner {
-        width: min(1200px, calc(100% - 48px));
-        box-sizing: border-box;
-      }
-
-      body.profile-page .main-content {
-        width: min(1120px, calc(100% - 48px));
-        max-width: 1120px;
-        box-sizing: border-box;
-        padding: calc(var(--navbar-height) + 28px) 0 72px;
-      }
-
-      body.profile-page #profileCard {
-        display: grid;
-        grid-template-columns: minmax(140px, 180px) minmax(0, 1fr) minmax(220px, 280px);
-        grid-template-rows: auto auto auto auto auto auto;
-        column-gap: 32px;
-        align-items: start;
-        text-align: left;
-        padding: 36px;
-      }
-
-      body.profile-page #profileCard > .profile-avatar-wrapper {
-        grid-column: 1;
-        grid-row: 1 / span 5;
-        justify-self: center;
-        margin: 12px 0 0;
-      }
-
-      body.profile-page #profileCard > .profile-nickname {
-        grid-column: 2;
-        grid-row: 1;
-      }
-
-      body.profile-page #profileCard > .profile-stats {
-        grid-column: 2;
-        grid-row: 2;
-        width: 100%;
-        max-width: none;
-        margin: 14px 0;
-      }
-
-      body.profile-page #profileCard > .profile-join-time {
-        grid-column: 2;
-        grid-row: 3;
-      }
-
-      body.profile-page #profileCard > #profileInfo {
-        grid-column: 2;
-        grid-row: 4;
-      }
-
-      body.profile-page #profileCard > #profileDetailInfo {
-        grid-column: 2;
-        grid-row: 5;
-        justify-content: flex-start;
-        padding: 0;
-      }
-
-      body.profile-page #profileCard > #feedbackToggleBtn {
-        grid-column: 3;
-        grid-row: 1;
-        margin-top: 0 !important;
-      }
-
-      body.profile-page #profileCard > #feedbackInlineForm {
-        grid-column: 3;
-        grid-row: 2 / span 4;
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      body.profile-page #profileCard > .btn-edit-profile {
-        grid-column: 3;
-        width: 100%;
-      }
-
-      body.profile-page .wechat-bind-card {
-        display: grid;
-        grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
-        align-items: center;
-        gap: 28px;
-        text-align: left;
-      }
-
-      body.profile-page .wechat-bind-header {
-        margin-bottom: 0;
-      }
-
-      body.profile-page .wechat-bind-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        min-width: 0;
-        text-align: center;
-      }
-
-      body.profile-page .wechat-bind-hint {
-        flex: 1 1 240px;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 44px;
-        text-align: center;
-      }
-
-      body.profile-page .btn-wechat-unbind {
-        margin-left: 0;
-      }
-
-      body.profile-page .profile-tabs-section {
-        width: 100%;
-      }
-
-      body.profile-page .profile-tabs {
-        overflow: visible;
-      }
-
-      body.profile-page .profile-tab-content {
-        padding: 24px;
-      }
-    }
-
-    @media (min-width: 769px) and (max-width: 1599px) {
-      body.profile-page .side-cards-container {
-        display: none !important;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body.profile-page {
-        min-width: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-      }
-
-      body.profile-page .main-content {
-        width: 100%;
-        max-width: none;
-        box-sizing: border-box;
-        margin: 0;
-        padding: calc(var(--navbar-height) + 12px) 12px calc(104px + env(safe-area-inset-bottom, 0px));
-        overflow: visible;
-      }
-
-      body.profile-page .profile-card,
-      body.profile-page .profile-tabs-section {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-      }
-
-      body.profile-page #profileCard {
-        display: block;
-        text-align: center;
-        padding: 24px 16px;
-      }
-
-      body.profile-page .wechat-bind-card {
-        display: block;
-        text-align: center;
-      }
-
-      body.profile-page .wechat-bind-content {
-        display: block;
-      }
-
-      body.profile-page .wechat-bind-hint {
-        margin-bottom: 16px;
-      }
-
-      body.profile-page .btn-wechat-unbind {
-        margin: 8px 0 0;
-      }
-
-      body.profile-page .profile-tabs {
-        max-width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-      }
-
-      body.profile-page .profile-tab-content {
-        padding: 12px !important;
-      }
-
-      body.profile-page .side-cards-container {
-        display: none !important;
-      }
-    }
-
-    /* 个人中心最终收口：资料信息与账号操作分区，避免旧网格产生大块空白。 */
-    body.profile-page #profileCard::before {
-      content: none;
-    }
-
-    body.profile-page #profileCard {
-      background: linear-gradient(135deg, rgba(255, 252, 246, 0.98), rgba(255, 247, 251, 0.96));
-      border: 1px solid rgba(201, 160, 95, 0.22);
-      box-shadow: 0 18px 42px rgba(111, 82, 52, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-
-    body.profile-page .profile-main-info,
-    body.profile-page .profile-actions {
-      min-width: 0;
-    }
-
-    body.profile-page .profile-main-info #profileInfo {
-      min-height: 28px;
-    }
-
-    body.profile-page .profile-main-info .profile-nickname {
-      color: #244b48;
-      font-size: clamp(1.45rem, 2vw, 1.9rem);
-      letter-spacing: 0.04em;
-      line-height: 1.2;
-    }
-
-    body.profile-page .profile-main-info .profile-stats {
-      max-width: none;
-      margin: 22px 0 18px;
-      background: rgba(255, 255, 255, 0.72);
-      border-color: rgba(205, 164, 99, 0.24);
-      box-shadow: 0 8px 18px rgba(117, 87, 53, 0.06);
-    }
-
-    body.profile-page .profile-main-info .profile-stat-number {
-      background: linear-gradient(135deg, #b96a43, #2e766c);
-      -webkit-background-clip: text;
-      background-clip: text;
-    }
-
-    body.profile-page .profile-main-info .profile-stat-label {
-      color: #7a817d;
-    }
-
-    body.profile-page .profile-main-info .profile-join-time {
-      color: #8b918c;
-      margin: 0 0 6px;
-    }
-
-    body.profile-page .profile-main-info .profile-detail-info {
-      justify-content: flex-start;
-      padding: 0;
-      margin: 8px 0 0;
-    }
-
-    body.profile-page .profile-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    body.profile-page .profile-actions #feedbackToggleBtn {
-      margin: 0 !important;
-      min-height: 56px;
-    }
-
-    body.profile-page .profile-actions #feedbackInlineForm {
-      width: 100%;
-      box-sizing: border-box;
-      margin: -2px 0 0 !important;
-    }
-
-    body.profile-page .profile-action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    body.profile-page .profile-action-buttons .btn-edit-profile {
-      margin: 0 !important;
-      min-height: 48px;
-      border-radius: 15px;
-    }
-
-    body.profile-page .profile-action-buttons .btn-edit-profile:first-child {
-      background: linear-gradient(135deg, #2f746b, #4b9589);
-      border-color: transparent;
-      color: #fff;
-      box-shadow: 0 8px 18px rgba(47, 116, 107, 0.18);
-    }
-
-    body.profile-page .profile-action-buttons .btn-edit-profile:first-child:hover {
-      border-color: transparent;
-      color: #fff;
-      box-shadow: 0 11px 22px rgba(47, 116, 107, 0.25);
-    }
-
-    body.profile-page .profile-action-buttons .btn-secondary,
-    body.profile-page .profile-action-buttons .btn-admin {
-      background: rgba(255, 255, 255, 0.66);
-      border-color: rgba(47, 116, 107, 0.18);
-      color: #4f6964;
-    }
-
-    body.profile-page .profile-action-buttons .btn-secondary:hover,
-    body.profile-page .profile-action-buttons .btn-admin:hover {
-      border-color: rgba(47, 116, 107, 0.42);
-      color: #2f746b;
-      box-shadow: 0 8px 18px rgba(47, 116, 107, 0.1);
-    }
-
-    body.profile-page .profile-action-buttons .btn-logout {
-      background: rgba(190, 101, 76, 0.07);
-      border-color: rgba(190, 101, 76, 0.2);
-      color: #a45e4b;
-    }
-
-    body.profile-page .profile-action-buttons .btn-logout:hover,
-    body.profile-page .profile-action-buttons .btn-logout:focus-visible {
-      border-color: rgba(190, 101, 76, 0.46);
-      color: #914634;
-      background: rgba(190, 101, 76, 0.12);
-      box-shadow: 0 8px 18px rgba(190, 101, 76, 0.12);
-    }
-
-    @media (min-width: 769px) {
-      body.profile-page #profileCard {
-        display: grid;
-        grid-template-columns: 156px minmax(0, 1fr) minmax(238px, 270px);
-        grid-template-areas: "avatar info actions";
-        align-items: start;
-        column-gap: 30px;
-        padding: 34px 38px 32px;
-      }
-
-      body.profile-page #profileCard > .profile-avatar-wrapper {
-        grid-area: avatar;
-        justify-self: center;
-        margin: 18px 0 0;
-      }
-
-      body.profile-page #profileCard > .profile-main-info {
-        grid-area: info;
-        padding-top: 6px;
-      }
-
-      body.profile-page #profileCard > .profile-actions {
-        grid-area: actions;
-        padding-top: 4px;
-      }
-
-      /* 桌面端顶部导航已有退出入口，资料卡只保留移动端退出按钮，避免重复。 */
-      body.profile-page .profile-action-buttons .btn-logout {
-        display: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      body.profile-page #profileCard {
-        display: block;
-        padding: 26px 16px 20px;
-      }
-
-      body.profile-page #profileCard > .profile-avatar-wrapper {
-        margin: 0 auto 16px;
-      }
-
-      body.profile-page .profile-main-info {
-        text-align: center;
-      }
-
-      body.profile-page .profile-main-info .profile-detail-info {
-        justify-content: center;
-      }
-
-      body.profile-page .profile-main-info .profile-stats {
-        margin: 18px 0 16px;
-      }
-
-      body.profile-page .profile-actions {
-        margin-top: 22px;
-        gap: 12px;
-      }
-
-      body.profile-page .profile-action-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      body.profile-page .profile-action-buttons .btn-edit-profile {
-        min-height: 46px;
-        padding-inline: 10px;
-      }
-
-      body.profile-page .profile-action-buttons .btn-logout {
-        display: block;
-        grid-column: 1 / -1;
-      }
-    }
-
-    [data-theme="dark"] body.profile-page #profileCard {
-      background: linear-gradient(135deg, rgba(35, 49, 53, 0.96), rgba(56, 42, 57, 0.94));
-      border-color: rgba(183, 154, 107, 0.26);
-      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-
-    [data-theme="dark"] body.profile-page .profile-main-info .profile-nickname {
-      color: #e4eee9;
-    }
-
-    [data-theme="dark"] body.profile-page .profile-main-info .profile-stats {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    [data-theme="dark"] body.profile-page .profile-action-buttons .btn-secondary,
-    [data-theme="dark"] body.profile-page .profile-action-buttons .btn-admin {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.12);
-      color: #c4d4cf;
-    }
-  </style>
 <meta name="robots" content="noindex, nofollow">
   <script>(function(){var bp=document.createElement('script');var curProtocol=window.location.protocol.split(':')[0];if(curProtocol==='https'){bp.src='https://zz.bdstatic.com/linksubmit/push.js'}else{bp.src='http://push.zhanzhang.baidu.com/push.js'}var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bp,s)})();</script>
 </head>
@@ -610,7 +172,7 @@
   <!-- 导航栏 -->
   <nav class="navbar" id="navbar">
     <div class="nav-inner">
-      <a href="/" class="nav-logo">🏠 校园墙</a>
+      <a href="/" class="nav-logo">🏠 示例校园墙</a>
       <div class="nav-links" id="navLinks">
         <a href="/" class="nav-link" data-page="home"><span>🏠</span> 首页</a>
         <a href="/radio" class="nav-link" data-page="radio"><span>🎵</span> 点歌</a>
@@ -642,37 +204,35 @@
       <div class="profile-avatar-wrapper">
         <img class="profile-avatar" id="profileAvatar" src="/images/default-avatar.png" alt="头像">
       </div>
-      <div class="profile-main-info">
-        <div class="profile-nickname" id="profileNickname"></div>
-        <div class="profile-stats" id="profileStats">
-          <div class="profile-stat">
-            <span class="profile-stat-number" id="profilePostCount">0</span>
-            <span class="profile-stat-label">发帖</span>
-          </div>
-          <div class="profile-stat">
-            <span class="profile-stat-number" id="profileCommentCount">0</span>
-            <span class="profile-stat-label">评论</span>
-          </div>
-          <div class="profile-stat">
-            <span class="profile-stat-number" id="profileLikeCount">0</span>
-            <span class="profile-stat-label">获赞</span>
-          </div>
-          <div class="profile-stat">
-            <span class="profile-stat-number" id="profileFollowerCount">0</span>
-            <span class="profile-stat-label">粉丝</span>
-          </div>
-          <div class="profile-stat">
-            <span class="profile-stat-number" id="profileFollowingCount">0</span>
-            <span class="profile-stat-label">关注</span>
-          </div>
+      <div class="profile-nickname" id="profileNickname"></div>
+      <div class="profile-stats" id="profileStats">
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profilePostCount">0</span>
+          <span class="profile-stat-label">发帖</span>
         </div>
-        <div class="profile-join-time" id="profileJoinTime"></div>
-        <div id="profileInfo"></div>
-
-        <!-- 用户资料信息（性别/MBTI/生日/爱好） -->
-        <div class="profile-detail-info" id="profileDetailInfo"></div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileCommentCount">0</span>
+          <span class="profile-stat-label">评论</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileLikeCount">0</span>
+          <span class="profile-stat-label">获赞</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileFollowerCount">0</span>
+          <span class="profile-stat-label">粉丝</span>
+        </div>
+        <div class="profile-stat">
+          <span class="profile-stat-number" id="profileFollowingCount">0</span>
+          <span class="profile-stat-label">关注</span>
+        </div>
       </div>
-      <div class="profile-actions">
+      <div class="profile-join-time" id="profileJoinTime"></div>
+      <div id="profileInfo"></div>
+
+      <!-- 用户资料信息（性别/MBTI/生日/爱好） -->
+      <div class="profile-detail-info" id="profileDetailInfo"></div>
+
       <div class="profile-menu-item" style="display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--card-bg);border-radius:12px;margin-top:16px;cursor:pointer;border:1px solid var(--border-color);transition:all 0.2s;" onclick="toggleFeedbackForm()" id="feedbackToggleBtn">
         <span style="font-size:1.3rem;">💬</span>
         <span>意见反馈</span>
@@ -707,14 +267,10 @@
           box-shadow: 0 0 0 3px rgba(192,132,252,0.15);
         }
       </style>
-      
-      <div class="profile-action-buttons">
-        <button class="btn-edit-profile" onclick="window.location.href='/edit-profile'">✏️ 编辑资料</button>
-        <button class="btn-edit-profile btn-secondary" id="changePasswordBtn">⚙️ 修改密码</button>
-        <button class="btn-edit-profile btn-admin" id="adminPanelBtn" onclick="window.location.href='/admin'">🛠️ 管理后台</button>
-        <button class="btn-edit-profile btn-logout" id="profileLogoutBtn" type="button">↪️ 退出登录</button>
-      </div>
-      </div>
+
+      <button class="btn-edit-profile" onclick="window.location.href='/edit-profile'">✏️ 编辑资料</button>
+      <button class="btn-edit-profile btn-secondary" id="changePasswordBtn">⚙️ 修改密码</button>
+      <button class="btn-edit-profile btn-admin" id="adminPanelBtn" onclick="window.location.href='/admin'">⚙️ 管理后台</button>
     </div>
 
     <div class="profile-card wechat-bind-card" id="wechatBindCard">
@@ -994,7 +550,7 @@
   <script>var currentUser = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || 'null');</script>
   <script>
     (function() {
-      var defaultSiteName = '校园墙';
+      var defaultSiteName = '示例校园墙';
       var cachedSettings = localStorage.getItem('siteSettings');
       if (cachedSettings) {
         try {
@@ -1023,6 +579,21 @@
         document.title = siteName + ' - 个人主页';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
+        // 520特别模式
+        if (settings.special_mode_520) {
+          document.body.classList.add('mode-520', 'profile-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = false;
+        } else {
+          document.body.classList.remove('mode-520', 'profile-page');
+          var themeCss = document.getElementById('theme-520-css');
+          if (themeCss) themeCss.disabled = true;
+        }
+        var themeColorMeta = document.getElementById('themeColorMeta');
+        if (themeColorMeta) {
+          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
+        }
       }
     })();
   </script>
@@ -1261,9 +832,9 @@
       <span class="tab-label">我的</span>
     </a>
   </nav>
-  
+
   <footer class="footer">
-    <p>&copy; 2026 校园墙 All Rights Reserved</p>
+    <p>&copy; 2026 示例校园墙 All Rights Reserved</p>
     <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2025514735号-3</a></p>
   </footer>
 </body>

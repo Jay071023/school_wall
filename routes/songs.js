@@ -1,8 +1,77 @@
 const express = require('express');
 const { pool } = require('../config/database');
 const { auth, optionalAuth } = require('../middleware/auth');
-const { getChinaDate, getChinaDayOfWeek } = require('../services/date');
+const { getChinaDate, getChinaDayOfWeek, getChinaJsDayOfWeek } = require('../services/date');
+const { notifySongPlayed, notifyRadioAdminsNewSongPending } = require('../services/email');
 const router = express.Router();
+
+const AUTO_PLAY_REFRESH_MS = 60 * 1000;
+let autoPlayTask = null;
+let autoPlayTimer = null;
+
+function getChinaTime(now = new Date()) {
+  const chinaNow = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  return [chinaNow.getUTCHours(), chinaNow.getUTCMinutes(), chinaNow.getUTCSeconds()]
+    .map(value => String(value).padStart(2, '0')).join(':');
+}
+
+// 已审核歌曲在所属播放时段结束后自动归档为“已播放”。使用结束时间而非开始时间，
+// 避免歌曲仍在播放时就从前台列表消失；每条更新带 status 条件以避免重复通知。
+async function markDueApprovedSongsAsPlayed() {
+  if (autoPlayTask) return autoPlayTask;
+  autoPlayTask = (async () => {
+    const today = getChinaDate();
+    const nowTime = getChinaTime();
+    const [dueSongs] = await pool.execute(
+      `SELECT sr.id, sr.song_name, sr.artist, sr.user_id, u.email, u.nickname, u.username
+       FROM song_requests sr
+       JOIN slot_dates sd ON sd.id = sr.slot_date_id
+       JOIN time_slots ts ON ts.id = sr.slot_id
+       LEFT JOIN users u ON u.id = sr.user_id
+       WHERE sr.status = 'approved' AND sr.deleted_at IS NULL
+         AND (sd.play_date < ? OR (sd.play_date = ? AND ts.end_time <= ?))`,
+      [today, today, nowTime]
+    );
+    const playedSongs = [];
+    for (const song of dueSongs) {
+      const [result] = await pool.execute(
+        "UPDATE song_requests SET status = 'played', reject_reason = NULL WHERE id = ? AND status = 'approved' AND deleted_at IS NULL",
+        [song.id]
+      );
+      if (result.affectedRows > 0) playedSongs.push(song);
+    }
+    if (playedSongs.length > 0) {
+      setImmediate(async () => {
+        for (const song of playedSongs) {
+          if (!song.email) continue;
+          try {
+            await notifySongPlayed(song.email, song.nickname || song.username || '用户', song.song_name || '未知', song.artist || '未知', song.user_id);
+          } catch (err) {
+            console.error('[Songs] 自动播放通知失败:', err.message);
+          }
+        }
+      });
+      console.log(`[Songs] 已自动标记 ${playedSongs.length} 首点歌为已播放`);
+    }
+    return playedSongs.length;
+  })().catch(err => {
+    console.error('[Songs] 自动标记已播放失败:', err.message);
+    return 0;
+  }).finally(() => {
+    autoPlayTask = null;
+  });
+  return autoPlayTask;
+}
+
+function startAutoPlaybackMaintenance() {
+  if (autoPlayTimer) return;
+  const run = () => { markDueApprovedSongsAsPlayed(); };
+  setTimeout(run, 8000).unref();
+  autoPlayTimer = setInterval(run, AUTO_PLAY_REFRESH_MS);
+  if (typeof autoPlayTimer.unref === 'function') autoPlayTimer.unref();
+}
+
+startAutoPlaybackMaintenance();
 
 function parseBoundedPositiveInt(value, fallback, max) {
   if (value === undefined || value === null) return fallback;
@@ -63,23 +132,49 @@ const FUTURE_DATES_RETRY_MS = 60 * 1000;
 
 async function populateFutureDates(pool) {
   try {
-    const [slots] = await pool.execute('SELECT id, weekdays FROM time_slots WHERE is_active = 1');
+    let slots;
+    let hasSlotCapacity = true;
+    try {
+      [slots] = await pool.execute('SELECT id, weekdays, effective_start_date, max_songs FROM time_slots WHERE is_active = 1');
+    } catch (e) {
+      // 兼容尚未迁移 time_slots.max_songs 的旧数据库。
+      hasSlotCapacity = false;
+      [slots] = await pool.execute('SELECT id, weekdays, effective_start_date FROM time_slots WHERE is_active = 1');
+    }
     if (slots.length === 0) return true;
-
-    // 读取管理后台设置的点歌上限
-    var [limitRows] = await pool.execute("SELECT config_value FROM settings WHERE config_key = 'daily_song_limit'");
-    var maxSongs = getDailySongLimit(limitRows.length > 0 ? limitRows[0].config_value : undefined);
     const { today, rangeEnd } = getChinaDayRange();
 
-    // 同步已有日期到正确的上限值（修复之前硬编码10的问题）
-    await pool.execute('UPDATE slot_dates SET max_songs = ? WHERE max_songs != ? AND play_date >= ?', [maxSongs, maxSongs, today]);
+    // “每人每日点歌上限”是用户级限制，不能用来覆盖播放时段容量。
+    // 优先读取每个时段最近的非单日例外容量，避免自动维护改写管理员的时段设置。
+    const [capacityRows] = await pool.execute(
+      'SELECT slot_id, max_songs, manual_override FROM slot_dates WHERE play_date >= ? ORDER BY play_date DESC, id DESC',
+      [today]
+    );
+    const slotCapacityById = new Map();
+    for (const slot of slots) {
+      const configuredCapacity = hasSlotCapacity && Number(slot.max_songs) > 0
+        ? parseBoundedPositiveInt(slot.max_songs, 10, 100)
+        : null;
+      if (configuredCapacity) slotCapacityById.set(slot.id, configuredCapacity);
+    }
+    for (const row of capacityRows) {
+      if (slotCapacityById.has(row.slot_id) || Number(row.manual_override) === 1) continue;
+      const capacity = parseBoundedPositiveInt(row.max_songs, 10, 100);
+      slotCapacityById.set(row.slot_id, capacity);
+    }
 
     const dateRows = [];
     let insertedCount = 0;
     for (let i = 0; i < 14; i++) {
       const dateStr = getChinaDate(i);
-      const dayOfWeek = getChinaDayOfWeek(dateStr);
+      const dayOfWeek = getChinaJsDayOfWeek(dateStr);
       for (const slot of slots) {
+        const effectiveStartDate = slot.effective_start_date
+          ? String(slot.effective_start_date).split('T')[0]
+          : '';
+        if (effectiveStartDate && dateStr < effectiveStartDate) {
+          continue;
+        }
         // 如果时段设置了周周期，检查当前日期是否在允许的范围内
         if (slot.weekdays && slot.weekdays !== '') {
           const allowedDays = slot.weekdays.split(',').map(w => parseInt(w));
@@ -87,7 +182,7 @@ async function populateFutureDates(pool) {
             continue; // 跳过不在允许范围内的日期
           }
         }
-        dateRows.push([slot.id, dateStr, maxSongs]);
+        dateRows.push([slot.id, dateStr, slotCapacityById.get(slot.id) || 10]);
       }
     }
 
@@ -155,14 +250,20 @@ startFutureDatesMaintenance(pool);
 
 router.get('/slots', optionalAuth, async (req, res) => {
   try {
+    // 时段状态由管理员日历实时控制，禁止浏览器/CDN继续使用旧的开放日期。
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    // 首次打开点歌页时，后台维护任务可能尚未完成；在查询前幂等补齐未来日期，
+    // 避免刚配置的周期因 slot_dates 尚未生成而被误报“没有可用时段”。
+    await ensureFutureDates(pool);
     // 显示从今天开始的14天内日期
     const { today, rangeEnd } = getChinaDayRange();
     const [[slots], [dates], [counts]] = await Promise.all([
       pool.execute('SELECT * FROM time_slots WHERE is_active = 1 ORDER BY start_time'),
       pool.execute(
-        'SELECT sd.*, ts.name, ts.start_time, ts.end_time FROM slot_dates sd ' +
+        'SELECT sd.*, ts.name, ts.start_time, ts.end_time, ts.weekdays, ts.effective_start_date FROM slot_dates sd ' +
         'JOIN time_slots ts ON sd.slot_id = ts.id ' +
-        'WHERE sd.is_active = 1 AND sd.play_date >= ? AND sd.play_date < ? ' +
+        'WHERE sd.is_active = 1 AND ts.is_active = 1 AND (ts.effective_start_date IS NULL OR sd.play_date >= ts.effective_start_date) AND sd.play_date >= ? AND sd.play_date < ? ' +
         'ORDER BY sd.play_date, ts.start_time, sd.id',
         [today, rangeEnd]
       ),
@@ -190,8 +291,8 @@ router.get('/slots', optionalAuth, async (req, res) => {
       if (slot.weekdays && slot.weekdays !== '') {
         const allowedDays = slot.weekdays.split(',').map(w => Number(w.trim())).filter(Number.isInteger);
         slotDates = slotDates.filter(d => {
-          const dayOfWeek = getChinaDayOfWeek(d.play_date);
-          return allowedDays.includes(dayOfWeek);
+          const dayOfWeek = getChinaJsDayOfWeek(d.play_date);
+          return Number(d.manual_override) === 1 || allowedDays.includes(dayOfWeek);
         });
       }
       slotDates = slotDates.map(d => {
@@ -231,10 +332,12 @@ router.get('/slots', optionalAuth, async (req, res) => {
 router.post('/', auth, async (req, res) => {
   try {
     const { song_name, artist, message, to_whom, slot_date_id, slot_id, is_anonymous } = req.body;
+    const songName = String(song_name || '').trim();
+    const songArtist = String(artist || '').trim();
     const slotDateId = parseBoundedPositiveInt(slot_date_id, null, Number.MAX_SAFE_INTEGER);
     
-    if (!song_name || !slotDateId) {
-      return res.json({ code: 400, message: '请填写歌曲名和选择时段日期' });
+    if (!songName || !songArtist || !slotDateId) {
+      return res.json({ code: 400, message: '歌曲名和歌手为必填项，请选择播放时段和日期' });
     }
 
     // 日期补充属于显式写入请求，GET /slots 保持纯查询。
@@ -249,6 +352,7 @@ router.post('/', auth, async (req, res) => {
       }
     }
     
+    let pendingReviewNotice = null;
     const connection = await pool.getConnection();
     try {
       await connection.beginTransaction();
@@ -257,12 +361,12 @@ router.post('/', auth, async (req, res) => {
       // 锁定用户和日期行，使每日上限、名额检查与插入保持同一事务。
       await connection.execute('SELECT id FROM users WHERE id = ? FOR UPDATE', [req.user.id]);
       const [slotDates] = await connection.execute(
-        'SELECT sd.*, ts.name as slot_name, ts.start_time, ts.end_time FROM slot_dates sd ' +
+        'SELECT sd.*, ts.name as slot_name, ts.start_time, ts.end_time, ts.weekdays, ts.effective_start_date FROM slot_dates sd ' +
         'JOIN time_slots ts ON sd.slot_id = ts.id ' +
-        'WHERE sd.id = ? AND sd.is_active = 1 AND ts.is_active = 1 AND sd.play_date >= ? AND sd.play_date < ? FOR UPDATE',
+        'WHERE sd.id = ? AND sd.is_active = 1 AND ts.is_active = 1 AND (ts.effective_start_date IS NULL OR sd.play_date >= ts.effective_start_date) AND sd.play_date >= ? AND sd.play_date < ? FOR UPDATE',
         [slotDateId, today, rangeEnd]
       );
-      if (slotDates.length === 0) {
+    if (slotDates.length === 0) {
         await connection.rollback();
         return res.json({ code: 400, message: '该时段日期不可用或已过期' });
       }
@@ -272,6 +376,15 @@ router.post('/', auth, async (req, res) => {
       if (slot_id && String(slot_id) !== String(actualSlotId)) {
         await connection.rollback();
         return res.json({ code: 400, message: '时段日期不匹配' });
+      }
+
+      // 数据库中的 slot_dates 是历史生成记录；周期配置可能已被管理员调整。
+      // 提交时在同一事务中再次校验，避免旧日期绕过当前星期限制。
+      const allowedDays = String(slotDate.weekdays || '')
+        .split(',').map(Number).filter(day => Number.isInteger(day) && day >= 0 && day <= 6);
+      if (allowedDays.length > 0 && Number(slotDate.manual_override) !== 1 && !allowedDays.includes(getChinaJsDayOfWeek(slotDate.play_date))) {
+        await connection.rollback();
+        return res.json({ code: 400, message: '该日期不在当前开放周期内，请选择其他日期' });
       }
 
       const [countResult] = await connection.execute(
@@ -299,15 +412,33 @@ router.post('/', auth, async (req, res) => {
 
       const [result] = await connection.execute(
         'INSERT INTO song_requests (user_id, song_name, artist, message, to_whom, slot_id, slot_date_id, is_anonymous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [req.user.id, song_name, artist || '', message || '', to_whom || '', actualSlotId, slotDateId, is_anonymous ? 1 : 0]
+        [req.user.id, songName, songArtist, message || '', to_whom || '', actualSlotId, slotDateId, is_anonymous ? 1 : 0]
       );
       await connection.commit();
+      pendingReviewNotice = {
+        songName,
+        artist: songArtist,
+        playDate: slotDate.play_date,
+        slotName: slotDate.slot_name,
+        startTime: slotDate.start_time,
+        endTime: slotDate.end_time,
+        requesterName: is_anonymous ? '匿名' : (req.user.nickname || req.user.username || '同学')
+      };
       res.json({ code: 200, message: '点歌成功', data: { id: result.insertId } });
     } catch (transactionError) {
       try { await connection.rollback(); } catch (_) {}
       throw transactionError;
     } finally {
       connection.release();
+    }
+
+    // 邮件只在事务提交成功后异步发送；SMTP 或邮件日志失败均不能影响点歌结果。
+    if (pendingReviewNotice) {
+      setImmediate(function() {
+        notifyRadioAdminsNewSongPending(pendingReviewNotice).catch(function(err) {
+          console.error('[Songs] 通知广播管理员审核失败:', err.message);
+        });
+      });
     }
   } catch (err) {
     console.error('点歌错误:', err.message);

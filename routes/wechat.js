@@ -12,7 +12,7 @@ const router = express.Router();
 
 const WECHAT_TOKEN = process.env.WECHAT_TOKEN || '';
 const WECHAT_ENCODING_AES_KEY = process.env.WECHAT_ENCODING_AES_KEY || '';
-const WECHAT_APPID = process.env.WECHAT_APPID || 'wx0000000000000000';
+const WECHAT_APPID = process.env.WECHAT_APPID || 'wx513226ad98127a0d';
 const WECHAT_SIGNATURE_TTL_SECONDS = Math.max(60, Number(process.env.WECHAT_SIGNATURE_TTL_SECONDS) || 300);
 const WECHAT_BODY_LIMIT_BYTES = Math.max(16 * 1024, Number(process.env.WECHAT_BODY_LIMIT_BYTES) || 256 * 1024);
 

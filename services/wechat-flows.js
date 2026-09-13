@@ -97,7 +97,7 @@ async function doPolish(openid, s) {
     deferred: async function() {
       try {
         var polished = await aiService.getAIReply(
-          '请帮我润色这段投稿内容，修正语病和错别字，让表达更通顺自然，但不要改变原意和语气风格，不要添加新内容，直接返回润色后的文字即可。原文：' + s.content,
+          '请润色下面这段校园投稿：只修正错别字、语病、标点和明显重复，让表达更顺畅；保留原意、事实、情绪、口吻和段落，不新增人物、时间、地点或观点，不删掉关键信息。只返回润色后的正文，不要解释修改过程，不要加标题或引号。\n\n原文：\n' + s.content,
           openid
         );
         if (polished && polished.trim() !== s.content.trim()) {

@@ -2,7 +2,7 @@
 
 ## 对照材料
 
-- 设计参考：`C:\Users\JAYji\.codex\generated_images\01a034e1-2411-7e43-84c9-8783602ce5d7\exec-0d141d8b-edaa-44c0-a6cc-33686bb59422.png`
+- 设计参考：`path/to/reference-image.png`
 - PC 实际渲染：`artifacts/review-screens/home-controls-restored-desktop-review.png`
 - PC 1440 同宽操作态：`artifacts/review-screens/home-checkin-same-width-action-1440.png`
 - PC 1280 同宽操作态：`artifacts/review-screens/home-checkin-same-width-action-1280.png`

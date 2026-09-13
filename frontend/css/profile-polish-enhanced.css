@@ -1,0 +1,174 @@
+/* =======================================================
+   🌸 个人中心 (Profile Page) 视觉层级与色彩统一精修
+   ======================================================= */
+
+/* --- 1. 彻底消灭突兀的墨绿色「编辑资料」按钮！--- */
+body.profile-page .btn-edit-profile,
+.btn-edit-profile {
+  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 16px rgba(255, 101, 132, 0.3) !important;
+  font-weight: 700 !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+body.profile-page .btn-edit-profile:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 24px rgba(255, 101, 132, 0.45) !important;
+  color: #FFFFFF !important;
+}
+
+/* 次要操作（修改密码、管理后台）：半透明精致白底微描边 */
+body.profile-page .btn-edit-profile.btn-secondary,
+body.profile-page .btn-edit-profile.btn-admin {
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #64748B !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+body.profile-page .btn-edit-profile.btn-secondary:hover,
+body.profile-page .btn-edit-profile.btn-admin:hover {
+  border-color: #C084FC !important;
+  color: #8B5CF6 !important;
+  background: #FFFFFF !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.12) !important;
+}
+
+/* --- 2. 积分与等级面板：升级为勋章质感 --- */
+.profile-points-info,
+#profileCard [style*="background: rgb(255, 251, 252)"],
+#profileCard .profile-points-info {
+  background: linear-gradient(135deg, rgba(255, 245, 248, 0.9) 0%, rgba(250, 245, 255, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 101, 132, 0.15) !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+}
+
+/* 等级高亮勋章 */
+#profileCard strong,
+#profileCard span[style*="color: rgb(40, 114, 86)"],
+#profileCard .user-level-badge {
+  color: #8B5CF6 !important;
+  background: rgba(139, 92, 246, 0.1) !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-weight: 700 !important;
+}
+
+/* --- 3. 拯救未读通知的“警告大黄块”！--- */
+/* 去掉刺眼的柠檬黄，改用温馨草莓柔光底色 */
+.notification-item.unread,
+div[style*="background: rgb(254, 249, 195)"],
+div[style*="background-color: rgb(254, 249, 195)"] {
+  background: linear-gradient(135deg, rgba(255, 240, 245, 0.85) 0%, rgba(253, 242, 248, 0.85) 100%) !important;
+  border: 1px solid rgba(255, 101, 132, 0.2) !important;
+  border-left: 4px solid #FF6584 !important; /* 左侧粉色提示条 */
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(255, 101, 132, 0.08) !important;
+  transition: all 0.25s ease !important;
+}
+
+/* 已读通知：干净的浅灰白底色 */
+.notification-item,
+div[style*="background: rgb(248, 250, 252)"] {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 16px !important;
+  margin-bottom: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+.notification-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 101, 132, 0.25) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 全部已读按钮 */
+button.btn-mark-all,
+button:has(span:contains("全部标记为已读")),
+.btn-read-all {
+  background: linear-gradient(135deg, #FF6584 0%, #FF8A80 100%) !important;
+  box-shadow: 0 4px 12px rgba(255, 101, 132, 0.25) !important;
+  border-radius: 999px !important;
+}
+
+/* --- 4. 微信绑定 & 邮件通知设置区域紧凑化降噪 --- */
+/* 微信绑定条：不要空旷，更具卡片质感 */
+.wechat-bind-card,
+div:has(> .wechat-status) {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 18px !important;
+  padding: 12px 20px !important;
+}
+
+/* 解除绑定按钮弱化 */
+.btn-wechat-unbind,
+button:has(span:contains("解除绑定")) {
+  background: rgba(241, 245, 249, 0.8) !important;
+  border: 1px solid rgba(203, 213, 225, 0.6) !important;
+  border-radius: 999px !important;
+  color: #64748B !important;
+  font-size: 0.8rem !important;
+}
+
+.btn-wechat-unbind:hover {
+  color: #EF4444 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  background: rgba(254, 242, 242, 0.9) !important;
+}
+
+/* 邮件通知设置卡：紧凑轻量，减少纵向占用 */
+.notify-settings-card {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 20px !important;
+  padding: 18px 24px !important;
+  margin-bottom: 20px !important;
+}
+
+.notify-setting-item {
+  padding: 8px 14px !important;
+  border-radius: 12px !important;
+  background: rgba(248, 250, 252, 0.6) !important;
+  border: 1px solid rgba(226, 232, 240, 0.5) !important;
+}
+
+/* 开关（Toggle Switch）果冻粉紫色 */
+.notify-switch input:checked + .slider {
+  background: linear-gradient(135deg, #FF6584 0%, #C084FC 100%) !important;
+  box-shadow: 0 2px 8px rgba(255, 101, 132, 0.35) !important;
+}
+
+/* --- 5. 个人主页底部 Tab 栏与帖子列表 --- */
+.profile-tabs-section {
+  border-radius: 22px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+.profile-tab {
+  font-weight: 600 !important;
+  color: #94A3B8 !important;
+  transition: all 0.25s ease !important;
+}
+
+.profile-tab.active {
+  color: #FF6584 !important;
+  font-weight: 800 !important;
+  border-bottom: 3px solid #FF6584 !important;
+}
+
+/* 帖子卡片右侧的阅读量药丸（比如 👁 525） */
+.profile-my-post-views,
+span[style*="background: linear-gradient(135deg, rgba(255, 107, 157, 0.1)"] {
+  background: rgba(255, 101, 132, 0.08) !important;
+  color: #FF6584 !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}

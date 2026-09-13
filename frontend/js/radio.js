@@ -338,8 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (radioForm) {
     radioForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      var songName = document.getElementById('songName').value.trim();
-      var artist = document.getElementById('songArtist').value.trim();
+      var songNameInput = document.getElementById('songName');
+      var artistInput = document.getElementById('songArtist');
+      var songName = songNameInput.value.trim();
+      var artist = artistInput.value.trim();
       var toWhom = document.getElementById('songRecipient').value.trim();
       var message = document.getElementById('songMessage').value.trim();
       var slotId = slotSelect.value;
@@ -347,8 +349,16 @@ document.addEventListener('DOMContentLoaded', function() {
       var isAnonymous = document.getElementById('radioAnonymous').checked;
       var submitBtn = document.getElementById('submitSong');
 
-      if (!songName || !slotId || !dateId) {
-        showToast('请填写歌曲名并选择时段和日期', 'error');
+      if (!songName || !artist || !slotId || !dateId) {
+        if (!songName) {
+          showToast('歌曲名为必填项，请填写歌曲名', 'error');
+          songNameInput.focus();
+        } else if (!artist) {
+          showToast('歌手为必填项，请填写歌手名', 'error');
+          artistInput.focus();
+        } else {
+          showToast('请选择播放时段和日期', 'error');
+        }
         return;
       }
 
@@ -373,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
           loadPlaylist();
           loadMySongs(); // 刷新我的点歌记录
           // 显示提交成功详情
-          var info = songName + (artist ? ' - ' + artist : '');
+          var info = songName + ' - ' + artist;
           var selectedDate = dateSelect.querySelector('option[value="' + dateId + '"]');
           var dateInfo = selectedDate ? selectedDate.textContent : '';
           showSongSubmitConfirm(info, dateInfo, toWhom, message);

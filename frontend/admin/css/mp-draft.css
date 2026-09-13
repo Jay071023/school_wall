@@ -751,13 +751,58 @@ body.admin-mp-page [data-theme="dark"] .selection-action-bar,
     color: var(--mp-subtle);
   }
 
-  body.admin-mp-page .post-table tbody tr:only-child {
+  body.admin-mp-page .post-table tbody tr.post-empty-row {
     padding: 0;
     border: 1px solid var(--mp-line);
   }
 
-  body.admin-mp-page .post-table tbody tr:only-child td[colspan] {
+  body.admin-mp-page .post-table tbody tr.post-empty-row td[colspan] {
     padding: 38px 14px !important;
+  }
+
+  /* 选帖列表在手机上改为“勾选框 + 内容”的完整卡片，不能继续沿用桌面表格列宽。 */
+  body.admin-mp-page .post-table tbody tr.post-row {
+    display: grid !important;
+    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-areas:
+      "check title"
+      ". author"
+      ". stats";
+    column-gap: 10px;
+    row-gap: 4px;
+    align-items: start;
+    padding: 13px 14px;
+  }
+
+  body.admin-mp-page .post-table tbody tr.post-row > td {
+    display: block;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  body.admin-mp-page .post-table tbody tr.post-row .checkbox-cell {
+    position: static;
+    grid-area: check;
+    width: 24px !important;
+    padding: 3px 0 0 !important;
+  }
+
+  body.admin-mp-page .post-table tbody tr.post-row > td:nth-child(3) { grid-area: title; }
+  body.admin-mp-page .post-table tbody tr.post-row .post-author { grid-area: author; }
+  body.admin-mp-page .post-table tbody tr.post-row .post-stats { grid-area: stats; }
+
+  body.admin-mp-page .post-table tbody tr.post-row .post-title,
+  body.admin-mp-page .post-table tbody tr.post-row .post-preview {
+    width: 100%;
+    max-width: 100% !important;
+    min-width: 0;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  body.admin-mp-page .post-table tbody tr.post-row .post-preview {
+    overflow: visible;
+    text-overflow: clip;
   }
 
   body.admin-mp-page .weekly-star-toolbar,
@@ -785,16 +830,23 @@ body.admin-mp-page [data-theme="dark"] .selection-action-bar,
 
   body.admin-mp-page .selection-action-bar {
     right: 10px;
+    left: 10px;
     bottom: max(10px, env(safe-area-inset-bottom));
-    width: calc(100% - 20px);
+    width: auto;
     min-height: 58px;
     padding: 8px 9px 8px 13px;
     border-radius: 12px;
+    box-sizing: border-box;
+    gap: 10px;
     transform: none;
+    /* 桌面端入场动画含 translateX(50%) 用于居中；移动端左右贴边时不能复用。 */
+    animation: none;
   }
 
   body.admin-mp-page .selection-action-copy {
+    flex: 1 1 auto;
     font-size: 12px;
+    white-space: nowrap;
   }
 
   body.admin-mp-page .selection-action-suffix {
@@ -806,6 +858,7 @@ body.admin-mp-page [data-theme="dark"] .selection-action-bar,
   }
 
   body.admin-mp-page .selection-action-bar .btn {
+    width: auto !important;
     min-width: 112px;
     min-height: 40px;
     padding: 8px 10px;
@@ -830,7 +883,8 @@ body.admin-mp-page [data-theme="dark"] .selection-action-bar,
 
   body.admin-mp-page .selection-action-bar {
     right: 7px;
-    width: calc(100% - 14px);
+    left: 7px;
+    width: auto;
   }
 
   body.admin-mp-page .selection-action-bar .btn {

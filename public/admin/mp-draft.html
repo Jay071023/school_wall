@@ -303,7 +303,9 @@
                 padding: 8px 14px !important;
                 font-size: 12px !important;
             }
-            [style*="flex:1"] { display: none; }
+            /* 只隐藏工具栏的弹性占位，正文卡片里的 flex:1 容器必须保留，
+               否则移动端会把歌名、教程和热歌榜文字整列隐藏。 */
+            .toolbar > span[style*="flex:1"] { display: none; }
 
             /* 表格 */
             .post-table {
@@ -491,6 +493,73 @@
         align-items: center;
         flex-wrap: wrap;
       }
+      body.admin-mp-page .preview-template-picker {
+        position: relative;
+      }
+      body.admin-mp-page .preview-template-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 34px;
+        padding: 6px 11px 6px 7px;
+        border: 1px solid #e1d9ff;
+        border-radius: 11px;
+        background: #fff;
+        color: #493b70;
+        cursor: pointer;
+        box-shadow: 0 2px 7px rgba(91, 61, 153, .07);
+      }
+      body.admin-mp-page .preview-template-trigger:hover {
+        border-color: #aa94f3;
+        box-shadow: 0 4px 12px rgba(91, 61, 153, .13);
+      }
+      body.admin-mp-page .preview-template-swatch {
+        width: 22px;
+        height: 22px;
+        border-radius: 8px;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.38);
+      }
+      body.admin-mp-page .preview-template-label {
+        display: grid;
+        gap: 1px;
+        text-align: left;
+        line-height: 1.1;
+      }
+      body.admin-mp-page .preview-template-label small { color: #927da6; font-size: 10px; }
+      body.admin-mp-page .preview-template-arrow { color: #8e79b5; font-size: 11px; }
+      body.admin-mp-page .preview-theme-menu {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(118px, 1fr));
+        gap: 8px;
+        width: min(620px, calc(100vw - 64px));
+        margin-top: 8px;
+        padding: 10px;
+        border: 1px solid #e4dcfb;
+        border-radius: 14px;
+        background: rgba(255,255,255,.98);
+        box-shadow: 0 12px 28px rgba(82, 58, 132, .16);
+        position: absolute;
+        z-index: 20;
+      }
+      body.admin-mp-page .preview-theme-menu[hidden] { display: none !important; }
+      body.admin-mp-page .preview-theme-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid #ece7f7;
+        border-radius: 10px;
+        background: #fff;
+        color: #4b3d68;
+        text-align: left;
+        cursor: pointer;
+      }
+      body.admin-mp-page .preview-theme-option:hover,
+      body.admin-mp-page .preview-theme-option.is-active {
+        border-color: #a98cf1;
+        background: #faf8ff;
+      }
+      body.admin-mp-page .preview-theme-option .preview-template-swatch { flex: 0 0 auto; }
       body.admin-mp-page .post-table {
         overflow-x: auto;
         border-radius: 16px;
@@ -499,7 +568,7 @@
       body.admin-mp-page .preview-area {
         border-radius: 16px;
       }
-      @media (max-width: 700px) {
+      @media (max-width: 768px) {
         body.admin-mp-page .container {
           width: min(100% - 20px, 560px);
           padding-top: 16px;
@@ -516,6 +585,13 @@
         }
         body.admin-mp-page .tabs::-webkit-scrollbar {
           display: none;
+        }
+        body.admin-mp-page .preview-template-picker { width: 100%; }
+        body.admin-mp-page .preview-template-trigger { width: 100%; justify-content: flex-start; }
+        body.admin-mp-page .preview-theme-menu {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          width: 100%;
+          box-sizing: border-box;
         }
         body.admin-mp-page .tab-btn {
           min-width: 100px;
@@ -1357,6 +1433,66 @@
         overflow-y: auto;
         overscroll-behavior: contain;
       }
+      /* 已生成后将选帖工作区收拢：避免管理员误以为仍需重复生成。 */
+      body.admin-mp-page .post-selection-complete {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px;
+        border: 1px solid #cdebdc;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f2fff7, #f7fbff);
+        color: #286747;
+      }
+      body.admin-mp-page .post-selection-complete-copy {
+        min-width: 0;
+      }
+      body.admin-mp-page .post-selection-complete-title {
+        font-size: 15px;
+        font-weight: 800;
+      }
+      body.admin-mp-page .post-selection-complete-desc {
+        margin-top: 4px;
+        color: #597364;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      body.admin-mp-page .preview-article-meta {
+        margin: 16px 0 12px;
+        padding: 13px 15px;
+        border: 1px solid #e7ddef;
+        border-radius: 12px;
+        background: #fffcff;
+      }
+      body.admin-mp-page .preview-article-meta-label {
+        color: #9a6e8c;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .08em;
+      }
+      body.admin-mp-page .preview-article-meta-title {
+        display: block;
+        margin-top: 5px;
+        color: #30384a;
+        font-size: 16px;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+      body.admin-mp-page .preview-article-meta-desc {
+        margin: 5px 0 0;
+        color: #817889;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      body.admin-mp-page .preview-article-meta-helper {
+        margin-top: 9px;
+        padding-top: 8px;
+        border-top: 1px dashed #eadfeb;
+        color: #9b8d9d;
+        font-size: 11px;
+        line-height: 1.5;
+      }
       body.admin-mp-page .preview-area > * {
         min-width: 0;
       }
@@ -1594,6 +1730,14 @@
           max-height: 460px !important;
           padding: 10px !important;
         }
+        body.admin-mp-page .post-selection-complete {
+          align-items: stretch;
+          flex-direction: column;
+          padding: 14px;
+        }
+        body.admin-mp-page .post-selection-complete .btn {
+          width: 100%;
+        }
         body.admin-mp-page .post-table {
           display: block;
           width: 100%;
@@ -1655,6 +1799,205 @@
         }
         body.admin-mp-page .weekly-star-grid { grid-template-columns:minmax(0,1fr); }
       }
+
+      /* ===== 每日推歌与下周广播点歌：移动端工作流收拢 ===== */
+      body.admin-mp-page .daily-song-radio-addon {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border: 1px solid #dbeeea;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f7fffd, #f8fbff);
+      }
+      body.admin-mp-page .daily-song-radio-addon-copy { min-width: 0; }
+      body.admin-mp-page .daily-song-radio-addon-copy > div { color: #245d58; font-size: 14px; font-weight: 800; line-height: 1.45; }
+      body.admin-mp-page .daily-song-radio-addon-copy small { display: block; margin-top: 4px; color: #78918e; font-size: 11px; line-height: 1.5; }
+      body.admin-mp-page .daily-song-radio-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        flex: 0 0 auto;
+        min-height: 36px;
+        padding: 0 12px;
+        border: 1px solid #b9ddd7;
+        border-radius: 999px;
+        background: #fff;
+        color: #23736d;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      body.admin-mp-page .daily-song-radio-switch input { width: 16px; height: 16px; accent-color: #2a8a83; }
+      body.admin-mp-page .preview-area .mp-video-preview-card {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      body.admin-mp-page .preview-area .mp-video-preview-card img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: 360px;
+        object-fit: cover;
+        margin: 0 auto;
+      }
+      @media (max-width: 768px) {
+        body.admin-mp-page .daily-song-radio-addon { align-items: stretch; flex-direction: column; gap: 10px; margin-top: 12px; padding: 12px; }
+        body.admin-mp-page .daily-song-radio-switch { width: 100%; justify-content: center; }
+        body.admin-mp-page .daily-song-page-actions { grid-template-columns: minmax(0, 1fr) !important; }
+        body.admin-mp-page .daily-song-page-actions .btn { min-height: 44px; }
+        body.admin-mp-page #dailySongList .daily-song-item-head { gap: 8px !important; }
+        body.admin-mp-page #dailySongList .daily-song-item-head > div { flex-basis: calc(100% - 34px); }
+        body.admin-mp-page #dailySongList .daily-song-item-head > span { margin-left: 26px; }
+        body.admin-mp-page #dailySongList .daily-song-item-actions { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        body.admin-mp-page #dailySongList .daily-song-item-actions button { width: 100%; min-height: 38px; padding-inline: 7px !important; }
+        body.admin-mp-page #dailySongList .daily-song-item-template { display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 7px !important; align-items: stretch !important; }
+        body.admin-mp-page #dailySongList .daily-song-item-template select,
+        body.admin-mp-page #dailySongList .daily-song-item-template button { width: 100%; min-height: 38px; }
+        body.admin-mp-page .preview-area .mp-video-preview-card { margin-top: 12px !important; padding: 8px !important; border-radius: 12px !important; }
+        body.admin-mp-page .preview-area .mp-video-preview-card img { max-height: none; aspect-ratio: 16 / 9; }
+      }
+
+      /* 每日推歌是独立工作区：编辑、预览、同步入口保持同一页的上下文。 */
+      body.admin-mp-page .daily-song-inline-preview {
+        margin-top: 18px;
+        border: 1px solid rgba(255,107,157,.22);
+        border-radius: 20px;
+        background: linear-gradient(145deg, #fffafd 0%, #f8f7ff 100%);
+        box-shadow: 0 12px 32px rgba(103, 82, 144, .09);
+        overflow: hidden;
+      }
+      body.admin-mp-page .daily-song-inline-preview[hidden] { display: none; }
+      body.admin-mp-page .daily-song-inline-preview-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 20px;
+        background: linear-gradient(135deg, rgba(255,107,157,.12), rgba(138,111,255,.12));
+        border-bottom: 1px solid rgba(255,107,157,.12);
+      }
+      body.admin-mp-page .daily-song-inline-preview-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+      body.admin-mp-page .daily-song-inline-preview-kicker { color: #b26a92; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
+      body.admin-mp-page .daily-song-inline-preview-title { margin-top: 4px; color: #2d2940; font-size: 19px; font-weight: 800; line-height: 1.35; word-break: break-word; }
+      body.admin-mp-page .daily-song-inline-preview-digest { margin-top: 5px; color: #756f86; font-size: 12px; line-height: 1.6; }
+      body.admin-mp-page .daily-song-inline-preview-body { max-width: 720px; margin: 0 auto; background: #fff; min-height: 120px; }
+      body.admin-mp-page .daily-song-inline-preview-foot { padding: 11px 16px; color: #91899f; font-size: 11px; line-height: 1.6; text-align: center; border-top: 1px solid #f0eaf4; }
+      body.admin-mp-page .daily-song-item-editor-toggle { flex: 0 0 auto; border: 1px solid #ead8e7; border-radius: 999px; background: #fff; color: #9b6a8c; padding: 5px 10px; font-size: 11px; cursor: pointer; white-space: nowrap; }
+      body.admin-mp-page .daily-song-item-editor-toggle:hover { border-color: #ff8fb1; color: #d14e7c; }
+      body.admin-mp-page .daily-song-item-details { padding-top: 2px; }
+      body.admin-mp-page .daily-song-item-summary { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; color: #a79caf; font-size: 11px; }
+      body.admin-mp-page .cover-prompt-panel {
+        margin: 14px 16px 16px;
+        padding: 14px;
+        border: 1px solid #eadff0;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #fffdfd, #f8f7ff);
+      }
+      body.admin-mp-page .cover-prompt-panel[hidden] { display: none; }
+      body.admin-mp-page .cover-prompt-panel-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; color:#554663; font-size:13px; font-weight:800; }
+      body.admin-mp-page .cover-prompt-panel-head small { color:#a49aaa; font-size:11px; font-weight:400; }
+      body.admin-mp-page .cover-prompt-panel textarea { display:block; width:100%; min-height:92px; margin:10px 0; box-sizing:border-box; resize:vertical; border:1px solid #e7dcea; border-radius:12px; padding:10px 12px; background:#fff; color:#51465e; font:12px/1.75 inherit; }
+      @media (min-width: 769px) {
+        body.admin-mp-page .preview-area { display:flex; flex-direction:column; align-items:center; padding-inline:20px; }
+        body.admin-mp-page .preview-area > div[style] { width:min(680px, 100%) !important; margin-left:auto !important; margin-right:auto !important; }
+        body.admin-mp-page .preview-article-meta, body.admin-mp-page #articleCoverPromptPanel { max-width: 760px; margin-left:auto; margin-right:auto; }
+      }
+      @media (max-width: 768px) {
+        body.admin-mp-page .daily-song-inline-preview-head { flex-direction: column; padding: 16px; }
+        body.admin-mp-page .daily-song-inline-preview-actions { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); }
+        body.admin-mp-page .daily-song-inline-preview-actions .btn { width: 100%; }
+        body.admin-mp-page .daily-song-inline-preview-body { overflow-x: hidden; }
+        body.admin-mp-page .daily-song-item-editor-toggle { margin-left: auto; }
+      }
+
+      /* 候选曲目已经在“今日推歌选择”工作区内，不再套第二层列表卡片。
+         这里必须同时包含选择器 ID 与列表 class，才能覆盖旧版工作区规则。 */
+      body.admin-mp-page #dailySongSelector #dailySongList.daily-song-list {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: min(58vh, 520px) !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        overflow-x: hidden !important;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        padding: 12px 10px !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-bottom: 1px solid #eee6ed !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item:last-child {
+        border-bottom: 0 !important;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item-head {
+        display: grid !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        grid-template-columns: 20px minmax(0, 1fr) 96px !important;
+        grid-template-areas: "check info edit" !important;
+        min-height: 0 !important;
+        height: auto !important;
+        align-items: start !important;
+        align-content: start !important;
+        gap: 0 10px !important;
+        margin: 0 !important;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item-head > .daily-song-select { grid-area: check; }
+      body.admin-mp-page #dailySongList .daily-song-item-main { grid-area: info; min-width: 0; }
+      body.admin-mp-page #dailySongList .daily-song-item-badges {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        margin-top: 5px;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item-badges > span { margin: 0 !important; }
+      body.admin-mp-page #dailySongList .daily-song-item-editor-toggle {
+        grid-area: edit;
+        justify-self: end;
+        width: 96px !important;
+        min-width: 96px;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+        align-self: start;
+      }
+      body.admin-mp-page #dailySongList .daily-song-item-summary {
+        display: block;
+        margin: 5px 0 0 30px !important;
+        line-height: 1.45;
+      }
+      @media (max-width: 768px) {
+        body.admin-mp-page #dailySongSelector #dailySongList.daily-song-list { max-height: 62vh !important; }
+        body.admin-mp-page #dailySongList .daily-song-item-head {
+          grid-template-columns: 20px minmax(0, 1fr) !important;
+          grid-template-areas:
+            "check info"
+            ". edit" !important;
+        }
+        body.admin-mp-page #dailySongList .daily-song-item-editor-toggle {
+          justify-self: start;
+          width: 92px !important;
+          min-width: 92px;
+          margin-top: 7px !important;
+        }
+      }
     </style>
     <link rel="stylesheet" href="/admin/css/mp-draft.css">
 </head>
@@ -1674,7 +2017,7 @@
             <button class="tab-btn" data-tab="preview" aria-selected="false" onclick="switchTab('preview')">
                 图文预览
             </button>
-            <button class="tab-btn" data-tab="daily" aria-selected="false" onclick="openDailySongTab()">
+            <button class="tab-btn" data-tab="daily" data-super-admin-only="true" style="display:none" aria-selected="false" onclick="openDailySongTab()">
                 每日推歌 <span class="badge" id="dailySongTabCount" style="display:none;">0</span>
             </button>
             <button class="tab-btn" data-tab="drafts" aria-selected="false" onclick="switchTab('drafts')">
@@ -1684,6 +2027,14 @@
 
         <!-- Tab 1: 选择帖子 -->
         <div class="tab-content active" id="tab-posts">
+            <div class="post-selection-complete" id="postSelectionComplete" hidden aria-live="polite">
+                <div class="post-selection-complete-copy">
+                    <div class="post-selection-complete-title">✅ 图文预览已生成</div>
+                    <div class="post-selection-complete-desc" id="postSelectionCompleteDesc">已收起选帖区，避免重复生成。需要调整内容时可重新展开。</div>
+                </div>
+                <button class="btn btn-outline btn-sm" type="button" onclick="reopenPostSelection()" aria-label="重新展开选帖区">✏️ 再次编辑选帖</button>
+            </div>
+            <div id="postSelectionWorkspace">
             <div class="posts-workspace">
               <section class="card posts-main-card">
                 <div class="card-title">选择热点帖子</div>
@@ -1715,7 +2066,7 @@
                         </tr>
                     </thead>
                 <tbody id="postList">
-                        <tr><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">点击"刷新帖子"加载数据</td></tr>
+                        <tr class="post-empty-row"><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">点击"刷新帖子"加载数据</td></tr>
                     </tbody>
                 </table>
               </section>
@@ -1750,24 +2101,58 @@
                 </section>
               </aside>
             </div>
+            </div>
         </div>
 
         <!-- Tab 3: 每日推歌（从图文预览中独立出来，方便直接进入） -->
         <div class="tab-content" id="tab-daily">
-            <div class="card daily-song-page-card">
+            <div class="card daily-song-page-card" data-super-admin-only="true" style="display:none">
                 <div class="daily-song-page-intro">
                     <div class="daily-song-page-icon">🎵</div>
                     <div>
                         <div class="daily-song-page-kicker">DAILY MUSIC</div>
                         <div class="daily-song-page-title">每日推歌</div>
-                        <div class="daily-song-page-desc">选择待推送歌曲，补充介绍与歌词，再生成公众号推歌内容。</div>
+                        <div class="daily-song-page-desc">未发布歌曲始终可选；已同步歌曲三天内可复用。只有同步到公众号成功后才会标为已发布。</div>
                     </div>
                 </div>
                 <div id="dailySongMount" class="daily-song-mount"></div>
-                <div class="daily-song-page-actions">
-                    <button class="btn btn-primary" onclick="generateSongOnly()">🎵 生成推歌预览</button>
-                    <button class="btn btn-outline" onclick="switchTab('preview')">👁 查看图文预览</button>
+                <div class="daily-song-radio-addon" role="group" aria-labelledby="weeklyRadioSongLabel">
+                    <div class="daily-song-radio-addon-copy">
+                        <div id="weeklyRadioSongLabel"><span aria-hidden="true">📻</span> 同步加入下周广播点歌</div>
+                        <small id="weeklyRadioSongSummary">生成时读取下周已审核排期，不会改变点歌状态</small>
+                    </div>
+                    <label class="daily-song-radio-switch">
+                        <input type="checkbox" id="includeWeeklyRadioSongs" checked>
+                        <span>加入推歌稿</span>
+                    </label>
                 </div>
+                <div class="daily-song-page-actions">
+                    <button class="btn btn-primary" data-super-admin-only="true" style="display:none" onclick="generateSongOnly()">🎵 生成推歌预览</button>
+                    <button class="btn btn-outline" data-super-admin-only="true" style="display:none" onclick="generateWeeklySongSchedule(0)">📻 本周点歌播放表</button>
+                    <button class="btn btn-outline" data-super-admin-only="true" style="display:none" onclick="generateWeeklySongSchedule(1)">📻 下周点歌播放表</button>
+                    <button class="btn btn-outline" onclick="switchTab('preview')">👁 打开完整图文预览</button>
+                </div>
+                <section class="daily-song-inline-preview" id="dailySongInlinePreview" hidden aria-live="polite">
+                    <div class="daily-song-inline-preview-head">
+                        <div>
+                            <div class="daily-song-inline-preview-kicker">LIVE PREVIEW · 同步前核对</div>
+                            <div class="daily-song-inline-preview-title" id="dailySongInlinePreviewTitle">推歌预览</div>
+                            <div class="daily-song-inline-preview-digest" id="dailySongInlinePreviewDigest">生成后会在这里显示与公众号同步相同的正文。</div>
+                        </div>
+                        <div class="daily-song-inline-preview-actions">
+                            <button class="btn btn-outline btn-sm" type="button" onclick="switchTab('preview')">打开完整预览页</button>
+                            <button class="btn btn-info btn-sm" type="button" onclick="syncDraft()">📱 同步到公众号</button>
+                            <button class="btn btn-outline btn-sm" type="button" id="inlineCoverPromptBtn" onclick="generateCoverPrompt('daily')">🖼 根据正文生成封面提示词</button>
+                        </div>
+                    </div>
+                    <div class="daily-song-inline-preview-body" id="dailySongInlinePreviewArea"></div>
+                    <div class="daily-song-inline-preview-foot">当前内容与“图文预览”页、同步公众号的 <code>article.content</code> 使用同一份数据。</div>
+                    <div class="cover-prompt-panel" id="dailyCoverPromptPanel" hidden>
+                        <div class="cover-prompt-panel-head"><span id="dailyCoverPromptTitle">🖼 推歌正文封面提示词</span><small>依据上方已生成正文，不会自动生成图片</small></div>
+                        <textarea id="dailyCoverPromptText" readonly placeholder="点击上方按钮生成，可复制给图片 AI 使用"></textarea>
+                        <button class="btn btn-outline btn-sm" type="button" onclick="copyCoverPrompt('dailyCoverPromptText')">📋 复制提示词</button>
+                    </div>
+                </section>
             </div>
         </div>
 
@@ -1775,17 +2160,17 @@
         <div class="tab-content" id="tab-preview">
             <div class="card">
                 <div class="card-title">🎨 图文预览</div>
-                <div class="card-desc">预览生成的公众号图文卡片效果，确认后复制内容到公众号后台发布。</div>
+                <div class="card-desc">预览生成的公众号图文卡片效果。点击“刷新预览”会重新获取内容并切换本期主题背景；站内标题卡仅供核对，不会写入正文。</div>
 
                 <!-- 今日推歌选择区 -->
-                <div id="dailySongSelector" class="daily-song-selector" style="margin-bottom:20px;padding:24px;background:linear-gradient(135deg,#FFF5F8,#F8F0FF);border-radius:16px;border:1px solid rgba(255,107,157,0.15);">
+                <div id="dailySongSelector" class="daily-song-selector" data-super-admin-only="true" style="display:none;margin-bottom:20px;padding:24px;background:linear-gradient(135deg,#FFF5F8,#F8F0FF);border-radius:16px;border:1px solid rgba(255,107,157,0.15);">
                     <div class="daily-song-selector-head" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
                         <div class="daily-song-selector-icon" style="width:48px;height:48px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
                             <span style="font-size:24px;">🎵</span>
                         </div>
                         <div class="daily-song-selector-copy" style="flex:1;">
                             <div style="font-weight:700;font-size:18px;color:#FF6B9D;">今日推歌选择</div>
-                            <div style="font-size:13px;color:#999;margin-top:4px;">选择今天要推送的歌曲，可以编辑介绍词</div>
+                            <div style="font-size:13px;color:#999;margin-top:4px;">未发布歌曲始终可见；已发布歌曲保留三天供调整后复用</div>
                         </div>
                         <div class="daily-song-selector-tools" style="display:flex;gap:8px;align-items:center;">
                             <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:#666;cursor:pointer;background:#fff;padding:6px 12px;border-radius:20px;border:1px solid #eee;">
@@ -1814,7 +2199,7 @@
                             <button onclick="applyTplToAll('sticky')" style="padding:5px 11px;font-size:11px;background:#fff;border:1px solid #FFD1E0;color:#C44569;border-radius:14px;cursor:pointer;white-space:nowrap;">📝 便签</button>
                         </div>
                     </div>
-                    <div id="dailySongList" class="daily-song-list" style="max-height:300px;overflow-y:auto;background:#fff;border-radius:12px;padding:12px;">
+                    <div id="dailySongList" class="daily-song-list" style="max-height:300px;overflow-y:auto;">
                         <div style="text-align:center;padding:40px;color:#ccc;">
                             <div style="font-size:40px;margin-bottom:12px;">🎶</div>
                             <div style="font-size:14px;">点击下方按钮加载推歌</div>
@@ -1834,7 +2219,7 @@
                                 <input id="manual_song_name" placeholder="歌曲名称" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
                             </div>
                             <div>
-                                <div style="font-size:12px;color:#666;margin-bottom:4px;">歌手</div>
+                                <div style="font-size:12px;color:#666;margin-bottom:4px;">歌手 *</div>
                                 <input id="manual_artist" placeholder="歌手名" style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;box-sizing:border-box;">
                             </div>
                             <div>
@@ -1868,16 +2253,30 @@
 
                 <div class="preview-toolbar">
                     <div class="toggle-group">
+                        <div class="preview-template-picker" id="previewThemePicker">
+                            <button class="preview-template-trigger" type="button" onclick="togglePreviewThemeMenu()" aria-expanded="false" aria-controls="previewThemeMenu">
+                                <span class="preview-template-swatch" id="previewThemeSwatch"></span>
+                                <span class="preview-template-label"><strong id="previewThemeName">选择版式</strong><small>点击切换版式</small></span>
+                                <span class="preview-template-arrow">▾</span>
+                            </button>
+                            <div class="preview-theme-menu" id="previewThemeMenu" hidden></div>
+                        </div>
                         <label><input type="checkbox" id="cbWeather" checked> 🌤️ 包含天气</label>
                         <label><input type="checkbox" id="cbHitokoto" checked> 📝 包含一言</label>
                         <label><input type="checkbox" id="cbWeeklyStar" checked> ⭐ 包含每周之星</label>
                         <label><input type="checkbox" id="cbGaokao" checked> 📚 包含高考倒计时</label>
-                        <label><input type="checkbox" id="cbDailySong" checked> 🎵 包含每日推歌</label>
+                        <label data-super-admin-only="true" style="display:none"><input type="checkbox" id="cbDailySong" checked> 🎵 合并已选推歌（使用推歌模板）</label>
                     </div>
-                    <button class="btn btn-outline btn-sm" onclick="generatePreview()">🔄 刷新预览</button>
-                    <button class="btn btn-warning btn-sm" onclick="generateSongOnly()">🎵 推送歌曲</button>
+                    <button class="btn btn-outline btn-sm" type="button" onclick="cyclePreviewTheme()" title="不重新请求内容，只更换本期版式">换一版</button>
+                    <button class="btn btn-outline btn-sm" type="button" id="btnRefreshPreview" onclick="generatePreview()" title="重新获取素材并切换本期预览主题">🔄 刷新预览</button>
+                    <button class="btn btn-warning btn-sm" type="button" data-super-admin-only="true" style="display:none" onclick="generateSongOnly({openPreviewTab:true})" title="只生成每日推歌稿件">🎵 推送歌曲</button>
+                    <button class="btn btn-outline btn-sm" type="button" data-super-admin-only="true" style="display:none" onclick="generateWeeklySongSchedule(0, {openPreviewTab:true})" title="只生成本周待播放点歌，不影响每日推歌发布状态">📻 本周点歌单</button>
+                    <button class="btn btn-outline btn-sm" type="button" data-super-admin-only="true" style="display:none" onclick="generateWeeklySongSchedule(1, {openPreviewTab:true})" title="只生成下周待播放点歌，不影响每日推歌发布状态">📻 下周点歌单</button>
                     <button class="btn btn-success btn-sm" onclick="copyContent()" id="btnCopy">
                         📋 复制内容
+                    </button>
+                    <button class="btn btn-outline btn-sm" type="button" onclick="generateCoverPrompt('posts')" title="先生成当前图文正文，再据正文生成可复制提示词">
+                        🖼 根据正文生成封面提示词
                     </button>
                     <button class="btn btn-primary btn-sm" onclick="downloadHTML()" id="btnDownload">
                         ⬇️ 下载HTML
@@ -1887,11 +2286,23 @@
                     </button>
                 </div>
 
-                <div class="preview-area" id="previewArea">
+                <div class="preview-article-meta" id="previewArticleMeta" hidden aria-live="polite">
+                    <div class="preview-article-meta-label" id="previewArticleMetaLabel">公众号 payload · 图文标题</div>
+                    <strong class="preview-article-meta-title" id="previewArticleTitle"></strong>
+                    <p class="preview-article-meta-desc" id="previewArticleDigest"></p>
+                    <div class="preview-article-meta-helper">管理端核对卡，不随公众号发送；下方正文与本次同步的 <code>article.content</code> 完全一致。</div>
+                </div>
+
+                <div class="preview-area" id="previewArea" role="region" aria-label="公众号图文内容预览" aria-live="polite">
                     <div class="placeholder">
                         <div class="icon">📝</div>
                         <div class="text">先选择帖子，再点击"生成图文预览"</div>
                     </div>
+                </div>
+                <div class="cover-prompt-panel" id="articleCoverPromptPanel" hidden>
+                    <div class="cover-prompt-panel-head"><span id="articleCoverPromptTitle">🖼 当前正文封面提示词</span><small>依据当前已生成正文，可复制给图片 AI</small></div>
+                    <textarea id="articleCoverPromptText" readonly placeholder="先生成图文预览，再点击“根据正文生成封面提示词”"></textarea>
+                    <button class="btn btn-outline btn-sm" type="button" onclick="copyCoverPrompt('articleCoverPromptText')">📋 复制提示词</button>
                 </div>
             </div>
 
@@ -2001,6 +2412,312 @@
         var selectedPosts = [];
         var allPosts = [];
         var generatedArticles = null;
+        var previewGenerationState = { generated: false };
+        var previewThemeIndex = new Date().getDate();
+        var previewThemes = [
+            {
+                name: '晨读校刊', kicker: 'CAMPUS MORNING EDITION',
+                gradient: 'radial-gradient(circle at 14% 18%, rgba(255,255,255,.26) 0 3px, transparent 4px), radial-gradient(circle at 84% 28%, rgba(255,255,255,.2) 0 5px, transparent 6px), linear-gradient(135deg,#8d4167 0%,#be668a 48%,#667fae 100%)',
+                canvas: 'repeating-linear-gradient(0deg, transparent 0 27px, rgba(126,92,121,.065) 28px), linear-gradient(135deg,#fffafb 0%,#f5f8ff 100%)',
+                tagBg: 'rgba(255,255,255,.16)', tagBorder: 'rgba(255,255,255,.55)', tagText: '#ffffff', rule: 'rgba(255,255,255,.72)',
+                weatherBg: 'linear-gradient(135deg,#e7f0ff 0%,#f4eaff 100%)', weatherBorder: '#b9cdec', weatherAccent: '#315f9d', weatherCard: '#ffffff', weatherMutedCard: 'rgba(255,255,255,.76)', weatherText: '#24344d', weatherMuted: '#586779', weatherShadow: 'rgba(49,95,157,.14)'
+            },
+            {
+                name: '社团布告栏', kicker: 'CAMPUS NOTICEBOARD',
+                gradient: 'linear-gradient(90deg,rgba(255,255,255,.09) 1px,transparent 1px), linear-gradient(0deg,rgba(255,255,255,.07) 1px,transparent 1px), linear-gradient(135deg,#5b315d 0%,#823f54 52%,#b5683e 100%)',
+                canvas: 'repeating-linear-gradient(135deg,rgba(99,67,75,.04) 0 1px,transparent 1px 9px), linear-gradient(180deg,#fffaf4 0%,#fff7f8 100%)',
+                tagBg: 'rgba(28,16,30,.2)', tagBorder: 'rgba(255,235,210,.7)', tagText: '#fff8ee', rule: 'rgba(255,240,215,.72)',
+                weatherBg: 'linear-gradient(135deg,#fff0d6 0%,#f8e8ee 100%)', weatherBorder: '#dfb894', weatherAccent: '#8a4c35', weatherCard: '#fffdfa', weatherMutedCard: 'rgba(255,255,255,.72)', weatherText: '#462d29', weatherMuted: '#705c56', weatherShadow: 'rgba(138,76,53,.14)'
+            },
+            {
+                name: '图书馆书签', kicker: 'LIBRARY READING LIST',
+                gradient: 'repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 2px,transparent 2px 11px), linear-gradient(135deg,#365f5a 0%,#5f8068 46%,#aa8452 100%)',
+                canvas: 'radial-gradient(circle at 10% 0%,rgba(214,190,143,.19),transparent 30%), repeating-linear-gradient(0deg,transparent 0 25px,rgba(102,83,55,.055) 26px), #fffdf7',
+                tagBg: 'rgba(19,50,44,.25)', tagBorder: 'rgba(249,235,195,.72)', tagText: '#fffdf6', rule: 'rgba(249,235,195,.76)',
+                weatherBg: 'linear-gradient(135deg,#e3f2e9 0%,#f5ecd9 100%)', weatherBorder: '#afc9b7', weatherAccent: '#31665b', weatherCard: '#fffef9', weatherMutedCard: 'rgba(255,254,249,.74)', weatherText: '#263f38', weatherMuted: '#5d6f67', weatherShadow: 'rgba(49,102,91,.14)'
+            },
+            {
+                name: '操场天空', kicker: 'FIELD NOTES · CAMPUS SKY',
+                gradient: 'radial-gradient(ellipse at 22% 15%,rgba(255,255,255,.3) 0 7%,transparent 8%), radial-gradient(ellipse at 80% 32%,rgba(255,255,255,.16) 0 8%,transparent 9%), linear-gradient(135deg,#256b96 0%,#408eb6 48%,#5c9d78 100%)',
+                canvas: 'linear-gradient(115deg,rgba(119,190,224,.14) 25%,transparent 25%) 0 0/26px 26px, linear-gradient(180deg,#f6fcff 0%,#f5fff8 100%)',
+                tagBg: 'rgba(15,65,91,.24)', tagBorder: 'rgba(225,248,255,.75)', tagText: '#f7fdff', rule: 'rgba(232,250,255,.78)',
+                weatherBg: 'linear-gradient(135deg,#d9f3ff 0%,#e6f8ea 100%)', weatherBorder: '#9fc9d9', weatherAccent: '#1e6c8f', weatherCard: '#fbfeff', weatherMutedCard: 'rgba(251,254,255,.76)', weatherText: '#1d3c4b', weatherMuted: '#52707b', weatherShadow: 'rgba(30,108,143,.14)'
+            },
+            {
+                name: '晚自习手账', kicker: 'EVENING STUDY JOURNAL',
+                gradient: 'repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 2px,transparent 2px 12px), radial-gradient(circle at 86% 15%,rgba(255,230,173,.28) 0 5%,transparent 6%), linear-gradient(135deg,#463861 0%,#6a527d 50%,#a77963 100%)',
+                canvas: 'radial-gradient(circle at 88% 0%,rgba(255,222,168,.18),transparent 28%), repeating-linear-gradient(90deg,transparent 0 31px,rgba(105,78,120,.05) 32px), #fcfaff',
+                tagBg: 'rgba(26,18,45,.25)', tagBorder: 'rgba(255,234,199,.7)', tagText: '#fffaf1', rule: 'rgba(255,235,205,.76)',
+                weatherBg: 'linear-gradient(135deg,#ece6fb 0%,#f8ece4 100%)', weatherBorder: '#c5b8dd', weatherAccent: '#584777', weatherCard: '#fffdfc', weatherMutedCard: 'rgba(255,253,252,.76)', weatherText: '#352c48', weatherMuted: '#675f70', weatherShadow: 'rgba(88,71,119,.14)'
+            },
+            {
+                name: '雨天信笺', kicker: 'RAINY DAY LETTER',
+                gradient: 'radial-gradient(circle at 16% 18%,rgba(255,255,255,.20) 0 3px,transparent 4px), repeating-linear-gradient(112deg,transparent 0 16px,rgba(255,255,255,.08) 17px 18px), linear-gradient(135deg,#415777 0%,#647da0 52%,#9a7591 100%)',
+                canvas: 'repeating-linear-gradient(0deg,transparent 0 29px,rgba(86,108,137,.055) 30px), linear-gradient(135deg,#f5f8fc 0%,#fdf7fa 100%)',
+                tagBg: 'rgba(255,255,255,.14)', tagBorder: 'rgba(237,246,255,.70)', tagText: '#f9fcff', rule: 'rgba(237,246,255,.75)',
+                weatherBg: 'linear-gradient(135deg,#e5eef8 0%,#f4eaf1 100%)', weatherBorder: '#aec3d9', weatherAccent: '#4b668b', weatherCard: '#fcfdff', weatherMutedCard: 'rgba(255,255,255,.72)', weatherText: '#2e4059', weatherMuted: '#617083', weatherShadow: 'rgba(75,102,139,.14)'
+            },
+            {
+                name: '实验室周报', kicker: 'CAMPUS LAB NOTES',
+                gradient: 'linear-gradient(90deg,rgba(255,255,255,.10) 1px,transparent 1px), linear-gradient(0deg,rgba(255,255,255,.08) 1px,transparent 1px), linear-gradient(135deg,#185a64 0%,#267c7a 50%,#5c8f74 100%)',
+                canvas: 'radial-gradient(circle at 88% 8%,rgba(103,182,174,.17),transparent 25%), repeating-linear-gradient(90deg,transparent 0 24px,rgba(50,113,111,.045) 25px), #f8fffc',
+                tagBg: 'rgba(12,64,69,.22)', tagBorder: 'rgba(222,255,248,.72)', tagText: '#f2fffb', rule: 'rgba(226,255,249,.78)',
+                weatherBg: 'linear-gradient(135deg,#e0f5ef 0%,#eef7df 100%)', weatherBorder: '#a7cebf', weatherAccent: '#28746f', weatherCard: '#fcfffd', weatherMutedCard: 'rgba(252,255,253,.74)', weatherText: '#274c49', weatherMuted: '#5b7570', weatherShadow: 'rgba(40,116,111,.14)'
+            },
+            {
+                name: '毕业纪念册', kicker: 'YEARBOOK MEMORIES',
+                gradient: 'radial-gradient(circle at 16% 22%,rgba(255,255,255,.22) 0 5px,transparent 6px), radial-gradient(circle at 84% 18%,rgba(255,244,210,.18) 0 8px,transparent 9px), linear-gradient(135deg,#8a5f49 0%,#b8865d 48%,#83739a 100%)',
+                canvas: 'repeating-linear-gradient(135deg,rgba(135,103,78,.04) 0 1px,transparent 1px 10px), linear-gradient(180deg,#fffdf8 0%,#fbf8ff 100%)',
+                tagBg: 'rgba(81,49,37,.21)', tagBorder: 'rgba(255,242,210,.72)', tagText: '#fffaf0', rule: 'rgba(255,240,205,.76)',
+                weatherBg: 'linear-gradient(135deg,#fff0db 0%,#eee9fa 100%)', weatherBorder: '#dbc0ab', weatherAccent: '#8a604d', weatherCard: '#fffdf9', weatherMutedCard: 'rgba(255,253,249,.75)', weatherText: '#4d382f', weatherMuted: '#76675f', weatherShadow: 'rgba(138,96,77,.14)'
+            }
+        ];
+
+        function getActivePreviewTheme() {
+            return previewThemes[previewThemeIndex % previewThemes.length];
+        }
+
+        function advancePreviewTheme() {
+            previewThemeIndex = (previewThemeIndex + 1) % previewThemes.length;
+            return getActivePreviewTheme();
+        }
+
+        function syncPreviewThemeSelector() {
+            var activeIndex = previewThemeIndex % previewThemes.length;
+            var activeTheme = previewThemes[activeIndex];
+            var name = document.getElementById('previewThemeName');
+            var swatch = document.getElementById('previewThemeSwatch');
+            var menu = document.getElementById('previewThemeMenu');
+            if (name) name.textContent = activeTheme.name;
+            if (swatch) swatch.style.background = activeTheme.gradient;
+            if (!menu) return;
+            menu.innerHTML = previewThemes.map(function(theme, index) {
+                var activeClass = index === activeIndex ? ' is-active' : '';
+                return '<button class="preview-theme-option' + activeClass + '" type="button" onclick="setPreviewTheme(' + index + ')">' +
+                    '<span class="preview-template-swatch" style="background:' + theme.gradient + '"></span>' +
+                    '<span>' + escapeHtml(theme.name) + '</span></button>';
+            }).join('');
+        }
+
+        function setPreviewTheme(index) {
+            var nextIndex = Number(index);
+            if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= previewThemes.length) return;
+            previewThemeIndex = nextIndex;
+            syncPreviewThemeSelector();
+            closePreviewThemeMenu();
+            rerenderPreviewOnly();
+        }
+        window.setPreviewTheme = setPreviewTheme;
+
+        function cyclePreviewTheme() {
+            advancePreviewTheme();
+            syncPreviewThemeSelector();
+            rerenderPreviewOnly();
+        }
+        window.cyclePreviewTheme = cyclePreviewTheme;
+
+        function togglePreviewThemeMenu() {
+            var menu = document.getElementById('previewThemeMenu');
+            var trigger = document.querySelector('#previewThemePicker .preview-template-trigger');
+            if (!menu) return;
+            var willOpen = menu.hidden;
+            menu.hidden = !willOpen;
+            if (trigger) trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+        window.togglePreviewThemeMenu = togglePreviewThemeMenu;
+
+        function closePreviewThemeMenu() {
+            var menu = document.getElementById('previewThemeMenu');
+            var trigger = document.querySelector('#previewThemePicker .preview-template-trigger');
+            if (menu) menu.hidden = true;
+            if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        document.addEventListener('click', function(event) {
+            var picker = document.getElementById('previewThemePicker');
+            if (picker && !picker.contains(event.target)) closePreviewThemeMenu();
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePreviewThemeMenu();
+        });
+
+        syncPreviewThemeSelector();
+
+        function setPreviewBusy(isBusy, message) {
+            var previewArea = document.getElementById('previewArea');
+            var refreshButton = document.getElementById('btnRefreshPreview');
+            if (previewArea) previewArea.setAttribute('aria-busy', isBusy ? 'true' : 'false');
+            if (refreshButton) {
+                refreshButton.disabled = !!isBusy;
+                refreshButton.textContent = isBusy ? '⏳ 刷新中…' : '🔄 刷新预览';
+            }
+            if (isBusy && message) setStatus(message, 'loading');
+        }
+
+        function updatePreviewArticleMeta(article, kind) {
+            var panel = document.getElementById('previewArticleMeta');
+            var label = document.getElementById('previewArticleMetaLabel');
+            var title = document.getElementById('previewArticleTitle');
+            var digest = document.getElementById('previewArticleDigest');
+            if (!panel || !title || !digest) return;
+            panel.hidden = false;
+            if (label) label.textContent = kind === 'song'
+                ? '公众号 payload · 推歌标题'
+                : (kind === 'weekly-song' ? '公众号 payload · 本周点歌单标题' : '公众号 payload · 图文标题');
+            title.textContent = article && article.title ? String(article.title) : '未设置标题';
+            digest.textContent = article && article.digest ? '摘要：' + String(article.digest) : '摘要：未设置';
+        }
+
+        function renderDailySongInlinePreview(article, kind) {
+            var panel = document.getElementById('dailySongInlinePreview');
+            var area = document.getElementById('dailySongInlinePreviewArea');
+            var title = document.getElementById('dailySongInlinePreviewTitle');
+            var digest = document.getElementById('dailySongInlinePreviewDigest');
+            var promptButton = document.getElementById('inlineCoverPromptBtn');
+            var promptTitle = document.getElementById('dailyCoverPromptTitle');
+            if (!panel || !area || !article) return;
+            panel.hidden = false;
+            panel.dataset.previewOnly = 'false';
+            title.textContent = article.title || (kind === 'weekly-song' ? '点歌播放表' : '推歌预览');
+            digest.textContent = article.digest ? '摘要：' + article.digest : '已生成，正文将按下方内容同步到公众号。';
+            area.innerHTML = article.content || '<div style="padding:32px;text-align:center;color:#999;">暂无预览内容</div>';
+            if (promptButton) {
+                var isWeekly = kind === 'weekly-song';
+                promptButton.textContent = isWeekly ? '🖼 根据播放表正文生成封面提示词' : '🖼 根据推歌正文生成封面提示词';
+                promptButton.setAttribute('onclick', "generateCoverPrompt('" + (isWeekly ? 'weekly' : 'daily') + "')");
+            }
+            if (promptTitle) {
+                promptTitle.textContent = kind === 'weekly-song' ? '🖼 播放表正文封面提示词' : '🖼 推歌正文封面提示词';
+            }
+        }
+
+        // 仅请求可复制的封面氛围提示词，不自动生成图片；必须取本次已经生成的正文。
+        async function generateCoverPrompt(type) {
+            var requestedType = type === 'posts' ? 'posts' : (type === 'weekly' ? 'weekly' : 'daily');
+            var article = generatedArticles && generatedArticles[0] ? generatedArticles[0] : null;
+            var actualType = requestedType;
+            var dateLabel = '';
+            var generatedForRequestedType = false;
+            if (requestedType === 'posts' && lastPreviewData) {
+                dateLabel = (lastPreviewData && lastPreviewData.dateInfo && lastPreviewData.dateInfo.date) || '';
+                generatedForRequestedType = true;
+            } else if (requestedType === 'weekly' && lastWeeklyScheduleData) {
+                var weeklyData = lastWeeklyScheduleData || {};
+                dateLabel = weeklyData.week_label || weeklyData.period_label || '';
+                generatedForRequestedType = true;
+            } else if (requestedType === 'daily' && lastSongOnlyState) {
+                var dailyState = lastSongOnlyState || {};
+                dateLabel = dailyState.dateLabel || '';
+                generatedForRequestedType = true;
+            }
+
+            if (!generatedForRequestedType || !article || !String(article.content || '').trim()) {
+                var labels = { posts: '图文预览', daily: '推歌预览', weekly: '点歌播放表' };
+                showToast('请先生成' + labels[requestedType] + '；封面提示词只会依据本次已生成的正文制作', 'info');
+                return;
+            }
+
+            var panelId = actualType === 'posts' ? 'articleCoverPromptPanel' : 'dailyCoverPromptPanel';
+            var textareaId = actualType === 'posts' ? 'articleCoverPromptText' : 'dailyCoverPromptText';
+            var panel = document.getElementById(panelId);
+            var textarea = document.getElementById(textareaId);
+            if (!panel || !textarea) return;
+            panel.hidden = false;
+            textarea.value = '正在生成提示词…';
+            try {
+                var response = await apiFetch('/api/mp/cover-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: actualType,
+                        theme: (getActivePreviewTheme() && getActivePreviewTheme().name) || '',
+                        date_label: dateLabel,
+                        title: article && article.title ? article.title : '',
+                        article_content: article.content
+                    })
+                });
+                if (response.code !== 200 || !response.data || !response.data.prompt) {
+                    throw new Error(response.message || '提示词生成失败');
+                }
+                textarea.value = response.data.prompt;
+                showToast('封面提示词已生成，可复制给图片 AI 使用', 'success');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (error) {
+                textarea.value = '';
+                showToast(error.message || '封面提示词生成失败', 'error');
+            }
+        }
+        window.generateCoverPrompt = generateCoverPrompt;
+
+        async function copyCoverPrompt(textareaId) {
+            var textarea = document.getElementById(textareaId);
+            if (!textarea || !textarea.value.trim()) {
+                showToast('请先生成封面提示词', 'warning');
+                return;
+            }
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(textarea.value);
+                } else {
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.setSelectionRange(0, 0);
+                }
+                showToast('封面提示词已复制', 'success');
+            } catch (error) {
+                textarea.focus();
+                textarea.select();
+                showToast('复制失败，请手动复制', 'warning');
+            }
+        }
+        window.copyCoverPrompt = copyCoverPrompt;
+
+        function buildSyncedPreviewArticle(sourceArticle, content, postData, dateInfo) {
+            var article = Object.assign({}, sourceArticle || {});
+            var firstPost = postData && postData[0] ? postData[0] : {};
+            var fallbackTitle = firstPost.title ? String(firstPost.title) : ('校园墙精选 · ' + ((dateInfo && dateInfo.date) || '今日'));
+            if (typeof article.title !== 'string' || !article.title.trim()) article.title = fallbackTitle;
+            if (typeof article.digest !== 'string') article.digest = '';
+            if (typeof article.author !== 'string' || !article.author.trim()) article.author = '示例校园墙';
+            if (!article.content_source_url) article.content_source_url = 'http://localhost:3000';
+            if (article.show_cover_pic === undefined) article.show_cover_pic = 1;
+            if (article.need_open_comment === undefined) article.need_open_comment = 1;
+            if (article.only_fans_can_comment === undefined) article.only_fans_can_comment = 0;
+            article.content = String(content || '');
+            // 预览会直接作为同步 payload 使用，必须在这里替换占位符；否则首次“生成图文”
+            // 路径会把内部统计标记原样带到预览和公众号正文。
+            var visibleTextTotal = countVisibleText(article.content) + countText(article.title) + countText(article.author);
+            article.content = article.content.replace(/__MP_VISIBLE_TEXT_COUNT__/g, visibleTextTotal.toLocaleString());
+            return article;
+        }
+
+        function markPostSelectionGenerated(postCount, hasSongs) {
+            if (!generatedArticles || !generatedArticles[0] || !generatedArticles[0].content) return;
+            previewGenerationState.generated = true;
+            var workspace = document.getElementById('postSelectionWorkspace');
+            var complete = document.getElementById('postSelectionComplete');
+            var description = document.getElementById('postSelectionCompleteDesc');
+            if (workspace) workspace.hidden = true;
+            if (complete) complete.hidden = false;
+            if (description) {
+                var parts = [];
+                if (postCount > 0) parts.push(postCount + ' 篇帖子');
+                if (hasSongs) parts.push('每日推歌');
+                description.textContent = '已生成' + (parts.length ? '：' + parts.join(' + ') : '图文内容') + '。需要调整选帖或栏目时可重新展开，完成后请再次生成。';
+            }
+        }
+
+        function reopenPostSelection() {
+            var workspace = document.getElementById('postSelectionWorkspace');
+            var complete = document.getElementById('postSelectionComplete');
+            if (workspace) workspace.hidden = false;
+            if (complete) complete.hidden = true;
+            previewGenerationState.generated = false;
+            var generateButton = document.getElementById('btnGenerate');
+            if (generateButton) generateButton.focus();
+            setStatus('已重新展开选帖区，可调整后再次生成');
+        }
 
         // 预览区是用户已经确认过的可见结果。同步时优先使用内存文章，
         // 但若浏览器恢复/脚本重渲导致内存状态丢失，也能从当前预览安全恢复，
@@ -2023,7 +2740,7 @@
             if (previewArea) {
                 previewArea.dataset.generated = 'true';
                 previewArea.dataset.generatedTitle = savedArticle.title;
-                previewArea.dataset.generatedAuthor = savedArticle.author || '校园墙';
+                previewArea.dataset.generatedAuthor = savedArticle.author || '示例校园墙';
                 previewArea.dataset.generatedDigest = savedArticle.digest || '';
             }
             return savedArticle;
@@ -2043,10 +2760,10 @@
             var fallbackTitle = '今日校墙精选 · ' + (now.getMonth() + 1) + '月' + now.getDate() + '日';
             return rememberGeneratedArticle({
                 title: previewArea.dataset.generatedTitle || fallbackTitle,
-                author: previewArea.dataset.generatedAuthor || '校园墙',
+                author: previewArea.dataset.generatedAuthor || '示例校园墙',
                 digest: previewArea.dataset.generatedDigest || '校园墙图文推送',
                 content: content,
-                content_source_url: 'https://campus-wall.example',
+                content_source_url: 'http://localhost:3000',
                 show_cover_pic: 1,
                 need_open_comment: 1,
                 only_fans_can_comment: 0
@@ -2055,6 +2772,10 @@
 
         // ===== Tab切换 =====
         function switchTab(name) {
+            if (name === 'daily' && !canManageDailySongs) {
+                showToast('仅超级管理员可使用推歌功能', 'warning');
+                return;
+            }
             document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
             document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
             var tabButton = document.querySelector('.tab-btn[data-tab="' + name + '"]');
@@ -2066,9 +2787,15 @@
                 b.setAttribute('aria-selected', b === tabButton ? 'true' : 'false');
             });
         }
+        // 内联 onclick 只从 window 读取函数；显式暴露，避免脚本作用域变化后找不到页签切换。
+        window.switchTab = switchTab;
 
         // 推歌从预览页中独立成入口；首次进入时自动把选择器挂到独立页签并加载数据
         function openDailySongTab() {
+            if (!canManageDailySongs) {
+                showToast('仅超级管理员可使用推歌功能', 'warning');
+                return;
+            }
             var selector = document.getElementById('dailySongSelector');
             var mount = document.getElementById('dailySongMount');
             if (selector && mount && selector.parentNode !== mount) {
@@ -2083,6 +2810,14 @@
                     selector.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 0);
             }
+        }
+        window.openDailySongTab = openDailySongTab;
+
+        // 每日推歌及点歌排期只对最高管理员开放；普通广播推送员保留普通图文推送能力。
+        function applyDailySongPermissions() {
+            document.querySelectorAll('[data-super-admin-only="true"]').forEach(function(el) {
+                el.style.display = canManageDailySongs ? '' : 'none';
+            });
         }
 
         // ===== 获取Auth Token =====
@@ -2183,7 +2918,7 @@
         function renderPostList(posts) {
             var tbody = document.getElementById('postList');
             if (!posts || posts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">暂无热点帖子</td></tr>';
+                tbody.innerHTML = '<tr class="post-empty-row"><td colspan="5" style="text-align:center;color:#bbb;padding:40px;">暂无热点帖子</td></tr>';
                 updateSelectedCount();
                 return;
             }
@@ -2201,7 +2936,7 @@
                 var cover = (hasImg ? '<span style="font-size:11px;color:#667eea;">🖼️</span>' : '') + (hasVideo ? '<span style="font-size:11px;color:#43a047;">🎬</span>' : '');
                 // 默认勾选热度前5条
                 var checked = i < 5 ? 'checked' : '';
-                html += '<tr class="' + (checked ? 'row-selected' : '') + '">' +
+                html += '<tr class="post-row ' + (checked ? 'row-selected' : '') + '">' +
                     '<td class="checkbox-cell"><input type="checkbox" value="' + p.id + '" ' + checked + ' onchange="toggleRowHighlight(this); updateSelectedCount()"></td>' +
                     '<td data-label="#" style="color:#999;">' + (i + 1) + '</td>' +
                     '<td><div class="post-title">' + cover + ' ' + escapeHtml(title) + '</div><div class="post-preview">' + escapeHtml(content) + '</div></td>' +
@@ -2356,6 +3091,14 @@
         }
 
         // ===== 自动分段函数 =====
+        function formatRichTextInline(text) {
+            var safe = escapeHtml(String(text || ''));
+            return safe
+                .replace(/\*\*\*([^*\n]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+        }
+
         function autoFormatContent(text) {
             if (!text) return '';
             var blocks = [];
@@ -2380,12 +3123,110 @@
                 }
             }
             return blocks.filter(function(b) { return b.trim(); }).map(function(b) {
-                return '<p style="text-indent:2em;line-height:2;margin-bottom:16px;font-size:15px;color:#555;margin-top:0;">' + b.trim() + '</p>';
+                return '<p style="text-indent:2em;line-height:2;margin-bottom:16px;font-size:15px;color:#555;margin-top:0;">' + formatRichTextInline(b.trim()) + '</p>';
             }).join('\n');
         }
 
         // ===== 每日推歌选择器 =====
         var selectedDailySongs = [];
+        // 统一每日推歌的数据字段，兼容旧接口/手动添加记录，保证生成稿件一定能拿到歌名和歌手。
+        function normalizeDailySong(song) {
+            var source = song || {};
+            var normalized = Object.assign({}, source);
+            normalized.song_name = String(source.song_name || source.songName || source.name || source.title || '').trim();
+            normalized.artist = String(source.artist || source.singer || source.song_artist || '').trim();
+            normalized.submitter = String(source.submitter || source.requester_name || source.requester || '匿名同学').trim();
+            normalized.to_whom = String(source.to_whom || source.recipient || '').trim();
+            normalized.message = String(source.message || source.note || '').trim();
+            normalized.intro = String(source.intro || source.song_intro || '').trim();
+            normalized.lyrics = String(source.lyrics || '').trim();
+            normalized._expanded = source._expanded === true;
+            if (source.song_info && typeof source.song_info === 'string') {
+                try { normalized.song_info = JSON.parse(source.song_info); } catch (e) { normalized.song_info = null; }
+            }
+            return normalized;
+        }
+
+        function normalizeDailySongList(songs) {
+            return (Array.isArray(songs) ? songs : []).map(normalizeDailySong).filter(function(song) {
+                return song.song_name;
+            });
+        }
+
+        // 候选中保留三天内的已发布歌曲供手动复用，但首次加载只默认选中未发布歌曲。
+        function shouldSelectDailySongByDefault(song) {
+            return !song || song.status !== 'published';
+        }
+
+        var includeWeeklyRadioByDefault = true;
+
+        function shouldIncludeWeeklyRadio() {
+            var checkbox = document.getElementById('includeWeeklyRadioSongs');
+            return checkbox ? checkbox.checked : includeWeeklyRadioByDefault;
+        }
+
+        async function loadNextWeekRadioForDailyPush() {
+            if (!shouldIncludeWeeklyRadio()) return null;
+            var summary = document.getElementById('weeklyRadioSongSummary');
+            if (summary) summary.textContent = '正在读取下周排期…';
+            try {
+                var response = await apiFetch(API_BASE + '/weekly-song-schedule?week=next');
+                if (response.code !== 200 || !response.data) throw new Error(response.message || '排期读取失败');
+                var data = response.data;
+                data.songs = Array.isArray(data.songs) ? data.songs : [];
+                if (summary) summary.textContent = data.songs.length
+                    ? '已读取下周 ' + data.songs.length + ' 首排期歌曲'
+                    : '下周暂无已审核排期，仍会生成每日推歌';
+                return data;
+            } catch (error) {
+                if (summary) summary.textContent = '排期暂时读取失败，仍可生成每日推歌';
+                return null;
+            }
+        }
+
+        function buildNextWeekRadioSectionHtml(data) {
+            var songs = data && Array.isArray(data.songs) ? data.songs : [];
+            if (!songs.length) return '';
+            var periodLabel = data.period_label || '下周';
+            var weekLabel = data.week_label || '';
+            var html = '<div style="margin:28px 16px 0;background:linear-gradient(145deg,#f0fbfa,#f8fffd);border:1px solid #cce9e4;border-radius:18px;overflow:hidden;">';
+            html += '<div style="padding:18px 18px 14px;background:linear-gradient(135deg,#195d64,#2a8a83);color:#fff;">';
+            html += '<div style="font-size:10px;letter-spacing:3px;opacity:.72;">CAMPUS RADIO · NEXT WEEK</div>';
+            html += '<div style="font-size:18px;font-weight:800;line-height:1.35;margin-top:5px;">📻 ' + escapeHtml(periodLabel) + '广播点歌预告</div>';
+            html += '<div style="font-size:12px;line-height:1.6;opacity:.78;margin-top:5px;">' + escapeHtml(weekLabel) + ' · 已排期 ' + songs.length + ' 首</div>';
+            html += '</div><div style="padding:10px 14px 14px;">';
+            songs.forEach(function(song, index) {
+                var requester = song.is_anonymous ? '匿名同学' : (song.requester_name || '一位同学');
+                var time = [song.start_time || '', song.end_time || ''].filter(Boolean).join('—');
+                var dateLabel = [song.play_date_label || song.play_date || '', song.weekday || ''].filter(Boolean).join(' · ');
+                html += '<div style="padding:12px 4px;border-bottom:' + (index < songs.length - 1 ? '1px solid #dcefeb' : 'none') + ';">';
+                html += '<div style="display:flex;align-items:flex-start;gap:10px;">';
+                html += '<div style="width:26px;height:26px;flex:0 0 26px;border-radius:9px;background:#d9f1ed;color:#23736d;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;">' + String(index + 1).padStart(2, '0') + '</div>';
+                html += '<div style="min-width:0;flex:1;">';
+                html += '<div style="font-size:15px;line-height:1.45;font-weight:800;color:#21423f;word-break:break-word;">' + escapeHtml(song.song_name || '未命名歌曲') + '</div>';
+                html += '<div style="font-size:12px;line-height:1.55;color:#6d8e89;margin-top:2px;word-break:break-word;">' + escapeHtml(song.artist || '未知歌手') + '</div>';
+                html += '<div style="font-size:11px;line-height:1.55;color:#789a95;margin-top:5px;word-break:break-word;">📅 ' + escapeHtml(dateLabel || '待定日期') + (time ? ' · ' + escapeHtml(time) : '') + ' · 点歌：' + escapeHtml(requester) + '</div>';
+                html += '</div></div></div>';
+            });
+            html += '<div style="font-size:11px;line-height:1.6;color:#70928d;padding:10px 4px 0;">播放时间如有调整，以广播站当天安排为准。</div></div></div>';
+            return html;
+        }
+
+        // 每次生成时冻结实际写入文章的数据库歌曲 ID。同步时只带这份快照，
+        // 避免之后勾选变化导致文章与状态更新不一致。
+        var generatedDailySongIds = [];
+
+        function collectDailySongIds(songs) {
+            var ids = [];
+            var seen = {};
+            (songs || []).forEach(function(song) {
+                if (Number.isSafeInteger(song && song.id) && song.id > 0 && !seen[song.id]) {
+                    seen[song.id] = true;
+                    ids.push(song.id);
+                }
+            });
+            return ids;
+        }
 
         function updateDailySongTabCount(count) {
             var badge = document.getElementById('dailySongTabCount');
@@ -2396,22 +3237,33 @@
         }
 
         async function loadDailySongSelector() {
+            if (!canManageDailySongs) return;
             var listEl = document.getElementById('dailySongList');
             if (!listEl) return;
             listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">加载中...</div>';
 
             try {
-                var json = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
+                var json = await apiFetch('/api/admin/daily-songs?candidate=1&limit=50');
                 if (json.code === 200 && json.data.songs && json.data.songs.length > 0) {
-                    // 保留旧的 _tpl 状态：按 song_name 匹配
-                    var oldTplMap = {};
+                    // 保留编辑状态：按数据库 ID 匹配，避免同名歌曲互相覆盖。
+                    var oldSongState = {};
                     for (var oi = 0; oi < selectedDailySongs.length; oi++) {
-                        if (selectedDailySongs[oi].song_name && selectedDailySongs[oi]._tpl) {
-                            oldTplMap[selectedDailySongs[oi].song_name] = selectedDailySongs[oi]._tpl;
+                        if (Number.isSafeInteger(selectedDailySongs[oi].id)) {
+                            oldSongState[selectedDailySongs[oi].id] = {
+                                _tpl: selectedDailySongs[oi]._tpl,
+                                _selected: selectedDailySongs[oi]._selected,
+                                _expanded: selectedDailySongs[oi]._expanded === true,
+                                intro: selectedDailySongs[oi].intro,
+                                lyrics: selectedDailySongs[oi].lyrics,
+                                song_info: selectedDailySongs[oi].song_info
+                            };
                         }
                     }
-                    selectedDailySongs = json.data.songs.map(function(s) {
-                        if (oldTplMap[s.song_name]) s._tpl = oldTplMap[s.song_name];
+                    selectedDailySongs = normalizeDailySongList(json.data.songs).map(function(s) {
+                        var prior = oldSongState[s.id];
+                        if (prior) Object.assign(s, prior);
+                        if (s._selected === undefined) s._selected = shouldSelectDailySongByDefault(s);
+                        if (s._expanded === undefined) s._expanded = false;
                         return s;
                     });
                     document.getElementById('dailySongSelector').dataset.loaded = 'true';
@@ -2420,7 +3272,7 @@
                 } else {
                     document.getElementById('dailySongSelector').dataset.loaded = 'true';
                     updateDailySongTabCount(0);
-                    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无待推送歌曲</div>';
+                    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无待推送歌曲或三天内可复用歌曲</div>';
                 }
             } catch (e) {
                 listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">加载失败</div>';
@@ -2437,15 +3289,21 @@
                 var lyrics = song.lyrics || '';
                 var hasIntro = intro.trim().length > 0;
                 var hasLyrics = lyrics.trim().length > 0;
+                var expanded = song._expanded === true;
 
-                html += '<div class="daily-song-item" style="padding:16px;background:#fff;border-radius:14px;border:1px solid rgba(255,107,157,0.15);box-shadow:0 2px 10px rgba(0,0,0,0.03);margin-bottom:10px;">';
+                html += '<div class="daily-song-item">';
                 // 歌曲标题行
-                html += '<div class="daily-song-item-head" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-                html += '<input type="checkbox" class="daily-song-select" value="' + idx + '" checked onchange="updateSelectedSongs()" style="width:18px;height:18px;accent-color:#FF6B9D;flex-shrink:0;">';
-                html += '<div style="flex:1;min-width:0;">';
+                html += '<div class="daily-song-item-head">';
+                html += '<input type="checkbox" class="daily-song-select" value="' + idx + '" ' + (song._selected !== false ? 'checked' : '') + ' onchange="updateSelectedSongs()" style="width:18px;height:18px;accent-color:#FF6B9D;flex-shrink:0;">';
+                html += '<div class="daily-song-item-main">';
                 html += '<div style="font-weight:700;font-size:15px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(song.song_name || '') + '</div>';
                 html += '<div style="font-size:12px;color:#999;margin-top:2px;">' + escapeHtml(song.artist || '未知歌手') + ' · ' + escapeHtml(song.submitter || '匿名') + '</div>';
-                html += '</div>';
+                html += '<div class="daily-song-item-badges">';
+                if (song.status === 'published') {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#E8F5E9;color:#2E7D32;border-radius:10px;flex-shrink:0;">已发布 · 可复用</span>';
+                } else {
+                    html += '<span style="font-size:10px;padding:3px 8px;background:#FFF3E0;color:#E65100;border-radius:10px;flex-shrink:0;">未发布</span>';
+                }
                 // 状态标签
                 if (hasIntro && hasLyrics) {
                     html += '<span style="font-size:10px;padding:3px 8px;background:#d1fae5;color:#059669;border-radius:10px;flex-shrink:0;">已填充</span>';
@@ -2455,6 +3313,12 @@
                     html += '<span style="font-size:10px;padding:3px 8px;background:#fee2e2;color:#dc2626;border-radius:10px;flex-shrink:0;">待生成</span>';
                 }
                 html += '</div>';
+                html += '</div>';
+                html += '<button type="button" class="daily-song-item-editor-toggle" id="songEditorToggle_' + idx + '" aria-expanded="' + (expanded ? 'true' : 'false') + '" onclick="toggleDailySongEditor(' + idx + ')">' + (expanded ? '收起编辑' : '编辑详情') + '</button>';
+                html += '</div>';
+                html += '<div class="daily-song-item-summary" id="songEditorSummary_' + idx + '" style="' + (expanded ? 'display:none;' : '') + '">';
+                html += (hasIntro ? '已填写介绍词' : '介绍词待补充') + ' · ' + (hasLyrics ? '歌词已就绪' : '歌词待补充') + ' · 点击“编辑详情”展开</div>';
+                html += '<div class="daily-song-item-details" id="songEditorDetails_' + idx + '" style="display:' + (expanded ? 'block' : 'none') + ';">';
                 // 操作按钮行
                 html += '<div class="daily-song-item-actions" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">';
                 html += '<button onclick="generateSongIntro(' + idx + ')" style="padding:5px 14px;font-size:12px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);color:#fff;border:none;border-radius:10px;cursor:pointer;white-space:nowrap;">🤖 AI生成</button>';
@@ -2489,7 +3353,8 @@
                 html += '<label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">歌词</label>';
                 html += '<textarea id="songLyrics_' + idx + '" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:13px;min-height:60px;max-height:200px;resize:vertical;background:#fafafa;font-family:serif;line-height:1.8;box-sizing:border-box;" placeholder="搜索歌词或手动输入..." onchange="updateSongLyrics(' + idx + ', this.value)">' + escapeHtml(lyrics) + '</textarea>';
                 html += '</div>';
-                html += '</div>';
+                html += '</div>'; // 关闭编辑详情
+                html += '</div>'; // 关闭本首候选项，避免后续歌曲递归嵌套
             });
             listEl.innerHTML = html;
             // 控制批量模板栏显示
@@ -2583,11 +3448,32 @@
             // 如果已生成过预览，实时重新渲染
             if (lastPreviewData) {
                 rerenderPreviewOnly(true);
+            } else if (lastSongOnlyState) {
+                // 独立“每日推歌”流程没有帖子缓存，切换模板后直接重建同一份推歌稿，
+                // 避免用户还要返回列表再点一次生成。
+                generateSongOnly({ skipRefresh: true }).catch(function(error) {
+                    showToast('推歌预览刷新失败：' + (error.message || '请稍后重试'), 'error');
+                });
+            }
+        }
+
+        function toggleDailySongEditor(idx) {
+            var song = selectedDailySongs[idx];
+            if (!song) return;
+            song._expanded = song._expanded !== true;
+            var details = document.getElementById('songEditorDetails_' + idx);
+            var summary = document.getElementById('songEditorSummary_' + idx);
+            var toggle = document.getElementById('songEditorToggle_' + idx);
+            if (details) details.style.display = song._expanded ? 'block' : 'none';
+            if (summary) summary.style.display = song._expanded ? 'none' : 'inline-flex';
+            if (toggle) {
+                toggle.textContent = song._expanded ? '收起编辑' : '编辑详情';
+                toggle.setAttribute('aria-expanded', song._expanded ? 'true' : 'false');
             }
         }
 
         // 预览单首歌曲的当前所选模板（生成纯推歌预览）
-        function previewSongTpl(idx) {
+        async function previewSongTpl(idx) {
             if (!selectedDailySongs[idx]) return;
             // 把要预览的歌曲放到 selectedDailySongs 前面，并只保留它 + 标记使用所选模板
             var preview = JSON.parse(JSON.stringify(selectedDailySongs));
@@ -2596,6 +3482,10 @@
             // 把目标歌曲挪到第一位
             preview = [target];
             var backup = selectedDailySongs.slice();
+            var previousGeneratedArticles = generatedArticles;
+            var previousGeneratedDailySongIds = generatedDailySongIds.slice();
+            var previousLastSongOnlyState = lastSongOnlyState;
+            var previousLastPreviewData = lastPreviewData;
             // 关键：把 backup 里的 _tpl 状态暂存到全局，供 generateSongOnly 内部重建后保留
             window.__preservedTplMap = {};
             for (var bi = 0; bi < backup.length; bi++) {
@@ -2605,13 +3495,20 @@
             }
             selectedDailySongs = preview;
             try {
-                generateSongOnly();
+                await generateSongOnly({ skipRefresh: true });
                 showToast('已按所选模板生成预览：' + (SONG_TPL_NAMES[target._tpl || 'random'] || '随机'), 'success');
             } catch(e) {
                 showToast('预览失败：' + e.message, 'error');
             } finally {
                 selectedDailySongs = backup;
                 window.__preservedTplMap = null;
+                // 单首模板预览只更新每日推歌页内的临时预览，不覆盖整篇文章的同步状态。
+                generatedArticles = previousGeneratedArticles;
+                generatedDailySongIds = previousGeneratedDailySongIds;
+                lastSongOnlyState = previousLastSongOnlyState;
+                lastPreviewData = previousLastPreviewData;
+                var inlinePanel = document.getElementById('dailySongInlinePreview');
+                if (inlinePanel) inlinePanel.dataset.previewOnly = 'true';
             }
         }
 
@@ -2734,16 +3631,19 @@
         function addManualSong() {
             var songName = document.getElementById('manual_song_name').value.trim();
             if (!songName) { showToast('请填写歌名', 'error'); return; }
+            var artist = document.getElementById('manual_artist').value.trim();
+            if (!artist) { showToast('请填写歌手', 'error'); return; }
             var entry = {
                 id: 'manual_' + Date.now(),
                 song_name: songName,
-                artist: document.getElementById('manual_artist').value.trim(),
+                artist: artist,
                 submitter: document.getElementById('manual_submitter').value.trim() || '匿名同学',
                 to_whom: document.getElementById('manual_to_whom').value.trim(),
                 intro: document.getElementById('manual_intro').value.trim(),
                 lyrics: document.getElementById('manual_lyrics').value.trim(),
                 message: document.getElementById('manual_message').value.trim(),
                 _selected: true,
+                _expanded: false,
                 _manual: true
             };
             selectedDailySongs.push(entry);
@@ -2780,12 +3680,27 @@
         }
 
         function getSelectedDailySongs() {
-            return selectedDailySongs.filter(s => s._selected !== false);
+            return selectedDailySongs.filter(s => s._selected !== false).map(normalizeDailySong);
+        }
+
+        function markSyncedSongsLocally(ids) {
+            if (!ids || !ids.length) return;
+            var idSet = {};
+            ids.forEach(function(id) { idSet[id] = true; });
+            selectedDailySongs.forEach(function(song) {
+                if (idSet[song.id]) {
+                    song.status = 'published';
+                    if (!song.published_at) song.published_at = new Date().toISOString();
+                    song._selected = false;
+                }
+            });
+            renderDailySongSelector();
         }
 
         // ===== 推歌模板库（全局共享） =====
         // 当前登录管理员用户名（用于底部"编辑XXX"署名）
         var currentAdminUser = null;
+        var canManageDailySongs = false;
         // 模板名称映射（供下拉框使用）
         var SONG_TPL_NAMES = {
             random:   '🎲 随机模板',
@@ -2863,7 +3778,7 @@
             return '<div style="margin:8px 0 0;padding:10px 14px;background:linear-gradient(135deg,' + c.bg + ',#fff);border:1px dashed ' + c.border + ';border-radius:10px;display:flex;align-items:center;gap:8px;">'
                 + '<div style="width:28px;height:28px;background:' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:11px;color:#fff;">▶</span></div>'
                 + '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(s.song_name || '') + (s.artist ? ' - ' + escapeHtml(s.artist) : '') + '</div>'
-                + '<div style="font-size:10px;color:#aaa;margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>'
+                + '</div>'
                 + '</div>';
         }
 
@@ -3143,7 +4058,7 @@
             h += '<div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
             h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
             h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
-            h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+            h += '</div>';
             h += '</div>';
             h += '</div>';
             return h;
@@ -3179,7 +4094,7 @@
             }
             h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
             h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
-            h += '<div style="font-size:10px;color:#ddd;">📮 校园墙</div>';
+            h += '<div style="font-size:10px;color:#ddd;">📮 示例校园墙</div>';
             h += '</div>';
             h += musicPlaceholderHtml(s, c);
             h += '</div>';
@@ -3215,12 +4130,12 @@
             }
             h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
             h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-            h += '<span>校园墙</span>';
+            h += '<span>示例校园墙</span>';
             h += '</div>';
             h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
             h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
             h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
-            h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+            h += '</div>';
             h += '</div>';
             h += '</div>';
             return h;
@@ -3268,7 +4183,7 @@
             h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
             h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
             h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
-            h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">校园墙·音乐角</div></div>';
+            h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">示例校园墙·音乐角</div></div>';
             h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
             h += '</div>';
             h += '<div style="display:flex;padding:20px;gap:16px;align-items:center;">';
@@ -3372,10 +4287,21 @@
 
         // 上次 generatePreview 的数据缓存（用于切换模板时不重新请求接口）
         var lastPreviewData = null;
+        // 独立每日推歌稿的状态。与帖子预览缓存分开，避免“换一版”误用旧帖子数据。
+        var lastSongOnlyState = null;
+        // 最近一次独立生成的本周/下周点歌播放表，用于页内预览和封面提示词素材。
+        var lastWeeklyScheduleData = null;
 
         // 仅重新渲染预览区（用缓存数据，不重新请求接口）
         function rerenderPreviewOnly() {
             if (!lastPreviewData) {
+                if (lastSongOnlyState) {
+                    // 当前预览是独立推歌稿，不能套用帖子预览缓存；按现有歌曲编辑状态重建。
+                    generateSongOnly({ skipRefresh: true }).catch(function(error) {
+                        showToast('推歌预览刷新失败：' + (error.message || '请稍后重试'), 'error');
+                    });
+                    return;
+                }
                 showMsg('previewMsg', '请先点"刷新预览"生成一次', 'info');
                 return;
             }
@@ -3386,30 +4312,100 @@
             var previewArea = document.getElementById('previewArea');
             try {
                 var previewHtml = buildPreviewHtmlFromData(data);
-                previewArea.innerHTML = previewHtml;
-                // 同步 generatedArticles（用新模板渲染的 HTML）
+                // 预览正文和最终同步 payload 共用同一份 article.content。
                 try {
-                    var firstSong = (selectedDailySongs.filter(function(x){return x._selected !== false;})[0]) || {};
-                    var postCount = (data.postData || []).length;
-                    var newTitle = '今日校墙精选 · ' + ((data.dateInfo && data.dateInfo.date) || (new Date().getMonth()+1) + '月' + new Date().getDate() + '日') + (postCount > 0 ? ' · ' + postCount + '篇热帖' : '');
-                    if (newTitle.length > 64) newTitle = newTitle.substring(0, 62) + '…';
-                    rememberGeneratedArticle({
-                        title: newTitle,
-                        author: '校园墙',
-                        digest: '校园墙今日精选 · ' + (data.postData.length || 0) + ' 篇热门帖子 · 同学心声',
-                        content: previewHtml,
-                        content_source_url: 'https://campus-wall.example',
-                        text_stats: { total: countVisibleText(previewHtml) + countText(newTitle) + countText('校园墙') },
-                        show_cover_pic: 1,
-                        need_open_comment: 1,
-                        only_fans_can_comment: 0
-                    });
-                } catch(e) { /* 保留当前预览内容 */ }
-                showMsg('previewMsg', '✅ 已按新模板重新渲染', 'success');
+                    generatedArticles = [buildSyncedPreviewArticle(data.article, previewHtml, data.postData, data.dateInfo)];
+                    previewArea.innerHTML = generatedArticles[0].content;
+                    generatedDailySongIds = collectDailySongIds(getSelectedDailySongs());
+                    updatePreviewArticleMeta(generatedArticles[0], 'posts');
+                } catch(e) { console.log('重渲时覆盖 articles 失败:', e); }
+                showMsg('previewMsg', '✅ 已按当前主题重新渲染：' + getActivePreviewTheme().name, 'success');
             } catch(e) {
                 console.error('重新渲染失败:', e);
                 showMsg('previewMsg', '❌ 重新渲染失败: ' + e.message, 'error');
             }
+        }
+
+        // 微信正文不可靠支持 flex，且会把 td 的百分比宽度和左右 padding 叠加，
+        // 因此卡片间距使用独立的间隔列；表格单元格自身始终无水平 padding，避免手机端横向溢出。
+        function buildWechatTextStatsHtml(readMinutes, postCount) {
+            var html = '<!-- mp-text-stats-start --><div style="margin:16px 16px 0;padding:16px 12px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(102,126,234,0.1);border:1px solid rgba(102,126,234,0.08);box-sizing:border-box;overflow:hidden;">';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;"><tr>';
+            html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:8px 0;border-right:1px solid #E0E0FF;overflow:hidden;"><div style="font-size:17px;font-weight:800;color:#667eea;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">__MP_VISIBLE_TEXT_COUNT__</div><div style="font-size:10px;color:#756b78;margin-top:3px;letter-spacing:1px;white-space:nowrap;">全文字数</div></td>';
+            html += '<td width="3%" style="width:3% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+            html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:8px 0;border-right:1px solid #E0E0FF;overflow:hidden;"><div style="font-size:17px;font-weight:800;color:#764ba2;line-height:1.2;white-space:nowrap;">' + readMinutes + '</div><div style="font-size:10px;color:#756b78;margin-top:3px;letter-spacing:1px;white-space:nowrap;">阅读分钟</div></td>';
+            html += '<td width="3%" style="width:3% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+            html += '<td width="31.33%" style="width:31.33% !important;text-align:center;padding:8px 0;overflow:hidden;"><div style="font-size:17px;font-weight:800;color:#c23f78;line-height:1.2;white-space:nowrap;">' + postCount + '</div><div style="font-size:10px;color:#756b78;margin-top:3px;letter-spacing:1px;white-space:nowrap;">精选帖子</div></td>';
+            html += '</tr></table></div><!-- mp-text-stats-end -->';
+            return html;
+        }
+
+        function buildWechatWeatherCardHtml(weather, previewTheme) {
+            var html = '';
+            html += '<div style="margin:16px 16px 0;padding:16px;background:' + previewTheme.weatherBg + ';border-radius:20px;border:1px solid ' + previewTheme.weatherBorder + ';position:relative;overflow:hidden;box-sizing:border-box;">';
+            html += '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:' + previewTheme.weatherCard + ';opacity:.28;border-radius:50%;"></div>';
+            html += '<div style="position:absolute;bottom:-10px;left:-10px;width:60px;height:60px;background:' + previewTheme.weatherCard + ';opacity:.2;border-radius:50%;"></div>';
+            html += '<div style="margin-bottom:16px;"><span style="font-size:18px;">☁️</span><span style="font-size:14px;font-weight:800;color:' + previewTheme.weatherAccent + ';margin-left:8px;">' + escapeHtml(weather.city || '') + ' 天气预报</span></div>';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;"><tr>';
+            html += '<td width="48%" style="width:48% !important;vertical-align:top;padding:0;overflow:hidden;">';
+            html += '<div style="width:100% !important;box-sizing:border-box;overflow:hidden;background:' + previewTheme.weatherCard + ';border-radius:16px;padding:12px 4px;text-align:center;box-shadow:0 2px 12px ' + previewTheme.weatherShadow + ';">';
+            html += '<div style="font-size:12px;color:' + previewTheme.weatherMuted + ';margin-bottom:8px;">今日</div>';
+            html += '<div style="font-size:24px;margin-bottom:6px;line-height:1;">' + escapeHtml(weather.icon || '🌤️') + '</div>';
+            html += '<div style="font-size:17px;font-weight:800;color:' + previewTheme.weatherAccent + ';margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(weather.temperature || '') + '</div>';
+            html += '<div style="font-size:13px;color:' + previewTheme.weatherText + ';margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(weather.weather || '') + '</div>';
+            html += buildWechatWeatherMetaHtml(weather.wind, '💨', previewTheme);
+            html += buildWechatWeatherMetaHtml(weather.humidity, '💧', previewTheme);
+            html += '</div></td><td width="4%" style="width:4% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+            html += '<td width="48%" style="width:48% !important;vertical-align:top;padding:0;overflow:hidden;">';
+            if (weather.tomorrow) {
+                html += '<div style="width:100% !important;box-sizing:border-box;overflow:hidden;background:' + previewTheme.weatherMutedCard + ';border-radius:16px;padding:12px 4px;text-align:center;">';
+                html += '<div style="font-size:12px;color:' + previewTheme.weatherMuted + ';margin-bottom:8px;">' + escapeHtml(weather.tomorrow.week || '明天') + '</div>';
+                html += '<div style="font-size:24px;margin-bottom:6px;line-height:1;">' + escapeHtml(weather.tomorrow.icon || '☀️') + '</div>';
+                html += '<div style="font-size:14px;font-weight:700;color:' + previewTheme.weatherAccent + ';margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
+                html += '<div style="font-size:13px;color:' + previewTheme.weatherText + ';margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
+                html += buildWechatWeatherMetaHtml(weather.tomorrow.wind, '💨', previewTheme);
+                html += buildWechatWeatherMetaHtml(weather.tomorrow.humidity, '💧', previewTheme);
+                html += '</div>';
+            } else {
+                html += '<div style="box-sizing:border-box;min-height:120px;padding:12px 4px;color:' + previewTheme.weatherMuted + ';font-size:12px;text-align:center;">明日预报暂未更新</div>';
+            }
+            html += '</td></tr></table></div>';
+            return html;
+        }
+
+        function buildWechatWeatherMetaHtml(value, icon, previewTheme) {
+            var clean = String(value || '').trim();
+            var content = clean ? icon + ' ' + escapeHtml(clean) : '&nbsp;';
+            return '<div style="font-size:11px;color:' + previewTheme.weatherMuted + ';margin-top:4px;line-height:16px;min-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + content + '</div>';
+        }
+
+        function buildWechatWeeklyStarHtml(weeklyStar) {
+            var html = '';
+            var stars = Array.isArray(weeklyStar) ? weeklyStar : [];
+            var medals = ['①', '②', '③'];
+            var starColors = ['#FFD700','#C0C0C0','#CD7F32'];
+            html += '<div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f5f5f5;box-sizing:border-box;overflow:hidden;">';
+            html += '<div style="font-size:15px;font-weight:700;color:#4b3d68;margin-bottom:16px;">每周之星</div>';
+            for (var start = 0; start < stars.length; start += 3) {
+                var row = stars.slice(start, start + 3);
+                var starWidth = ((100 - ((row.length - 1) * 2)) / row.length).toFixed(2) + '%';
+                html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100% !important;table-layout:fixed;border-collapse:collapse;' + (start ? 'margin-top:8px;' : '') + '"><tr>';
+                for (var wi = 0; wi < row.length; wi++) {
+                    var w = row[wi] || {};
+                    var wName = w.nickname || w.username || '同学';
+                    var starColor = starColors[(start + wi) % starColors.length];
+                    if (wi > 0) html += '<td width="2%" style="width:2% !important;padding:0;font-size:0;line-height:0;">&nbsp;</td>';
+                    html += '<td width="' + starWidth + '" style="width:' + starWidth + ' !important;vertical-align:top;text-align:center;padding:0;overflow:hidden;">';
+                    html += '<div style="width:100%;padding:14px 2px;box-sizing:border-box;overflow:hidden;background:linear-gradient(135deg,#FFFEF0,#FFF9E6);border-radius:16px;border:1px solid ' + starColor + '33;">';
+                    html += '<div style="font-size:28px;margin-bottom:7px;line-height:1;">' + (medals[(start + wi) % medals.length] || '🏅') + '</div>';
+                    html += '<div style="font-weight:700;font-size:13px;color:#333;margin-bottom:6px;word-break:break-all;overflow:hidden;">' + escapeHtml(wName) + '</div>';
+                    html += '<div style="font-size:11px;color:#999;word-break:break-all;">📝 ' + (w.post_count || 0) + ' · ❝ ' + (w.comment_count || 0) + '</div>';
+                    html += '</div></td>';
+                }
+                html += '</tr></table>';
+            }
+            html += '</div>';
+            return html;
         }
 
         // 从缓存数据构建 previewHtml（提取自 generatePreview，避免重复请求）
@@ -3424,36 +4420,32 @@
             var todayHistory = data.todayHistory || {};
             var weeklyStar = data.weeklyStar || [];
             var commentsByPost = data.commentsByPost || {};
+            var weeklyRadioData = data.weeklyRadioData || null;
 
             var includeWeather = document.getElementById('cbWeather').checked;
             var includeHitokoto = document.getElementById('cbHitokoto').checked;
             var includeWeeklyStar = document.getElementById('cbWeeklyStar').checked;
             var includeGaokao = true; // 历史数据中已包含
-            var includeDailySong = true; // 历史数据中已包含
+            var includeDailySongEl = document.getElementById('cbDailySong');
+            var includeDailySong = canManageDailySongs && (includeDailySongEl ? includeDailySongEl.checked : true);
 
+            var previewTheme = getActivePreviewTheme();
             var previewHtml = '';
-            previewHtml += '<div style="padding:0;background:linear-gradient(180deg,#FBFCFF0%,#F5F7FF 100%);min-height:100vh;">';
+            previewHtml += '<div style="padding:0;background:' + previewTheme.canvas + ';min-height:100vh;">';
 
             // ===== 顶部大标题区 =====
-            var headerGradients = [
-                'linear-gradient(135deg, #FF91A4 0%, #C89AFF 50%, #7EB6FF 100%)',
-                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-            ];
-            var headerGradient = headerGradients[new Date().getDate() % headerGradients.length];
+            var headerGradient = previewTheme.gradient;
             previewHtml += '<div style="background:' + headerGradient + ';padding:28px 14px 24px;text-align:center;position:relative;overflow:hidden;">';
             previewHtml += '<div style="position:absolute;top:16px;left:24px;width:10px;height:10px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
             previewHtml += '<div style="position:absolute;top:36px;right:40px;width:16px;height:16px;background:rgba(255,255,255,0.15);border-radius:50%;"></div>';
             previewHtml += '<div style="position:absolute;top:60px;left:50%;width:8px;height:8px;background:rgba(255,255,255,0.25);border-radius:50%;"></div>';
             previewHtml += '<div style="position:absolute;bottom:24px;right:32px;width:12px;height:12px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>';
             previewHtml += '<div style="position:absolute;bottom:16px;left:60%;width:6px;height:6px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
-            previewHtml += '<div style="display:inline-block;padding:6px 16px;background:rgba(255,255,255,0.2);border-radius:20px;margin-bottom:14px;">';
-            previewHtml += '<span style="font-size:11px;color:rgba(255,255,255,0.9);letter-spacing:1.5px;">✦ DAILY CAMPUS HIGHLIGHTS ✦</span>';
+            previewHtml += '<div style="display:inline-block;padding:6px 14px;background:' + previewTheme.tagBg + ';border:1px solid ' + previewTheme.tagBorder + ';border-radius:20px;margin-bottom:14px;">';
+            previewHtml += '<span style="font-size:10px;color:' + previewTheme.tagText + ';font-weight:700;letter-spacing:1.4px;">✦ ' + previewTheme.kicker + ' ✦</span>';
             previewHtml += '</div>';
             previewHtml += '<div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:1.5px;text-shadow:0 2px 12px rgba(0,0,0,0.15);">❀ 今日校园精选</div>';
-            previewHtml += '<div style="margin:16px auto 0;width:60px;height:3px;background:rgba(255,255,255,0.4);border-radius:2px;"></div>';
+            previewHtml += '<div style="margin:16px auto 0;width:60px;height:3px;background:' + previewTheme.rule + ';border-radius:2px;"></div>';
             previewHtml += '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:14px;letter-spacing:2px;">' + escapeHtml(dateInfo.date || '') + ' · ' + escapeHtml(dateInfo.week || '') + '</div>';
             previewHtml += '</div>';
 
@@ -3475,7 +4467,7 @@
             }
             // 只有勾选"包含每日推歌"才统计推歌字数
             var cbDailySongEl = document.getElementById('cbDailySong');
-            var includeDailySongForCount = cbDailySongEl ? cbDailySongEl.checked : true;
+            var includeDailySongForCount = canManageDailySongs && (cbDailySongEl ? cbDailySongEl.checked : true);
             if (includeDailySongForCount) {
                 var dailySongsForCount = (selectedDailySongs && selectedDailySongs.length > 0)
                     ? selectedDailySongs.filter(function(x) { return x._selected !== false; })
@@ -3500,39 +4492,11 @@
                 totalChars += countStr(todayHistory.title) + countStr(htEvent);
             }
             var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
-            previewHtml += '<!-- mp-text-stats-start --><div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(102,126,234,0.1);border:1px solid rgba(102,126,234,0.08);box-sizing:border-box;overflow:hidden;">';
-            previewHtml += '<div style="display:flex;justify-content:space-between;gap:8px;">';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;"><div style="font-size:22px;margin-bottom:4px;">📝</div><div style="font-size:18px;font-weight:800;color:#667eea;white-space:nowrap;">__MP_VISIBLE_TEXT_COUNT__</div><div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">全文字数</div></div>';
-            previewHtml += '<div style="width:1px;background:linear-gradient(180deg,transparent,#E0E0FF,transparent);margin:8px 0;flex-shrink:0;"></div>';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;"><div style="font-size:22px;margin-bottom:4px;">◷</div><div style="font-size:18px;font-weight:800;color:#764ba2;white-space:nowrap;">' + readMinutes + '</div><div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">阅读分钟</div></div>';
-            previewHtml += '<div style="width:1px;background:linear-gradient(180deg,transparent,#E0E0FF,transparent);margin:8px 0;flex-shrink:0;"></div>';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;"><div style="font-size:22px;margin-bottom:4px;">🎵</div><div style="font-size:18px;font-weight:800;color:#FF6B9D;white-space:nowrap;">' + postData.length + '</div><div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">精选帖子</div></div>';
-            previewHtml += '</div></div><!-- mp-text-stats-end -->';
+            previewHtml += buildWechatTextStatsHtml(readMinutes, postData.length);
 
             // 天气
             if (includeWeather && weather && weather.temperature) {
-                previewHtml += '<div style="margin:16px 16px 0;padding:16px;background:linear-gradient(135deg,#E8F4FD,#D0E8FF 100%);border-radius:20px;border:1px solid rgba(74,144,217,0.1);position:relative;overflow:hidden;">';
-                previewHtml += '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(74,144,217,0.08);border-radius:50%;"></div>';
-                previewHtml += '<div style="position:absolute;bottom:-10px;left:-10px;width:60px;height:60px;background:rgba(74,144,217,0.05);border-radius:50%;"></div>';
-                previewHtml += '<div style="margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><div style="font-size:18px;">☁</div><div style="font-size:14px;font-weight:700;color:#4A90D9;">' + escapeHtml(weather.city || '') + ' 天气预报</div></div>';
-                previewHtml += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-                previewHtml += '<div style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:14px;text-align:center;box-shadow:0 2px 12px rgba(74,144,217,0.1);">';
-                previewHtml += '<div style="font-size:12px;color:#999;margin-bottom:8px;">今日</div>';
-                previewHtml += '<div style="font-size:26px;margin-bottom:6px;">' + (weather.icon || '🌤') + '</div>';
-                previewHtml += '<div style="font-size:18px;font-weight:800;color:#4A90D9;margin-bottom:4px;">' + (weather.temperature || '') + '</div>';
-                previewHtml += '<div style="font-size:13px;color:#666;margin-bottom:8px;">' + escapeHtml(weather.weather || '') + '</div>';
-                previewHtml += '<div style="font-size:11px;color:#aaa;">💨 ' + escapeHtml(weather.wind || '') + '</div>';
-                previewHtml += '<div style="font-size:11px;color:#aaa;margin-top:4px;">💧 ' + escapeHtml(weather.humidity || '') + '</div>';
-                previewHtml += '</div>';
-                if (weather.tomorrow) {
-                    previewHtml += '<div style="flex:1;min-width:0;background:rgba(255,255,255,0.6);border-radius:16px;padding:14px;text-align:center;">';
-                    previewHtml += '<div style="font-size:12px;color:#999;margin-bottom:8px;">' + escapeHtml(weather.tomorrow.week || '明天') + '</div>';
-                    previewHtml += '<div style="font-size:26px;margin-bottom:6px;">' + (weather.tomorrow.icon || '☀️') + '</div>';
-                    previewHtml += '<div style="font-size:14px;font-weight:700;color:#4A90D9;margin-bottom:4px;">' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
-                    previewHtml += '<div style="font-size:13px;color:#666;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
-                    previewHtml += '</div>';
-                }
-                previewHtml += '</div></div>';
+                previewHtml += buildWechatWeatherCardHtml(weather, previewTheme);
             }
 
             // 一言
@@ -3593,40 +4557,25 @@
 
             // 每周之星
             if (includeWeeklyStar && weeklyStar && weeklyStar.length > 0) {
-                var medals = ['①', '②', '③'];
-                var starColors = ['#FFD700','#C0C0C0','#CD7F32'];
-                previewHtml += '<div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f5f5f5;">';
-                previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><div style="font-size:20px;">⭐</div><div style="font-size:15px;font-weight:700;color:#555;">每周之星</div></div>';
-                previewHtml += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-                for (var wi = 0; wi < weeklyStar.length; wi++) {
-                    var w = weeklyStar[wi];
-                    var wName = w.nickname || w.username || '同学';
-                    var starColor = starColors[wi] || '#888';
-                    previewHtml += '<div style="flex:1;min-width:100px;text-align:center;padding:16px 12px;background:linear-gradient(135deg,#FFFEF0,#FFF9E6);border-radius:16px;border:1px solid ' + starColor + '33;">';
-                    previewHtml += '<div style="font-size:32px;margin-bottom:8px;">' + (medals[wi] || '🏅') + '</div>';
-                    previewHtml += '<div style="font-weight:700;font-size:14px;color:#333;margin-bottom:6px;">' + escapeHtml(wName) + '</div>';
-                    previewHtml += '<div style="font-size:12px;color:#999;">📝 ' + (w.post_count || 0) + ' · ❝ ' + (w.comment_count || 0) + '</div>';
-                    previewHtml += '</div>';
-                }
-                previewHtml += '</div></div>';
+                previewHtml += buildWechatWeeklyStarHtml(weeklyStar);
             }
 
             // 最近点歌
             if (songs && songs.length > 0) {
                 previewHtml += '<div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f5f5f5;">';
-                previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="font-size:18px;">🎵</div><div style="font-size:14px;font-weight:700;color:#555;">最近点歌</div></div>';
+                previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><div style="font-size:18px;">🎵</div><div style="font-size:14px;font-weight:700;color:#4b3d68;">最近点歌</div></div>';
                 for (var si2 = 0; si2 < songs.length; si2++) {
                     var song = songs[si2];
                     var authorStr = song.is_anonymous ? '匿名用户' : (song.nickname || song.username || '同学');
                     previewHtml += '<div style="padding:12px;background:#FFF5F8;border-radius:12px;margin-bottom:' + (si2 < songs.length - 1 ? '10px' : '0') + ';">';
                     previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
                     previewHtml += '<span style="font-size:16px;">🎶</span>';
-                    previewHtml += '<div style="flex:1;"><div style="font-size:15px;font-weight:600;color:#333;">' + escapeHtml(song.song_name || '') + '</div>';
-                    if (song.artist) previewHtml += '<div style="font-size:12px;color:#999;">' + escapeHtml(song.artist) + '</div>';
+                    previewHtml += '<div style="flex:1;"><div style="font-size:15px;font-weight:600;color:#2e2438;">' + escapeHtml(song.song_name || '') + '</div>';
+                    if (song.artist) previewHtml += '<div style="font-size:12px;color:#75677b;">' + escapeHtml(song.artist) + '</div>';
                     previewHtml += '</div>';
-                    if (song.to_whom) previewHtml += '<span style="font-size:11px;padding:4px 10px;background:#FFE4EE;color:#FF69B4;border-radius:12px;">💝 ' + escapeHtml(song.to_whom) + '</span>';
+                    if (song.to_whom) previewHtml += '<span style="font-size:11px;padding:4px 10px;background:#F9D5E5;color:#A2376C;border-radius:12px;">💝 ' + escapeHtml(song.to_whom) + '</span>';
                     previewHtml += '</div>';
-                    previewHtml += '<div style="font-size:12px;color:#999;line-height:1.6;">';
+                    previewHtml += '<div style="font-size:12px;color:#6f6077;line-height:1.6;">';
                     if (song.slot_name || song.play_date || song.req_date) previewHtml += '📅 ' + escapeHtml(song.slot_name || '') + ((song.play_date || song.req_date) ? ' · ' + escapeHtml(song.play_date || song.req_date) : '');
                     if (song.message) previewHtml += ' · ❝ ' + escapeHtml(song.message.length > 30 ? song.message.substring(0, 30) + '...' : song.message);
                     previewHtml += ' · 👤 ' + escapeHtml(authorStr);
@@ -3645,8 +4594,8 @@
                     previewHtml += '<div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,107,157,0.08);border-radius:50%;"></div>';
                     previewHtml += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:0;">';
                     previewHtml += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,157,0.3);"><span style="font-size:20px;color:#fff;">🎵</span></div>';
-                    previewHtml += '<div style="flex:1;"><div style="font-size:11px;color:#FF6B9D;letter-spacing:2px;opacity:0.8;">MUSIC RECOMMENDATION</div>';
-                    previewHtml += '<div style="font-size:16px;font-weight:700;color:#FF69B4;">每日推歌 · ' + dailySongs.length + ' 首</div></div>';
+                    previewHtml += '<div style="flex:1;"><div style="font-size:11px;color:#9A315F;letter-spacing:2px;font-weight:700;">MUSIC RECOMMENDATION</div>';
+                    previewHtml += '<div style="font-size:16px;font-weight:700;color:#A2376C;">每日推歌 · ' + dailySongs.length + ' 首</div></div>';
                     previewHtml += '</div></div>';
 
                     for (var dsI = 0; dsI < dailySongs.length; dsI++) {
@@ -3675,6 +4624,8 @@
                     }
                 }
             }
+
+            if (includeDailySong && shouldIncludeWeeklyRadio()) previewHtml += buildNextWeekRadioSectionHtml(weeklyRadioData);
 
             // 分割线
             previewHtml += '<div style="margin:24px 16px 0;text-align:center;">';
@@ -3709,7 +4660,7 @@
                 previewHtml += imgsHtml;
                 previewHtml += renderPostVideoCard(p);
                 previewHtml += '<div style="margin:16px 0 0 0;padding:14px 16px;background:#FAFAFA;border-radius:12px;border-left:4px solid ' + accent + ';">';
-                previewHtml += '<div style="font-size:14px;color:#555;line-height:2;text-align:justify;">' + autoFormatContent(escapeHtml(content_text)) + '</div></div>';
+                previewHtml += '<div style="font-size:14px;color:#555;line-height:2;text-align:justify;">' + autoFormatContent(content_text) + '</div></div>';
                 previewHtml += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #f5f5f5;display:flex;align-items:center;justify-content:space-between;">';
                 previewHtml += '<div style="display:flex;align-items:center;gap:8px;">';
                 previewHtml += '<div style="width:28px;height:28px;background:linear-gradient(135deg,' + accent + ',#FFB6C1);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:12px;color:#fff;">👤</span></div>';
@@ -3747,13 +4698,13 @@
             previewHtml += '<span style="font-size:12px;color:#999;">你的支持是我们持续更新的动力</span>';
             previewHtml += '</div></div>';
             previewHtml += '<div style="display:inline-block;padding:6px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.1);margin-bottom:16px;">';
-            previewHtml += '<img src="https://campus-wall.example/images/gzh.jpg" style="width:180px;display:block;border-radius:10px;" alt="校园墙二维码"></div>';
+            previewHtml += '<img src="http://localhost:3000/images/gzh.jpg" style="width:180px;display:block;border-radius:10px;" alt="校园墙二维码"></div>';
             previewHtml += '<div style="font-size:12px;color:#bbb;margin-bottom:8px;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</div>';
-            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">https://campus-wall.example</div>';
+            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</div>';
             previewHtml += '</div>';
             previewHtml += '<div style="height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA,#FFB6C1);"></div></div>';
             previewHtml += '<div style="text-align:center;color:#ddd;font-size:12px;margin:24px 16px 32px;padding:16px;background:#fff;border-radius:16px;">';
-            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 校园墙 ❀</div>';
+            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 示例校园墙 ❀</div>';
             previewHtml += '<div style="font-size:11px;color:#ccc;">感谢阅读 · 期待下次相见</div>';
             previewHtml += renderEditorSignature();
             previewHtml += '</div></div>';
@@ -3761,8 +4712,43 @@
             var rerenderPostCount = (data.postData || []).length;
             var rerenderTitle = '今日校墙精选 · ' + ((data.dateInfo && data.dateInfo.date) || (new Date().getMonth()+1) + '月' + new Date().getDate()) + (rerenderPostCount > 0 ? ' · ' + rerenderPostCount + '篇热帖' : '');
             if (rerenderTitle.length > 64) rerenderTitle = rerenderTitle.substring(0, 62) + '…';
-            var rerenderTextCount = countVisibleText(previewHtml) + countText(rerenderTitle) + countText('校园墙');
+            var rerenderTextCount = countVisibleText(previewHtml) + countText(rerenderTitle) + countText('示例校园墙');
             return previewHtml.replace('__MP_VISIBLE_TEXT_COUNT__', rerenderTextCount.toLocaleString());
+        }
+
+        // ===== 署名卡 =====
+        // 公众号正文和后台预览共用同一套签名卡视觉；动态姓名只取当前登录用户。
+        function renderSignatureCard(name, options) {
+            options = options || {};
+            var cardName = String(name || '').trim() || '校园广播站';
+            var stamp = options.stamp || cardName;
+            var kicker = options.kicker || '— CURATED FOR YOU —';
+            var desk = options.desk || 'from the desk of';
+            var subtitle = options.subtitle || '';
+            var nameFont = options.nameFont || 'Italianno,Brush Script MT,Snell Roundhand,Segoe Script,cursive';
+            var nameSize = options.nameSize || '64px';
+            var nameColor = options.nameColor || '#5C4A2E';
+            var stampColor = options.stampColor || '#C44569';
+            var d = new Date();
+            var volNum = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+            // 用普通 HTML 承载签名，避免 SVG foreignObject 隔离字体后回退成粗体手写字。
+            // 页面已加载 Italianno；复制正文时也会保留字体族声明，未加载时再按相近字体降级。
+            var sigBody = ''
+              + '<div style="font-family:Georgia,serif;text-align:center;color:' + nameColor + ';width:100%;box-sizing:border-box;padding:4px 0;">'
+              +   '<div style="font-family:' + nameFont + ';font-size:' + nameSize + ';line-height:1.2;font-weight:400;letter-spacing:2px;margin:6px 0 ' + (subtitle ? '4px' : '14px') + ';">' + escapeHtml(cardName) + '</div>'
+              +   (subtitle ? '<div style="font-family:Songti SC,SimSun,serif;font-size:13px;font-weight:700;letter-spacing:3px;color:' + nameColor + ';margin:0 0 12px;">' + escapeHtml(subtitle) + '</div>' : '')
+              +   '<div style="font-family:Georgia,serif;font-style:italic;font-size:10px;color:#A89070;letter-spacing:2.5px;margin-top:6px;">' + escapeHtml(desk) + '</div>'
+              +   '<div style="height:1px;background:repeating-linear-gradient(90deg,#D4C49A 0 4px,transparent 4px 8px);margin:8px 30px 0;"></div>'
+              +   '<div style="font-family:Georgia,serif;font-size:9px;color:#C4B488;letter-spacing:2.5px;margin-top:6px;">VOL. ' + d.getFullYear() + ' · NO. ' + volNum + '</div>'
+              + '</div>';
+            return ''
+              + '<div style="margin:16px auto 0;max-width:360px;padding:14px 18px 12px;background:#FFFEFA;border:1px solid #E8DCC4;border-radius:6px;text-align:center;box-shadow:0 1px 3px rgba(120,90,40,0.08);position:relative;overflow:hidden;">'
+              +   '<div style="font-size:9px;color:#B8A878;letter-spacing:6px;text-transform:uppercase;margin-bottom:6px;font-family:Georgia,serif;">' + escapeHtml(kicker) + '</div>'
+              +   sigBody
+              +   '<div style="position:absolute;left:14px;bottom:10px;width:30px;height:30px;border:1.5px solid ' + stampColor + ';border-radius:4px;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);opacity:0.75;">'
+              +     '<span style="font-family:Georgia,serif;font-size:9px;color:' + stampColor + ';font-weight:700;letter-spacing:0.5px;">' + escapeHtml(stamp) + '</span>'
+              +   '</div>'
+              + '</div>';
         }
 
         // ===== 底部编辑署名（只显示当前登录用户自己）=====
@@ -3772,30 +4758,7 @@
             if (!currentAdminUser || !currentAdminUser.username) {
                 return '';
             }
-            var name = currentAdminUser.nickname || currentAdminUser.username;
-            var d = new Date();
-            var volNum = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
-            // 用 SVG foreignObject 嵌入 HTML + @import Italianno(Google Fonts 优雅羽毛笔体)
-            // 比纯 SVG text 跨平台:HTML 内 webfont 在 iOS/Android/微信都能加载
-            var sigSvg = ''
-              + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" width="100%" style="display:block;max-width:300px;margin:0 auto;">'
-              +   '<foreignObject x="0" y="0" width="320" height="140">'
-              +     '<div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Georgia,serif;text-align:center;color:#5C4A2E;width:100%;height:100%;box-sizing:border-box;padding:4px 0;">'
-              +       '<div style="font-family:Italianno,Brush Script MT,Snell Roundhand,Segoe Script,cursive;font-size:64px;line-height:1.3;font-weight:400;letter-spacing:2px;margin:6px 0 14px;">' + escapeHtml(name) + '</div>'
-              +       '<div style="font-family:Georgia,serif;font-style:italic;font-size:10px;color:#A89070;letter-spacing:2.5;margin-top:6px;">from the desk of</div>'
-              +       '<div style="height:1px;background:repeating-linear-gradient(90deg,#D4C49A 0 4px,transparent 4px 8px);margin:8px 30px 0;"></div>'
-              +       '<div style="font-family:Georgia,serif;font-size:9px;color:#C4B488;letter-spacing:2.5;margin-top:6px;">VOL. ' + d.getFullYear() + ' · NO. ' + volNum + '</div>'
-              +     '</div>'
-              +   '</foreignObject>'
-              + '</svg>';
-            return ''
-              + '<div style="margin:16px auto 0;max-width:360px;padding:14px 18px 12px;background:#FFFEFA;border:1px solid #E8DCC4;border-radius:6px;text-align:center;box-shadow:0 1px 3px rgba(120,90,40,0.08);position:relative;overflow:hidden;">'
-              +   '<div style="font-size:9px;color:#B8A878;letter-spacing:6px;text-transform:uppercase;margin-bottom:6px;font-family:Georgia,serif;">— CURATED FOR YOU —</div>'
-              +   sigSvg
-              +   '<div style="position:absolute;left:14px;bottom:10px;width:30px;height:30px;border:1.5px solid #C44569;border-radius:4px;display:flex;align-items:center;justify-content:center;transform:rotate(-8deg);opacity:0.75;">'
-              +     '<span style="font-family:Georgia,serif;font-size:9px;color:#C44569;font-weight:700;letter-spacing:0.5px;">JAY</span>'
-              +   '</div>'
-              + '</div>';
+            return renderSignatureCard(currentAdminUser.nickname || currentAdminUser.username);
         }
 
         // ===== 生成图文预览 =====
@@ -3804,7 +4767,7 @@
             // D1: 空状态拦截 — 没勾任何帖子 + 没勾推歌,直接提示
             var postIds = getSelectedPostIds();
             var includeDailySongEl = document.getElementById('cbDailySong');
-            var includeDailySong = includeDailySongEl ? includeDailySongEl.checked : true;
+            var includeDailySong = canManageDailySongs && (includeDailySongEl ? includeDailySongEl.checked : true);
             var hasSongs = selectedDailySongs && selectedDailySongs.filter(function(x) { return x._selected !== false; }).length > 0;
             if (postIds.length === 0 && !(includeDailySong && hasSongs)) {
                 showMsg('previewMsg', '请先勾选至少 1 篇帖子,或勾选"包含每日推歌"', 'error');
@@ -3814,9 +4777,9 @@
             if (includeDailySong && (!selectedDailySongs || selectedDailySongs.length === 0)) {
                 setStatus('正在加载每日推歌...', 'loading');
                 try {
-                    var json = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
+                    var json = await apiFetch('/api/admin/daily-songs?candidate=1&limit=50');
                     if (json.code === 200 && json.data.songs) {
-                        selectedDailySongs = json.data.songs.map(function(s) { s._selected = true; return s; });
+                        selectedDailySongs = normalizeDailySongList(json.data.songs).map(function(s) { s._selected = shouldSelectDailySongByDefault(s); return s; });
                         renderDailySongSelector();
                     } else {
                         // D2: 推歌加载失败 toast
@@ -3840,16 +4803,27 @@
             var includeGaokaoEl = document.getElementById('cbGaokao');
             var includeGaokao = includeGaokaoEl ? includeGaokaoEl.checked : true;
             var includeDailySongEl = document.getElementById('cbDailySong');
-            var includeDailySong = includeDailySongEl ? includeDailySongEl.checked : true;
+            var includeDailySong = canManageDailySongs && (includeDailySongEl ? includeDailySongEl.checked : true);
 
-            setStatus('正在生成图文... (含高考:' + includeGaokao + ',推歌:' + includeDailySong + ')...', 'loading');
+            setPreviewBusy(true, '正在生成图文... (含高考:' + includeGaokao + ',推歌:' + includeDailySong + ')...');
 
-            var selectedSongs = getSelectedDailySongs().map(s => ({
-                song_name: s.song_name,
-                artist: s.artist,
-                submitter: s.submitter,
-                intro: s.intro || ''
-            }));
+            var selectedSongsForArticle = includeDailySong ? getSelectedDailySongs() : [];
+            // 将编辑器中的完整歌曲快照交给生成接口，避免只传歌名/歌手导致歌词、模板和送语在预览中丢失。
+            var selectedSongs = selectedSongsForArticle.map(function(song) {
+                var normalized = normalizeDailySong(song);
+                return {
+                    id: normalized.id,
+                    song_name: normalized.song_name,
+                    artist: normalized.artist,
+                    submitter: normalized.submitter,
+                    to_whom: normalized.to_whom,
+                    message: normalized.message,
+                    intro: normalized.intro,
+                    lyrics: normalized.lyrics,
+                    song_info: normalized.song_info || null,
+                    _tpl: normalized._tpl || 'random'
+                };
+            });
 
             var res = await apiFetch(API_BASE + '/generate-content', {
                 method: 'POST',
@@ -3867,12 +4841,12 @@
 
             if (res.code !== 200) {
                 showMsg('previewMsg', '生成失败: ' + (res.message || '未知错误'), 'error');
+                setPreviewBusy(false);
                 setStatus('❌ 生成图文失败', 'error');
                 return;
             }
 
-            generatedArticles = res.data.articles;
-            var articles = res.data.articles;
+            var articles = Array.isArray(res.data.articles) ? res.data.articles : [];
             var postData = res.data.posts;
             var weather = res.data.weather;
             var hitokoto = res.data.hitokoto;
@@ -3883,20 +4857,21 @@
             var todayHistory = res.data.todayHistory || {};
             var weeklyStar = res.data.weeklyStar || [];
             var commentsByPost = res.data.commentsByPost || {};
+            var weeklyRadioData = includeDailySong && selectedSongsForArticle.length
+                ? await loadNextWeekRadioForDailyPush()
+                : null;
+
+            // 每次成功刷新都切换主题；原先按日期取色，全天重复点击不会有可见变化。
+            advancePreviewTheme();
+            syncPreviewThemeSelector();
 
             var previewArea = document.getElementById('previewArea');
+            var previewTheme = getActivePreviewTheme();
             var previewHtml = '';
-            previewHtml += '<div style="padding:0;background:linear-gradient(180deg,#FBFCFF0%,#F5F7FF 100%);min-height:100vh;">';
+            previewHtml += '<div style="padding:0;background:' + previewTheme.canvas + ';min-height:100vh;">';
 
             // ===== 顶部大标题区 =====
-            var headerGradients = [
-                'linear-gradient(135deg, #FF91A4 0%, #C89AFF 50%, #7EB6FF 100%)',
-                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-            ];
-            var headerGradient = headerGradients[new Date().getDate() % headerGradients.length];
+            var headerGradient = previewTheme.gradient;
             previewHtml += '<div style="background:' + headerGradient + ';padding:28px 14px 24px;text-align:center;position:relative;overflow:hidden;">';
             // 装饰圆点
             previewHtml += '<div style="position:absolute;top:16px;left:24px;width:10px;height:10px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
@@ -3905,13 +4880,13 @@
             previewHtml += '<div style="position:absolute;bottom:24px;right:32px;width:12px;height:12px;background:rgba(255,255,255,0.1);border-radius:50%;"></div>';
             previewHtml += '<div style="position:absolute;bottom:16px;left:60%;width:6px;height:6px;background:rgba(255,255,255,0.2);border-radius:50%;"></div>';
             // 标签
-            previewHtml += '<div style="display:inline-block;padding:6px 16px;background:rgba(255,255,255,0.2);border-radius:20px;margin-bottom:14px;">';
-            previewHtml += '<span style="font-size:11px;color:rgba(255,255,255,0.9);letter-spacing:1.5px;">✦ DAILY CAMPUS HIGHLIGHTS ✦</span>';
+            previewHtml += '<div style="display:inline-block;padding:6px 14px;background:' + previewTheme.tagBg + ';border:1px solid ' + previewTheme.tagBorder + ';border-radius:20px;margin-bottom:14px;">';
+            previewHtml += '<span style="font-size:10px;color:' + previewTheme.tagText + ';font-weight:700;letter-spacing:1.4px;">✦ ' + previewTheme.kicker + ' ✦</span>';
             previewHtml += '</div>';
             // 主标题
             previewHtml += '<div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:1.5px;text-shadow:0 2px 12px rgba(0,0,0,0.15);">❀ 今日校园精选</div>';
             // 分隔线
-            previewHtml += '<div style="margin:16px auto 0;width:60px;height:3px;background:rgba(255,255,255,0.4);border-radius:2px;"></div>';
+            previewHtml += '<div style="margin:16px auto 0;width:60px;height:3px;background:' + previewTheme.rule + ';border-radius:2px;"></div>';
             // 日期信息
             previewHtml += '<div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:14px;letter-spacing:2px;">' + escapeHtml(dateInfo.date || '') + ' · ' + escapeHtml(dateInfo.week || '') + '</div>';
             previewHtml += '</div>';
@@ -3988,58 +4963,11 @@
             }
 
             var readMinutes = Math.max(1, Math.ceil(totalChars / 300));
-            previewHtml += '<!-- mp-text-stats-start --><div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(102,126,234,0.1);border:1px solid rgba(102,126,234,0.08);box-sizing:border-box;overflow:hidden;">';
-            previewHtml += '<div style="display:flex;justify-content:space-between;gap:8px;">';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;">';
-            previewHtml += '<div style="font-size:22px;margin-bottom:4px;">📝</div>';
-            previewHtml += '<div style="font-size:18px;font-weight:800;color:#667eea;white-space:nowrap;">__MP_VISIBLE_TEXT_COUNT__</div>';
-            previewHtml += '<div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">全文字数</div>';
-            previewHtml += '</div>';
-            previewHtml += '<div style="width:1px;background:linear-gradient(180deg,transparent,#E0E0FF,transparent);margin:8px 0;flex-shrink:0;"></div>';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;">';
-            previewHtml += '<div style="font-size:22px;margin-bottom:4px;">◷</div>';
-            previewHtml += '<div style="font-size:18px;font-weight:800;color:#764ba2;white-space:nowrap;">' + readMinutes + '</div>';
-            previewHtml += '<div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">阅读分钟</div>';
-            previewHtml += '</div>';
-            previewHtml += '<div style="width:1px;background:linear-gradient(180deg,transparent,#E0E0FF,transparent);margin:8px 0;flex-shrink:0;"></div>';
-            previewHtml += '<div style="flex:1;min-width:0;text-align:center;padding:8px 4px;">';
-            previewHtml += '<div style="font-size:22px;margin-bottom:4px;">🎵</div>';
-            previewHtml += '<div style="font-size:18px;font-weight:800;color:#FF6B9D;white-space:nowrap;">' + postData.length + '</div>';
-            previewHtml += '<div style="font-size:10px;color:#999;margin-top:2px;letter-spacing:1px;">精选帖子</div>';
-            previewHtml += '</div>';
-            previewHtml += '</div>';
-            previewHtml += '</div>';
+            previewHtml += buildWechatTextStatsHtml(readMinutes, postData.length);
 
             // 天气（今天+明天）
             if (includeWeather && weather && weather.temperature) {
-                previewHtml += '<div style="margin:16px 16px 0;padding:16px;background:linear-gradient(135deg,#E8F4FD,#D0E8FF 100%);border-radius:20px;border:1px solid rgba(74,144,217,0.1);position:relative;overflow:hidden;">';
-                // 装饰
-                previewHtml += '<div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(74,144,217,0.08);border-radius:50%;"></div>';
-                previewHtml += '<div style="position:absolute;bottom:-10px;left:-10px;width:60px;height:60px;background:rgba(74,144,217,0.05);border-radius:50%;"></div>';
-                previewHtml += '<div style="margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
-                previewHtml += '<div style="font-size:18px;">☁</div>';
-                previewHtml += '<div style="font-size:14px;font-weight:700;color:#4A90D9;">' + escapeHtml(weather.city || '') + ' 天气预报</div>';
-                previewHtml += '</div>';
-                previewHtml += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-                previewHtml += '<div style="flex:1;min-width:0;background:#fff;border-radius:16px;padding:14px;text-align:center;box-shadow:0 2px 12px rgba(74,144,217,0.1);">';
-                previewHtml += '<div style="font-size:12px;color:#999;margin-bottom:8px;">今日</div>';
-                previewHtml += '<div style="font-size:26px;margin-bottom:6px;">' + (weather.icon || '🌤') + '</div>';
-                previewHtml += '<div style="font-size:18px;font-weight:800;color:#4A90D9;margin-bottom:4px;">' + (weather.temperature || '') + '</div>';
-                previewHtml += '<div style="font-size:13px;color:#666;margin-bottom:8px;">' + escapeHtml(weather.weather || '') + '</div>';
-                previewHtml += '<div style="font-size:11px;color:#aaa;">💨 ' + escapeHtml(weather.wind || '') + '</div>';
-                previewHtml += '<div style="font-size:11px;color:#aaa;margin-top:4px;">💧 ' + escapeHtml(weather.humidity || '') + '</div>';
-                previewHtml += '</div>';
-                if (weather.tomorrow) {
-                    previewHtml += '<div style="flex:1;min-width:0;background:rgba(255,255,255,0.6);border-radius:16px;padding:14px;text-align:center;">';
-                    previewHtml += '<div style="font-size:12px;color:#999;margin-bottom:8px;">' + escapeHtml(weather.tomorrow.week || '周五') + '</div>';
-                    previewHtml += '<div style="font-size:26px;margin-bottom:6px;">' + (weather.tomorrow.icon || '☀️') + '</div>';
-                    previewHtml += '<div style="font-size:14px;font-weight:700;color:#4A90D9;margin-bottom:4px;">' + escapeHtml(weather.tomorrow.tempRange || '') + '</div>';
-                    previewHtml += '<div style="font-size:13px;color:#666;">' + escapeHtml(weather.tomorrow.weather || '') + '</div>';
-                    previewHtml += '<div style="font-size:11px;color:#aaa;margin-top:14px;">◉ 天气预报</div>';
-                    previewHtml += '</div>';
-                }
-                previewHtml += '</div>';
-                previewHtml += '</div>';
+                previewHtml += buildWechatWeatherCardHtml(weather, previewTheme);
             }
 
             // 一言
@@ -4105,26 +5033,7 @@
 
             // ===== 每周之星 =====
             if (weeklyStar && weeklyStar.length > 0) {
-                var medals = ['①', '②', '③'];
-                previewHtml += '<div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f5f5f5;">';
-                previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">';
-                previewHtml += '<div style="font-size:20px;">⭐</div>';
-                previewHtml += '<div style="font-size:15px;font-weight:700;color:#555;">每周之星</div>';
-                previewHtml += '</div>';
-                previewHtml += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-                for (var wi = 0; wi < weeklyStar.length; wi++) {
-                    var w = weeklyStar[wi];
-                    var wName = w.nickname || w.username || '同学';
-                    var starColors = ['#FFD700','#C0C0C0','#CD7F32'];
-                    var starColor = starColors[wi] || '#888';
-                    previewHtml += '<div style="flex:1;min-width:100px;text-align:center;padding:16px 12px;background:linear-gradient(135deg,#FFFEF0,#FFF9E6);border-radius:16px;border:1px solid ' + starColor + '33;">';
-                    previewHtml += '<div style="font-size:32px;margin-bottom:8px;">' + (medals[wi] || '🏅') + '</div>';
-                    previewHtml += '<div style="font-weight:700;font-size:14px;color:#333;margin-bottom:6px;">' + escapeHtml(wName) + '</div>';
-                    previewHtml += '<div style="font-size:12px;color:#999;">📝 ' + (w.post_count || 0) + ' · ❝ ' + (w.comment_count || 0) + '</div>';
-                    previewHtml += '</div>';
-                }
-                previewHtml += '</div>';
-                previewHtml += '</div>';
+                previewHtml += buildWechatWeeklyStarHtml(weeklyStar);
             }
 
             // 最近点歌
@@ -4132,7 +5041,7 @@
                 previewHtml += '<div style="margin:16px 16px 0;padding:20px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.04);border:1px solid #f5f5f5;">';
                 previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">';
                 previewHtml += '<div style="font-size:18px;">🎵</div>';
-                previewHtml += '<div style="font-size:14px;font-weight:700;color:#555;">最近点歌</div>';
+                previewHtml += '<div style="font-size:14px;font-weight:700;color:#4b3d68;">最近点歌</div>';
                 previewHtml += '</div>';
                 for (var si = 0; si < songs.length; si++) {
                     var song = songs[si];
@@ -4140,12 +5049,12 @@
                     previewHtml += '<div style="padding:12px;background:#FFF5F8;border-radius:12px;margin-bottom:' + (si < songs.length - 1 ? '10px' : '0') + ';">';
                     previewHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
                     previewHtml += '<span style="font-size:16px;">🎶</span>';
-                    previewHtml += '<div style="flex:1;"><div style="font-size:15px;font-weight:600;color:#333;">' + escapeHtml(song.song_name || '') + '</div>';
-                    if (song.artist) previewHtml += '<div style="font-size:12px;color:#999;">' + escapeHtml(song.artist) + '</div>';
+                    previewHtml += '<div style="flex:1;"><div style="font-size:15px;font-weight:600;color:#2e2438;">' + escapeHtml(song.song_name || '') + '</div>';
+                    if (song.artist) previewHtml += '<div style="font-size:12px;color:#75677b;">' + escapeHtml(song.artist) + '</div>';
                     previewHtml += '</div>';
-                    if (song.to_whom) previewHtml += '<span style="font-size:11px;padding:4px 10px;background:#FFE4EE;color:#FF69B4;border-radius:12px;">💝 ' + escapeHtml(song.to_whom) + '</span>';
+                    if (song.to_whom) previewHtml += '<span style="font-size:11px;padding:4px 10px;background:#F9D5E5;color:#A2376C;border-radius:12px;">💝 ' + escapeHtml(song.to_whom) + '</span>';
                     previewHtml += '</div>';
-                    previewHtml += '<div style="font-size:12px;color:#999;line-height:1.6;">';
+                    previewHtml += '<div style="font-size:12px;color:#6f6077;line-height:1.6;">';
                     if (song.slot_name || song.play_date || song.req_date) previewHtml += '📅 ' + escapeHtml(song.slot_name || '') + ((song.play_date || song.req_date) ? ' · ' + escapeHtml(song.play_date || song.req_date) : '');
                     if (song.message) previewHtml += ' · ❝ ' + escapeHtml(song.message.length > 30 ? song.message.substring(0, 30) + '...' : song.message);
                     previewHtml += ' · 👤 ' + escapeHtml(authorStr);
@@ -4335,8 +5244,8 @@
                     previewHtml += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:0;">';
                     previewHtml += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#FF6B9D,#FF8FB1);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(255,107,157,0.3);">';
                     previewHtml += '<span style="font-size:20px;color:#fff;">🎵</span></div>';
-                    previewHtml += '<div style="flex:1;"><div style="font-size:11px;color:#FF6B9D;letter-spacing:2px;opacity:0.8;">MUSIC RECOMMENDATION</div>';
-                    previewHtml += '<div style="font-size:16px;font-weight:700;color:#FF69B4;">每日推歌 · ' + dailySongs.length + ' 首</div></div>';
+                    previewHtml += '<div style="flex:1;"><div style="font-size:11px;color:#9A315F;letter-spacing:2px;font-weight:700;">MUSIC RECOMMENDATION</div>';
+                    previewHtml += '<div style="font-size:16px;font-weight:700;color:#A2376C;">每日推歌 · ' + dailySongs.length + ' 首</div></div>';
                     previewHtml += '</div></div>';
 
                     // 每个歌曲卡片 - 使用 12 种模板
@@ -4368,6 +5277,8 @@
                     }
                 }
             }
+
+            if (includeDailySong) previewHtml += buildNextWeekRadioSectionHtml(weeklyRadioData);
 
             // 分割线（帖子和推歌之间）
             previewHtml += '<div style="margin:24px 16px 0;text-align:center;">';
@@ -4409,7 +5320,7 @@
                 previewHtml += buildPreviewVideoHtml(p);
                 // 内容
                 previewHtml += '<div style="margin:16px 0 0 0;padding:14px 16px;background:#FAFAFA;border-radius:12px;border-left:4px solid ' + accent + ';">';
-                previewHtml += '<div style="font-size:14px;color:#555;line-height:2;text-align:justify;">' + autoFormatContent(escapeHtml(content_text)) + '</div>';
+                previewHtml += '<div style="font-size:14px;color:#555;line-height:2;text-align:justify;">' + autoFormatContent(content_text) + '</div>';
                 previewHtml += '</div>';
                 // 作者和互动数据
                 previewHtml += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #f5f5f5;display:flex;align-items:center;justify-content:space-between;">';
@@ -4462,78 +5373,91 @@
             previewHtml += '</div>';
             // 二维码卡片
             previewHtml += '<div style="display:inline-block;padding:6px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,0.1);margin-bottom:16px;">';
-            previewHtml += '<img src="https://campus-wall.example/images/gzh.jpg?t=' + Date.now() + '" style="width:180px;height:180px;display:block;border-radius:10px;object-fit:cover;" alt="校园墙二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:13px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>校园墙</b></div>\');">';
+            previewHtml += '<img src="http://localhost:3000/images/gzh.jpg?t=' + Date.now() + '" style="width:180px;height:180px;display:block;border-radius:10px;object-fit:cover;" alt="校园墙二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:13px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>示例校园墙</b></div>\');">';
             previewHtml += '</div>';
             previewHtml += '<div style="font-size:12px;color:#bbb;margin-bottom:8px;letter-spacing:1px;">📱 微信扫一扫 · 获取更多精彩</div>';
-            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">https://campus-wall.example</div>';
+            previewHtml += '<div style="font-size:14px;color:#FF69B4;font-weight:700;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</div>';
             previewHtml += '</div>';
             previewHtml += '<div style="height:3px;background:linear-gradient(90deg,#FFB6C1,#A78BFA,#FFB6C1);"></div>';
             previewHtml += '</div>';
             previewHtml += '<div style="text-align:center;color:#ddd;font-size:12px;margin:24px 16px 32px;padding:16px;background:#fff;border-radius:16px;">';
-            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 校园墙 ❀</div>';
+            previewHtml += '<div style="font-size:14px;margin-bottom:6px;">❀ ' + (dateInfo.year || '') + ' 示例校园墙 ❀</div>';
             previewHtml += '<div style="font-size:11px;color:#ccc;">感谢阅读 · 期待下次相见</div>';
             previewHtml += renderEditorSignature();
             previewHtml += '</div>';
             previewHtml += '</div>';
-            var generatedPreviewTitle = '今日校墙精选 · ' + ((dateInfo && dateInfo.date) || (new Date().getMonth()+1) + '月' + new Date().getDate()) + ((postData || []).length > 0 ? ' · ' + postData.length + '篇热帖' : '');
-            if (generatedPreviewTitle.length > 64) generatedPreviewTitle = generatedPreviewTitle.substring(0, 62) + '…';
-            var generatedVisibleTextCount = countVisibleText(previewHtml) + countText(generatedPreviewTitle) + countText('校园墙');
-            previewHtml = previewHtml.replace('__MP_VISIBLE_TEXT_COUNT__', generatedVisibleTextCount.toLocaleString());
-            previewArea.innerHTML = previewHtml;
-            // 关键：用客户端新模板渲染的内容覆盖 articles，保证同步到公众号时也用美化模板
+            // 只替换正文为当前可见的渲染结果；标题、摘要和其他后端字段保持原样。
             try {
-                var postCountNow = (postData || []).length;
-                var newTitle = generatedPreviewTitle;
-                rememberGeneratedArticle({
-                    title: newTitle,
-                    author: '校园墙',
-                    digest: '校园墙今日精选 · ' + (postData.length || 0) + ' 篇热门帖子 · 同学心声',
-                    content: previewHtml,
-                    content_source_url: 'https://campus-wall.example',
-                    text_stats: { total: generatedVisibleTextCount },
-                    show_cover_pic: 1,
-                    need_open_comment: 1,
-                    only_fans_can_comment: 0
-                });
-            } catch(e) { /* 保留当前预览内容 */ }
+                generatedArticles = [buildSyncedPreviewArticle(articles[0], previewHtml, postData, dateInfo)];
+                previewArea.innerHTML = generatedArticles[0].content;
+            } catch(e) { console.log('覆盖 articles 失败:', e); }
+            generatedDailySongIds = collectDailySongIds(selectedSongsForArticle);
             // 缓存数据供"实时重渲"使用（切换模板时不重新请求接口）
             lastPreviewData = {
                 postData: postData, weather: weather, hitokoto: hitokoto, dateInfo: dateInfo,
                 stats: stats, categories: categories, songs: songs, todayHistory: todayHistory,
-                weeklyStar: weeklyStar, commentsByPost: commentsByPost
+                weeklyStar: weeklyStar, commentsByPost: commentsByPost, weeklyRadioData: weeklyRadioData,
+                article: generatedArticles && generatedArticles[0] ? Object.assign({}, generatedArticles[0]) : null
             };
+            lastSongOnlyState = null;
+            lastWeeklyScheduleData = null;
+            updatePreviewArticleMeta(generatedArticles[0], 'posts');
+            markPostSelectionGenerated(postData.length, includeDailySong && selectedSongs.length > 0);
+            setPreviewBusy(false);
             switchTab('preview');
-            showMsg('previewMsg', '✅ 图文生成成功，共 ' + postData.length + ' 篇帖子' + (weather ? ' + 天气' : '') + (hitokoto ? ' + 一言' : ''));
-            setStatus('✅ 图文生成成功');
+            showMsg('previewMsg', '✅ 图文生成成功，共 ' + postData.length + ' 篇帖子' + (weather ? ' + 天气' : '') + (hitokoto ? ' + 一言' : '') + ' · 已切换“' + getActivePreviewTheme().name + '”主题');
+            setStatus('✅ 图文生成成功，已切换“' + getActivePreviewTheme().name + '”主题');
         }
 
         // ===== 推送歌曲（独立于帖子） =====
-        async function generateSongOnly() {
+        async function generateSongOnly(options) {
+            if (!canManageDailySongs) {
+                showToast('仅超级管理员可使用推歌功能', 'warning');
+                return;
+            }
+            var generationOptions = options || {};
+            var openPreviewTab = generationOptions.openPreviewTab === true;
             setStatus('正在生成歌曲推送...', 'loading');
 
             // 重新从数据库加载歌曲列表（获取最新数据），保留手动添加的歌曲
             var manualSongs = selectedDailySongs.filter(function(s) { return s._manual; });
-            // 保留旧的 _tpl 状态：按 song_name 匹配
-            // 优先用外部传入的 preserved map（来自 previewSongTpl），其次用当前 selectedDailySongs
+            // 单首模板预览会临时按歌名保留模板；正常刷新一律按数据库 ID 保留完整编辑状态。
             var oldTplMap = (window.__preservedTplMap && typeof window.__preservedTplMap === 'object')
                 ? Object.assign({}, window.__preservedTplMap)
                 : {};
+            var oldSongState = {};
             for (var oi = 0; oi < selectedDailySongs.length; oi++) {
                 if (selectedDailySongs[oi].song_name && selectedDailySongs[oi]._tpl) {
                     oldTplMap[selectedDailySongs[oi].song_name] = selectedDailySongs[oi]._tpl;
                 }
-            }
-            try {
-                var refreshRes = await apiFetch('/api/admin/daily-songs?status=pending&limit=50');
-                if (refreshRes.code === 200 && refreshRes.data.songs) {
-                    var refreshed = refreshRes.data.songs.map(function(s) {
-                        if (oldTplMap[s.song_name]) s._tpl = oldTplMap[s.song_name];
-                        return s;
-                    });
-                    selectedDailySongs = refreshed.concat(manualSongs);
-                    renderDailySongSelector();
+                if (Number.isSafeInteger(selectedDailySongs[oi].id)) {
+                    oldSongState[selectedDailySongs[oi].id] = {
+                        _tpl: selectedDailySongs[oi]._tpl,
+                        _selected: selectedDailySongs[oi]._selected,
+                        _expanded: selectedDailySongs[oi]._expanded === true,
+                        intro: selectedDailySongs[oi].intro,
+                        lyrics: selectedDailySongs[oi].lyrics,
+                        song_info: selectedDailySongs[oi].song_info
+                    };
                 }
-            } catch(e) {}
+            }
+            if (!generationOptions.skipRefresh) {
+                try {
+                    var refreshRes = await apiFetch('/api/admin/daily-songs?candidate=1&limit=50');
+                    if (refreshRes.code === 200 && refreshRes.data.songs) {
+                        var refreshed = refreshRes.data.songs.map(function(s) {
+                            var prior = oldSongState[s.id];
+                            if (prior) Object.assign(s, prior);
+                            else if (oldTplMap[s.song_name]) s._tpl = oldTplMap[s.song_name];
+                            if (s._selected === undefined) s._selected = shouldSelectDailySongByDefault(s);
+                            if (s._expanded === undefined) s._expanded = false;
+                            return s;
+                        });
+                        selectedDailySongs = normalizeDailySongList(refreshed.concat(manualSongs));
+                        renderDailySongSelector();
+                    }
+                } catch(e) {}
+            }
 
             var selectedSongs = getSelectedDailySongs();
 
@@ -4584,6 +5508,9 @@
                 if (chartRes.code === 200 && chartRes.data) hotChart = chartRes.data;
             } catch(e) {}
 
+            // 推歌稿可选带上下周广播点歌，排期读取失败不阻断每日推歌生成。
+            var weeklyRadioData = await loadNextWeekRadioForDailyPush();
+
             var html = '<div style="padding:0;background:#F7F8FA;">';
 
             // ===== 顶部大标题区 =====
@@ -4596,6 +5523,14 @@
             html += '<div style="margin:12px auto 0;width:60px;height:2px;background:rgba(255,255,255,0.4);border-radius:1px;"></div>';
             html += '<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:12px;letter-spacing:2px;">' + escapeHtml(dateStr) + ' · ' + escapeHtml(weekStr) + '</div>';
             html += '<div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:6px;">' + selectedSongs.length + ' 位同学的私藏推荐</div>';
+            var recommenderNames = [];
+            selectedSongs.forEach(function(song) {
+                var name = String(song.submitter || '匿名同学').trim() || '匿名同学';
+                if (recommenderNames.indexOf(name) < 0) recommenderNames.push(name);
+            });
+            if (recommenderNames.length) {
+                html += '<div style="font-size:11px;color:rgba(255,255,255,0.78);margin-top:8px;line-height:1.6;">推荐来自：' + escapeHtml(recommenderNames.slice(0, 6).join(' · ')) + (recommenderNames.length > 6 ? ' 等' + recommenderNames.length + ' 位同学' : '') + '</div>';
+            }
             html += '</div>';
 
             // ===== 开场白（随机多样） =====
@@ -4673,7 +5608,7 @@
                 return '<div style="margin:16px 0 8px;padding:12px 16px;background:linear-gradient(135deg,' + c.bg + ',#fff);border:1px dashed ' + c.border + ';border-radius:12px;display:flex;align-items:center;gap:10px;">'
                     + '<div style="width:36px;height:36px;background:' + c.accent + ';border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;color:#fff;">▶</span></div>'
                     + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(s.song_name || '') + (s.artist ? ' - ' + escapeHtml(s.artist) : '') + '</div>'
-                    + '<div style="font-size:10px;color:#aaa;margin-top:2px;">🔄 同步后在此插入音乐卡片</div></div>'
+                    + '</div>'
                     + '<div style="flex-shrink:0;width:20px;height:20px;border:2px solid ' + c.border + ';border-radius:50;display:flex;align-items:center;justify-content:center;"><span style="font-size:8px;color:' + c.accent + ';font-weight:700;">♪</span></div>'
                     + '</div>';
             }
@@ -4948,7 +5883,7 @@
                 h += '<div style="margin-top:12px;padding:10px 14px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
                 h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
                 h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
-                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+                h += '</div>';
                 h += '</div>';
                 h += '</div>';
                 return h;
@@ -4989,7 +5924,7 @@
                 // 底部签名
                 h += '<div style="padding:12px 24px;border-top:1px dashed #e0e0e0;display:flex;justify-content:space-between;align-items:center;">';
                 h += '<div style="font-size:12px;color:#999;">寄自 <b style="color:' + c.accent + ';">' + escapeHtml(submitter) + '</b>' + (toWhom ? '，收件人 <b>' + escapeHtml(toWhom) + '</b>' : '') + '</div>';
-                h += '<div style="font-size:10px;color:#ddd;">📮 校园墙</div>';
+                h += '<div style="font-size:10px;color:#ddd;">📮 示例校园墙</div>';
                 h += '</div>';
                 h += musicPlaceholder(s, c);
                 h += '</div>';
@@ -5027,12 +5962,12 @@
                 }
                 h += '<div style="margin-top:16px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">';
                 h += '<span>🎤 ' + escapeHtml(submitter) + (toWhom ? ' → ' + escapeHtml(toWhom) : '') + '</span>';
-                h += '<span>校园墙</span>';
+                h += '<span>示例校园墙</span>';
                 h += '</div>';
                 h += '<div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:10px;display:flex;align-items:center;gap:8px;position:relative;z-index:1;">';
                 h += '<div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#fff;">▶</span></div>';
                 h += '<div style="flex:1;"><div style="font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;">' + escapeHtml(s.song_name || '') + '</div>';
-                h += '<div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;">🔄 同步后在此插入音乐卡片</div></div>';
+                h += '</div>';
                 h += '</div>';
                 h += '</div>';
                 return h;
@@ -5083,7 +6018,7 @@
                 h += '<div style="background:linear-gradient(135deg,#2c3e50,#34495e);padding:18px 20px;display:flex;align-items:center;gap:10px;">';
                 h += '<div style="width:32px;height:32px;background:' + c.accent + ';border-radius:8px;display:flex;align-items:center;justify-content:center;"><span style="font-size:16px;color:#fff;">♪</span></div>';
                 h += '<div style="flex:1;color:#fff;"><div style="font-size:10px;opacity:0.5;letter-spacing:2px;">RECORD STORE</div>';
-                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">校园墙·音乐角</div></div>';
+                h += '<div style="font-size:11px;opacity:0.35;margin-top:1px;">示例校园墙·音乐角</div></div>';
                 h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">#' + (idx+1).toString().padStart(2,'0') + '</div>';
                 h += '</div>';
                 // 黑胶展示区
@@ -5216,6 +6151,9 @@
                 html += '</div>'; // 章节结束
             });
 
+            // 与每日推歌共用一篇公众号稿，但不把广播点歌写入 daily_song_recs 状态。
+            html += buildNextWeekRadioSectionHtml(weeklyRadioData);
+
             // ===== 结尾（多样化） =====
             var closingQuotes = [
                 '今天的歌单就到这里<br>如果哪首歌触动了你<br>也许可以把这篇文章转发给那个<br><b style="color:#FF6B9D;">你也想让 TA 听到这首歌的人</b>',
@@ -5240,8 +6178,8 @@
             html += '</div>';
             // 关注校墙
             html += '<div style="margin-top:14px;padding:16px;background:#FAFBFC;border-radius:12px;text-align:center;">';
-            html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注校园墙</div>';
-            html += '<img src="https://campus-wall.example/images/gzh.jpg?t=' + Date.now() + '" style="width:160px;height:160px;display:block;border-radius:8px;margin:0 auto;object-fit:cover;" alt="公众号二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:12px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>校园墙</b></div>\');">';
+            html += '<div style="font-size:14px;color:#FF6B9D;font-weight:bold;margin-bottom:10px;">关注示例校园墙</div>';
+            html += '<img src="http://localhost:3000/images/gzh.jpg?t=' + Date.now() + '" style="width:160px;height:160px;display:block;border-radius:8px;margin:0 auto;object-fit:cover;" alt="公众号二维码" loading="eager" onerror="this.onerror=null;this.style.background=\'#FFD1E0\';this.style.color=\'#C44569\';this.alt=\'二维码加载失败\';this.removeAttribute(\'src\');this.insertAdjacentHTML(\'afterend\',\'<div style=font-size:12px;color:#C44569;margin-top:6px;>请搜索公众号<br><b>示例校园墙</b></div>\');">';
             html += '<div style="font-size:11px;color:#bbb;margin-top:8px;">微信扫一扫 · 获取更多精彩</div>';
             html += '</div>';
             html += '</div>';
@@ -5253,7 +6191,7 @@
             html += '<div style="font-size:16px;font-weight:700;color:#FF6B9D;margin-top:4px;">你也想推荐一首歌？</div>';
             html += '</div>';
             var steps = [
-                { num: '1', title: '关注公众号', desc: '搜索「校园墙」关注' },
+                { num: '1', title: '关注公众号', desc: '搜索「示例校园墙」关注' },
                 { num: '2', title: '发送指令', desc: '回复「推歌」或「每日推歌」' },
                 { num: '3', title: '发送歌名', desc: '直接发送歌曲名（可加歌手名）' },
                 { num: '4', title: '确认提交', desc: '回复「确认」完成推歌' }
@@ -5266,7 +6204,7 @@
                 html += '<div style="font-size:11px;color:#aaa;margin-top:1px;">' + step.desc + '</div></div>';
                 html += '</div>';
             });
-            html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:#ddd;letter-spacing:1px;">校园墙 · 让音乐连接你我</div>';
+            html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:#ddd;letter-spacing:1px;">示例校园墙 · 让音乐连接你我</div>';
             html += renderEditorSignature();
             html += '</div>';
 
@@ -5283,11 +6221,14 @@
                     var rankColor = hi < 3 ? '#FF6B6B' : (hi < 6 ? '#FFA94D' : '#ADB5BD');
                     html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;' + (hi < hotChart.length - 1 ? 'border-bottom:1px solid #f8f8f8;' : '') + '">';
                     // 排名
-                    html += '<div style="width:22px;text-align:center;flex-shrink:0;"><span style="font-size:14px;font-weight:800;color:' + rankColor + ';">' + (hi + 1) + '</span></div>';
+                    html += '<div style="width:22px;text-align:center;flex-shrink:0;"><span style="font-size:14px;font-weight:800;color:' + rankColor + ';">' + escapeHtml(String(h.rank || (hi + 1))) + '</span></div>';
                     // 歌名 + 歌手
                     html += '<div style="flex:1;min-width:0;">';
                     html += '<div style="font-size:13px;font-weight:600;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(h.name) + '</div>';
-                    html += '<div style="font-size:11px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(h.artist) + '</div>';
+                    html += '<div style="font-size:11px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(h.artist) + (h.album ? ' · ' + escapeHtml(h.album) : '') + '</div>';
+                    if (h.heat !== null && h.heat !== undefined && h.heat !== '') {
+                        html += '<div style="font-size:10px;color:#9b8caa;margin-top:4px;">热度 ' + escapeHtml(String(h.heat)) + (h.trend !== null && h.trend !== undefined && h.trend !== '' ? ' · 上期 ' + escapeHtml(String(h.trend)) : '') + '</div>';
+                    }
                     html += '</div>';
                     html += '</div>';
                 });
@@ -5298,34 +6239,160 @@
             html += '<div style="height:24px;"></div>';
             html += '</div>';
 
-            previewArea.innerHTML = html;
             // 规范化标题
-            var songTitles = selectedSongs.map(function(s) { return s.song_name || ''; }).filter(Boolean);
             var songCount = selectedSongs.length;
-            // 格式：今日推歌 vol.XX · 歌名1 等N首
-            var volNum = new Date().getDate().toString().padStart(2, '0');
             var firstSong = selectedSongs[0];
             var firstTitle = firstSong ? (firstSong.song_name || '') : '';
-            var titleStr = '今日推歌 vol.' + volNum + ' · ' + firstTitle + ' 等' + songCount + '首';
+            var weeklyCount = weeklyRadioData && Array.isArray(weeklyRadioData.songs) ? weeklyRadioData.songs.length : 0;
+            var titleStr = '耳机里的校园｜《' + firstTitle + '》等' + songCount + '首';
+            if (weeklyCount > 0) titleStr += ' · 下周广播点歌预告';
             if (titleStr.length > 64) {
-                titleStr = '今日推歌 vol.' + volNum + ' · ' + firstTitle.substring(0, 10) + ' 等' + songCount + '首';
+                titleStr = '耳机里的校园｜《' + firstTitle.substring(0, 10) + '》等' + songCount + '首';
             }
             // 摘要
-            var digestStr = firstSong ? ('「' + firstTitle + '」' + (firstSong.artist ? ' - ' + firstSong.artist : '') + ' · 更多好歌等你发现') : '今日精选歌曲推荐';
+            var digestStr = firstSong ? ('「' + firstTitle + '」' + (firstSong.artist ? ' - ' + firstSong.artist : '') + ' · 更多好歌等你发现') : '本期校园歌曲推荐';
+            if (weeklyCount > 0) digestStr += ' · 附下周广播站点歌排期';
 
-            rememberGeneratedArticle({
+            var songArticle = {
                 title: titleStr,
-                author: '校园墙',
+                author: '示例校园墙',
                 digest: digestStr,
                 content: html,
-                content_source_url: 'https://campus-wall.example',
+                content_source_url: 'http://localhost:3000',
                 show_cover_pic: 1,
                 need_open_comment: 1,
                 only_fans_can_comment: 0
+            };
+            generatedArticles = [songArticle];
+            generatedDailySongIds = collectDailySongIds(selectedSongs);
+            lastPreviewData = null;
+            lastWeeklyScheduleData = null;
+            lastSongOnlyState = {
+                songs: selectedSongs.map(function(song) { return Object.assign({}, song); }),
+                weeklyRadioData: weeklyRadioData,
+                dateLabel: dateStr
+            };
+
+            previewArea.innerHTML = generatedArticles[0].content;
+            updatePreviewArticleMeta(generatedArticles[0], 'song');
+            renderDailySongInlinePreview(generatedArticles[0], 'song');
+
+            if (openPreviewTab) switchTab('preview');
+            showMsg('previewMsg', '✅ 推歌预览已生成：' + songCount + ' 首歌曲' + (weeklyCount > 0 ? '，附下周广播点歌 ' + weeklyCount + ' 首' : '') + '。已在每日推歌页展开，可确认后打开完整图文预览并同步。', 'success');
+            setStatus('✅ 推歌预览已在每日推歌页生成，可打开完整图文预览后同步');
+        }
+
+        // ===== 本周点歌播放表（独立于每日推歌） =====
+        function buildWeeklySongScheduleHtml(data) {
+            var songs = Array.isArray(data && data.songs) ? data.songs : [];
+            var groups = [];
+            var groupByDate = {};
+            songs.forEach(function(song) {
+                var key = song.play_date || '';
+                if (!groupByDate[key]) {
+                    groupByDate[key] = { date: song.play_date_label || key, weekday: song.weekday || '', songs: [] };
+                    groups.push(groupByDate[key]);
+                }
+                groupByDate[key].songs.push(song);
             });
 
-            setStatus('✅ 歌曲推送生成成功');
+            var periodLabel = data.period_label || '本周';
+            var editor = (currentAdminUser && (currentAdminUser.nickname || currentAdminUser.username)) || '校园广播站编辑部';
+            var scheduleDate = data.schedule_start ? new Date(String(data.schedule_start).replace(/-/g, '/') + ' 00:00:00') : new Date();
+            var scheduleYear = Number.isNaN(scheduleDate.getTime()) ? new Date().getFullYear() : scheduleDate.getFullYear();
+            var html = '<div style="margin:0;padding:0;background:#f3f6f9;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;color:#263641;">';
+            html += '<div style="margin:0 auto;padding:0 0 24px;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 8px 30px rgba(23,63,88,0.08);border:1px solid #e1ebf2;">';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr><td style="padding:36px 24px 30px;background:linear-gradient(135deg,#133951 0%,#1c5e69 55%,#df7f98 135%);text-align:left;">';
+            html += '<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:14px;"><tr><td style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 10px;"><span style="font-size:10px;letter-spacing:2px;font-weight:700;color:#e8f8f9;">CAMPUS RADIO · ON AIR</span></td></tr></table>';
+            html += '<div style="font-size:25px;line-height:1.35;font-weight:900;color:#ffffff;letter-spacing:.5px;margin:0 0 6px;">📻 ' + escapeHtml(periodLabel) + '，点歌如约而至</div>';
+            html += '<div style="font-size:13px;line-height:1.7;color:#e0f5f5;font-weight:500;margin:0 0 16px;">' + escapeHtml(data.week_label || '') + ' · ' + songs.length + ' 首歌，等你在校园里听见</div>';
+            html += '<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:12px 0 14px;"><tr style="height:18px;vertical-align:bottom;"><td style="width:4px;height:7px;background:#75d3c8;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:14px;background:#96e6dc;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:10px;background:#bcf4ec;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:18px;background:#ffffff;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:12px;background:#f7b7cb;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:8px;background:#f39db7;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:15px;background:#75d3c8;border-radius:2px;"></td><td style="width:3px;"></td><td style="width:4px;height:6px;background:#96e6dc;border-radius:2px;"></td></tr></table>';
+            html += '<div style="font-size:11px;line-height:1.5;color:#c0e4e7;border-top:1px solid rgba(255,255,255,.18);padding-top:12px;">本期策划：校园广播站　·　特约编辑：' + escapeHtml(editor) + '</div>';
+            html += '</td></tr></table>';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;"><tr><td style="padding:22px 20px 10px;"><div style="background:#f8fafc;border-left:4px solid #1c5e69;border-radius:0 12px 12px 0;padding:12px 16px;font-size:13.5px;line-height:1.85;color:#4a6272;">每一首歌，都是一位同学留在校园里的小小心意。我们把日期、时段和点歌留言整理在这里，愿你在熟悉的旋律里，刚好遇见想听的那一句。</div></td></tr></table>';
+
+            groups.forEach(function(group) {
+                html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:16px;"><tr><td style="padding:0 20px;">';
+                html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:linear-gradient(90deg,#e4f5f3 0%,#f0fbf9 100%);border-radius:12px;border:1px solid #c2e6e1;"><tr><td style="padding:10px 14px;color:#135954;font-size:14px;font-weight:800;letter-spacing:.5px;word-break:break-word;">📅 ' + escapeHtml(group.date) + ' · ' + escapeHtml(group.weekday) + '<span style="font-size:12px;color:#498b84;font-weight:600;letter-spacing:0;margin-left:8px;">· ' + group.songs.length + ' 首排播</span></td></tr></table>';
+                html += '</td></tr></table>';
+                group.songs.forEach(function(song, index) {
+                    var requester = song.is_anonymous ? '匿名同学' : (song.requester_name || '一位同学');
+                    var recipient = song.to_whom ? String(song.to_whom) : '';
+                    var message = String(song.message || '').trim();
+                    if (message.length > 54) message = message.slice(0, 54) + '…';
+                    var timeLabel = (song.start_time || '--:--') + '—' + (song.end_time || '--:--');
+                    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:8px;"><tr><td style="padding:0 20px;">';
+                    html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dce8ef;border-radius:14px;box-shadow:0 3px 12px rgba(23,63,88,.04);"><tr><td style="padding:14px 16px 14px;vertical-align:top;word-break:break-word;overflow-wrap:anywhere;">';
+                    html += '<div style="font-size:11px;line-height:1.5;color:#7e9894;margin-bottom:7px;word-break:break-word;"><span style="display:inline-block;color:#df7f98;font-size:14px;font-weight:900;letter-spacing:1px;margin-right:8px;">' + String(index + 1).padStart(2, '0') + '</span><span style="display:inline-block;background:#e9f6f4;color:#1c6963;font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;margin-right:5px;">' + escapeHtml(song.slot_name || '播放时段') + '</span><span style="color:#7e9894;">' + escapeHtml(timeLabel) + '</span></div>';
+                    html += '<div style="font-size:16px;line-height:1.45;font-weight:800;color:#1a2e3b;word-break:break-word;overflow-wrap:anywhere;">' + escapeHtml(song.song_name || '未命名歌曲') + '</div>';
+                    html += '<div style="font-size:12px;color:#6b8595;margin-top:4px;word-break:break-word;">' + escapeHtml(song.artist || '未知歌手') + '</div>';
+                    html += '<div style="display:inline-block;margin-top:8px;background:#f3f7fa;border:1px solid #e1ebf0;border-radius:6px;padding:3px 8px;font-size:11.5px;color:#4c6777;word-break:break-word;">点歌：<strong>' + escapeHtml(requester) + '</strong>' + (recipient ? '　·　送给 <strong>' + escapeHtml(recipient) + '</strong>' : '') + '</div>';
+                    if (message) html += '<div style="margin-top:8px;background:#fff8fa;border-left:3px solid #df7f98;border-radius:0 8px 8px 0;padding:6px 10px;font-size:12px;line-height:1.6;color:#c04b6b;word-break:break-word;">💬 “' + escapeHtml(message) + '”</div>';
+                    html += '</td></tr></table></td></tr></table>';
+                });
+            });
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:24px;"><tr><td style="padding:0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:linear-gradient(135deg,#fff7fa 0%,#fffcfd 100%);border:1px dashed #f1cbd9;border-radius:16px;"><tr><td style="padding:18px 18px 16px;">';
+            html += '<div style="font-size:14.5px;line-height:1.6;font-weight:800;color:#b2476b;">✨ 想点一首歌送给校园或TA吗？</div>';
+            html += '<div style="font-size:12.5px;line-height:1.8;color:#765764;margin-top:6px;">关注公众号后回复「<strong>点歌</strong>」，按提示填写歌名、歌手和想播放的日期即可提交。公众号负责收集与推送，校园广播站负责审核并安排播出。</div>';
+            html += '</td></tr></table></td></tr></table>';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:14px;"><tr><td style="padding:0 20px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f9fbfd;border:1px solid #dbe6ee;border-radius:16px;"><tr><td style="padding:18px 16px;text-align:center;"><img src="http://localhost:3000/images/gzh.jpg" width="116" height="116" style="width:116px;height:116px;display:block;margin:0 auto;border-radius:12px;object-fit:cover;box-shadow:0 3px 10px rgba(23,63,88,.1);" alt="示例校园校园墙公众号二维码"><div style="font-size:13.5px;line-height:1.6;color:#1e4c60;font-weight:800;margin-top:10px;">长按扫码 · 关注示例校园墙</div><div style="font-size:11.5px;line-height:1.5;color:#708997;margin-top:2px;">接收每周广播歌单 · 参与下期点歌</div></td></tr></table></td></tr></table>';
+            html += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-top:28px;"><tr><td style="padding:0 20px;text-align:center;"><div style="font-size:11px;color:#9aaebc;letter-spacing:1px;margin-bottom:4px;">✻ ' + scheduleYear + ' 示例校园墙 · 校园广播专栏 ✻</div><div style="font-size:12px;color:#768c9a;margin-bottom:16px;">感谢聆听 · 期待与你在旋律里再次相见</div>';
+            html += renderSignatureCard('Campus Radio', { subtitle: '校 园 广 播 站', stamp: '播音审签', kicker: '— O F F I C I A L　B R O A D C A S T —', desk: '点歌审核 · 播音排期执行', nameFont: 'Georgia,Times New Roman,serif', nameSize: '32px', nameColor: '#28564f', stampColor: '#28564f' });
+            html += renderSignatureCard(editor, { stamp: 'ExampleAdmin', desk: 'from the desk of editor' });
+            html += '<div style="font-size:11.5px;line-height:1.8;color:#8ba0ad;margin-top:20px;">播放时间如有调整，以校园广播站当天安排为准。<br><span style="color:#b2476b;">愿每一首被点到的歌，都刚好被想听的人听见。</span></div>';
+            html += '</td></tr></table>';
+            html += '</div></div>';
+            return html;
         }
+
+        async function generateWeeklySongSchedule(weekOffset, options) {
+            if (!canManageDailySongs) {
+                showToast('仅超级管理员可使用推歌功能', 'warning');
+                return;
+            }
+            weekOffset = Number(weekOffset) === 1 ? 1 : 0;
+            var periodLabel = weekOffset === 1 ? '下周' : '本周';
+            setStatus('正在整理' + periodLabel + '待播放点歌...', 'loading');
+            var res = await apiFetch(API_BASE + '/weekly-song-schedule?week=' + (weekOffset === 1 ? 'next' : 'current'));
+            if (res.code !== 200 || !res.data) {
+                var errorMessage = res.message || '获取' + periodLabel + '点歌排期失败';
+                showMsg('previewMsg', '❌ ' + escapeHtml(errorMessage), 'error');
+                setStatus('❌ ' + errorMessage, 'error');
+                return;
+            }
+            var data = res.data;
+            if (!Array.isArray(data.songs) || data.songs.length === 0) {
+                var emptyMessage = periodLabel + '暂无已审核且排期开放的点歌';
+                showMsg('previewMsg', 'ℹ️ ' + emptyMessage, 'info');
+                setStatus('ℹ️ ' + emptyMessage);
+                return;
+            }
+            var content = buildWeeklySongScheduleHtml(data);
+            var article = buildSyncedPreviewArticle({
+                title: data.title,
+                title_meta: data.title_meta,
+                author: '示例校园墙',
+                digest: data.digest,
+                content_source_url: 'http://localhost:3000',
+                show_cover_pic: 1,
+                need_open_comment: 1,
+                only_fans_can_comment: 0
+            }, content, [], { date: data.schedule_start || '' });
+            generatedArticles = [article];
+            // 点歌单不是“每日推歌”，同步时绝不能改 daily_song_recs 的状态。
+            generatedDailySongIds = [];
+            // 避免“换一版”把本周点歌单误渲染成上一次的帖子稿。
+            lastPreviewData = null;
+            lastSongOnlyState = null;
+            lastWeeklyScheduleData = data;
+            document.getElementById('previewArea').innerHTML = article.content;
+            updatePreviewArticleMeta(article, 'weekly-song');
+            renderDailySongInlinePreview(article, 'weekly-song');
+            if (options && options.openPreviewTab === true) switchTab('preview');
+            showMsg('previewMsg', '✅ 已生成' + escapeHtml(data.period_label || periodLabel) + '点歌播放表：' + escapeHtml(data.week_label || '') + '，共 ' + data.songs.length + ' 首；已在每日推歌页展开，预览即为同步正文。', 'success');
+            setStatus('✅ ' + escapeHtml(data.period_label || periodLabel) + '点歌播放表已生成（' + data.songs.length + ' 首）');
+        }
+        window.generateWeeklySongSchedule = generateWeeklySongSchedule;
 
         // ===== 复制内容（富文本粘贴） =====
         async function copyContent() {
@@ -5371,7 +6438,7 @@
                 return;
             }
 
-            var fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>校园墙 · 今日精选</title></head><body style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</body></html>';
+            var fullHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>示例校园墙 · 今日精选</title></head><body style="max-width:680px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;">' + content + '</body></html>';
 
             var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
             var url = URL.createObjectURL(blob);
@@ -5431,11 +6498,13 @@
                     return;
                 }
                 var roleLevel = { user: 0, reviewer: 1, radio_admin: 1, admin: 2, super_admin: 3 };
-                if ((roleLevel[res.data.role] || 0) < 1) {
-                    alert('无管理权限，请联系管理员');
+                if (res.data.role !== 'super_admin') {
+                    alert('公众号推送仅限最高管理员使用');
                     window.location.href = '/';
                     return;
                 }
+                canManageDailySongs = res.data.role === 'super_admin';
+                applyDailySongPermissions();
                 // 记录当前管理员信息（用于底部"编辑XX"署名）
                 if (res.data && (res.data.role === 'admin' || res.data.role === 'super_admin')) {
                     currentAdminUser = {
@@ -5462,8 +6531,28 @@
             return text;
         }
 
+        // 草稿已成功创建、但候选歌曲写回未确认时，绝不能把前端状态伪装成“已发布”。
+        // 这类结果需要管理员到公众号草稿箱确认，再由后端完成补偿，避免重复创建草稿。
+        function hasUnconfirmedDailySongState(data) {
+            return !!(data && data.sync_status === 'draft_created_mark_failed');
+        }
+
+        function showDailySongStateWarning(data) {
+            var draftUrl = 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=10';
+            var message = '⚠️ ' + escapeHtml(formatSyncStatus(data)) +
+                ' · <a href="' + draftUrl + '" target="_blank" rel="noopener" style="color:#C77900;font-weight:600;margin-left:6px;">📝 打开公众号后台确认草稿</a>';
+            showMsg('previewMsg', message, 'error', true);
+            setStatus('⚠️ ' + formatSyncStatus(data));
+        }
+
         // ===== 同步到公众号 =====
         async function syncDraft() {
+            var inlinePanel = document.getElementById('dailySongInlinePreview');
+            if (inlinePanel && inlinePanel.dataset.previewOnly === 'true' &&
+                !(Array.isArray(generatedArticles) && isUsableGeneratedArticle(generatedArticles[0]))) {
+                showToast('这是单首模板预览，请先点击“生成推歌预览”生成完整稿件后再同步', 'info');
+                return;
+            }
             var article = getArticleForSync();
             if (!article) {
                 showMsg('previewMsg', '请先生成图文预览', 'error');
@@ -5475,12 +6564,14 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="loading"></span> 同步中...';
             setStatus('正在同步到公众号...', 'loading');
+            // 以当前已经生成的 article 为准，不能读取之后可能变化的勾选状态。
+            var syncDailySongIds = generatedDailySongIds.slice();
 
             var res;
             try {
                 res = await apiFetch(API_BASE + '/sync-draft', {
                     method: 'POST',
-                    body: JSON.stringify({ article: article })
+                    body: JSON.stringify({ article: article, dailySongIds: syncDailySongIds })
                 });
             } catch (error) {
                 res = { code: 500, message: error.message || '网络错误' };
@@ -5491,17 +6582,22 @@
                 var syncId = res.data.sync_id;
                 setStatus('⏳ 图片/视频素材上传中（后台处理），请稍候...', 'loading');
                 showMsg('previewMsg', res.code === 409 ? '⏳ 已接续正在处理的同步任务，请稍候...' : '⏳ 正在上传图片到微信CDN及视频永久素材，请稍候...', 'info');
-                pollSyncStatus(syncId, btn, originalText);
+                pollSyncStatus(syncId, btn, originalText, syncDailySongIds);
+            } else if (res.code === 409 && res.data && hasUnconfirmedDailySongState(res.data)) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                showDailySongStateWarning(res.data);
             } else if (res.code === 200) {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
                 var draftUrl = 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=10';
                 var imgInfo = '';
                 if (res.data) {
-                    imgInfo = res.data.img_uploaded !== undefined ? ' (图片' + res.data.img_uploaded + '/' + res.data.img_count + ')' : '';
+                    imgInfo = res.data.img_uploaded !== undefined ? ' (图片' + escapeHtml(String(res.data.img_uploaded)) + '/' + escapeHtml(String(res.data.img_count || 0)) + ')' : '';
                 }
-                showMsg('previewMsg', '✅ ' + formatSyncStatus(res.data) + imgInfo + ' · <a href="' + draftUrl + '" target="_blank" style="color:#FF6B9D;font-weight:600;margin-left:6px;">📝 打开公众号后台查看</a>', 'success', true);
+                showMsg('previewMsg', '✅ ' + escapeHtml(formatSyncStatus(res.data)) + imgInfo + ' · <a href="' + draftUrl + '" target="_blank" rel="noopener" style="color:#FF6B9D;font-weight:600;margin-left:6px;">📝 打开公众号后台查看</a>', 'success', true);
                 setStatus('✅ ' + formatSyncStatus(res.data));
+                if (!hasUnconfirmedDailySongState(res.data)) markSyncedSongsLocally(syncDailySongIds);
             } else {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -5511,7 +6607,7 @@
         }
 
         // 轮询异步同步状态
-        function pollSyncStatus(syncId, btn, originalText) {
+        function pollSyncStatus(syncId, btn, originalText, syncDailySongIds) {
             var maxRetries = 60; // 3 分钟超时（每 3 秒一次）
             var retryCount = 0;
             async function checkStatus() {
@@ -5545,9 +6641,16 @@
                 if (status === 'done') {
                     btn.disabled = false;
                     btn.innerHTML = originalText;
-                    var draftUrl = 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=10';
-                    showMsg('previewMsg', '✅ ' + formatSyncStatus(sr.data) + ' · <a href="' + draftUrl + '" target="_blank" style="color:#FF6B9D;font-weight:600;margin-left:6px;">📝 打开公众号后台查看</a>', 'success', true);
-                    setStatus('✅ ' + formatSyncStatus(sr.data));
+                    if (hasUnconfirmedDailySongState(sr.data)) {
+                        showDailySongStateWarning(sr.data);
+                    } else {
+                        var draftUrl = 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=10';
+                        showMsg('previewMsg', '✅ ' + escapeHtml(formatSyncStatus(sr.data)) + ' · <a href="' + draftUrl + '" target="_blank" rel="noopener" style="color:#FF6B9D;font-weight:600;margin-left:6px;">📝 打开公众号后台查看</a>', 'success', true);
+                        setStatus('✅ ' + formatSyncStatus(sr.data));
+                        var completedSongIds = syncDailySongIds.slice();
+                        if (sr.data && Array.isArray(sr.data.daily_song_ids)) completedSongIds = completedSongIds.concat(sr.data.daily_song_ids);
+                        markSyncedSongsLocally(completedSongIds);
+                    }
                 } else if (status === 'fail') {
                     btn.disabled = false;
                     btn.innerHTML = originalText;

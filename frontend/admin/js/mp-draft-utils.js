@@ -51,7 +51,7 @@
         var articleUrl = /^\d+$/.test(String(post && post.id || ''))
             ? window.location.origin + '/post/' + post.id : videoUrl;
         var cover = posterUrl ? '<img src="' + escapeHtml(posterUrl) + '" alt="视频封面" style="display:block;width:100%;max-height:360px;object-fit:cover;border-radius:10px;background:#172c2a;">' : '🎬 ';
-        return '<div data-mp-video-placeholder="1" data-mp-video-source="' + escapeHtml(videoUrl) + '" data-mp-video-poster="' + escapeHtml(posterUrl) + '" data-mp-video-view="' + escapeHtml(articleUrl) + '" style="margin:16px 0 0;padding:12px;background:#F7F8FC;border:1px solid #ECECF5;border-radius:14px;text-align:center;">' +
+        return '<div class="mp-video-preview-card" data-mp-video-placeholder="1" data-mp-video-source="' + escapeHtml(videoUrl) + '" data-mp-video-poster="' + escapeHtml(posterUrl) + '" data-mp-video-view="' + escapeHtml(articleUrl) + '" style="margin:16px 0 0;padding:12px;background:#F7F8FC;border:1px solid #ECECF5;border-radius:14px;text-align:center;box-sizing:border-box;overflow:hidden;">' +
             cover +
             '<br><span style="font-size:13px;color:#667eea;font-weight:700;">🎬 视频投稿 · 同步时上传公众号永久 MP4 素材</span><br>' +
             '<a href="' + escapeHtml(articleUrl) + '" style="color:#667eea;text-decoration:none;font-size:12px;line-height:1.6;">播放器无法显示？点击打开视频页面 →</a>' +

@@ -1,5 +1,5 @@
-# 校园墙 robots.txt
-# https://campus-wall.example
+# 示例校园墙 robots.txt
+# http://localhost:3000
 
 User-agent: *
 Allow: /
@@ -24,4 +24,4 @@ Allow: /login
 Allow: /register
 
 # Sitemap 地址（动态生成，包含所有帖子）
-Sitemap: https://campus-wall.example/api/sitemap.xml
+Sitemap: http://localhost:3000/api/sitemap.xml

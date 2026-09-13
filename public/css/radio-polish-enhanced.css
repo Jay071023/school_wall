@@ -1,0 +1,222 @@
+/* =======================================================
+   📻 广播站点歌台 - 浪漫校园电台重构补丁
+   ======================================================= */
+
+/* --- 1. 顶部电台标题微光 --- */
+body.radio-page .radio-header {
+  margin-bottom: 24px !important;
+  text-align: center !important;
+}
+
+body.radio-page .radio-title {
+  font-size: 1.65rem !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.radio-page .radio-subtitle {
+  color: #94A3B8 !important;
+  font-size: 0.88rem !important;
+  margin-top: 4px !important;
+}
+
+/* --- 2. 拯救左侧表单：干掉突兀的淘宝大橙色！--- */
+body.radio-page .radio-form-card {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(255, 101, 132, 0.12) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 36px -4px rgba(255, 101, 132, 0.08) !important;
+  padding: 26px !important;
+}
+
+/* 提交按钮：彻底换成粉紫浪漫渐变 */
+body.radio-page .radio-form .btn-publish {
+  background: linear-gradient(135deg, #FF6584 0%, #C084FC 100%) !important;
+  box-shadow: 0 8px 24px rgba(255, 101, 132, 0.35) !important;
+  border-radius: 16px !important;
+  min-height: 48px !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+}
+
+body.radio-page .radio-form .btn-publish:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 12px 30px rgba(255, 101, 132, 0.45) !important;
+  filter: brightness(1.05) !important;
+}
+
+body.radio-page .radio-form .btn-publish:active {
+  transform: scale(0.97) !important;
+}
+
+/* 表单输入框圆角与对齐 */
+body.radio-page .form-input,
+body.radio-page .form-textarea {
+  border-radius: 12px !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
+  background: #FAFBFC !important;
+  transition: all 0.2s ease !important;
+}
+
+body.radio-page .form-input:focus,
+body.radio-page .form-textarea:focus {
+  border-color: #FF6584 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 4px rgba(255, 101, 132, 0.12) !important;
+}
+
+/* 时段卡片（傍晚点歌）：更具交互感 */
+body.radio-page .slot-card-item {
+  background: linear-gradient(135deg, #FFF8FA 0%, #FAF5FF 100%) !important;
+  border: 1.5px dashed rgba(255, 101, 132, 0.25) !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+  transition: all 0.25s ease !important;
+}
+
+body.radio-page .slot-card-item:hover,
+body.radio-page .slot-card-item.selected {
+  border-style: solid !important;
+  border-color: #FF6584 !important;
+  background: linear-gradient(135deg, #FFF0F5 0%, #F5EEFD 100%) !important;
+  box-shadow: 0 4px 16px rgba(255, 101, 132, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+/* --- 3. 右侧“点歌列表”升级（去生硬蓝块，加入律动感）--- */
+body.radio-page .radio-playlist-card {
+  border-radius: 24px !important;
+  border: 1px solid rgba(139, 92, 246, 0.12) !important;
+  box-shadow: 0 12px 36px -4px rgba(139, 92, 246, 0.08) !important;
+  padding: 24px !important;
+}
+
+/* 顶部公告条 */
+body.radio-page .radio-notice-bar {
+  background: linear-gradient(135deg, rgba(255, 101, 132, 0.08), rgba(139, 92, 246, 0.08)) !important;
+  border: 1px solid rgba(255, 101, 132, 0.15) !important;
+  color: #7C3AED !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* 单首歌曲卡片 */
+body.radio-page .playlist-item {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+  border-radius: 16px !important;
+  padding: 12px 14px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  margin-bottom: 10px !important;
+}
+
+body.radio-page .playlist-item:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.1) !important;
+}
+
+/* 歌曲序号：去掉傻傻的实心蓝块，换成小唱片感觉 */
+body.radio-page .playlist-item .song-index {
+  width: 30px !important;
+  height: 30px !important;
+  background: linear-gradient(135deg, #8B5CF6 0%, #C084FC 100%) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 3px 8px rgba(139, 92, 246, 0.25) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 0.78rem !important;
+}
+
+/* 待播放胶囊徽章 */
+body.radio-page .playlist-item .song-status {
+  background: rgba(139, 92, 246, 0.08) !important;
+  color: #8B5CF6 !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  padding: 3px 10px !important;
+}
+
+/* 偷偷寄语的小纸条气泡（如“ch，我好想你呀”） */
+body.radio-page .playlist-item .song-msg-bubble {
+  background: linear-gradient(135deg, #FFF5F7 0%, #FAF5FF 100%) !important;
+  border-left: 3px solid #FF6584 !important;
+  border-radius: 0 10px 10px 0 !important;
+  color: #D946EF !important;
+  font-size: 0.76rem !important;
+  padding: 5px 10px !important;
+  margin-top: 6px !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+/* --- 4. 热门歌曲排行榜：打歌榜质感 --- */
+body.radio-page .hot-songs-section {
+  border-radius: 24px !important;
+  border: 1px solid rgba(245, 158, 11, 0.15) !important;
+  box-shadow: 0 12px 36px -4px rgba(245, 158, 11, 0.06) !important;
+  padding: 24px !important;
+}
+
+body.radio-page .hot-song-item {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(226, 232, 240, 0.7) !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+  transition: all 0.25s ease !important;
+}
+
+body.radio-page .hot-song-item:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.1) !important;
+}
+
+/* 前三名冠亚季军奖牌渐变 */
+body.radio-page .hot-song-rank.rank-1 {
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35) !important;
+}
+
+body.radio-page .hot-song-rank.rank-2 {
+  background: linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%) !important;
+  color: #FFFFFF !important;
+}
+
+body.radio-page .hot-song-rank.rank-3 {
+  background: linear-gradient(135deg, #FFEDD5 0%, #FB923C 100%) !important;
+  color: #FFFFFF !important;
+}
+
+/* 右侧投票火苗按钮：更有交互打榜欲望 */
+body.radio-page .hot-song-vote .vote-btn {
+  background: rgba(239, 68, 68, 0.06) !important;
+  border: 1px solid rgba(239, 68, 68, 0.18) !important;
+  border-radius: 999px !important;
+  padding: 4px 12px !important;
+  color: #EF4444 !important;
+  font-weight: 700 !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+body.radio-page .hot-song-vote .vote-btn:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  transform: scale(1.08) !important;
+}
+
+body.radio-page .hot-song-vote .vote-btn:active {
+  transform: scale(0.92) !important;
+}

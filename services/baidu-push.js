@@ -1,7 +1,7 @@
 const https = require('https');
 const http = require('http');
 
-const BAIDU_SITE_URL = process.env.BAIDU_SITE_URL || 'https://campus-wall.example';
+const BAIDU_SITE_URL = process.env.BAIDU_SITE_URL || 'http://localhost:3000';
 const BAIDU_PUSH_TOKEN = process.env.BAIDU_PUSH_TOKEN || '';
 const BAIDU_PUSH_API = process.env.BAIDU_PUSH_API || 'http://data.zz.baidu.com/urls';
 

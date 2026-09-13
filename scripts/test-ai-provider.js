@@ -4,11 +4,13 @@ const Module = require('module');
 const path = require('path');
 
 process.env.GLM_API_KEY = 'test-glm-key';
+process.env.DASHSCOPE_API_KEY = 'test-qwen-key';
 
 const https = require('https');
 const originalRequest = https.request;
 const originalLoad = Module._load;
 let nextResponse = { statusCode: 200, body: { choices: [{ message: { content: 'GLM 测试回复' } }] } };
+let responseQueue = [];
 let lastRequest = null;
 let requestCount = 0;
 
@@ -27,12 +29,13 @@ https.request = function(options, callback) {
   const request = new EventEmitter();
   request.write = function(body) { lastRequest.body += body; };
   request.end = function() {
+    const responseDef = responseQueue.length ? responseQueue.shift() : nextResponse;
     const response = new EventEmitter();
-    response.statusCode = nextResponse.statusCode;
+    response.statusCode = responseDef.statusCode;
     response.setEncoding = function() {};
     callback(response);
     process.nextTick(function() {
-      if (nextResponse.body !== undefined) response.emit('data', JSON.stringify(nextResponse.body));
+      if (responseDef.body !== undefined) response.emit('data', JSON.stringify(responseDef.body));
       response.emit('end');
     });
   };
@@ -61,9 +64,21 @@ const ai = require('../services/ai');
   assert.strictEqual(imagePayload.messages[1].content[0].type, 'image_url');
   assert.strictEqual(imagePayload.messages[1].content[0].image_url.url, 'aGVsbG8=');
 
-  nextResponse = { statusCode: 503, body: { error: { message: 'temporary failure' } } };
+  responseQueue = [
+    { statusCode: 503, body: { error: { message: 'temporary failure' } } },
+    { statusCode: 200, body: { choices: [{ message: { content: '千问备用回复' } }] } }
+  ];
+  requestCount = 0;
   const fallback = await ai.getAIReply('你好');
-  assert.match(fallback, /暂时不可用/);
+  assert.strictEqual(fallback, '千问备用回复');
+  assert.strictEqual(requestCount, 2);
+  assert.strictEqual(lastRequest.options.hostname, 'dashscope.aliyuncs.com');
+  assert.strictEqual(lastRequest.options.path, '/compatible-mode/v1/chat/completions');
+  assert.strictEqual(lastRequest.options.headers.Authorization, 'Bearer test-qwen-key');
+  const fallbackPayload = JSON.parse(lastRequest.body);
+  assert.strictEqual(fallbackPayload.model, 'qwen-plus');
+  assert.strictEqual(fallbackPayload.thinking, undefined);
+  assert.strictEqual(typeof fallbackPayload.messages[1].content, 'string');
 
   nextResponse = { statusCode: 429, body: { error: { code: '1305', message: '模型访问量过大' } } };
   requestCount = 0;

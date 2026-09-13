@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 3000;
 // 中间件
 app.use(compression()); // 响应压缩
 // CORS：仅允许指定域名
-var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://campus-wall.example').split(',');
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 app.use(cors({
   origin: function(origin, callback) {
     // 允许没有 origin 的请求（postman、curl 等）
@@ -174,7 +174,7 @@ async function start() {
     await initDB();
     app.listen(PORT, process.env.HOST || '0.0.0.0', () => {
       console.log(`
-  🎉 校园墙网站启动成功！
+  🎉 示例校园墙网站启动成功！
   📡 访问地址: http://localhost:${PORT}
   🔧 管理后台: http://localhost:${PORT}/admin
       `);

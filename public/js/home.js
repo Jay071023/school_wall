@@ -1,5 +1,5 @@
 /**
- * 校园墙 - 首页模块 (home.js)
+ * 示例校园墙 - 首页模块 (home.js)
  * 功能：帖子列表加载、分类筛选、排序切换、点赞/收藏、分页加载
  * 后端返回字段：author_name, author_avatar, author_id, likes_count, comments_count,
  *               images(JSON字符串需parse), is_anonymous, is_liked, is_favorited, time_ago

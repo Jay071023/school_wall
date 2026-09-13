@@ -1062,7 +1062,7 @@
                 var res = await fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } });
                 if (res.status === 401 || res.status === 403) { window.location.href = '/admin/'; return false; }
                 var json = await res.json();
-                if (json.code !== 200) { window.location.href = '/admin/'; return false; }
+                if (json.code !== 200 || !json.data || json.data.role !== 'super_admin') { window.location.href = '/admin/'; return false; }
                 return true;
             } catch (e) { window.location.href = '/admin/'; return false; }
         }

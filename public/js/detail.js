@@ -35,14 +35,14 @@ function updatePostMetaTags(post) {
   var title = post.title || '帖子详情';
   var content = (post.content || '').replace(/<[^>]+>/g, '').trim();
   var desc = content.length > 120 ? content.substring(0, 120) + '...' : content;
-  if (!desc) desc = '查看校园墙上的帖子详情';
-  document.title = title + ' - 校园墙';
+  if (!desc) desc = '查看示例校园墙上的帖子详情';
+  document.title = title + ' - 示例校园墙';
   var metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content', desc);
   var metaKeywords = document.querySelector('meta[name="keywords"]');
-  if (metaKeywords) metaKeywords.setAttribute('content', title + ',示例中学,校园墙,校园社区');
+  if (metaKeywords) metaKeywords.setAttribute('content', title + ',示例校园,校园墙,校园社区');
   var ogTitle = document.querySelector('meta[property="og:title"]');
-  if (ogTitle) ogTitle.setAttribute('content', title + ' - 校园墙');
+  if (ogTitle) ogTitle.setAttribute('content', title + ' - 示例校园墙');
   var ogDesc = document.querySelector('meta[property="og:description"]');
   if (ogDesc) ogDesc.setAttribute('content', desc);
 }
@@ -1314,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 右侧：站点卡片
     var rightCard = document.createElement('div');
     rightCard.className = 'side-deco-card side-deco-right';
-    var siteName = '校园墙';
+    var siteName = '示例校园墙';
     try {
       var cached = localStorage.getItem('siteSettings');
       if (cached) { var s = JSON.parse(cached); if (s.site_name) siteName = s.site_name; }

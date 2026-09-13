@@ -1,0 +1,215 @@
+/* =======================================================
+   💌 私信聊天界面 (Messages Page) 极致质感重构补丁
+   ======================================================= */
+
+/* --- 1. 整体容器：悬浮毛玻璃与深层弥散阴影 --- */
+.messages-container {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 107, 157, 0.15) !important;
+  box-shadow: 0 16px 45px -8px rgba(255, 107, 157, 0.12), 0 4px 16px -2px rgba(0, 0, 0, 0.03) !important;
+  overflow: hidden !important;
+}
+
+/* --- 2. 左侧边栏重塑：清爽收纳与主次分明 --- */
+.messages-sidebar {
+  background: linear-gradient(180deg, #FFF9FB 0%, #FAF5FF 100%) !important;
+  border-right: 1px solid rgba(255, 107, 157, 0.08) !important;
+  width: 320px !important;
+}
+
+/* 顶部发起会话按钮：灵动微光 */
+.btn-new-conversation {
+  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
+  box-shadow: 0 6px 18px rgba(255, 101, 132, 0.3) !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.btn-new-conversation:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 24px rgba(255, 101, 132, 0.45) !important;
+}
+
+/* 拯救“邮件通知”与“黑名单”：从呆板线框弱化为低调精致的工具条 */
+.sidebar-top-actions {
+  padding: 16px 18px 12px !important;
+  border-bottom: 1px dashed rgba(255, 107, 157, 0.12) !important;
+}
+
+/* 黑名单按钮轻量化 */
+.sidebar-setting-btn,
+.sidebar-top-actions button:not(.btn-new-conversation),
+.sidebar-top-actions a:not(.btn-new-conversation) {
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  color: #64748B !important;
+  border-radius: 999px !important;
+  font-size: 0.76rem !important;
+  padding: 6px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-setting-btn:hover,
+.sidebar-top-actions button:hover:not(.btn-new-conversation) {
+  border-color: #FF6584 !important;
+  color: #FF6584 !important;
+  background: #FFFFFF !important;
+}
+
+/* --- 3. 会话列表项：高亮反馈与精致感 --- */
+.conversation-list {
+  padding: 12px 10px !important;
+}
+
+.conversation-item {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 16px !important;
+  margin-bottom: 8px !important;
+  padding: 12px 14px !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  position: relative;
+}
+
+.conversation-item:hover {
+  background: #FFFFFF !important;
+  border-color: rgba(255, 107, 157, 0.2) !important;
+  box-shadow: 0 6px 18px rgba(255, 107, 157, 0.08) !important;
+  transform: translateX(3px);
+}
+
+/* 活跃选中项（Active）：粉紫左侧呼吸指示条 */
+.conversation-item.active {
+  background: #FFFFFF !important;
+  border-color: rgba(255, 107, 157, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(255, 107, 157, 0.12) !important;
+}
+
+.conversation-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: linear-gradient(180deg, #FF6584, #A855F7);
+  border-radius: 0 4px 4px 0;
+}
+
+/* 会话头像 */
+.conversation-avatar {
+  border: 2px solid #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 未读消息小红点：果冻光晕胶囊 */
+.conversation-unread {
+  background: linear-gradient(135deg, #FF477E, #FF6584) !important;
+  box-shadow: 0 2px 8px rgba(255, 71, 126, 0.4) !important;
+  border: 2px solid #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+/* --- 4. 右侧空状态重塑：告别惨白，营造“暖心信箱”氛围 --- */
+.messages-main {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 248, 250, 0.3) 100%) !important;
+}
+
+.message-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  padding: 40px !important;
+}
+
+/* 空状态信封小图标：浮动呼吸微光 */
+.message-empty-icon {
+  font-size: 3.5rem !important;
+  display: inline-block !important;
+  filter: drop-shadow(0 8px 16px rgba(255, 107, 157, 0.25)) !important;
+  animation: gentleFloat 3s ease-in-out infinite !important;
+  margin-bottom: 16px !important;
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05); }
+}
+
+.message-empty h3,
+.message-empty .empty-title,
+.message-empty > p:first-of-type {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #1E293B !important;
+  margin-bottom: 6px !important;
+}
+
+.message-empty p {
+  color: #94A3B8 !important;
+  font-size: 0.86rem !important;
+}
+
+/* --- 5. 聊天进行中（气泡与输入框）质感优化预设 --- */
+.messages-header-bar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.08) !important;
+}
+
+/* 发送出去的消息气泡（自己）：渐变粉紫圆润气泡 */
+.message-item.sent .message-bubble {
+  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(255, 101, 132, 0.2) !important;
+  border-radius: 18px 18px 4px 18px !important;
+}
+
+/* 接收到的消息气泡（对方）：纯净白色软边框 */
+.message-item.received .message-bubble {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+  border-radius: 18px 18px 18px 4px !important;
+}
+
+/* 底部输入栏：圆润且聚焦发光 */
+.message-input-area {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-top: 1px solid rgba(255, 107, 157, 0.08) !important;
+  padding: 14px 20px !important;
+}
+
+.message-textarea {
+  background: #FAFBFC !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.message-textarea:focus {
+  background: #FFFFFF !important;
+  border-color: #FF6584 !important;
+  box-shadow: 0 0 0 3px rgba(255, 101, 132, 0.12) !important;
+}
+
+/* 圆形发送按钮 */
+.btn-send {
+  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
+  box-shadow: 0 4px 14px rgba(255, 101, 132, 0.3) !important;
+  border: none !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.btn-send:hover:not(:disabled) {
+  transform: scale(1.08) !important;
+  box-shadow: 0 6px 18px rgba(255, 101, 132, 0.45) !important;
+}

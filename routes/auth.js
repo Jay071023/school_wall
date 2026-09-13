@@ -508,7 +508,17 @@ router.post('/check-reg-code-status', async (req, res) => {
       return res.json({ code: 200, data: { verified: false, expired: true } });
     }
 
-    res.json({ code: 200, data: { verified: !!codes[0].verified, expired: false } });
+    const record = codes[0];
+    const state = record.used ? 'registered' : (record.verified ? 'verified' : 'pending');
+    res.json({
+      code: 200,
+      data: {
+        verified: !!record.verified && !record.used,
+        used: !!record.used,
+        expired: false,
+        state
+      }
+    });
   } catch (err) {
     console.error('检查注册验证码状态失败:', err);
     res.json({ code: 500, data: { verified: false } });
