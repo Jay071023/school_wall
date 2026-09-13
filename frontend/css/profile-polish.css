@@ -2,22 +2,24 @@
    🌸 个人中心 (Profile Page) 视觉层级与色彩统一精修
    ======================================================= */
 
-/* --- 1. 彻底消灭突兀的墨绿色「编辑资料」按钮！--- */
+/* --- 1. 个人中心操作按钮统一为低调的浅色卡片 --- */
 body.profile-page .btn-edit-profile,
 .btn-edit-profile {
-  background: linear-gradient(135deg, #FF6584 0%, #A855F7 100%) !important;
-  color: #FFFFFF !important;
-  border: none !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  color: #64748B !important;
+  border: 1.5px solid rgba(226, 232, 240, 0.9) !important;
   border-radius: 999px !important;
-  box-shadow: 0 4px 16px rgba(255, 101, 132, 0.3) !important;
-  font-weight: 700 !important;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
 }
 
 body.profile-page .btn-edit-profile:hover {
   transform: translateY(-2px) scale(1.02) !important;
-  box-shadow: 0 8px 24px rgba(255, 101, 132, 0.45) !important;
-  color: #FFFFFF !important;
+  border-color: #C084FC !important;
+  color: #8B5CF6 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.12) !important;
 }
 
 /* 次要操作（修改密码、管理后台）：半透明精致白底微描边 */
