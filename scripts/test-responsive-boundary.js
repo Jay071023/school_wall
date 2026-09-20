@@ -30,4 +30,12 @@ assert(mpDraftCss.includes('grid-template-areas:\n      "check title"\n      ". 
 assert(mpDraftCss.includes('width: auto !important;\n    min-width: 0;'), '移动端选帖单元格不得保留桌面表格的全宽规则');
 assert(mpDraftCss.includes('tr.post-row') && mpDraftPage.includes("'<tr class=\"post-row '"), '单条和多条真实帖子都必须使用移动卡片布局，不能误判单条帖子为空状态');
 
+const campusPolishCss = read('frontend/css/campus-ui-polish.css');
+assert(campusPolishCss.startsWith('/*\n * Campus UI polish styles') && !/^🎓/m.test(campusPolishCss), '校园增强样式说明必须位于合法 CSS 注释内');
+['profile-polish.css', 'profile-polish-enhanced.css'].forEach(function(fileName) {
+  const css = read('frontend/css/' + fileName);
+  assert(!css.includes(':contains('), fileName + ' 不得使用浏览器不支持的 :contains 选择器');
+  assert(css.includes('.btn-mark-all') && css.includes('.btn-wechat-unbind'), fileName + ' 必须保留通知和微信操作按钮样式');
+});
+
 console.log('[responsive-boundary] 通过：768px 统一归入移动端，769px 起使用桌面逻辑');

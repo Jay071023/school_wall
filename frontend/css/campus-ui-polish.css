@@ -1,8 +1,8 @@
 /*
  * Campus UI polish styles split from global style.css.
+ * 🎓 Campus Wall (校墙) 专属场景与身份标签增强
+ * =======================================================
  */
-🎓 Campus Wall (校墙) 专属场景与身份标签增强
-   ======================================================= */
 
 /* --- 1. 校园分类标签色彩系统 (情绪化配色) --- */
 .category-tag[data-value="confession"],

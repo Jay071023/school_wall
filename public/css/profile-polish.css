@@ -92,7 +92,6 @@ div[style*="background: rgb(248, 250, 252)"] {
 
 /* 全部已读按钮 */
 button.btn-mark-all,
-button:has(span:contains("全部标记为已读")),
 .btn-read-all {
   background: linear-gradient(135deg, #FF6584 0%, #FF8A80 100%) !important;
   box-shadow: 0 4px 12px rgba(255, 101, 132, 0.25) !important;
@@ -110,8 +109,7 @@ div:has(> .wechat-status) {
 }
 
 /* 解除绑定按钮弱化 */
-.btn-wechat-unbind,
-button:has(span:contains("解除绑定")) {
+.btn-wechat-unbind {
   background: rgba(241, 245, 249, 0.8) !important;
   border: 1px solid rgba(203, 213, 225, 0.6) !important;
   border-radius: 999px !important;
