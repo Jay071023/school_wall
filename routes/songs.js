@@ -544,27 +544,32 @@ router.get('/hot', async (req, res) => {
 
 // 投票/取消投票
 router.post('/vote', auth, async (req, res) => {
+  let connection;
   try {
+    connection = await pool.getConnection();
     const { song_request_id, vote_type } = req.body;
     
     if (!song_request_id || !vote_type || !['up', 'down'].includes(vote_type)) {
       return res.json({ code: 400, message: '参数错误' });
     }
 
-    // 检查歌曲是否存在
-    const [songs] = await pool.execute(
-      'SELECT id, hot_score FROM song_requests WHERE id = ? AND deleted_at IS NULL',
+    await connection.beginTransaction();
+
+    // 锁定歌曲行，把同一首歌的投票切换串行化，避免并发请求覆盖热度。
+    const [songs] = await connection.execute(
+      'SELECT id, hot_score FROM song_requests WHERE id = ? AND deleted_at IS NULL FOR UPDATE',
       [song_request_id]
     );
     if (songs.length === 0) {
+      await connection.rollback();
       return res.json({ code: 404, message: '歌曲不存在' });
     }
 
     const currentScore = songs[0].hot_score || 0;
 
     // 检查是否已投票
-    const [existingVotes] = await pool.execute(
-      'SELECT id, vote_type FROM song_votes WHERE song_request_id = ? AND user_id = ?',
+    const [existingVotes] = await connection.execute(
+      'SELECT id, vote_type FROM song_votes WHERE song_request_id = ? AND user_id = ? FOR UPDATE',
       [song_request_id, req.user.id]
     );
 
@@ -572,7 +577,7 @@ router.post('/vote', auth, async (req, res) => {
     
     if (existingVotes.length > 0) {
       // 已投票，取消投票
-      await pool.execute(
+      await connection.execute(
         'DELETE FROM song_votes WHERE song_request_id = ? AND user_id = ?',
         [song_request_id, req.user.id]
       );
@@ -580,7 +585,7 @@ router.post('/vote', auth, async (req, res) => {
       newScore = existingVotes[0].vote_type === 'up' ? currentScore - 1 : currentScore + 1;
     } else {
       // 新投票
-      await pool.execute(
+      await connection.execute(
         'INSERT INTO song_votes (song_request_id, user_id, vote_type) VALUES (?, ?, ?)',
         [song_request_id, req.user.id, vote_type]
       );
@@ -589,10 +594,12 @@ router.post('/vote', auth, async (req, res) => {
     }
 
     // 更新歌曲热度
-    await pool.execute(
+    await connection.execute(
       'UPDATE song_requests SET hot_score = ? WHERE id = ?',
       [newScore, song_request_id]
     );
+
+    await connection.commit();
 
     res.json({ 
       code: 200, 
@@ -600,8 +607,13 @@ router.post('/vote', auth, async (req, res) => {
       data: { hot_score: newScore }
     });
   } catch (err) {
+    if (connection) {
+      try { await connection.rollback(); } catch (_) {}
+    }
     console.error('投票错误:', err.message);
     res.json({ code: 500, message: '服务器错误' });
+  } finally {
+    if (connection) connection.release();
   }
 });
 

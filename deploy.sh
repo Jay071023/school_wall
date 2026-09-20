@@ -197,7 +197,9 @@ fi
 run_npm_install() {
   cd "$DEPLOY_DIR" || return 1
   if [ -f package-lock.json ]; then
-    "$NPM" ci --omit=dev || "$NPM" install --omit=dev || return 1
+    # 锁文件存在时必须严格按锁文件安装。npm ci 失败通常意味着锁文件不一致，
+    # 不能再用 npm install 改写依赖树后继续上线。
+    "$NPM" ci --omit=dev || return 1
   else
     "$NPM" install --omit=dev || return 1
   fi
@@ -205,7 +207,7 @@ run_npm_install() {
   if [ -d "$DEPLOY_DIR/frontend" ] && [ -f "$DEPLOY_DIR/frontend/package.json" ]; then
     cd "$DEPLOY_DIR/frontend"
     if [ -f package-lock.json ]; then
-      "$NPM" ci || "$NPM" install || return 1
+      "$NPM" ci || return 1
     else
       "$NPM" install || return 1
     fi

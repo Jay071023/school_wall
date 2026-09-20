@@ -665,6 +665,22 @@ async function initDB() {
         await connection.query(`ALTER TABLE song_requests ADD COLUMN \`${columnName}\` ${definition}`);
       }
     }
+
+    // 歌曲热度投票表必须由启动初始化兜底创建，避免新环境只部署代码后
+    // /api/songs/vote 因缺表直接返回 500。同一用户对同一首歌只保留一票。
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS song_votes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        song_request_id INT NOT NULL,
+        user_id INT NOT NULL,
+        vote_type ENUM('up', 'down') NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_song_vote (song_request_id, user_id),
+        INDEX idx_song_votes_user (user_id),
+        FOREIGN KEY (song_request_id) REFERENCES song_requests(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='点歌热度投票'
+    `);
     const songRequestIndexes = [
       ['idx_song_deleted_status_created', '(`deleted_at`, `status`, `created_at`)'],
       ['idx_song_slot_status_deleted', '(`slot_date_id`, `status`, `deleted_at`)'],
@@ -683,7 +699,9 @@ async function initDB() {
       ['is_deleted', 'TINYINT(1) NOT NULL DEFAULT 0 COMMENT \'是否已移入回收站\''],
       ['deleted_at', 'TIMESTAMP NULL DEFAULT NULL COMMENT \'移入回收站时间\''],
       ['video_url', 'VARCHAR(500) DEFAULT NULL COMMENT \'帖子视频路径\''],
-      ['video_poster', 'VARCHAR(500) DEFAULT NULL COMMENT \'视频首帧封面路径\'']
+      ['video_poster', 'VARCHAR(500) DEFAULT NULL COMMENT \'视频首帧封面路径\''],
+      ['poll_type', 'ENUM(\'single\', \'multiple\') DEFAULT NULL COMMENT \'投票类型\''],
+      ['poll_expires_at', 'DATETIME DEFAULT NULL COMMENT \'投票截止时间\'']
     ];
     for (const [columnName, definition] of postColumns) {
       const [columns] = await connection.query('SHOW COLUMNS FROM posts LIKE ?', [columnName]);
@@ -701,6 +719,32 @@ async function initDB() {
         await connection.query(`ALTER TABLE posts ADD INDEX \`${indexName}\` ${indexDefinition}`);
       }
     }
+
+    // 投票帖选项与投票记录也纳入启动迁移，保证全新数据库与线上历史库
+    // 使用同一套初始化路径。路由中的事务会再锁定帖子行处理并发投票。
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS poll_options (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        post_id INT NOT NULL,
+        option_text VARCHAR(255) NOT NULL,
+        votes_count INT NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_poll_options_post (post_id),
+        FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='帖子投票选项'
+    `);
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS poll_votes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        option_id INT NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_poll_vote (option_id, user_id),
+        INDEX idx_poll_votes_user (user_id),
+        FOREIGN KEY (option_id) REFERENCES poll_options(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='帖子投票记录'
+    `);
 
     // 列表、清理和预约名额查询使用的联合索引。SHOW INDEX + ALTER TABLE
     // 保持 MySQL 5.7 兼容；预约表由旧版本/独立迁移创建时，暂时不存在也不阻塞启动。

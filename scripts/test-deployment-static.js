@@ -31,6 +31,9 @@ includes(script, 'set -Eeuo pipefail', '部署脚本必须在未处理错误时�
 includes(script, 'umask 022', '部署脚本不能把代码和依赖创建成服务用户不可读');
 includes(script, '/www/server/nodejs/*/bin/node', '部署脚本必须兼容宝塔面板的 Node.js 路径');
 includes(script, 'ensure_tool npm "$NPM"', '部署脚本必须在安装依赖前确认 npm 可用');
+includes(script, '"$NPM" ci --omit=dev || return 1', '存在根锁文件时必须严格使用 npm ci 并在失败时终止部署');
+includes(script, '"$NPM" ci || return 1', '存在前端锁文件时必须严格使用 npm ci 并在失败时终止部署');
+assert(!script.includes('ci --omit=dev || "$NPM" install') && !script.includes('"$NPM" ci || "$NPM" install'), 'npm ci 失败时不得回退到 npm install 掩盖锁文件不一致');
 includes(script, 'check_frontend_mirror_for_rollback', '回滚历史版本时不能强制依赖新版本检查脚本');
 includes(script, 'wait_for_health', '部署必须等待服务健康检查通过');
 includes(script, 'sudo -n systemctl', '非 root Webhook 进程必须通过受限 sudo 控制服务');

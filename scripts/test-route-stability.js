@@ -141,6 +141,36 @@ const emailRoutes = admin.slice(
 assert(!emailRoutes.includes('console.log('), '邮件接口不得输出无意义调试日志');
 assert(!/console\.error\([^\n;]*,\s*err\s*\)/.test(emailRoutes), '邮件接口错误日志不得输出完整错误对象');
 
+const songsRoute = readRoute('songs.js');
+const songVoteRoute = songsRoute.slice(
+  songsRoute.indexOf("router.post('/vote'"),
+  songsRoute.indexOf("router.post('/admin/update-score'")
+);
+assert(songVoteRoute.includes('beginTransaction()') && songVoteRoute.includes('FOR UPDATE'), '歌曲热度投票必须在事务中锁定歌曲，避免并发覆盖分数');
+assert(songVoteRoute.includes('connection.commit()') && songVoteRoute.includes('connection.rollback()'), '歌曲热度投票必须完整提交或回滚');
+
+const commentLikeRoute = readRoute('posts.js').slice(
+  readRoute('posts.js').indexOf("router.post('/comments/:commentId/like'"),
+  readRoute('posts.js').indexOf("router.get('/:postId/comments/:commentId/replies'")
+);
+assert(commentLikeRoute.includes('beginTransaction()') && commentLikeRoute.includes('FOR UPDATE'), '评论点赞切换必须串行化并保持点赞记录与计数一致');
+const replyLikeRoute = readRoute('posts.js').slice(
+  readRoute('posts.js').indexOf("router.post('/:postId/comments/:commentId/replies/:replyId/like'"),
+  readRoute('posts.js').indexOf('// 点赞/取消点赞防抖')
+);
+assert(replyLikeRoute.includes('beginTransaction()') && replyLikeRoute.includes('FOR UPDATE'), '回复点赞切换必须串行化并保持点赞记录与计数一致');
+const postViewRoute = readRoute('posts.js').slice(
+  readRoute('posts.js').indexOf("router.post('/:id/view'"),
+  readRoute('posts.js').indexOf("router.get('/:id/views'")
+);
+assert(postViewRoute.includes('beginTransaction()') && postViewRoute.includes('FOR UPDATE'), '浏览记录去重与计数更新必须在同一事务中完成');
+assert(postViewRoute.indexOf('INSERT INTO post_views') < postViewRoute.indexOf('UPDATE posts SET view_count'), '浏览记录应先写入，再在同一事务中增加计数');
+
+const database = fs.readFileSync(path.join(__dirname, '..', 'config', 'database.js'), 'utf8');
+assert(database.includes('CREATE TABLE IF NOT EXISTS song_votes'), '启动迁移必须创建歌曲投票表');
+assert(database.includes('CREATE TABLE IF NOT EXISTS poll_options') && database.includes('CREATE TABLE IF NOT EXISTS poll_votes'), '启动迁移必须创建帖子投票选项与记录表');
+assert(database.includes("['poll_type'") && database.includes("['poll_expires_at'"), '启动迁移必须补齐帖子投票字段');
+
 const auth = readRoute('auth.js');
 const notifySettings = auth.slice(
   auth.indexOf("router.get('/notify-settings'"),
@@ -168,7 +198,7 @@ assert(adminPage.includes('_themeSavePending') && adminPage.includes('主题已�
 assert(adminPage.includes('id="song-reject-library"') && adminPage.includes('打回理由预设'), '打回理由预设应放在点歌管理面板内');
 assert(!adminPage.includes('id="setting-song-reject-reasons"'), '系统设置页不应再保留打回理由文本框');
 assert(adminPage.includes("authFetch('/api/admin/song-reject-reasons')") && adminPage.includes('renderSongRejectReasonEditor'), '点歌管理应加载并编辑打回理由预设');
-assert(adminCss.includes('点歌管理组件：唯一结构规则') && adminCss.includes('grid-template-areas:\n                    "name name"'), '后台点歌管理在移动端应使用分层卡片布局');
+assert(adminCss.includes('点歌管理组件：唯一结构规则') && /grid-template-areas:\r?\n\s+"name name"/.test(adminCss), '后台点歌管理在移动端应使用分层卡片布局');
 assert(adminPage.includes('推歌候选曲库') && adminPage.includes('多首歌曲在这里整理'), '推歌候选页应明确用于多首歌曲整理');
 assert(adminPage.includes('待在公众号页统一推送') && !adminPage.includes('title="去公众号推送页"'), '候选页不得提供单曲推送按钮，应统一到公众号推送页处理');
 assert(adminPage.includes('data-panel="daily-songs"') && adminPage.includes('data-super-admin-only="true"') && adminPage.includes('data-title="推歌候选"'), '推歌候选菜单必须标记为最高管理员专属');

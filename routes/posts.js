@@ -922,48 +922,60 @@ router.delete('/:postId/comments/:commentId', auth, async (req, res) => {
 
 // 评论点赞
 router.post('/comments/:commentId/like', auth, async (req, res) => {
+  let connection;
   try {
+    connection = await pool.getConnection();
     const commentId = req.params.commentId;
     const userId = req.user.id;
 
     // 检查评论是否存在
-    const [comments] = await pool.execute(
+    await connection.beginTransaction();
+    const [comments] = await connection.execute(
       `SELECT c.id, c.post_id
        FROM comments c
        JOIN posts p ON p.id = c.post_id
-       WHERE c.id = ? AND p.status = "approved" AND p.is_deleted = 0`,
+       WHERE c.id = ? AND p.status = "approved" AND p.is_deleted = 0
+       FOR UPDATE`,
       [commentId]
     );
     if (comments.length === 0) {
+      await connection.rollback();
       return res.json({ code: 404, message: '评论不存在' });
     }
 
     // 检查是否已经点赞
-    const [existing] = await pool.execute(
-      'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
+    const [existing] = await connection.execute(
+      'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ? FOR UPDATE',
       [commentId, userId]
     );
 
     let liked = false;
     if (existing.length > 0) {
       // 取消点赞
-      await pool.execute('DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?', [commentId, userId]);
-      await pool.execute('UPDATE comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [commentId]);
+      await connection.execute('DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?', [commentId, userId]);
+      await connection.execute('UPDATE comments SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [commentId]);
     } else {
       // 添加点赞
-      await pool.execute('INSERT INTO comment_likes (comment_id, user_id) VALUES (?, ?)', [commentId, userId]);
-      await pool.execute('UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?', [commentId]);
+      await connection.execute('INSERT INTO comment_likes (comment_id, user_id) VALUES (?, ?)', [commentId, userId]);
+      await connection.execute('UPDATE comments SET likes_count = likes_count + 1 WHERE id = ?', [commentId]);
       liked = true;
     }
 
     // 获取最新点赞数
-    const [updated] = await pool.execute('SELECT likes_count FROM comments WHERE id = ?', [commentId]);
+    const [updated] = await connection.execute('SELECT likes_count FROM comments WHERE id = ?', [commentId]);
     const likesCount = updated[0]?.likes_count || 0;
+
+    await connection.commit();
 
     res.json({ code: 200, data: { liked, likes_count: likesCount } });
   } catch (err) {
+    if (connection) {
+      try { await connection.rollback(); } catch (_) {}
+    }
     console.error('评论点赞错误:', err.message);
     res.json({ code: 500, message: '服务器错误' });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -1112,46 +1124,58 @@ router.delete('/:postId/comments/:commentId/replies/:replyId', auth, async (req,
 
 // 回复点赞
 router.post('/:postId/comments/:commentId/replies/:replyId/like', auth, async (req, res) => {
+  let connection;
   try {
+    connection = await pool.getConnection();
     const { postId, commentId, replyId } = req.params;
     const userId = req.user.id;
 
     // 检查回复是否存在
-    const [replies] = await pool.execute(
+    await connection.beginTransaction();
+    const [replies] = await connection.execute(
       `SELECT r.id
        FROM comment_replies r
        JOIN comments c ON c.id = r.comment_id
        JOIN posts p ON p.id = c.post_id
-       WHERE r.id = ? AND r.comment_id = ? AND c.post_id = ? AND p.status = "approved" AND p.is_deleted = 0`,
+       WHERE r.id = ? AND r.comment_id = ? AND c.post_id = ? AND p.status = "approved" AND p.is_deleted = 0
+       FOR UPDATE`,
       [replyId, commentId, postId]
     );
     if (replies.length === 0) {
+      await connection.rollback();
       return res.json({ code: 404, message: '回复不存在' });
     }
 
     // 检查是否已经点赞
-    const [existing] = await pool.execute(
-      'SELECT id FROM comment_reply_likes WHERE reply_id = ? AND user_id = ?',
+    const [existing] = await connection.execute(
+      'SELECT id FROM comment_reply_likes WHERE reply_id = ? AND user_id = ? FOR UPDATE',
       [replyId, userId]
     );
 
     let liked = false;
     if (existing.length > 0) {
-      await pool.execute('DELETE FROM comment_reply_likes WHERE reply_id = ? AND user_id = ?', [replyId, userId]);
-      await pool.execute('UPDATE comment_replies SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [replyId]);
+      await connection.execute('DELETE FROM comment_reply_likes WHERE reply_id = ? AND user_id = ?', [replyId, userId]);
+      await connection.execute('UPDATE comment_replies SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ?', [replyId]);
     } else {
-      await pool.execute('INSERT INTO comment_reply_likes (reply_id, user_id) VALUES (?, ?)', [replyId, userId]);
-      await pool.execute('UPDATE comment_replies SET likes_count = likes_count + 1 WHERE id = ?', [replyId]);
+      await connection.execute('INSERT INTO comment_reply_likes (reply_id, user_id) VALUES (?, ?)', [replyId, userId]);
+      await connection.execute('UPDATE comment_replies SET likes_count = likes_count + 1 WHERE id = ?', [replyId]);
       liked = true;
     }
 
-    const [updated] = await pool.execute('SELECT likes_count FROM comment_replies WHERE id = ?', [replyId]);
+    const [updated] = await connection.execute('SELECT likes_count FROM comment_replies WHERE id = ?', [replyId]);
     const likesCount = updated[0]?.likes_count || 0;
+
+    await connection.commit();
 
     res.json({ code: 200, data: { liked, likes_count: likesCount } });
   } catch (err) {
+    if (connection) {
+      try { await connection.rollback(); } catch (_) {}
+    }
     console.error('回复点赞错误:', err.message);
     res.json({ code: 500, message: '服务器错误' });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -1522,7 +1546,9 @@ router.get('/:id/edit', auth, async (req, res) => {
 
 // 投票
 router.post('/:id/vote', auth, async (req, res) => {
+  let connection;
   try {
+    connection = await pool.getConnection();
     var postId = req.params.id;
     var userId = req.user.id;
     var { option_id } = req.body;
@@ -1530,41 +1556,65 @@ router.post('/:id/vote', auth, async (req, res) => {
     if (!option_id) return res.json({ code: 400, message: '请选择投票选项' });
 
     // 检查帖子是否存在且为投票帖
-    var [posts] = await pool.execute('SELECT id, poll_type, poll_expires_at, user_id FROM posts WHERE id = ? AND status = "approved" AND is_deleted = 0', [postId]);
-    if (posts.length === 0) return res.json({ code: 404, message: '帖子不存在' });
+    await connection.beginTransaction();
+    var [posts] = await connection.execute('SELECT id, poll_type, poll_expires_at, user_id FROM posts WHERE id = ? AND status = "approved" AND is_deleted = 0 FOR UPDATE', [postId]);
+    if (posts.length === 0) {
+      await connection.rollback();
+      return res.json({ code: 404, message: '帖子不存在' });
+    }
     var post = posts[0];
-    if (!post.poll_type) return res.json({ code: 400, message: '此帖不是投票帖' });
+    if (!post.poll_type) {
+      await connection.rollback();
+      return res.json({ code: 400, message: '此帖不是投票帖' });
+    }
 
     // 检查是否过期
     if (post.poll_expires_at && new Date(post.poll_expires_at) < new Date()) {
+      await connection.rollback();
       return res.json({ code: 400, message: '投票已结束' });
     }
 
     // 检查选项是否属于该帖子
-    var [options] = await pool.execute('SELECT id FROM poll_options WHERE id = ? AND post_id = ?', [option_id, postId]);
-    if (options.length === 0) return res.json({ code: 400, message: '投票选项不存在' });
+    var [options] = await connection.execute('SELECT id FROM poll_options WHERE id = ? AND post_id = ?', [option_id, postId]);
+    if (options.length === 0) {
+      await connection.rollback();
+      return res.json({ code: 400, message: '投票选项不存在' });
+    }
 
     if (post.poll_type === 'single') {
       // 单选：检查是否已投过任何选项
-      var [existing] = await pool.execute('SELECT id FROM poll_votes WHERE option_id IN (SELECT id FROM poll_options WHERE post_id = ?) AND user_id = ?', [postId, userId]);
-      if (existing.length > 0) return res.json({ code: 400, message: '你已经投过票了' });
+      var [existing] = await connection.execute('SELECT id FROM poll_votes WHERE option_id IN (SELECT id FROM poll_options WHERE post_id = ?) AND user_id = ? FOR UPDATE', [postId, userId]);
+      if (existing.length > 0) {
+        await connection.rollback();
+        return res.json({ code: 400, message: '你已经投过票了' });
+      }
     } else if (post.poll_type === 'multiple') {
       // 多选：检查是否已投过该选项
-      var [existing] = await pool.execute('SELECT id FROM poll_votes WHERE option_id = ? AND user_id = ?', [option_id, userId]);
-      if (existing.length > 0) return res.json({ code: 400, message: '你已经投过该选项了' });
+      var [existing] = await connection.execute('SELECT id FROM poll_votes WHERE option_id = ? AND user_id = ? FOR UPDATE', [option_id, userId]);
+      if (existing.length > 0) {
+        await connection.rollback();
+        return res.json({ code: 400, message: '你已经投过该选项了' });
+      }
     } else {
+      await connection.rollback();
       return res.json({ code: 400, message: '不支持的投票类型' });
     }
 
-    await pool.execute('INSERT INTO poll_votes (option_id, user_id) VALUES (?, ?)', [option_id, userId]);
-    await pool.execute('UPDATE poll_options SET votes_count = votes_count + 1 WHERE id = ?', [option_id]);
+    await connection.execute('INSERT INTO poll_votes (option_id, user_id) VALUES (?, ?)', [option_id, userId]);
+    await connection.execute('UPDATE poll_options SET votes_count = votes_count + 1 WHERE id = ?', [option_id]);
+    await connection.commit();
 
     return res.json({ code: 200, message: '投票成功', data: { hasVoted: true } });
 
   } catch (err) {
+    if (connection) {
+      try { await connection.rollback(); } catch (_) {}
+    }
     if (err.code === 'ER_DUP_ENTRY') return res.json({ code: 400, message: '你已经投过票了' });
     console.error('投票错误:', err);
     res.json({ code: 500, message: '投票失败' });
+  } finally {
+    if (connection) connection.release();
   }
 });
 
@@ -1629,18 +1679,54 @@ router.post('/:id/view', optionalAuth, async (req, res) => {
       return res.json({ code: 200, message: 'duplicate' });
     }
 
-    // 异步增加，不阻塞响应
+    // 异步记录，不阻塞响应；事务内再次去重并锁定帖子行，保证并发浏览时
+    // 浏览记录与两个计数字段要么一起成功，要么一起回滚。
     setImmediate(async () => {
+      let connection;
       try {
         const ipRegion = await getIpRegion(viewerIp);
-        const [updated] = await pool.execute('UPDATE posts SET view_count = view_count + 1, views = views + 1 WHERE id = ? AND status = "approved" AND is_deleted = 0', [postId]);
-        if (!updated.affectedRows) return;
-        await pool.execute(
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        const [lockedPosts] = await connection.execute(
+          'SELECT id FROM posts WHERE id = ? AND status = "approved" AND is_deleted = 0 FOR UPDATE',
+          [postId]
+        );
+        if (lockedPosts.length === 0) {
+          await connection.rollback();
+          return;
+        }
+
+        const [recent] = userId
+          ? await connection.execute(
+              'SELECT id FROM post_views WHERE post_id = ? AND user_id = ? AND viewed_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE) LIMIT 1',
+              [postId, userId]
+            )
+          : await connection.execute(
+              'SELECT id FROM post_views WHERE post_id = ? AND viewer_ip = ? AND viewed_at > DATE_SUB(NOW(), INTERVAL 1 MINUTE) LIMIT 1',
+              [postId, viewerIp]
+            );
+        if (recent.length > 0) {
+          await connection.rollback();
+          return;
+        }
+
+        await connection.execute(
           'INSERT INTO post_views (post_id, user_id, viewer_ip, ip_region, viewer_nickname) VALUES (?, ?, ?, ?, ?)',
           [postId, userId, viewerIp, ipRegion, viewerNickname]
         );
+        await connection.execute(
+          'UPDATE posts SET view_count = view_count + 1, views = views + 1 WHERE id = ?',
+          [postId]
+        );
+        await connection.commit();
       } catch (err) {
+        if (connection) {
+          try { await connection.rollback(); } catch (_) {}
+        }
         console.error('增加浏览次数失败:', err.message);
+      } finally {
+        if (connection) connection.release();
       }
     });
 
