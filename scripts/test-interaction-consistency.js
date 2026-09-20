@@ -12,8 +12,8 @@ function testSourceContracts() {
   assert(follows.includes('await pool.getConnection()') && follows.includes('await connection.beginTransaction()'), '关注切换必须使用事务');
   assert(follows.includes('ORDER BY id FOR UPDATE') && follows.includes('following_id = ? FOR UPDATE'), '关注切换必须锁定双方用户和关注关系');
   assert(follows.includes("reason = 'follow' AND related_id = ?") && follows.includes("reason, related_id) VALUES (?, 1, ?, 'follow', ?)"), '关注积分必须按关注者去重');
-  assert(follows.includes('myName,\n            followingId'), '新粉丝邮件必须传入收件人的用户 ID 以读取通知偏好');
-  assert(!follows.includes("setImmediate(function() {\n        pool.execute('UPDATE users SET points = points + 1"), '关注积分不得脱离事务异步写入');
+  assert(/notifyNewFollower\([\s\S]*?myName,\s*followingId\s*\)/.test(follows), '新粉丝邮件必须传入收件人的用户 ID 以读取通知偏好');
+  assert(!/setImmediate\(function\(\)\s*\{\s*pool\.execute\('UPDATE users SET points = points \+ 1/.test(follows), '关注积分不得脱离事务异步写入');
 
   const messages = read('routes/messages.js');
   assert(messages.includes('sendMessageNotification(senderId, recipientId, content, conversationId)'), '私信邮件必须携带会话 ID');
