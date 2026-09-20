@@ -66,7 +66,10 @@ assert(page.includes("res.code === 409") && page.includes('已接续正在处理
 assert(page.includes('function getArticleForSync()'), '同步前必须能读取当前已生成文章');
 assert(page.includes("previewArea.querySelector('.placeholder')"), '同步恢复逻辑必须区分真实预览与占位提示');
 assert(page.includes('var article = getArticleForSync();'), '同步按钮必须先从当前预览恢复文章状态');
+assert(page.includes("var generateError = error && error.message") && page.includes("setStatus('❌ 生成图文失败，请重试'"), '正文生成网络异常必须解除忙碌状态并允许管理员重试');
 assert(page.includes('var syncDailySongIds = generatedDailySongIds.slice();'), '同步时必须冻结本次已生成文章实际选中的推歌 ID');
+assert(page.includes("pollSyncStatus(syncId, btn, originalText, res.code === 409 ? null : syncDailySongIds)"), '接续旧同步任务时不得把当前新稿歌曲作为状态回写兜底');
+assert(page.includes("Array.isArray(sr.data.daily_song_ids)") && !page.includes('completedSongIds = completedSongIds.concat(sr.data.daily_song_ids)'), '轮询完成后必须以服务端实际同步歌曲 ID 为准');
 assert(page.includes('body: JSON.stringify({ article: article, dailySongIds: syncDailySongIds })'), '同步请求必须使用恢复后的文章内容，并携带冻结的推歌状态更新范围');
 assert(!page.includes('if (!generatedArticles || generatedArticles.length === 0)'), '同步按钮不能只依赖易丢失的内存预览状态');
 assert(page.includes('function normalizeDailySong(song)'), '每日推歌预览必须先统一旧接口和编辑器字段');
@@ -80,6 +83,9 @@ assert(page.includes("renderDailySongInlinePreview(generatedArticles[0], 'song')
 assert(page.includes('toggleDailySongEditor(idx)'), '歌曲编辑卡必须支持单卡展开/收起');
 assert(page.includes('song._expanded === true'), '歌曲编辑卡默认应折叠且保留单卡状态');
 assert(page.includes('这是单首模板预览，请先点击“生成推歌预览”'), '单首模板预览不能直接误同步');
+assert(page.includes("generateSongOnly({ skipRefresh: true, previewOnly: true })") && page.includes('if (previewOnly) {'), '单首模板预览必须只更新页内临时预览，不得覆盖完整同步稿');
+assert(!page.includes("content.includes('placeholder')") && (page.match(/previewArea\.querySelector\('\.placeholder'\)/g) || []).length >= 3, '复制、下载和同步只能按真实占位节点判断，不能误伤视频标记');
+assert(page.includes("if (!copied) throw new Error('浏览器拒绝复制')"), '浏览器拒绝复制时不得仍提示成功');
 assert(page.includes('@media (max-width: 768px)'), '每日推歌移动端布局必须遵守 768px 断点');
 assert(!page.includes('\n            [style*="flex:1"] { display: none; }'), '移动端不能用全局 flex:1 隐藏正文文字容器');
 assert(page.includes('.toolbar > span[style*="flex:1"] { display: none; }'), '移动端只应隐藏工具栏弹性占位');

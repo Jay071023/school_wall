@@ -3495,7 +3495,7 @@
             }
             selectedDailySongs = preview;
             try {
-                await generateSongOnly({ skipRefresh: true });
+                await generateSongOnly({ skipRefresh: true, previewOnly: true });
                 showToast('已按所选模板生成预览：' + (SONG_TPL_NAMES[target._tpl || 'random'] || '随机'), 'success');
             } catch(e) {
                 showToast('预览失败：' + e.message, 'error');
@@ -4825,19 +4825,28 @@
                 };
             });
 
-            var res = await apiFetch(API_BASE + '/generate-content', {
-                method: 'POST',
-                body: JSON.stringify({
-                    postIds: ids,
-                    includeWeather: includeWeather,
-                    includeHitokoto: includeHitokoto,
-                    includeWeeklyStar: includeWeeklyStar,
-                    includeGaokao: includeGaokao,
-                    includeSongs: includeDailySong,
-                    weeklyStarUserIds: includeWeeklyStar ? selectedWeeklyStarIds : [],
-                    dailySongs: includeDailySong ? selectedSongs : []
-                })
-            });
+            var res;
+            try {
+                res = await apiFetch(API_BASE + '/generate-content', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        postIds: ids,
+                        includeWeather: includeWeather,
+                        includeHitokoto: includeHitokoto,
+                        includeWeeklyStar: includeWeeklyStar,
+                        includeGaokao: includeGaokao,
+                        includeSongs: includeDailySong,
+                        weeklyStarUserIds: includeWeeklyStar ? selectedWeeklyStarIds : [],
+                        dailySongs: includeDailySong ? selectedSongs : []
+                    })
+                });
+            } catch (error) {
+                var generateError = error && error.message ? error.message : '网络连接失败';
+                showMsg('previewMsg', '生成失败: ' + generateError, 'error');
+                setPreviewBusy(false);
+                setStatus('❌ 生成图文失败，请重试', 'error');
+                return;
+            }
 
             if (res.code !== 200) {
                 showMsg('previewMsg', '生成失败: ' + (res.message || '未知错误'), 'error');
@@ -5417,7 +5426,8 @@
             }
             var generationOptions = options || {};
             var openPreviewTab = generationOptions.openPreviewTab === true;
-            setStatus('正在生成歌曲推送...', 'loading');
+            var previewOnly = generationOptions.previewOnly === true;
+            if (!previewOnly) setStatus('正在生成歌曲推送...', 'loading');
 
             // 重新从数据库加载歌曲列表（获取最新数据），保留手动添加的歌曲
             var manualSongs = selectedDailySongs.filter(function(s) { return s._manual; });
@@ -6263,6 +6273,12 @@
                 need_open_comment: 1,
                 only_fans_can_comment: 0
             };
+            if (previewOnly) {
+                renderDailySongInlinePreview(songArticle, 'song');
+                var previewOnlyPanel = document.getElementById('dailySongInlinePreview');
+                if (previewOnlyPanel) previewOnlyPanel.dataset.previewOnly = 'true';
+                return songArticle;
+            }
             generatedArticles = [songArticle];
             generatedDailySongIds = collectDailySongIds(selectedSongs);
             lastPreviewData = null;
@@ -6398,7 +6414,7 @@
         async function copyContent() {
             var previewArea = document.getElementById('previewArea');
             var content = previewArea.innerHTML;
-            if (!content || content.includes('placeholder')) {
+            if (!content || previewArea.querySelector('.placeholder')) {
                 showMsg('previewMsg', '请先生成图文预览', 'error');
                 return;
             }
@@ -6418,8 +6434,9 @@
                 var selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
-                document.execCommand('copy');
+                var copied = document.execCommand('copy');
                 selection.removeAllRanges();
+                if (!copied) throw new Error('浏览器拒绝复制');
                 showMsg('previewMsg', '✅ 内容已复制！请到公众号后台 → 新建图文 → Ctrl+V 粘贴', 'success');
                 setStatus('✅ 内容已复制到剪贴板（带格式）');
             } catch (e) {
@@ -6433,7 +6450,7 @@
         function downloadHTML() {
             var previewArea = document.getElementById('previewArea');
             var content = previewArea.innerHTML;
-            if (!content || content.includes('placeholder')) {
+            if (!content || previewArea.querySelector('.placeholder')) {
                 showMsg('previewMsg', '请先生成图文预览', 'error');
                 return;
             }
@@ -6582,7 +6599,7 @@
                 var syncId = res.data.sync_id;
                 setStatus('⏳ 图片/视频素材上传中（后台处理），请稍候...', 'loading');
                 showMsg('previewMsg', res.code === 409 ? '⏳ 已接续正在处理的同步任务，请稍候...' : '⏳ 正在上传图片到微信CDN及视频永久素材，请稍候...', 'info');
-                pollSyncStatus(syncId, btn, originalText, syncDailySongIds);
+                pollSyncStatus(syncId, btn, originalText, res.code === 409 ? null : syncDailySongIds);
             } else if (res.code === 409 && res.data && hasUnconfirmedDailySongState(res.data)) {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -6647,8 +6664,9 @@
                         var draftUrl = 'https://mp.weixin.qq.com/cgi-bin/appmsg?action=list&type=10';
                         showMsg('previewMsg', '✅ ' + escapeHtml(formatSyncStatus(sr.data)) + ' · <a href="' + draftUrl + '" target="_blank" rel="noopener" style="color:#FF6B9D;font-weight:600;margin-left:6px;">📝 打开公众号后台查看</a>', 'success', true);
                         setStatus('✅ ' + formatSyncStatus(sr.data));
-                        var completedSongIds = syncDailySongIds.slice();
-                        if (sr.data && Array.isArray(sr.data.daily_song_ids)) completedSongIds = completedSongIds.concat(sr.data.daily_song_ids);
+                        var completedSongIds = sr.data && Array.isArray(sr.data.daily_song_ids)
+                            ? sr.data.daily_song_ids.slice()
+                            : (Array.isArray(syncDailySongIds) ? syncDailySongIds.slice() : []);
                         markSyncedSongsLocally(completedSongIds);
                     }
                 } else if (status === 'fail') {
