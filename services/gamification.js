@@ -10,44 +10,68 @@ class GamificationError extends Error {
   }
 }
 
+async function applyPointDelta(connection, options) {
+  const userId = options.userId;
+  const points = Number(options.delta);
+  const reason = String(options.reason || 'admin_bonus').slice(0, 100);
+  if (!Number.isFinite(points) || points === 0) {
+    throw new GamificationError('INVALID_POINTS', '积分变动值无效');
+  }
+  const relatedIdValue = options.relatedId === undefined || options.relatedId === null
+    ? null
+    : Number(options.relatedId);
+  const relatedId = Number.isSafeInteger(relatedIdValue) && relatedIdValue > 0 ? relatedIdValue : null;
+
+  const [users] = await connection.execute(
+    'SELECT id, points FROM users WHERE id = ? FOR UPDATE',
+    [userId]
+  );
+  if (users.length === 0) {
+    throw new GamificationError('USER_NOT_FOUND', '用户不存在');
+  }
+
+  const currentBalance = Number(users[0].points) || 0;
+  const newBalance = currentBalance + points;
+  if (newBalance < 0) {
+    throw new GamificationError('INSUFFICIENT_POINTS', '积分不足以扣除');
+  }
+
+  await connection.execute(
+    'UPDATE users SET points = points + ? WHERE id = ?',
+    [points, userId]
+  );
+  await connection.execute(
+    'INSERT INTO points_log (user_id, points, balance, reason, related_id) VALUES (?, ?, ?, ?, ?)',
+    [userId, points, newBalance, reason, relatedId]
+  );
+
+  return { balance: newBalance };
+}
+
 /**
  * 原子调整用户积分，并同时写入变更后的余额日志。
  * 行锁保证并发发放/扣除不会基于旧余额写出错误日志。
  */
-async function adjustUserPoints(userId, points, reason) {
+async function adjustUserPoints(userId, points, reason, options = {}) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-
-    const [users] = await connection.execute(
-      'SELECT id, points FROM users WHERE id = ? FOR UPDATE',
-      [userId]
-    );
-    if (users.length === 0) {
-      throw new GamificationError('USER_NOT_FOUND', '用户不存在');
+    const result = await applyPointDelta(connection, {
+      userId,
+      delta: points,
+      reason,
+      relatedId: options.relatedId
+    });
+    let logs = [];
+    if (options.includeLogs !== false) {
+      [logs] = await connection.execute(
+        'SELECT id, user_id, points, balance, reason, created_at FROM points_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+        [userId]
+      );
     }
-
-    const currentBalance = Number(users[0].points) || 0;
-    const newBalance = currentBalance + points;
-    if (newBalance < 0) {
-      throw new GamificationError('INSUFFICIENT_POINTS', '积分不足以扣除');
-    }
-
-    await connection.execute(
-      'UPDATE users SET points = points + ? WHERE id = ?',
-      [points, userId]
-    );
-    await connection.execute(
-      'INSERT INTO points_log (user_id, points, balance, reason) VALUES (?, ?, ?, ?)',
-      [userId, points, newBalance, String(reason || 'admin_bonus').slice(0, 100)]
-    );
-    const [logs] = await connection.execute(
-      'SELECT id, user_id, points, balance, reason, created_at FROM points_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
-      [userId]
-    );
 
     await connection.commit();
-    return { balance: newBalance, logs };
+    return { balance: result.balance, logs };
   } catch (err) {
     try { await connection.rollback(); } catch (_) {}
     throw err;
@@ -129,4 +153,4 @@ async function awardTitle(userId, type, titleConfig) {
   }
 }
 
-module.exports = { adjustUserPoints, awardTitle, GamificationError };
+module.exports = { applyPointDelta, adjustUserPoints, awardTitle, GamificationError };

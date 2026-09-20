@@ -5,6 +5,7 @@
 
 const nodemailer = require('nodemailer');
 const { escapeHtml } = require('./html-utils');
+const { withTimeout } = require('./async-utils');
 
 // 表结构只需确保一次；失败时清空 promise，下一次发送仍可重试。
 let emailLogsTablePromise = null;
@@ -12,6 +13,13 @@ let emailLogsTablePromise = null;
 // 等旧实例没有发送中的邮件后再关闭，避免刷新配置打断正在发送的邮件。
 let transporterCache = null;
 let transporterRefreshPromise = null;
+
+// SMTP 服务商不可达或限流时必须尽快结束请求，不能让反向代理等待到 524。
+const SMTP_CONNECTION_TIMEOUT_MS = 10000;
+const SMTP_GREETING_TIMEOUT_MS = 10000;
+const SMTP_SOCKET_TIMEOUT_MS = 20000;
+const SMTP_SEND_TIMEOUT_MS = 20000;
+const EMAIL_LOG_TIMEOUT_MS = 5000;
 
 async function ensureEmailLogsTable() {
   if (emailLogsTablePromise) return emailLogsTablePromise;
@@ -49,6 +57,18 @@ async function logEmail(to, subject, type, contentPreview, status, errorMsg, use
       [to, subject, type, (contentPreview || '').substring(0, 500), status, (errorMsg || '').substring(0, 500), (userName || '')]
     );
   } catch(e) {}
+}
+
+async function logEmailSafely(to, subject, type, contentPreview, status, errorMsg, userName) {
+  try {
+    await withTimeout(
+      logEmail(to, subject, type, contentPreview, status, errorMsg, userName),
+      EMAIL_LOG_TIMEOUT_MS,
+      '邮件日志写入超时'
+    );
+  } catch (err) {
+    console.warn('[Email] 邮件日志写入失败:', err.message);
+  }
 }
 
 async function getEmailSettings() {
@@ -128,7 +148,10 @@ async function refreshTransporter() {
       port: normalized.smtpPort,
       secure: normalized.secure,
       auth: { user: normalized.smtpUser, pass: normalized.smtpPass },
-      tls: { rejectUnauthorized: false }
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: SMTP_CONNECTION_TIMEOUT_MS,
+      greetingTimeout: SMTP_GREETING_TIMEOUT_MS,
+      socketTimeout: SMTP_SOCKET_TIMEOUT_MS
     }),
     smtp_from: normalized.smtpFrom,
     smtp_user: normalized.smtpUser,
@@ -160,14 +183,14 @@ async function createTransporter() {
 async function sendEmail(to, subject, html, type, userName) {
   type = type || '';
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
-    await logEmail(to, subject, type, '无效邮箱', 'fail', '邮箱格式错误', userName);
+    await logEmailSafely(to, subject, type, '无效邮箱', 'fail', '邮箱格式错误', userName);
     return false;
   }
   let result = null;
   try {
     result = await createTransporter();
     if (!result) {
-      await logEmail(to, subject, type, 'SMTP未配置', 'fail', 'SMTP未配置或不可用', userName);
+      await logEmailSafely(to, subject, type, 'SMTP未配置', 'fail', 'SMTP未配置或不可用', userName);
       return false;
     }
     const { transporter, smtp_from, smtp_user, entry } = result;
@@ -181,16 +204,20 @@ async function sendEmail(to, subject, html, type, userName) {
     } else {
       from = process.env.SMTP_FROM || '"' + safeSiteName + '" <noreply@localhost:3000>';
     }
-    await transporter.sendMail({ from, to, subject, html });
+    await withTimeout(
+      transporter.sendMail({ from, to, subject, html }),
+      SMTP_SEND_TIMEOUT_MS,
+      'SMTP发送超时'
+    );
     // 注册验证码不写入日志预览，避免验证码残留在数据库中
     var preview = type === 'register_code'
       ? '注册邮箱验证码邮件'
       : html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().substring(0, 200);
-    await logEmail(to, subject, type, preview, 'success', '', userName);
+    await logEmailSafely(to, subject, type, preview, 'success', '', userName);
     return true;
   } catch (err) {
     console.error('[Email] 邮件发送失败:', err.message);
-    await logEmail(to, subject, type, subject, 'fail', err.message, userName);
+    await logEmailSafely(to, subject, type, subject, 'fail', err.message, userName);
     return false;
   } finally {
     if (result && result.entry) {

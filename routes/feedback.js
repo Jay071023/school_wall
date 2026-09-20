@@ -1,40 +1,10 @@
 const express = require('express');
-const { pool } = require('../config/database');
+const { pool, ensureFeedbackTable } = require('../config/database');
 const { getPagination } = require('../services/pagination');
 const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 const VALID_TYPES = new Set(['suggest', 'bug', 'complaint', 'other']);
-const FEEDBACK_TABLE_SQL = `
-  CREATE TABLE IF NOT EXISTS feedbacks (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    title VARCHAR(200) NOT NULL,
-    content TEXT NOT NULL,
-    contact VARCHAR(200),
-    status VARCHAR(50) DEFAULT 'pending',
-    reply TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_user_id (user_id),
-    INDEX idx_status (status)
-  )
-`;
-
-// 表结构由部署初始化接口负责；这里仅保留一次性懒初始化，避免每次提交都执行 DDL。
-// 初始化失败时清空 Promise，允许下一次请求重试，不会把一次临时数据库故障永久缓存。
-let feedbackTableReady;
-function ensureFeedbackTable() {
-  if (!feedbackTableReady) {
-    feedbackTableReady = pool.execute(FEEDBACK_TABLE_SQL).catch((err) => {
-      feedbackTableReady = undefined;
-      throw err;
-    });
-  }
-  return feedbackTableReady;
-}
-
 function sendError(res, code, message) {
   return res.json({ code, message });
 }
@@ -107,7 +77,7 @@ router.post('/', auth, async (req, res) => {
   }
 
   try {
-    await ensureFeedbackTable();
+    await ensureFeedbackTable(pool);
     await pool.execute(
       'INSERT INTO feedbacks (user_id, type, title, content, contact, status) VALUES (?, ?, ?, ?, ?, ?)',
       [req.user.id, type, titleResult.value, contentResult.value, contactResult.value, 'pending']
@@ -129,7 +99,7 @@ router.get('/my', auth, async (req, res) => {
   });
 
   try {
-    await ensureFeedbackTable();
+    await ensureFeedbackTable(pool);
     const [feedbacks] = await pool.execute(
       'SELECT * FROM feedbacks WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?',
       [req.user.id, limit, offset]

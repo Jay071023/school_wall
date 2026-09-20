@@ -9,29 +9,6 @@ const { createNotification } = require('../services/notification');
 const { notifyNewFollower } = require('../services/email');
 const router = express.Router();
 
-// 初始化关注表
-(async function initFollowsTable() {
-  try {
-    await pool.execute(`
-      CREATE TABLE IF NOT EXISTS follows (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        follower_id INT NOT NULL COMMENT '关注者',
-        following_id INT NOT NULL COMMENT '被关注者',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_follow (follower_id, following_id),
-        INDEX idx_follower (follower_id),
-        INDEX idx_following (following_id),
-        FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='关注关系'
-    `);
-  } catch (err) {
-    if (err.code !== 'ER_TABLE_EXISTS_ERR') {
-      console.error('[Follows] 初始化关注表失败:', err.message);
-    }
-  }
-})();
-
 // 关注/取消关注 (toggle)
 router.post('/:userId', auth, async (req, res) => {
   let connection;

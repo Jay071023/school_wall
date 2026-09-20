@@ -6,6 +6,8 @@ const { notifyNewComment, notifyNewLike, notifyMention, notifyFollowPost, notify
 const { createNotification } = require('../services/notification');
 const { pushPost } = require('../services/baidu-push');
 const { getPagination } = require('../services/pagination');
+const { adjustUserPoints } = require('../services/gamification');
+const { runBackgroundTask } = require('../services/async-utils');
 const router = express.Router();
 
 function normalizePostVideoUrl(value) {
@@ -26,18 +28,6 @@ const ORDER_BY_WHITELIST = {
   hot: 'p.is_pinned DESC, p.likes_count DESC, p.created_at DESC',
 };
 const ORDER_BY_MAP = ORDER_BY_WHITELIST;
-
-// 初始化comments表的mentioned_users字段
-(async function initMentionedUsersField() {
-  try {
-    await pool.execute('ALTER TABLE comments ADD COLUMN mentioned_users TEXT');
-  } catch (err) {
-    if (err.code === 'ER_DUP_FIELDNAME') {
-    } else {
-      console.error('[DB] 初始化mentioned_users字段失败:', err.message);
-    }
-  }
-})();
 
 // 搜索用户（用于艾特功能、私信搜索）
 router.get('/search-users', auth, async (req, res) => {
@@ -732,12 +722,12 @@ router.post('/', auth, async (req, res) => {
     // 发帖送积分（不阻塞）
     if (postStatus === 'approved') {
       var pid = result.insertId;
-      (async function() {
-        try {
-          await pool.execute('UPDATE users SET points = points + ? WHERE id = ?', [2, req.user.id]);
-          await pool.execute('INSERT INTO points_log (user_id, points, balance, reason, related_id) VALUES (?, 2, (SELECT points FROM users WHERE id = ?), ?, ?)', [req.user.id, req.user.id, 'post', pid]);
-        } catch (e) {}
-      })();
+      runBackgroundTask('发帖积分发放失败', () => adjustUserPoints(
+        req.user.id,
+        2,
+        'post',
+        { relatedId: pid, includeLogs: false }
+      ));
     }
 
     // 自动通过的帖子推送给百度收录
@@ -787,24 +777,10 @@ router.post('/:id/comments', auth, async (req, res) => {
       mentionedUsersJson = JSON.stringify(mentioned_users);
     }
 
-    // 尝试插入评论（包含 mentioned_users 字段）
-    let result;
-    try {
-      [result] = await pool.execute(
-        'INSERT INTO comments (post_id, user_id, content, is_anonymous, ip_address, mentioned_users) VALUES (?, ?, ?, ?, ?, ?)',
-        [req.params.id, req.user.id, content.trim(), finalIsAnonymous, clientIp, mentionedUsersJson]
-      );
-    } catch (insertErr) {
-      // 如果 mentioned_users 字段不存在，尝试不带该字段的插入
-      if (insertErr.code === 'ER_BAD_FIELD_ERROR') {
-        [result] = await pool.execute(
-          'INSERT INTO comments (post_id, user_id, content, is_anonymous, ip_address) VALUES (?, ?, ?, ?, ?)',
-          [req.params.id, req.user.id, content.trim(), finalIsAnonymous, clientIp]
-        );
-      } else {
-        throw insertErr;
-      }
-    }
+    const [result] = await pool.execute(
+      'INSERT INTO comments (post_id, user_id, content, is_anonymous, ip_address, mentioned_users) VALUES (?, ?, ?, ?, ?, ?)',
+      [req.params.id, req.user.id, content.trim(), finalIsAnonymous, clientIp, mentionedUsersJson]
+    );
     
     // 异步查询IP归属地并更新
     getIpRegion(clientIp).then(region => {
@@ -889,12 +865,12 @@ router.post('/:id/comments', auth, async (req, res) => {
     }
 
     // 评论送积分
-    (async function() {
-      try {
-        await pool.execute('UPDATE users SET points = points + ? WHERE id = ?', [1, req.user.id]);
-        await pool.execute('INSERT INTO points_log (user_id, points, balance, reason) VALUES (?, 1, (SELECT points FROM users WHERE id = ?), ?)', [req.user.id, req.user.id, 'comment']);
-      } catch (e) {}
-    })();
+    runBackgroundTask('评论积分发放失败', () => adjustUserPoints(
+      req.user.id,
+      1,
+      'comment',
+      { relatedId: result.insertId, includeLogs: false }
+    ));
 
     res.json({ code: 200, message: '评论成功' });
   } catch (err) {
@@ -1282,13 +1258,16 @@ router.post('/:id/like', auth, async (req, res) => {
       const [updated] = await connection.execute('SELECT likes_count FROM posts WHERE id = ?', [postId]);
       
       // 给被点赞者加积分
-      setImmediate(function() {
-        pool.execute('SELECT p.user_id FROM posts p WHERE p.id = ?', [postId]).then(function(rows) {
-          if (rows[0].length > 0 && rows[0][0].user_id !== req.user.id) {
-            pool.execute('UPDATE users SET points = points + 1 WHERE id = ?', [rows[0][0].user_id]).catch(function(){});
-            pool.execute("INSERT INTO points_log (user_id, points, balance, reason, related_id) VALUES (?, 1, (SELECT points FROM users WHERE id = ?), 'like', ?)", [rows[0][0].user_id, rows[0][0].user_id, postId]).catch(function(){});
-          }
-        }).catch(function(){});
+      runBackgroundTask('点赞积分发放失败', async () => {
+        const [authors] = await pool.execute('SELECT p.user_id FROM posts p WHERE p.id = ?', [postId]);
+        if (authors.length > 0 && authors[0].user_id !== req.user.id) {
+          await adjustUserPoints(
+            authors[0].user_id,
+            1,
+            'like',
+            { relatedId: postId, includeLogs: false }
+          );
+        }
       });
 
       // 发送点赞通知

@@ -27,6 +27,16 @@ const fakePool = {
     throw new Error(`unexpected SQL: ${sql}`);
   }
 };
+let feedbackTableReady;
+function ensureFeedbackTable(executor) {
+  if (!feedbackTableReady) {
+    feedbackTableReady = executor.execute('CREATE TABLE IF NOT EXISTS feedbacks (id INT PRIMARY KEY)').catch((error) => {
+      feedbackTableReady = undefined;
+      throw error;
+    });
+  }
+  return feedbackTableReady;
+}
 
 function createRouter() {
   const routes = [];
@@ -46,7 +56,7 @@ function loadRouter(routePath, authModule) {
   const fakeExpress = { Router: createRouter };
   Module._load = function patchedLoad(request, parent, isMain) {
     if (request === 'express') return fakeExpress;
-    if (request === '../config/database') return { pool: fakePool };
+    if (request === '../config/database') return { pool: fakePool, ensureFeedbackTable };
     if (request === '../middleware/auth') return authModule;
     return originalLoad.call(this, request, parent, isMain);
   };

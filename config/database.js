@@ -4,6 +4,60 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const DB_NAME = process.env.DB_NAME || 'campus_wall';
 
+const FOLLOWS_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS follows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    follower_id INT NOT NULL COMMENT '关注者',
+    following_id INT NOT NULL COMMENT '被关注者',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_follow (follower_id, following_id),
+    INDEX idx_follower (follower_id),
+    INDEX idx_following (following_id),
+    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='关注关系'
+`;
+
+const FEEDBACK_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS feedbacks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    type VARCHAR(50) NOT NULL COMMENT '反馈类型：suggest/bug/complaint/other',
+    title VARCHAR(200) NOT NULL COMMENT '反馈标题',
+    content TEXT NOT NULL COMMENT '反馈内容',
+    contact VARCHAR(200) COMMENT '联系方式',
+    status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending/processing/resolved/closed',
+    reply TEXT COMMENT '管理员回复',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+`;
+
+let followsTablePromise;
+let feedbackTablePromise;
+
+function ensureTableOnce(executor, sql, getPromise, setPromise) {
+  const existing = getPromise();
+  if (existing) return existing;
+  const pending = executor.execute(sql).catch((error) => {
+    setPromise(undefined);
+    throw error;
+  });
+  setPromise(pending);
+  return pending;
+}
+
+function ensureFollowsTable(executor) {
+  return ensureTableOnce(executor, FOLLOWS_TABLE_SQL, () => followsTablePromise, (value) => { followsTablePromise = value; });
+}
+
+function ensureFeedbackTable(executor) {
+  return ensureTableOnce(executor, FEEDBACK_TABLE_SQL, () => feedbackTablePromise, (value) => { feedbackTablePromise = value; });
+}
+
 const NOTIFICATIONS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -144,6 +198,9 @@ async function initDB() {
       await connection.execute('ALTER TABLE users ADD COLUMN ban_attempt_count INT DEFAULT 0 COMMENT \'封禁后登录尝试次数\' AFTER ban_attempt_ip');
     } catch (e) { console.error('[DB迁移]', e.message); }
 
+    // 业务表结构统一在启动初始化阶段完成，路由加载时不得执行 DDL。
+    await ensureFollowsTable(connection);
+
     // 通知表必须在启动时完成，保证业务通知写入不依赖管理员手动访问初始化接口。
     await ensureNotificationsTable(connection);
 
@@ -176,6 +233,7 @@ async function initDB() {
         user_id INT NOT NULL,
         content TEXT NOT NULL,
         is_anonymous TINYINT DEFAULT 0,
+        mentioned_users TEXT,
         ip_address VARCHAR(50),
         ip_region VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -183,6 +241,16 @@ async function initDB() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    const [mentionedUserColumns] = await connection.execute('SHOW COLUMNS FROM comments LIKE "mentioned_users"');
+    if (mentionedUserColumns.length === 0) {
+      try {
+        await connection.execute('ALTER TABLE comments ADD COLUMN mentioned_users TEXT AFTER is_anonymous');
+      } catch (error) {
+        // 多实例同时启动时，另一实例可能在 SHOW 与 ALTER 之间先完成迁移。
+        if (error.code !== 'ER_DUP_FIELDNAME') throw error;
+      }
+    }
     
     // 检查并添加评论表的IP字段（如果不存在）
     try {
@@ -477,6 +545,8 @@ async function initDB() {
         INDEX idx_is_top (is_top)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统公告'
     `);
+
+    await ensureFeedbackTable(connection);
 
     // 插入默认系统设置
     const defaultSettings = [
@@ -1216,4 +1286,10 @@ async function initDB() {
   }
 }
 
-module.exports = { pool, initDB, ensureNotificationsTable };
+module.exports = {
+  pool,
+  initDB,
+  ensureNotificationsTable,
+  ensureFollowsTable,
+  ensureFeedbackTable
+};

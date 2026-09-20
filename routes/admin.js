@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { pool, ensureNotificationsTable } = require('../config/database');
+const { pool, ensureNotificationsTable, ensureFeedbackTable } = require('../config/database');
 const { auth, isStaff, adminOnly, superAdminOnly, requirePermission, ROLE_NAMES } = require('../middleware/auth');
 const { pushPost, pushToBaidu } = require('../services/baidu-push');
 const { notifyPostApproved, notifyPostRejected, notifySongApproved, notifySongRejected, notifySongPlayed } = require('../services/email');
@@ -13,6 +13,16 @@ const { getPagination } = require('../services/pagination');
 const { adjustUserPoints, awardTitle } = require('../services/gamification');
 const { getReleaseNotes } = require('../services/release-notes');
 const { getChinaDate, getChinaJsDayOfWeek } = require('../services/date');
+const { withTimeout, getErrorDetail } = require('../services/async-utils');
+const JWT_SECRET = require('../config/jwt-secret');
+const {
+  normalizeDateOnly,
+  slotDateValue,
+  parseSongSlotDateId,
+  isSlotDateAllowedByCurrentSchedule,
+  approveSongWithSchedule,
+  rescheduleApprovedSong
+} = require('../services/song-scheduling');
 const siteRouter = require('./site');
 const router = express.Router();
 const { getIpRegion } = require('../services/ip-lookup');
@@ -20,9 +30,9 @@ const DEPLOY_STATUS_FILE = path.resolve(
   process.env.DEPLOY_STATUS_FILE || path.join(__dirname, '..', 'logs', 'deploy-status.json')
 );
 const APP_VERSION = require('../package.json').version;
+const TEST_EMAIL_TIMEOUT_MS = 20000;
 
 const SITE_URL = 'http://localhost:3000';
-const JWT_SECRET = process.env.JWT_SECRET || require('crypto').randomBytes(32).toString('hex');
 const DEFAULT_SONG_REJECT_REASONS = [
   '当前播放时段名额已满，请选择其他时段再点歌。',
   '本周暂未开放点歌，请下周再来。',
@@ -44,205 +54,6 @@ function normalizeSongRejectReasons(value) {
   if (!Array.isArray(reasons)) return DEFAULT_SONG_REJECT_REASONS.slice();
   reasons = reasons.map(reason => String(reason || '').trim().slice(0, 500)).filter(Boolean).slice(0, 20);
   return reasons.length > 0 ? reasons : DEFAULT_SONG_REJECT_REASONS.slice();
-}
-
-function getErrorDetail(err) {
-  return err && (err.code || err.message) || 'unknown error';
-}
-
-function normalizeDateOnly(value) {
-  if (!value) return null;
-  const date = String(value).trim();
-  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
-}
-
-function slotDateValue(value) {
-  return value ? String(value).split('T')[0] : '';
-}
-
-function parseSongSlotDateId(value) {
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-// slot_dates 是已生成的日期记录，周期规则后来被修改时仍可能残留旧记录。
-// 审核改期和用户提交都必须再次按当前规则校验，不能把旧记录当作可用时段。
-function isSlotDateAllowedByCurrentSchedule(slotDate) {
-  const allowedDays = String(slotDate.weekdays || '')
-    .split(',').map(Number).filter(day => Number.isInteger(day) && day >= 0 && day <= 6);
-  return allowedDays.length === 0 || Number(slotDate.manual_override) === 1 ||
-    allowedDays.includes(getChinaJsDayOfWeek(slotDateValue(slotDate.play_date)));
-}
-
-function songReviewValidationError(message) {
-  const error = new Error(message);
-  error.isSongReviewValidationError = true;
-  return error;
-}
-
-function assertCustomPlayDate(value) {
-  const playDate = normalizeDateOnly(value);
-  if (!playDate) throw songReviewValidationError('播放日期格式不正确，请选择日期');
-  const today = getChinaDate();
-  if (playDate < today) throw songReviewValidationError('播放日期不能早于今天');
-  if (playDate > getChinaDate(365)) throw songReviewValidationError('播放日期最多只能安排未来一年');
-  return playDate;
-}
-
-async function createCustomSlotDate(connection, requestedSlotId, requestedPlayDate) {
-  const slotId = parseSongSlotDateId(requestedSlotId);
-  if (!slotId) throw songReviewValidationError('请选择有效的播放时段');
-  const playDate = assertCustomPlayDate(requestedPlayDate);
-  const [slots] = await connection.execute(
-    'SELECT id, name, start_time, end_time, weekdays, effective_start_date FROM time_slots WHERE id = ? AND is_active = 1 FOR UPDATE',
-    [slotId]
-  );
-  if (slots.length === 0) throw songReviewValidationError('所选播放时段不存在或已关闭');
-  const slot = slots[0];
-  if (slot.effective_start_date && playDate < slotDateValue(slot.effective_start_date)) {
-    throw songReviewValidationError('播放日期早于该时段的生效日期');
-  }
-  const [existing] = await connection.execute(
-    'SELECT sd.id, sd.slot_id, sd.play_date, sd.max_songs, sd.is_active, sd.manual_override, ts.name AS slot_name, ts.start_time, ts.end_time, ts.weekdays ' +
-    'FROM slot_dates sd JOIN time_slots ts ON ts.id = sd.slot_id WHERE sd.slot_id = ? AND sd.play_date = ? FOR UPDATE',
-    [slotId, playDate]
-  );
-  if (existing.length > 0) {
-    if (Number(existing[0].is_active) !== 1) throw songReviewValidationError('所选日期已被管理员关闭');
-    // 明确指定的日期属于单日安排，即使不在周期星期内也允许播放。
-    if (Number(existing[0].manual_override) !== 1 && !isSlotDateAllowedByCurrentSchedule(existing[0])) {
-      await connection.execute('UPDATE slot_dates SET manual_override = 1 WHERE id = ?', [existing[0].id]);
-      existing[0].manual_override = 1;
-    }
-    return existing[0];
-  }
-  // 旧版本数据库可能没有 time_slots.max_songs；容量实际保存在 slot_dates，
-  // 取该时段最近一条日期配置作为新日期的容量，找不到时使用默认 10 首。
-  let maxSongs = 10;
-  const [capacityRows] = await connection.execute(
-    'SELECT max_songs FROM slot_dates WHERE slot_id = ? ORDER BY play_date DESC, id DESC LIMIT 1 FOR UPDATE',
-    [slotId]
-  );
-  if (capacityRows.length > 0 && Number(capacityRows[0].max_songs) > 0) {
-    maxSongs = Number(capacityRows[0].max_songs);
-  }
-  await connection.execute(
-    'INSERT INTO slot_dates (slot_id, play_date, max_songs, is_active, manual_override) VALUES (?, ?, ?, 1, 1)',
-    [slotId, playDate, maxSongs]
-  );
-  const [created] = await connection.execute(
-    'SELECT sd.id, sd.slot_id, sd.play_date, sd.max_songs, sd.is_active, sd.manual_override, ts.name AS slot_name, ts.start_time, ts.end_time, ts.weekdays ' +
-    'FROM slot_dates sd JOIN time_slots ts ON ts.id = sd.slot_id WHERE sd.slot_id = ? AND sd.play_date = ? FOR UPDATE',
-    [slotId, playDate]
-  );
-  if (created.length === 0) throw songReviewValidationError('创建播放日期失败，请重试');
-  return created[0];
-}
-
-async function approveSongWithSchedule(connection, songId, requestedSlotDateId, playOrder, requestedPlayDate, requestedSlotId, allowOverbook = false) {
-  const [songs] = await connection.execute(
-    'SELECT id, status, slot_id, slot_date_id FROM song_requests WHERE id = ? AND deleted_at IS NULL FOR UPDATE',
-    [songId]
-  );
-  if (songs.length === 0) throw songReviewValidationError('点歌记录不存在或已在回收站');
-  if (songs[0].status !== 'pending') throw songReviewValidationError('该点歌已不在待审核状态，请刷新后重试');
-
-  let slotDate;
-  if (requestedPlayDate) {
-    slotDate = await createCustomSlotDate(connection, requestedSlotId || songs[0].slot_id, requestedPlayDate);
-  }
-  const slotDateId = requestedPlayDate ? slotDate.id : (requestedSlotDateId || parseSongSlotDateId(songs[0].slot_date_id));
-  if (!slotDateId) throw songReviewValidationError('请选择有效的播放时段');
-
-  if (!slotDate) {
-    const today = getChinaDate();
-    const rangeEnd = getChinaDate(14);
-    const [slotDates] = await connection.execute(
-      'SELECT sd.id, sd.slot_id, sd.play_date, sd.max_songs, sd.manual_override, ts.name AS slot_name, ts.start_time, ts.end_time, ts.weekdays ' +
-      'FROM slot_dates sd JOIN time_slots ts ON ts.id = sd.slot_id ' +
-      'WHERE sd.id = ? AND sd.is_active = 1 AND ts.is_active = 1 ' +
-      'AND (ts.effective_start_date IS NULL OR sd.play_date >= ts.effective_start_date) ' +
-      'AND sd.play_date >= ? AND sd.play_date < ? FOR UPDATE',
-      [slotDateId, today, rangeEnd]
-    );
-    if (slotDates.length === 0) throw songReviewValidationError('所选播放时段不可用、已关闭或已过期，请重新选择');
-    slotDate = slotDates[0];
-  }
-  if (!requestedPlayDate && !isSlotDateAllowedByCurrentSchedule(slotDate)) {
-    throw songReviewValidationError('所选日期不在当前开放周期内，请重新选择');
-  }
-
-  // 当前点歌本身若仍占用这个日期，统计时排除它，避免“改回原时段”被误判为满。
-  const [countRows] = await connection.execute(
-    'SELECT COUNT(*) AS cnt FROM song_requests WHERE slot_date_id = ? AND id <> ? ' +
-    'AND deleted_at IS NULL AND status IN ("pending", "approved")',
-    [slotDateId, songId]
-  );
-  if (!allowOverbook && Number(countRows[0].cnt) >= Number(slotDate.max_songs)) {
-    throw songReviewValidationError('所选播放时段已满，请选择其他时段');
-  }
-
-  const updates = ['status = ?', 'reject_reason = NULL', 'slot_id = ?', 'slot_date_id = ?'];
-  const values = ['approved', slotDate.slot_id, slotDate.id];
-  if (playOrder !== undefined) {
-    updates.push('play_order = ?');
-    values.push(playOrder);
-  }
-  values.push(songId);
-  await connection.execute(
-    `UPDATE song_requests SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`,
-    values
-  );
-  return slotDate;
-}
-
-// 已通过点歌的调期必须单独走事务：锁定点歌和目标日期，重新校验日期周期、
-// 时段启用状态及容量，避免只依赖后台页面传值或并发审核造成超额播放。
-async function rescheduleApprovedSong(connection, songId, requestedSlotDateId, requestedPlayDate, requestedSlotId, allowOverbook = false) {
-  const [songs] = await connection.execute(
-    'SELECT id, status, slot_id, slot_date_id FROM song_requests WHERE id = ? AND deleted_at IS NULL FOR UPDATE',
-    [songId]
-  );
-  if (songs.length === 0) throw songReviewValidationError('点歌记录不存在或已在回收站');
-  if (songs[0].status !== 'approved') throw songReviewValidationError('只有已通过、尚未播放的点歌可以调整播放时间');
-  let slotDate;
-  if (requestedPlayDate) {
-    slotDate = await createCustomSlotDate(connection, requestedSlotId || songs[0].slot_id, requestedPlayDate);
-  }
-  if (!requestedSlotDateId && !slotDate) throw songReviewValidationError('请选择有效的播放时段');
-
-  if (!slotDate) {
-    const today = getChinaDate();
-    const [slotDates] = await connection.execute(
-    'SELECT sd.id, sd.slot_id, sd.play_date, sd.max_songs, sd.manual_override, ts.name AS slot_name, ts.start_time, ts.end_time, ts.weekdays ' +
-    'FROM slot_dates sd JOIN time_slots ts ON ts.id = sd.slot_id ' +
-    'WHERE sd.id = ? AND sd.is_active = 1 AND ts.is_active = 1 ' +
-    'AND (ts.effective_start_date IS NULL OR sd.play_date >= ts.effective_start_date) ' +
-    'AND sd.play_date >= ? FOR UPDATE',
-      [requestedSlotDateId, today]
-    );
-    if (slotDates.length === 0) throw songReviewValidationError('所选播放时段不可用、已关闭或已过期，请重新选择');
-    slotDate = slotDates[0];
-  }
-  if (!requestedPlayDate && !isSlotDateAllowedByCurrentSchedule(slotDate)) {
-    throw songReviewValidationError('所选日期不在当前开放周期内，请重新选择');
-  }
-
-  const [countRows] = await connection.execute(
-    'SELECT COUNT(*) AS cnt FROM song_requests WHERE slot_date_id = ? AND id <> ? ' +
-    'AND deleted_at IS NULL AND status IN ("pending", "approved")',
-    [slotDate.id, songId]
-  );
-  if (!allowOverbook && Number(countRows[0].cnt) >= Number(slotDate.max_songs)) {
-    throw songReviewValidationError('所选播放时段已满，请选择其他时段');
-  }
-
-  const [result] = await connection.execute(
-    'UPDATE song_requests SET slot_id = ?, slot_date_id = ? WHERE id = ? AND status = "approved" AND deleted_at IS NULL',
-    [slotDate.slot_id, slotDate.id, songId]
-  );
-  if (result.affectedRows === 0) throw songReviewValidationError('点歌状态已变化，请刷新后重试');
-  return slotDate;
 }
 
 // 所有管理路由都需要登录 + 是管理后台用户
@@ -1737,7 +1548,9 @@ router.get('/slots', requirePermission('slots:manage'), async (req, res) => {
     // 不能使用数据库 CURDATE()：数据库时区与站点业务时区不一致时，
     // 会导致后台日历和用户端点歌日期相差一天。
     const today = getChinaDate();
-    const rangeEnd = getChinaDate(14);
+    // 编辑日历展示未来 28 天；接口也要覆盖同一窗口，否则保存较后日期后
+    // 重新打开时拿不到手动例外，页面会误显示为按星期周期播放。
+    const rangeEnd = getChinaDate(28);
     const [allDates] = await pool.execute(
       'SELECT * FROM slot_dates WHERE play_date >= ? AND play_date < ? ORDER BY play_date',
       [today, rangeEnd]
@@ -1863,6 +1676,86 @@ router.post('/slots/:slotId/dates/batch', requirePermission('slots:manage'), asy
 });
 
 // 编辑时段日历专用：点周期日即停播，点非周期日即加播；均保留为单日例外。
+router.put('/slots/:slotId/calendar-dates', requirePermission('slots:manage'), async (req, res) => {
+  const rawDates = req.body && req.body.dates;
+  if (!Array.isArray(rawDates) || rawDates.length === 0) {
+    return res.json({ code: 200, message: '没有需要保存的日期调整', data: { dates: [] } });
+  }
+
+  const changes = new Map();
+  for (const item of rawDates.slice(0, 60)) {
+    const playDate = normalizeDateOnly(item && (item.play_date || item.date));
+    if (!playDate) return res.json({ code: 400, message: '日期格式不正确' });
+    const isActive = item && (item.is_active === 1 || item.is_active === true || item.is_active === '1') ? 1 : 0;
+    changes.set(playDate, isActive);
+  }
+
+  const today = getChinaDate();
+  const latestDate = getChinaDate(365);
+  for (const playDate of changes.keys()) {
+    if (playDate < today || playDate > latestDate) {
+      return res.json({ code: 400, message: '日期必须在今天起一年内' });
+    }
+  }
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+    const [slotRows] = await connection.execute(
+      'SELECT id FROM time_slots WHERE id = ? FOR UPDATE',
+      [req.params.slotId]
+    );
+    if (slotRows.length === 0) {
+      await connection.rollback();
+      return res.json({ code: 404, message: '时段不存在' });
+    }
+    // 旧数据库可能还没有 time_slots.max_songs；缺列时保持默认容量，不能让
+    // 日历例外保存整体失败。已有日期仍优先沿用自己的 max_songs。
+    let slotDefaultMaxSongs = 10;
+    try {
+      const [capacityRows] = await connection.execute(
+        'SELECT max_songs FROM time_slots WHERE id = ?',
+        [req.params.slotId]
+      );
+      if (capacityRows.length > 0 && Number(capacityRows[0].max_songs) > 0) {
+        slotDefaultMaxSongs = Number(capacityRows[0].max_songs);
+      }
+    } catch (_) {}
+
+    for (const [playDate, isActive] of changes.entries()) {
+      const [existing] = await connection.execute(
+        'SELECT max_songs FROM slot_dates WHERE slot_id = ? AND play_date = ? FOR UPDATE',
+        [req.params.slotId, playDate]
+      );
+      const maxSongs = existing.length > 0 && Number(existing[0].max_songs) > 0
+        ? Number(existing[0].max_songs)
+        : slotDefaultMaxSongs;
+      await connection.execute(
+        'INSERT INTO slot_dates (slot_id, play_date, max_songs, is_active, manual_override) VALUES (?, ?, ?, ?, 1) ' +
+        'ON DUPLICATE KEY UPDATE is_active = VALUES(is_active), manual_override = 1',
+        [req.params.slotId, playDate, maxSongs, isActive]
+      );
+    }
+
+    await connection.commit();
+    const placeholders = Array.from(changes.keys()).map(() => '?').join(',');
+    const [rows] = await connection.execute(
+      `SELECT * FROM slot_dates WHERE slot_id = ? AND play_date IN (${placeholders}) ORDER BY play_date`,
+      [req.params.slotId, ...changes.keys()]
+    );
+    res.json({ code: 200, message: '日期调整已保存', data: { dates: rows } });
+  } catch (err) {
+    if (connection) {
+      try { await connection.rollback(); } catch (_) {}
+    }
+    console.error('[Slots] 批量保存日历失败:', getErrorDetail(err));
+    res.json({ code: 500, message: '日期调整保存失败，请重试' });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 router.post('/slots/:slotId/calendar-date', requirePermission('slots:manage'), async (req, res) => {
   try {
     const playDate = normalizeDateOnly(req.body && req.body.play_date);
@@ -2201,7 +2094,8 @@ router.get('/settings', requirePermission('settings:view'), async (req, res) => 
         smtp_host: settings.smtp_host || '',
         smtp_port: settings.smtp_port || '587',
         smtp_user: settings.smtp_user || '',
-        smtp_pass: settings.smtp_pass || '',
+        // 密码只用于服务端发信，绝不回传到浏览器；前端留空表示保持现有密码。
+        smtp_pass_configured: Boolean(String(settings.smtp_pass || '').trim()),
         smtp_from: settings.smtp_from || '',
         festival_theme: Object.prototype.hasOwnProperty.call(settings, 'festival_theme')
           ? (settings.festival_theme === '520' ? '520' : 'teachers_day')
@@ -2222,7 +2116,7 @@ router.get('/settings', requirePermission('settings:view'), async (req, res) => 
 // 保存系统设置
 router.put('/settings', requirePermission('settings:view'), async (req, res) => {
   try {
-    const { site_name, site_description, allow_register, post_review, song_enabled, daily_song_limit, anon_post, anon_comment, anon_song, email_enabled, register_email_verify_enabled, song_pending_admin_notify, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, festival_theme, festival_enabled, song_reject_reasons } = req.body;
+    const { site_name, site_description, allow_register, post_review, song_enabled, daily_song_limit, anon_post, anon_comment, anon_song, email_enabled, register_email_verify_enabled, song_pending_admin_notify, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_pass_clear, smtp_from, festival_theme, festival_enabled, song_reject_reasons } = req.body;
 
     const keys = [
       ['site_name', site_name || ''],
@@ -2240,11 +2134,15 @@ router.put('/settings', requirePermission('settings:view'), async (req, res) => 
       ['smtp_host', smtp_host || ''],
       ['smtp_port', smtp_port || '587'],
       ['smtp_user', smtp_user || ''],
-      ['smtp_pass', smtp_pass || ''],
       ['smtp_from', smtp_from || ''],
       ['festival_theme', festival_theme === '520' ? '520' : 'teachers_day'],
       ['festival_enabled', festival_enabled !== undefined ? String(Boolean(festival_enabled)) : 'false']
     ];
+    // 不接收空密码覆盖已有配置；只有显式提供新密码或 smtp_pass_clear=true 才更新。
+    const nextSmtpPass = typeof smtp_pass === 'string' ? smtp_pass.trim() : '';
+    if (nextSmtpPass || smtp_pass_clear === true) {
+      keys.push(['smtp_pass', smtp_pass_clear === true ? '' : nextSmtpPass]);
+    }
     if (song_reject_reasons !== undefined) {
       keys.push(['song_reject_reasons', JSON.stringify(normalizeSongRejectReasons(song_reject_reasons))]);
     }
@@ -2292,14 +2190,23 @@ router.post('/test-email', requirePermission('settings:view'), async (req, res) 
       return res.json({ code: 400, message: '请提供测试邮箱地址' });
     }
     const { sendEmail } = require('../services/email');
-    const success = await sendEmail(email, '🧪 测试邮件 · 示例校园墙', `
+    let success;
+    try {
+      success = await withTimeout(sendEmail(email, '🧪 测试邮件 · 示例校园墙', `
       <div style="text-align:center;padding:20px;font-family:sans-serif;">
         <div style="font-size:48px;margin-bottom:16px;">✉️</div>
         <h2 style="color:#FF6B9D;">邮件配置正确！</h2>
         <p style="color:#4A3F5C;font-size:15px;line-height:1.7;">🎉 恭喜，你的SMTP配置已经生效啦~<br>以后用户就能收到评论、点赞、关注等邮件通知了 ✨</p>
         <div style="margin-top:20px;padding:16px;background:#F8F5FF;border-radius:12px;font-size:13px;color:#B8A9D4;">💌 示例校园墙 — 让每一份心意都被看见</div>
       </div>
-    `);
+      `), TEST_EMAIL_TIMEOUT_MS, '测试邮件发送超时');
+    } catch (err) {
+      if (err && err.message === '测试邮件发送超时') {
+        console.warn('[Email] 测试邮件发送超时');
+        return res.status(504).json({ code: 504, message: 'SMTP连接或发送超时，请检查主机、端口和服务商限制' });
+      }
+      throw err;
+    }
     if (success) {
       res.json({ code: 200, message: '测试邮件发送成功' });
     } else {
@@ -2316,23 +2223,7 @@ router.post('/test-email', requirePermission('settings:view'), async (req, res) 
 // 创建反馈表（如果不存在）
 router.get('/init-feedback-table', requirePermission('feedbacks:manage'), async (req, res) => {
   try {
-    await pool.execute(`
-      CREATE TABLE IF NOT EXISTS feedbacks (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT,
-        type VARCHAR(50) NOT NULL COMMENT '反馈类型：suggest/bug/complaint/other',
-        title VARCHAR(200) NOT NULL COMMENT '反馈标题',
-        content TEXT NOT NULL COMMENT '反馈内容',
-        contact VARCHAR(200) COMMENT '联系方式',
-        status VARCHAR(20) DEFAULT 'pending' COMMENT '状态：pending/processing/resolved/closed',
-        reply TEXT COMMENT '管理员回复',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_user_id (user_id),
-        INDEX idx_status (status),
-        INDEX idx_created_at (created_at)
-      )
-    `);
+    await ensureFeedbackTable(pool);
     res.json({ code: 200, message: '反馈表创建成功' });
   } catch (err) {
     res.json({ code: 500, message: '服务器错误' });
@@ -2896,12 +2787,11 @@ router.post('/email/send-batch', requirePermission('notices:manage'), async (req
     const fullHtml = kawaiiLayout(subject, emailHtml, link || siteUrl);
     
     // 记录发送历史
-    await pool.execute(
+    const [historyInsertResult] = await pool.execute(
       'INSERT INTO email_batch_history (admin_id, subject, content, recipient_type, total_count, status) VALUES (?, ?, ?, ?, ?, ?)',
       [req.user.id, subject, content, recipientType, users.length, 'sending']
     );
-    const [historyResult] = await pool.execute('SELECT LAST_INSERT_ID() as id');
-    const historyId = historyResult[0].id;
+    const historyId = historyInsertResult.insertId;
     
     // 异步发送邮件
     let successCount = 0;
@@ -3260,7 +3150,7 @@ function novelsGetList() {
       var oldIndex = JSON.parse(fs_stories.readFileSync(oldIndexPath, 'utf8'));
       if (Array.isArray(oldIndex) && oldIndex.length > 0) {
         // 已有章节，创建默认小说
-        list.push({ id: 'default', title: '致那个夏天的你', author: '示例校园校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+        list.push({ id: 'default', title: '致那个夏天的你', author: '示例校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
         // 把文件从 config/stories/ 移到 config/stories/default/
         var novelDir = path_stories.join(STORIES_BASE, 'default');
         if (!fs_stories.existsSync(novelDir)) fs_stories.mkdirSync(novelDir, { recursive: true });
@@ -3293,7 +3183,7 @@ function novelsGetList() {
   }
   if (list.length === 0) {
     // 全新安装，创建默认小说
-    list.push({ id: 'default', title: '致那个夏天的你', author: '示例校园校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
+    list.push({ id: 'default', title: '致那个夏天的你', author: '示例校园墙编辑部', desc: '校园青春小说', createdAt: new Date().toISOString().substring(0, 10) });
   }
   fs_stories.writeFileSync(NOVELS_PATH, JSON.stringify(list, null, 2), 'utf8');
   return list;
@@ -3386,8 +3276,8 @@ function storiesGetIndex(novelId) {
         var idx = [];
         oldStories.forEach(function(s, i) {
           var chapFile = i + '.json';
-          fs_stories.writeFileSync(path_stories.join(dir, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || '示例校园校园墙编辑部' }, null, 2), 'utf8');
-          idx.push({ file: chapFile, title: s.title, author: s.author || '示例校园校园墙编辑部', published: false });
+          fs_stories.writeFileSync(path_stories.join(dir, chapFile), JSON.stringify({ title: s.title, content: s.content, author: s.author || '示例校园墙编辑部' }, null, 2), 'utf8');
+          idx.push({ file: chapFile, title: s.title, author: s.author || '示例校园墙编辑部', published: false });
         });
         fs_stories.writeFileSync(p, JSON.stringify(idx, null, 2), 'utf8');
         fs_stories.renameSync(oldPath, oldPath + '.bak');
@@ -3421,7 +3311,7 @@ function storiesSaveChapter(idx, data, novelId) {
   if (idx >= 0 && idx < index.length) {
     fs_stories.writeFileSync(path_stories.join(dir, index[idx].file), JSON.stringify({ title: data.title, content: data.content, author: data.author }, null, 2), 'utf8');
     index[idx].title = data.title;
-    index[idx].author = data.author || '示例校园校园墙编辑部';
+    index[idx].author = data.author || '示例校园墙编辑部';
     if (index[idx].published === undefined) index[idx].published = false;
     storiesSaveIndex(index, novelId);
   }
@@ -3432,8 +3322,8 @@ function storiesAddChapter(title, content, author, novelId) {
   var dir = getNovelDir(novelId);
   if (!fs_stories.existsSync(dir)) fs_stories.mkdirSync(dir, { recursive: true });
   var nextFile = index.length + '.json';
-  fs_stories.writeFileSync(path_stories.join(dir, nextFile), JSON.stringify({ title: title, content: content || '', author: author || '示例校园校园墙编辑部' }, null, 2), 'utf8');
-  index.push({ file: nextFile, title: title, author: author || '示例校园校园墙编辑部', published: false });
+  fs_stories.writeFileSync(path_stories.join(dir, nextFile), JSON.stringify({ title: title, content: content || '', author: author || '示例校园墙编辑部' }, null, 2), 'utf8');
+  index.push({ file: nextFile, title: title, author: author || '示例校园墙编辑部', published: false });
   storiesSaveIndex(index, novelId);
   return index.length - 1;
 }
@@ -3469,7 +3359,7 @@ router.post('/novels/create', requirePermission('stories:review'), async (req, r
     if (!title) return res.json({ code: 400, message: '小说标题不能为空' });
     var list = novelsGetList();
     var id = 'novel_' + Date.now();
-    list.push({ id: id, title: title, author: author || '示例校园校园墙编辑部', desc: desc || '', createdAt: new Date().toISOString().substring(0, 10) });
+    list.push({ id: id, title: title, author: author || '示例校园墙编辑部', desc: desc || '', createdAt: new Date().toISOString().substring(0, 10) });
     novelsSaveList(list);
     // 初始化该小说的目录和配置
     var dir = getNovelDir(id);
@@ -3773,6 +3663,12 @@ router.post('/stories/generate-chapter', requirePermission('stories:review'), as
 
 // ===== AI 流式生成章节（SSE） =====
 router.get('/stories/generate-chapter-stream', requirePermission('stories:review'), async (req, res) => {
+  var pingTimer = null;
+  var clientDisconnected = false;
+  res.on('close', function() {
+    clientDisconnected = true;
+    if (pingTimer) clearInterval(pingTimer);
+  });
   try {
     var novelId = req.query.novelId || loadPubConfig().activeNovelId || getNovelId(req) || 'default';
     var index = storiesGetIndex(novelId);
@@ -3820,14 +3716,20 @@ router.get('/stories/generate-chapter-stream', requirePermission('stories:review
     var fullText = '';
 
     var aiService = require('../services/ai');
-    var pingTimer = setInterval(function() { res.write(': ping\n\n'); }, 25000);
+    pingTimer = setInterval(function() {
+      if (!clientDisconnected && !res.writableEnded && !res.destroyed) res.write(': ping\n\n');
+    }, 25000);
     await aiService.generateChapterStream(aiPrompt, function(token) {
+      if (clientDisconnected || res.writableEnded || res.destroyed) return;
       fullText += token;
       // 发送 token（避免换行破坏 SSE）
       var safe = token.replace(/\n/g, '\\n').replace(/\r/g, '');
       res.write('data: ' + safe + '\n\n');
     });
     clearInterval(pingTimer);
+    pingTimer = null;
+
+    if (clientDisconnected || res.writableEnded || res.destroyed) return;
 
     // 生成完毕
     var lines = fullText.split('\n');
@@ -3847,11 +3749,14 @@ router.get('/stories/generate-chapter-stream', requirePermission('stories:review
     res.end();
   } catch (err) {
     console.error('[SSE] 生成错误:', err.message);
+    if (clientDisconnected || res.writableEnded || res.destroyed) return;
     if (!res.headersSent) {
       res.writeHead(500);
     }
     res.write('event: error\ndata: AI生成失败，请稍后重试\n\n');
     res.end();
+  } finally {
+    if (pingTimer) clearInterval(pingTimer);
   }
 });
 
@@ -4014,14 +3919,14 @@ router.post('/stories/publish-to-wechat', requirePermission('stories:review'), a
     storyHtml += '<p style="color:#FF69B4;font-size:13px;font-weight:bold;word-break:break-all;letter-spacing:0.5px;">http://localhost:3000</p>';
     storyHtml += '<div style="width:40px;height:2px;background:#FFB6C1;margin:12px auto 0;border-radius:2px;"></div>';
     storyHtml += '</td></tr></table>';
-    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 示例校园校园墙 ❀ ❀</p>';
+    storyHtml += '<p style="text-align:center;color:#ddd;font-size:12px;margin-top:18px;">❀ ' + dateInfo.year + ' 示例校园墙 ❀ ❀</p>';
     storyHtml += '</div>';
     
     storyHtml = await uploadStoryImages(storyHtml);
     
     var article = {
       title: '小说连载 · 第' + chapNum + '章 ' + chapter.title + ' | ' + dateInfo.date,
-      author: 'ExampleAdmin',
+      author: 'JAY',
       digest: '小说连载 · ' + novelTitle + ' · ' + chapter.title + '。' + (chapter.content || '').replace(/[\n\r]+/g, '').substring(0, 60) + '...',
       content: storyHtml,
       content_source_url: 'http://localhost:3000',
