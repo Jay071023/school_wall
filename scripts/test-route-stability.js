@@ -208,6 +208,9 @@ assert(adminPage.includes("const menuLinks = document.querySelectorAll('.sidebar
 assert(admin.includes("router.get('/daily-songs', superAdminOnly") && admin.includes("router.post('/daily-songs', superAdminOnly"), '每日推歌查询和添加接口必须仅允许最高管理员');
 assert(admin.includes("router.delete('/daily-songs', superAdminOnly") && admin.includes("router.put('/daily-songs/:id/intro', superAdminOnly"), '每日推歌删除和编辑接口必须仅允许最高管理员');
 assert(!adminPage.includes("console.error('[后台JS错误]'"), '后台全局错误捕获不得向控制台输出错误对象');
+assert(adminPage.includes('公众号图文与草稿箱') && adminPage.includes('href="/admin/mp-draft"'), '日志页公众号入口必须跳转到真实推送工作台');
+assert(!admin.includes("'/trigger-auto-publish'") && !admin.includes("execSync('/usr/bin/node"), '后台不得保留调用不存在脚本的伪自动发布接口');
+assert(!adminPage.includes('每天定时生成公众号图文') && !adminPage.includes('function savePubConfig()'), '后台不得继续展示没有调度器的自动发布开关');
 
 const mpDraftPage = readPage('admin/mp-draft.html');
 assert(!mpDraftPage.includes('body前200字') && !mpDraftPage.includes("console.error('[apiFetch]"), '公众号请求不得向控制台输出 URL 或响应正文');

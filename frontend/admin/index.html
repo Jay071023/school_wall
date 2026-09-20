@@ -665,7 +665,7 @@
                 <!-- 标签栏 -->
                 <div class="log-tabs">
                     <div class="log-tab active" data-logtab="logs" onclick="switchLogTab('logs')">📋 操作日志</div>
-                    <div class="log-tab" data-logtab="autopub" onclick="switchLogTab('autopub')">🤖 自动发布</div>
+                    <div class="log-tab" data-logtab="autopub" onclick="switchLogTab('autopub')">📰 公众号推送</div>
                     <div class="log-tab" data-logtab="email" onclick="switchLogTab('email')">📧 邮件记录</div>
                 </div>
 
@@ -718,63 +718,16 @@
                     <div class="admin-pagination" id="logs-pagination"></div>
                 </div>
 
-                <!-- Tab 2: 自动发布 -->
+                <!-- Tab 2: 公众号推送入口 -->
                 <div class="log-tab-content" id="logtab-autopub">
                     <div class="pub-section">
-                        <div class="pub-title">🤖 每日自动发布</div>
+                        <div class="pub-title">📰 公众号图文与草稿箱</div>
                         <div class="pub-row">
                             <div>
-                                <div class="pub-label">自动发布状态</div>
-                                <div class="pub-desc">开启后每天定时生成公众号图文并同步到草稿箱</div>
+                                <div class="pub-label">使用完整推送工作台</div>
+                                <div class="pub-desc">个人订阅号不能通过接口自动发表文章；请在推送页选择帖子、版式和歌曲，预览确认后同步到公众号草稿箱。</div>
                             </div>
-                            <div class="switch-wrapper">
-                                <div class="switch" id="pub-switch"></div>
-                            </div>
-                        </div>
-                        <div class="pub-row">
-                            <div>
-                                <div class="pub-label">发布时间</div>
-                                <div class="pub-desc">每天这个时间自动执行</div>
-                            </div>
-                            <div>
-                                <input type="number" class="pub-time-input" id="pub-hour" min="0" max="23"> 时
-                                <input type="number" class="pub-time-input" id="pub-minute" min="0" max="59"> 分
-                            </div>
-                        </div>
-                        <div class="pub-row">
-                            <div>
-                                <div class="pub-label">📚 高考倒计时</div>
-                                <div class="pub-desc">是否包含高考倒计时数据</div>
-                            </div>
-                            <div class="switch-wrapper">
-                                <div class="switch" id="pub-gaokao-switch"></div>
-                            </div>
-                        </div>
-                        <div class="pub-row">
-                            <div>
-                                <div class="pub-label">🎵 点歌推荐</div>
-                                <div class="pub-desc">是否包含最近点歌内容</div>
-                            </div>
-                            <div class="switch-wrapper">
-                                <div class="switch" id="pub-songs-switch"></div>
-                            </div>
-                        </div>
-                        <div class="pub-row">
-                            <div>
-                                <div class="pub-label">上次执行</div>
-                                <div class="pub-desc" id="pub-last-run">未执行</div>
-                            </div>
-                            <div>
-                                <button class="btn btn-primary btn-sm" onclick="savePubConfig()">💾 保存设置</button>
-                                <button class="btn btn-success btn-sm" onclick="triggerPublish()" style="margin-left:8px;">▶ 立即发布</button>
-                            </div>
-                        </div>
-                        <div style="margin-top:16px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                                <div style="font-size:13px;color:var(--text-light);">📋 发布日志</div>
-                                <button class="btn btn-sm btn-danger" onclick="clearAllPubLogs()" title="清空所有日志">🗑 清空全部</button>
-                            </div>
-                            <div class="pub-log" id="pub-log">加载中...</div>
+                            <a class="btn btn-primary btn-sm" href="/admin/mp-draft">打开公众号推送 →</a>
                         </div>
                     </div>
                 </div>
@@ -5880,7 +5833,6 @@
             document.querySelector('#panel-logs .log-tab[data-logtab="' + tab + '"]').classList.add('active');
             document.getElementById('logtab-' + tab).classList.add('active');
             // 按需加载数据
-            if (tab === 'autopub') loadPubConfig();
             if (tab === 'email') loadEmailLogs();
         };
 
@@ -7685,136 +7637,6 @@
     }
 
     })();
-
-    // ===== 自动发布设置 =====
-    function _token() { return localStorage.getItem('token') || sessionStorage.getItem('token') || ''; }
-
-    async function loadPubConfig() {
-        try {
-            var res = await fetch('/api/admin/auto-publish-config', {
-                headers: { 'Authorization': 'Bearer ' + _token() }
-            }).then(r => r.json());
-            if (res.code === 200 && res.data) {
-                var d = res.data;
-                document.getElementById('pub-hour').value = d.hour || 8;
-                document.getElementById('pub-minute').value = d.minute || 0;
-                var sw = document.getElementById('pub-switch');
-                if (d.enabled) { sw.classList.add('active'); } else { sw.classList.remove('active'); }
-                var gaokaoSw = document.getElementById('pub-gaokao-switch');
-                if (gaokaoSw) {
-                    if (d.include_gaokao) { gaokaoSw.classList.add('active'); } else { gaokaoSw.classList.remove('active'); }
-                }
-                var songsSw = document.getElementById('pub-songs-switch');
-                if (songsSw) {
-                    if (d.include_songs !== false) { songsSw.classList.add('active'); } else { songsSw.classList.remove('active'); }
-                }
-                document.getElementById('pub-last-run').textContent = d.lastRun || '从未执行';
-            }
-        } catch(e) { document.getElementById('pub-log').textContent = '加载失败'; }
-        loadPubLogs();
-    }
-
-    async function loadPubLogs() {
-        try {
-            var res = await fetch('/api/admin/auto-publish-logs', {
-                headers: { 'Authorization': 'Bearer ' + _token() }
-            }).then(r => r.json());
-            if (res.code === 200) {
-                var logs = res.data.logs;
-                var container = document.getElementById('pub-log');
-                if (logs.length > 0) {
-                    var html = '<div style="max-height:300px;overflow-y:auto;">';
-                    logs.forEach(function(log, index) {
-                        html += '<div style="padding:4px 8px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">' +
-                            '<span style="flex:1;font-size:12px;color:#666;">' + escapeHtml(log) + '</span>' +
-                            '<button style="background:#EF4444;color:#fff;border:none;padding:2px 6px;border-radius:3px;cursor:pointer;font-size:10px;margin-left:8px;" onclick="window.deletePubLog(' + index + ')">🗑</button>' +
-                            '</div>';
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">暂无日志</div>';
-                }
-            }
-        } catch(e) {
-            document.getElementById('pub-log').innerHTML = '<div style="text-align:center;padding:20px;color:#EF4444;">加载失败</div>';
-        }
-    }
-
-    async function savePubConfig() {
-        var hour = parseInt(document.getElementById('pub-hour').value);
-        var minute = parseInt(document.getElementById('pub-minute').value);
-        var enabled = document.getElementById('pub-switch').classList.contains('active');
-        var includeGaokao = document.getElementById('pub-gaokao-switch').classList.contains('active');
-        var includeSongs = document.getElementById('pub-songs-switch').classList.contains('active');
-        var res = await fetch('/api/admin/auto-publish-config', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + _token(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hour: hour, minute: minute, enabled: enabled, include_gaokao: includeGaokao, include_songs: includeSongs })
-        }).then(r => r.json());
-        showToast(res.message || (res.code === 200 ? '保存成功' : '保存失败'), res.code === 200 ? 'success' : 'error');
-    }
-
-    async function triggerPublish() {
-        var btn = document.querySelector('#panel-logs .btn-success');
-        btn.disabled = true; btn.textContent = '⏳ 发布中...';
-        var res = await fetch('/api/admin/trigger-auto-publish', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + _token() }
-        }).then(r => r.json());
-        btn.disabled = false; btn.textContent = '▶ 立即发布';
-        showToast(res.message, res.code === 200 ? 'success' : 'error');
-        if (res.code === 200) {
-            loadPubConfig();
-            loadPubLogs();
-        }
-    }
-
-    // 自动发布开关和高考倒计时开关点击
-    document.addEventListener('click', function(e) {
-        var pubSw = e.target.closest('#pub-switch');
-        if (pubSw) pubSw.classList.toggle('active');
-        var gaokaoSw = e.target.closest('#pub-gaokao-switch');
-        if (gaokaoSw) gaokaoSw.classList.toggle('active');
-    });
-
-    // 删除单条自动发布日志
-    window.deletePubLog = async function(index) {
-        if (!confirm('确定要删除这条发布日志吗？')) return;
-        try {
-            var res = await fetch('/api/admin/auto-publish-logs/' + index, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + _token() }
-            }).then(r => r.json());
-            if (res.code === 200) {
-                showToast('删除成功', 'success');
-                loadPubLogs();
-            } else {
-                showToast(res.message || '删除失败', 'error');
-            }
-        } catch(e) {
-            showToast('删除失败', 'error');
-        }
-    };
-
-    // 清空所有自动发布日志
-    window.clearAllPubLogs = async function() {
-        if (!confirm('确定要清空所有发布日志吗？')) return;
-        try {
-            var res = await fetch('/api/admin/auto-publish-logs/all', {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + _token() }
-            }).then(r => r.json());
-            if (res.code === 200) {
-                showToast('已清空所有日志', 'success');
-                loadPubLogs();
-            } else {
-                showToast(res.message || '清空失败', 'error');
-            }
-        } catch(e) {
-            showToast('清空失败', 'error');
-        }
-    };
 
     // ===== 连载小说管理 =====
     var storiesData = { stories: [], currentIndex: 0, editingIndex: -1 };
