@@ -6,7 +6,7 @@ const { escapeHtml } = require('../services/html-utils');
 const router = express.Router();
 
 // ===== 消息通知 & 邮件发送 =====
-async function sendMessageNotification(senderId, recipientId, content) {
+async function sendMessageNotification(senderId, recipientId, content, conversationId) {
   try {
     // 获取接收方邮箱和通知设置
     const [users] = await pool.execute(
@@ -14,6 +14,19 @@ async function sendMessageNotification(senderId, recipientId, content) {
       [recipientId]
     );
     if (!users.length || !users[0].email) return;
+
+    // 会话免打扰只影响该会话的邮件，不影响消息正常保存和站内查看。
+    const [conversations] = await pool.execute(
+      `SELECT CASE
+         WHEN user1_id = ? THEN user1_dnd
+         WHEN user2_id = ? THEN user2_dnd
+         ELSE 1
+       END AS recipient_dnd
+       FROM conversations
+       WHERE id = ? AND (user1_id = ? OR user2_id = ?)`,
+      [recipientId, recipientId, conversationId, recipientId, recipientId]
+    );
+    if (!conversations.length || conversations[0].recipient_dnd) return;
 
     const [settings] = await pool.execute(
       'SELECT notify_message FROM user_notify_settings WHERE user_id = ?',
@@ -517,7 +530,7 @@ router.post('/conversations/:conversationId/messages', auth, async (req, res) =>
     `, [result.insertId]);
     
     // 发送邮件通知（异步，不阻塞响应）
-    sendMessageNotification(userId, recipientId, content.trim());
+    sendMessageNotification(userId, recipientId, content.trim(), conversationId);
     
     res.json({ 
       code: 200, 

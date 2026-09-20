@@ -63,7 +63,7 @@ function renderRepliesHtml(commentId, replies) {
       return '<span class="mentioned-user">@' + escapeHtml(username) + '</span>';
     });
     var replyAuthorId = reply.author_id || reply.user_id;
-    var isReplyOwner = currentUser && (replyAuthorId === currentUser.id || replyAuthorId === currentUser._id);
+    var isReplyOwner = reply.can_delete === true || (currentUser && (replyAuthorId === currentUser.id || replyAuthorId === currentUser._id));
     var isReplyLiked = reply.is_liked || false;
 
     html += '<div class="comment-reply-item" data-reply-id="' + reply.id + '">' +

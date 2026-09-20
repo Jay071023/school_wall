@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return '<span class="mentioned-user">@' + escapeHtml(username) + '</span>';
       });
       var replyAuthorId = reply.author_id || reply.user_id;
-      var isReplyOwner = currentUser && (replyAuthorId === currentUser.id || replyAuthorId === currentUser._id);
+      var isReplyOwner = reply.can_delete === true || (currentUser && (replyAuthorId === currentUser.id || replyAuthorId === currentUser._id));
       var isReplyLiked = reply.is_liked || false;
 
       html += '<div class="comment-reply-item" data-reply-id="' + reply.id + '">' +
@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
 
       var cAuthorId = comment.actual_user_id || comment.user_id || comment.author_id;
-      var isCommentOwner = currentUser && (cAuthorId === currentUser.id || cAuthorId === currentUser._id);
+      var isCommentOwner = comment.can_delete === true || (currentUser && (cAuthorId === currentUser.id || cAuthorId === currentUser._id));
       var isLiked = comment.is_liked || false;
       var likesCount = comment.likes_count || 0;
       var repliesCount = comment.replies_count || 0;

@@ -47,7 +47,11 @@ const auth = async (req, res, next) => {
     req.user.permissions = ROLE_PERMISSIONS[users[0].role] || [];
     next();
   } catch (err) {
-    return res.status(401).json({ code: 401, message: '登录已过期，请重新登录' });
+    if (err && ['TokenExpiredError', 'JsonWebTokenError', 'NotBeforeError'].includes(err.name)) {
+      return res.status(401).json({ code: 401, message: '登录已过期，请重新登录' });
+    }
+    console.error('[Auth] 用户状态查询失败:', err && (err.code || err.message));
+    return res.status(503).json({ code: 503, message: '服务暂时不可用，请稍后重试' });
   }
 };
 

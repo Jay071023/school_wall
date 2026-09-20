@@ -757,7 +757,7 @@ router.put('/profile', auth, async (req, res) => {
       if (!validBirthday) return res.json({ code: 400, message: '生日格式不正确' });
     }
 
-    // 只更新传了的字段，不清空空字段
+    // 只更新明确传入的字段；null/空字符串表示用户主动清空。
     var updates = ['nickname = ?'];
     var values = [nickname || null];
 
@@ -767,7 +767,10 @@ router.put('/profile', auth, async (req, res) => {
       values.push(email === '' || email === null ? null : email.trim());
     }
 
-    if (birthday !== undefined && birthday !== null && birthday !== '') { updates.push('birthday = ?'); values.push(validBirthday); }
+    if (birthday !== undefined) {
+      updates.push('birthday = ?');
+      values.push(birthday === null || birthday === '' ? null : validBirthday);
+    }
     if (mbti !== undefined) {
       if (mbti !== null && !isSafeText(mbti, 10)) return res.json({ code: 400, message: 'MBTI格式不正确' });
       updates.push('mbti = ?'); values.push(mbti || null);

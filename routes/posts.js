@@ -511,6 +511,12 @@ router.get('/:id', optionalAuth, async (req, res) => {
     }
 
     const post = posts[0];
+    const actualPostUserId = post.actual_user_id;
+    const isPostAuthor = !!(req.user && req.user.id === actualPostUserId);
+    // 公共详情不返回数据库内部身份字段和原始 IP；作者只保留前端判断本人所需的 actual_user_id。
+    delete post.user_id;
+    delete post.ip_address;
+    if (!isPostAuthor) delete post.actual_user_id;
     post.images = post.images ? JSON.parse(post.images) : [];
     post.video_url = normalizePostVideoUrl(post.video_url);
     post.video_poster = normalizePostVideoPosterUrl(post.video_poster);
@@ -529,13 +535,22 @@ router.get('/:id', optionalAuth, async (req, res) => {
       ORDER BY c.created_at ASC
     `, [req.params.id]);
 
-    // 帖子作者可以看到匿名评论的真实作者
-    var isPostAuthor = req.user && req.user.id === post.actual_user_id;
+    // 匿名评论身份只对帖子作者开放；删除权限使用独立布尔值，不向其他人回传用户 ID。
     post.comments = comments.map(function(c) {
       var comment = Object.assign({}, c, { time_ago: getTimeAgo(c.created_at) });
+      var isCommentAuthor = !!(req.user && req.user.id === c.actual_user_id);
+      comment.can_delete = !!(req.user && (isCommentAuthor || isPostAuthor || isStaffRole(req.user.role)));
+      delete comment.user_id;
+      delete comment.ip_address;
       if (isPostAuthor && c.is_anonymous && c.actual_user_id) {
         comment.author_name = '匿名同学（仅作者可见）';
         comment.is_anonymous_revealed = true;
+      }
+      if (c.is_anonymous) {
+        if (!isPostAuthor) delete comment.actual_user_id;
+      } else {
+        comment.author_id = c.actual_user_id;
+        delete comment.actual_user_id;
       }
       return comment;
     });
@@ -840,8 +855,10 @@ router.post('/:id/comments', auth, async (req, res) => {
           const [posts] = await pool.execute('SELECT p.title FROM posts p WHERE p.id = ? AND p.status = "approved" AND p.is_deleted = 0', [req.params.id]);
           const [commenter] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [req.user.id]);
           const postTitle = posts[0] ? (posts[0].title || '无标题') : '无标题';
-          const commenterName = commenter[0] ? (commenter[0].nickname || commenter[0].username) : '某用户';
-          const visibleContent = is_anonymous ? '（匿名评论）' : content.trim().substring(0, 100);
+          const commenterName = finalIsAnonymous
+            ? '匿名同学'
+            : (commenter[0] ? (commenter[0].nickname || commenter[0].username) : '某用户');
+          const visibleContent = finalIsAnonymous ? '（匿名评论）' : content.trim().substring(0, 100);
 
           // 查询所有被@用户的信息
           const placeholders = mentioned_users.map(() => '?').join(',');
@@ -980,7 +997,7 @@ router.post('/comments/:commentId/like', auth, async (req, res) => {
 });
 
 // 获取评论的回复列表
-router.get('/:postId/comments/:commentId/replies', async (req, res) => {
+router.get('/:postId/comments/:commentId/replies', optionalAuth, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { sort = 'latest' } = req.query;
@@ -1005,19 +1022,23 @@ router.get('/:postId/comments/:commentId/replies', async (req, res) => {
       [commentId, req.params.postId]
     );
 
-    const formattedReplies = replies.map(reply => ({
-      id: reply.id,
-      content: reply.content,
-      is_anonymous: reply.is_anonymous,
-      author_name: reply.is_anonymous ? '匿名用户' : (reply.nickname || reply.username || '用户'),
-      author_avatar: reply.is_anonymous ? '/uploads/avatars/default.png' : (reply.avatar || '/uploads/avatars/default.png'),
-      author_id: reply.user_id,
-      author_role: reply.author_role,
-      time_ago: getTimeAgo(reply.created_at),
-      ip_region: reply.ip_region,
-      likes_count: reply.likes_count || 0,
-      created_at: reply.created_at
-    }));
+    const formattedReplies = replies.map(function(reply) {
+      const isReplyOwner = !!(req.user && req.user.id === reply.user_id);
+      return {
+        id: reply.id,
+        content: reply.content,
+        is_anonymous: reply.is_anonymous,
+        author_name: reply.is_anonymous ? '匿名用户' : (reply.nickname || reply.username || '用户'),
+        author_avatar: reply.is_anonymous ? '/uploads/avatars/default.png' : (reply.avatar || '/uploads/avatars/default.png'),
+        author_id: reply.is_anonymous && !isReplyOwner ? null : reply.user_id,
+        author_role: reply.is_anonymous ? null : reply.author_role,
+        can_delete: !!(req.user && (isReplyOwner || isStaffRole(req.user.role))),
+        time_ago: getTimeAgo(reply.created_at),
+        ip_region: reply.ip_region,
+        likes_count: reply.likes_count || 0,
+        created_at: reply.created_at
+      };
+    });
 
     res.json({ code: 200, data: { replies: formattedReplies, total: replies.length } });
   } catch (err) {
@@ -1068,6 +1089,9 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
     // 获取当前用户信息用于通知
     const [users] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [req.user.id]);
     const commenter = users[0] || {};
+    const commenterDisplayName = is_anonymous
+      ? '匿名同学'
+      : (commenter.nickname || commenter.username || '某用户');
 
     // 获取原评论作者并发送通知
     const commentAuthorId = comments[0].user_id;
@@ -1076,7 +1100,7 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
         commentAuthorId,
         'comment_reply',
         '收到新回复',
-        commenter.nickname || commenter.username + ' 回复了你的评论: ' + content.trim().substring(0, 50),
+        commenterDisplayName + ' 回复了你的评论: ' + (is_anonymous ? '（匿名回复）' : content.trim().substring(0, 50)),
         postId,
         'post'
       ).catch(err => {
