@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <style id="app-boot-style">
+    html.app-booting { background: #f7f1e6; }
+    html.app-booting body { visibility: hidden; }
+  </style>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add("app-booting");
+      var themeReady = false;
+      var timeout = window.setTimeout(function () { release(true); }, 7000);
+      function release(force) {
+        if (themeReady || force) {
+          window.clearTimeout(timeout);
+          root.classList.remove("app-booting");
+        }
+      }
+      window.addEventListener("festival-theme-ready", function () {
+        themeReady = true;
+        release(false);
+      }, { once: true });
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
@@ -15,7 +37,6 @@
   <link rel="stylesheet" href="/css/user-card.css">
   <link rel="stylesheet" href="/css/profile-polish-enhanced.css">
   <link rel="stylesheet" href="/css/profile-polish.css">
-  <link id="theme-520-css" rel="stylesheet" href="/css/520.css" disabled>
   <script src="/js/theme-mode.js" defer></script>
   <style>
     .wechat-bind-card { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
@@ -579,21 +600,6 @@
         document.title = siteName + ' - 个人主页';
         var navLogo = document.querySelector('.nav-logo');
         if (navLogo) navLogo.textContent = '🏠 ' + siteName;
-        // 520特别模式
-        if (settings.special_mode_520) {
-          document.body.classList.add('mode-520', 'profile-page');
-          var themeCss = document.getElementById('theme-520-css');
-          if (themeCss) themeCss.disabled = false;
-        } else {
-          document.body.classList.remove('mode-520', 'profile-page');
-          var themeCss = document.getElementById('theme-520-css');
-          if (themeCss) themeCss.disabled = true;
-        }
-        var themeColorMeta = document.getElementById('themeColorMeta');
-        if (themeColorMeta) {
-          var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          themeColorMeta.setAttribute('content', settings.special_mode_520 ? (isDark ? '#2D2438' : '#FF7A9A') : (isDark ? '#1a1423' : '#FAFBFE'));
-        }
       }
     })();
   </script>

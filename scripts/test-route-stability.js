@@ -101,6 +101,7 @@ releaseNotes.forEach((note) => {
 });
 
 const admin = readRoute('admin.js');
+const slotsAdmin = readRoute('admin/slots.js');
 const authMiddleware = fs.readFileSync(path.join(__dirname, '..', 'middleware', 'auth.js'), 'utf8');
 const checkin = readRoute('checkin.js');
 const usersList = admin.slice(
@@ -112,9 +113,9 @@ assert(usersList.includes("const validRoles = ['user', 'reviewer', 'radio_admin'
 assert(usersList.includes("conditions.push('role = ?')") && usersList.includes('params.push(roleFilter)'), '用户列表角色筛选必须传给 SQL 参数');
 assert(usersList.includes('username LIKE ? OR nickname LIKE ? OR email LIKE ?'), '用户关键词筛选应覆盖用户名、昵称和邮箱');
 assert(usersList.includes('LIMIT ? OFFSET ?') && usersList.includes('SELECT COUNT(*) as total FROM users WHERE ${whereClause}'), '用户筛选分页与总数统计必须使用同一筛选条件');
-const slotsUpdate = admin.slice(
-  admin.indexOf("router.put('/slots/:id'"),
-  admin.indexOf("router.delete('/slots/:id'")
+const slotsUpdate = slotsAdmin.slice(
+  slotsAdmin.indexOf("router.put('/:id'"),
+  slotsAdmin.indexOf("router.delete('/:id'")
 );
 assert(!slotsUpdate.includes('debugInfo') && !slotsUpdate.includes('debug:'), '时段修改成功响应不得包含调试字段');
 assert(!slotsUpdate.includes('[DEBUG]') && !/console\.log\([^\n]*(?:weekday|SQL|affected)/i.test(slotsUpdate), '时段接口不得输出 weekday、SQL 或影响行调试信息');

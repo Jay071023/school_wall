@@ -64,28 +64,47 @@
 
 ## 技术实现与架构
 
-![校墙公开版架构图](docs/public/architecture.svg)
-
-<details>
-<summary>查看可编辑 Mermaid 图源</summary>
-
 ```mermaid
 flowchart LR
-  A[桌面浏览器] --> D[静态页面<br/>frontend / public 镜像]
-  B[移动浏览器] --> D
-  C[管理后台] --> D
-  D --> E[Node.js + Express]
-  E --> F[路由与认证中间件]
-  F --> G[业务服务<br/>媒体、邮件、通知、草稿]
-  F --> H[(MySQL)]
-  G --> H
-  G --> I[(运行时上传文件)]
-  J[定时清理任务] --> H
-  J --> I
-  G -. 可选集成 .-> K[SMTP / AI / 微信 API / ffmpeg]
+  browser[桌面端 / 移动端浏览器]
+
+  subgraph static[静态资源]
+    source[frontend 页面源码]
+    mirror[镜像校验]
+    runtime[public 运行时静态文件]
+    source --> mirror --> runtime
+  end
+
+  subgraph app[Node.js + Express 应用]
+    server[server.js]
+    middleware[认证、权限、限流]
+    routes[业务路由 routes/]
+    admin[管理入口 routes/admin.js]
+    slots[时段子路由 routes/admin/slots.js]
+    services[可复用业务服务 services/]
+    cleanup[定时清理任务]
+    server --> middleware --> routes
+    routes --> admin --> slots
+    routes --> services
+    slots --> services
+    server --> cleanup
+  end
+
+  database[(MySQL)]
+  uploads[(运行时上传文件)]
+  integrations[可选服务：邮件、微信、AI]
+  deploy[deploy.sh 部署脚本]
+
+  browser -->|页面| runtime
+  browser -->|API 请求| server
+  services --> database
+  services --> uploads
+  cleanup --> database
+  cleanup --> uploads
+  services -. 可选调用 .-> integrations
+  deploy -->|更新、重启、健康检查| server
 ```
 
-</details>
 
 | 层次 | 技术与职责 |
 | --- | --- |

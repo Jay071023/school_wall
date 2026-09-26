@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <style id="app-boot-style">
+    html.app-booting { background: #f7f1e6; }
+    html.app-booting body { visibility: hidden; }
+  </style>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      root.classList.add("app-booting");
+      var themeReady = false;
+      var timeout = window.setTimeout(function () { release(true); }, 7000);
+      function release(force) {
+        if (themeReady || force) {
+          window.clearTimeout(timeout);
+          root.classList.remove("app-booting");
+        }
+      }
+      window.addEventListener("festival-theme-ready", function () {
+        themeReady = true;
+        release(false);
+      }, { once: true });
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#FAFBFE" id="themeColorMeta">
@@ -12,6 +34,7 @@
   <link rel="stylesheet" href="/css/messages-polish-enhanced.css">
 <meta name="robots" content="noindex, nofollow">
   <script>(function(){var bp=document.createElement('script');var curProtocol=window.location.protocol.split(':')[0];if(curProtocol==='https'){bp.src='https://zz.bdstatic.com/linksubmit/push.js'}else{bp.src='http://push.zhanzhang.baidu.com/push.js'}var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bp,s)})();</script>
+  <script src="/js/theme-mode.js" defer></script>
 </head>
 <body class="messages-page">
   <!-- 导航栏 -->
