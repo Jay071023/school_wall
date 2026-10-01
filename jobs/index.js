@@ -3,7 +3,7 @@
 const { scheduleCleanup, drainCleanup } = require('../services/cleanup');
 const auth = require('../routes/auth');
 const posts = require('../routes/posts');
-const songs = require('../routes/songs');
+const { maintenance: songs } = require('../modules/songs');
 const mp = require('../routes/mp-draft');
 
 let stop = null;
@@ -14,7 +14,7 @@ function startBackgroundTasks() {
   try {
     stoppers.push(auth.startCaptchaCleanup());
     stoppers.push(posts.startLikeDebounceCleanup());
-    stoppers.push(songs.startBackgroundTasks());
+    stoppers.push(songs.start());
     stoppers.push(mp.startSyncCleanup());
     stoppers.push(scheduleCleanup());
   } catch (error) {
@@ -32,7 +32,7 @@ function startBackgroundTasks() {
 }
 
 async function drainBackgroundTasks() {
-  await Promise.all([drainCleanup(), songs.drainBackgroundTasks(), mp.drainBackgroundTasks()]);
+  await Promise.all([drainCleanup(), songs.drain(), mp.drainBackgroundTasks()]);
 }
 
 module.exports = { startBackgroundTasks, drainBackgroundTasks };

@@ -66,4 +66,17 @@ function toChinaDate(value) {
   return Number.isNaN(date.getTime()) ? null : getChinaDate(0, date);
 }
 
-module.exports = { getChinaDate, getChinaDayOfWeek, getChinaJsDayOfWeek, toChinaDate };
+function getChinaTime(now = new Date()) {
+  const chinaNow = new Date(now.getTime() + CHINA_OFFSET_MS);
+  return [chinaNow.getUTCHours(), chinaNow.getUTCMinutes(), chinaNow.getUTCSeconds()]
+    .map(value => String(value).padStart(2, '0')).join(':');
+}
+
+function getChinaDayRange(now = new Date()) {
+  const today = getChinaDate(0, now);
+  const nextDay = getChinaDate(1, now);
+  return { today, rangeEnd: getChinaDate(14, now),
+    todayStart: today + ' 00:00:00', tomorrowStart: nextDay + ' 00:00:00' };
+}
+
+module.exports = { getChinaTime, getChinaDayRange, getChinaDate, getChinaDayOfWeek, getChinaJsDayOfWeek, toChinaDate };

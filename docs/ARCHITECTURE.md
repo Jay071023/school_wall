@@ -8,6 +8,8 @@
 server.js                 环境加载、运行生命周期与进程退出入口
 app.js                    HTTP 应用工厂，不监听或初始化数据库
 http/                     中间件、页面静态服务及有序 API 挂载
+modules/songs/            点歌模块依赖组装，共享维护服务实例
+repositories/             注入连接后的 SQL 数据访问
 config/environment.js     .env / .env.local 的启动加载入口
 services/runtime.js       数据库、HTTP 监听及有界退出的生命周期
 jobs/index.js             后台维护任务统一启停与等待
@@ -23,6 +25,12 @@ deploy.sh                 拉取、同步、重启、健康检查和回滚
 ```
 
 路由层负责“请求是否允许、参数是否有效、返回什么”，复杂或可复用的业务应下沉到 `services/`。数据库迁移集中在启动流程中，并用字段/索引存在性检查保证重复启动不会重复创建。
+
+## 点歌维护的依赖边界
+
+点歌 HTTP 路由和后台任务通过 `modules/songs/index.js` 共享维护服务。`services/song-maintenance.js` 只编排日期窗口、时段容量、周期、生效日期、播放归档和通知；数据库访问全部通过注入的 `repositories/song-maintenance.js` 完成。repository 接收现有连接池或事务连接，不创建连接池、不依赖 Express、不发送邮件。时钟与通知发送器可注入以离线验证。
+
+点歌提交、投票和后台审核的既有事务仍由原调用链维护，本次只迁移自动维护职责。`services/date.js` 统一提供中国日期窗口和时间，`services/number-utils.js` 复用正整数上限解析。退出时等待播放归档及由该轮归档安排的通知；不重复通知未成功更新的歌曲。
 
 ## 运行生命周期
 

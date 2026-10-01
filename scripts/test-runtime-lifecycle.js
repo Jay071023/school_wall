@@ -48,8 +48,8 @@ async function main() {
     await nextStop();
 
     // An in-flight date maintenance run must not reschedule after being stopped.
-    const songs = require('../routes/songs');
-    const stopSongs = songs.startBackgroundTasks();
+    const { maintenance: songs } = require('../modules/songs');
+    const stopSongs = songs.start();
     assert.equal(intervals.size, 1);
     assert.equal(timeouts.size, 2);
     let releaseDates;

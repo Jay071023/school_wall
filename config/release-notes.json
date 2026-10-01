@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-10-01-song-maintenance-layers",
+    "published_at": "2026-10-01",
+    "title": "点歌维护服务与数据访问分层",
+    "summary": "将自动维护从点歌 HTTP 路由拆出，保持排期和播放归档规则兼容。",
+    "changes": [
+      "HTTP 与后台任务共享同一维护服务，日期规则与调度集中到服务层，数据库语句由可注入的 repository 管理。",
+      "统一中国业务日期与数值边界工具；回归覆盖周期、生效日期、容量来源、200 行批次、旧库兼容和通知去重。"
+    ]
+  },
+  {
     "id": "2026-10-01-http-application-boundaries",
     "published_at": "2026-10-01",
     "title": "HTTP 应用组装分层",

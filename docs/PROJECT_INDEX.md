@@ -20,6 +20,7 @@
 - `app.js` → `http/middleware.js`、`http/static-pages.js`、`http/routes.js`：HTTP 应用组装，不初始化数据库、不监听、不启动后台任务。
 - `services/runtime.js`：数据库初始化、HTTP 监听、后台任务和有界退出的运行生命周期。
 - `jobs/index.js`、`services/task-lifecycle.js`：维护任务显式启停；加载路由不创建维护定时器。
+- `modules/songs/index.js` → `services/song-maintenance.js` → `repositories/song-maintenance.js`：点歌维护依赖组装、规则编排与 SQL 数据访问；HTTP 和后台任务共享服务实例。
 - `config/database.js`：数据库连接池配置。
 - `scripts/create-initial-admin.js`：公开版首次搭建的显式管理员初始化命令；先初始化数据库结构，再创建不覆盖已有账号的 `super_admin`。
 - `routes/`：HTTP 路由层；认证在 `routes/auth.js`，站点信息/主题在 `routes/site.js`，后台设置在 `routes/admin.js`，时段日历接口位于 `routes/admin/slots.js` 并由管理入口挂载；部署在 `routes/deploy.js`。
@@ -89,6 +90,7 @@ node scripts/test-responsive-boundary.js
 node scripts/test-detail-interactions.js
 npm run test:runtime
 npm run test:http
+npm run test:song-maintenance
 node scripts/test-post-media-editor.js
 node scripts/test-mp-draft-modules.js
 node --check frontend/js/home.js

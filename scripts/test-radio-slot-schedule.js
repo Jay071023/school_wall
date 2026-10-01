@@ -11,6 +11,8 @@ const admin = read('routes/admin.js');
 const slotsAdmin = read('routes/admin/slots.js');
 const scheduling = read('services/song-scheduling.js');
 const songs = read('routes/songs.js');
+const maintenance = read('services/song-maintenance.js');
+const maintenanceSql = read('repositories/song-maintenance.js');
 const adminHtml = read('frontend/admin/index.html');
 const { getChinaJsDayOfWeek } = require(path.join(root, 'services', 'date'));
 
@@ -18,9 +20,9 @@ assert(database.includes('effective_start_date DATE DEFAULT NULL'), 'time_slots 
 assert(database.includes('manual_override TINYINT DEFAULT 0'), 'slot_dates 必须保存单日播放例外');
 assert(database.includes('UPDATE slot_dates SET is_active = 1 WHERE is_active IS NULL'), '迁移只能补齐空状态，不能重置管理员关闭的日期');
 assert(!database.includes('UPDATE slot_dates SET is_active = 1 WHERE is_active = 0 OR is_active IS NULL'), '不能在启动时重新开放已关闭日期');
-assert(songs.includes('effective_start_date') && songs.includes('dateStr < effectiveStartDate'), '自动补齐必须遵守周期生效日期');
-assert(!songs.includes('UPDATE slot_dates SET max_songs = ? WHERE max_songs != ? AND play_date >= ?'), '自动补齐不得用全局设置覆盖所有时段容量');
-assert(songs.includes('slotCapacityById') && songs.includes('manual_override') && songs.includes('max_songs FROM time_slots'), '自动补齐必须按时段读取容量并跳过单日例外');
+assert(songs.includes('effective_start_date') && maintenance.includes('dateStr < effectiveStartDate'), '自动补齐必须遵守周期生效日期');
+assert(!maintenanceSql.includes('UPDATE slot_dates SET max_songs = ? WHERE max_songs != ? AND play_date >= ?'), '自动补齐不得用全局设置覆盖所有时段容量');
+assert(maintenance.includes('slotCapacityById') && maintenance.includes('manual_override') && maintenanceSql.includes('max_songs FROM time_slots'), '自动补齐必须按时段读取容量并跳过单日例外');
 assert(songs.includes('该日期不在当前开放周期内'), '提交点歌必须再次校验当前星期周期');
 assert.strictEqual(getChinaJsDayOfWeek('2026-09-08'), 2, '周二必须使用历史时段数据的值 2');
 assert.strictEqual(getChinaJsDayOfWeek('2026-09-06'), 0, '周日必须使用历史时段数据的值 0');
