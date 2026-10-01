@@ -1,4 +1,5 @@
 const express = require('express');
+const { createIntervalTask } = require('../services/task-lifecycle');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -57,15 +58,14 @@ function isBcryptHash(value) {
 // 验证码存储（内存中，带上限）
 const captchaStore = new Map();
 const MAX_CAPTCHA_ENTRIES = 1000;
-const captchaCleanupTimer = setInterval(() => {
+const captchaCleanupTask = createIntervalTask(() => {
   const now = Date.now();
   for (const [key, record] of captchaStore) {
     if (!record || record.expiresAt <= now) captchaStore.delete(key);
   }
   while (captchaStore.size > MAX_CAPTCHA_ENTRIES) captchaStore.delete(captchaStore.keys().next().value);
 }, 60000);
-// 不让验证码维护定时器阻止测试进程或优雅退出。
-if (typeof captchaCleanupTimer.unref === 'function') captchaCleanupTimer.unref();
+
 
 // 注册频率限制（内存中）
 const registerRateLimit = new Map();
@@ -973,4 +973,5 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+router.startCaptchaCleanup = captchaCleanupTask.start;
 module.exports = router;

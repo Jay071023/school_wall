@@ -1,4 +1,5 @@
 const express = require('express');
+const { createIntervalTask } = require('../services/task-lifecycle');
 const { pool } = require('../config/database');
 const { auth, optionalAuth } = require('../middleware/auth');
 const { getChinaDate, getChinaDayOfWeek, getChinaJsDayOfWeek } = require('../services/date');
@@ -7,7 +8,7 @@ const router = express.Router();
 
 const AUTO_PLAY_REFRESH_MS = 60 * 1000;
 let autoPlayTask = null;
-let autoPlayTimer = null;
+
 
 function getChinaTime(now = new Date()) {
   const chinaNow = new Date(now.getTime() + 8 * 60 * 60 * 1000);
@@ -63,15 +64,7 @@ async function markDueApprovedSongsAsPlayed() {
   return autoPlayTask;
 }
 
-function startAutoPlaybackMaintenance() {
-  if (autoPlayTimer) return;
-  const run = () => { markDueApprovedSongsAsPlayed(); };
-  setTimeout(run, 8000).unref();
-  autoPlayTimer = setInterval(run, AUTO_PLAY_REFRESH_MS);
-  if (typeof autoPlayTimer.unref === 'function') autoPlayTimer.unref();
-}
-
-startAutoPlaybackMaintenance();
+const autoPlaybackTask = createIntervalTask(markDueApprovedSongsAsPlayed, AUTO_PLAY_REFRESH_MS, { initialDelayMs: 8000 });
 
 function parseBoundedPositiveInt(value, fallback, max) {
   if (value === undefined || value === null) return fallback;
@@ -125,7 +118,7 @@ router.get('/remaining', auth, async (req, res) => {
 // 避免多个手机/后台请求同时逐条写入同一批日期。
 let futureDatesTask = null;
 let futureDatesTimer = null;
-let futureDatesMaintenanceStarted = false;
+let stopFutureDatesMaintenance = null;
 const FUTURE_DATES_INITIAL_DELAY_MS = 5000;
 const FUTURE_DATES_REFRESH_MS = 60 * 60 * 1000;
 const FUTURE_DATES_RETRY_MS = 60 * 1000;
@@ -221,14 +214,15 @@ function ensureFutureDates(pool) {
   return futureDatesTask;
 }
 
-// 路由模块加载后后台首轮补充，之后按成功周期运行，失败则短间隔重试。
+// 由任务入口显式启动；成功后按周期运行，失败则短间隔重试。
 // 任务完全异步且定时器 unref，不阻塞服务启动或阻止进程退出。
 function startFutureDatesMaintenance(pool) {
-  if (futureDatesMaintenanceStarted) return;
-  futureDatesMaintenanceStarted = true;
+  if (stopFutureDatesMaintenance) return stopFutureDatesMaintenance;
+  let active = true;
 
   let run;
   const scheduleNext = delay => {
+    if (!active) return;
     futureDatesTimer = setTimeout(run, delay);
     if (typeof futureDatesTimer.unref === 'function') futureDatesTimer.unref();
   };
@@ -244,9 +238,18 @@ function startFutureDatesMaintenance(pool) {
   };
 
   scheduleNext(FUTURE_DATES_INITIAL_DELAY_MS);
+  stopFutureDatesMaintenance = function stopMaintenance() {
+    if (active) {
+      active = false;
+      clearTimeout(futureDatesTimer);
+      futureDatesTimer = null;
+      stopFutureDatesMaintenance = null;
+    }
+    return futureDatesTask || Promise.resolve();
+  };
+  return stopFutureDatesMaintenance;
 }
 
-startFutureDatesMaintenance(pool);
 
 router.get('/slots', optionalAuth, async (req, res) => {
   try {
@@ -659,4 +662,10 @@ router.post('/admin/update-score', auth, async (req, res) => {
   }
 });
 
+router.startBackgroundTasks = function startBackgroundTasks() {
+  const stopPlayback = autoPlaybackTask.start();
+  const stopDates = startFutureDatesMaintenance(pool);
+  return () => Promise.all([stopPlayback(), stopDates()]);
+};
+router.drainBackgroundTasks = () => Promise.all([autoPlayTask, futureDatesTask]);
 module.exports = router;

@@ -30,11 +30,11 @@ assert(slotsGet.includes('await ensureFutureDates(pool)'), 'GET /slots 必须先
 assert(!/\b(?:UPDATE|INSERT|DELETE)\b/i.test(slotsGet), 'GET /slots 不应直接包含写入 SQL');
 assert(songs.includes('getChinaDate(14)'), '点歌日期窗口应使用中国业务日期');
 assert(!songs.includes('CURDATE()'), '点歌路由不应依赖数据库服务器时区');
-assert(songs.includes('startFutureDatesMaintenance(pool);'), '点歌路由应在后台启动日期维护');
+assert(songs.includes('const stopDates = startFutureDatesMaintenance(pool);'), '点歌日期维护应由显式任务入口启动');
 assert(songs.includes('FUTURE_DATES_REFRESH_MS'), '日期维护成功后应持续定时刷新');
 assert(songs.includes('FUTURE_DATES_RETRY_MS'), '日期维护失败后应使用重试间隔');
 assert(songs.includes('futureDatesTimer.unref()'), '日期维护定时器应 unref');
-assert(songs.includes('markDueApprovedSongsAsPlayed') && songs.includes('startAutoPlaybackMaintenance()'), '点歌应在后台自动维护已播放状态');
+assert(songs.includes('markDueApprovedSongsAsPlayed') && songs.includes('autoPlaybackTask.start()'), '点歌应在后台自动维护已播放状态');
 assert(songs.includes("sr.status = 'approved'") && songs.includes('ts.end_time <= ?'), '自动播放标记必须只处理已审核且时段已结束的歌曲');
 assert(songs.includes("status = 'played'") && songs.includes('notifySongPlayed'), '自动播放标记后应更新状态并通知点歌人');
 const songSubmit = songs.slice(songs.indexOf("router.post('/', auth"), songs.indexOf("router.get('/list'"));

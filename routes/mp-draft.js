@@ -5,6 +5,7 @@
  */
 
 const express = require('express');
+const { createIntervalTask } = require('../services/task-lifecycle');
 const crypto = require('crypto');
 const router = express.Router();
 const { pool } = require('../config/database');
@@ -1482,8 +1483,9 @@ router.delete('/draft/:mediaId', async (req, res) => {
 // 后台同步任务池（避免 Cloudflare 100s 超时）
 var pendingSyncs = {};
 
-// 定时清理过期同步状态（每 5 分钟清理 >10 分钟的）
-var syncCleanupTimer = setInterval(function() {
+// 同步状态维护定时器由运行入口显式管理。
+const activeSyncTasks = new Set();
+const syncCleanupTask = createIntervalTask(function() {
   var now = Date.now();
   for (var k in pendingSyncs) {
     if (pendingSyncs[k].createdAt && now - pendingSyncs[k].createdAt > 10 * 60 * 1000) {
@@ -1491,7 +1493,7 @@ var syncCleanupTimer = setInterval(function() {
     }
   }
 }, 5 * 60 * 1000);
-if (syncCleanupTimer && syncCleanupTimer.unref) syncCleanupTimer.unref();
+
 
 /**
  * 同步草稿到公众号（图片上传到微信CDN，视频上传为永久 MP4 素材）
@@ -1572,8 +1574,8 @@ router.post('/sync-draft', requirePermission('songs:review'), async (req, res) =
     message: '同步任务已提交(' + syncId + ')，正在后台处理...'
   });
 
-  // 后台异步处理
-  (async function() {
+  // 后台异步处理；任务生命周期在退出前等待已提交任务。
+  const syncTask = (async function() {
     try {
       var prepared = await prepareArticleForWeixin(article, function(progress) {
         if (!pendingSyncs[syncId]) return;
@@ -1649,6 +1651,8 @@ router.post('/sync-draft', requirePermission('songs:review'), async (req, res) =
       };
     }
   })();
+  activeSyncTasks.add(syncTask);
+  syncTask.then(() => activeSyncTasks.delete(syncTask), () => activeSyncTasks.delete(syncTask));
 });
 
 /**
@@ -1674,4 +1678,6 @@ router._dailySongState = {
   formatDraftCreatedMarkFailure
 };
 
+router.startSyncCleanup = syncCleanupTask.start;
+router.drainBackgroundTasks = () => Promise.allSettled([...activeSyncTasks]);
 module.exports = router;

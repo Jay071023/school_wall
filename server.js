@@ -10,17 +10,9 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '.env.local'), override: true });
 
-// 全局异常保护，防止未捕获错误导致服务崩溃
-process.on('uncaughtException', function(err) {
-  console.error('未捕获异常:', err.message);
-  process.exit(1);
-});
-process.on('unhandledRejection', function(err) {
-  console.error('未处理Promise拒绝:', err && err.message || err);
-  process.exit(1);
-});
-
-const { initDB } = require('./config/database');
+const { initDB, pool } = require('./config/database');
+const { createRuntime } = require('./services/runtime');
+const { startBackgroundTasks, drainBackgroundTasks } = require('./jobs');
 const { scheduleCleanup } = require('./services/cleanup');
 
 const app = express();
@@ -168,29 +160,34 @@ app.use('/api', require('./routes/site'));
 app.use('/api', require('./routes/health'));
 app.use('/api', require('./routes/deploy'));
 
-// 启动服务器
+const runtime = createRuntime({
+  app, initialize: initDB, startTasks: startBackgroundTasks,
+  drainTasks: drainBackgroundTasks, closeDatabase: () => pool.end(),
+  port: PORT, host: process.env.HOST || '0.0.0.0'
+});
+
 async function start() {
-  try {
-    await initDB();
-    app.listen(PORT, process.env.HOST || '0.0.0.0', () => {
-      console.log(`
-  🎉 示例校园墙网站启动成功！
-  📡 访问地址: http://localhost:${PORT}
-  🔧 管理后台: http://localhost:${PORT}/admin
-      `);
-
-      // 定时清理操作日志（每天凌晨3点清理30天前的日志）
-      scheduleCleanup();
-    });
-  } catch (err) {
-    console.error('启动失败:', err);
-    process.exit(1);
-  }
+  const listener = await runtime.start();
+  console.log('[Server] listening on port ' + listener.address().port);
+  return listener;
 }
 
-// 仅直接执行 server.js 时启动监听；被测试或其他模块引入时只提供 app/start。
 if (require.main === module) {
-  start();
+  let exiting = false;
+  const shutdown = (exitCode, error) => {
+    if (exiting) return;
+    exiting = true;
+    if (error) console.error('[Server]', error.message || String(error));
+    runtime.stop().then(() => process.exit(exitCode), err => {
+      console.error('[Server] shutdown failed:', err.message);
+      process.exit(1);
+    });
+  };
+  process.once('SIGTERM', () => shutdown(0));
+  process.once('SIGINT', () => shutdown(0));
+  process.once('uncaughtException', error => shutdown(1, error));
+  process.once('unhandledRejection', error => shutdown(1, error));
+  start().catch(error => shutdown(1, error));
 }
 
-module.exports = { app, start, scheduleCleanup };
+module.exports = { app, start, stop: runtime.stop, scheduleCleanup };

@@ -491,6 +491,7 @@ function scheduleCleanup() {
 module.exports = {
   cleanupExpiredData,
   scheduleCleanup,
+  drainCleanup: () => cleanupInFlight || Promise.resolve(),
   LOG_RETENTION_DAYS,
   TRASH_RETENTION_DAYS,
   cleanupOrphanPostImages,

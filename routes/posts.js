@@ -1,4 +1,5 @@
 const express = require('express');
+const { createIntervalTask } = require('../services/task-lifecycle');
 const { pool } = require('../config/database');
 const { auth, optionalAuth, isStaffRole } = require('../middleware/auth');
 const { getIpRegion, getClientIp } = require('../services/ip-lookup');
@@ -1182,7 +1183,7 @@ router.post('/:postId/comments/:commentId/replies/:replyId/like', auth, async (r
 // 点赞/取消点赞防抖（同一用户同一帖子1秒内只处理一次）
 const likeDebounce = new Map();
 const MAX_DEBOUNCE_ENTRIES = 5000;
-setInterval(function() {
+const likeDebounceCleanupTask = createIntervalTask(function() {
   if (likeDebounce.size > MAX_DEBOUNCE_ENTRIES) {
     const keys = [...likeDebounce.keys()].slice(0, likeDebounce.size - MAX_DEBOUNCE_ENTRIES);
     keys.forEach(k => likeDebounce.delete(k));
@@ -1788,4 +1789,5 @@ function getTimeAgo(dateStr) {
   return date.toLocaleDateString('zh-CN');
 }
 
+router.startLikeDebounceCleanup = likeDebounceCleanupTask.start;
 module.exports = router;
