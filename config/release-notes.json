@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-10-01-http-application-boundaries",
+    "published_at": "2026-10-01",
+    "title": "HTTP 应用组装分层",
+    "summary": "将应用组装与进程启动解耦，页面路径、API、权限与缓存行为保持兼容。",
+    "changes": [
+      "HTTP 中间件、静态页面与有序 API 挂载分别维护，服务入口只负责环境加载及运行生命周期。",
+      "增加真实 HTTP 回归，覆盖页面别名、缓存头、跨域、匿名与五种角色，以及数据库不可用状态。"
+    ]
+  },
+  {
     "id": "2026-10-01-runtime-lifecycle",
     "published_at": "2026-10-01",
     "title": "服务运行结构整理",

@@ -16,7 +16,8 @@
 
 ## 运行与部署入口
 
-- `server.js`：Express 服务启动入口，负责静态资源、路由挂载和服务启动。
+- `server.js`、`config/environment.js`：环境加载、服务启动和退出入口。
+- `app.js` → `http/middleware.js`、`http/static-pages.js`、`http/routes.js`：HTTP 应用组装，不初始化数据库、不监听、不启动后台任务。
 - `services/runtime.js`：数据库初始化、HTTP 监听、后台任务和有界退出的运行生命周期。
 - `jobs/index.js`、`services/task-lifecycle.js`：维护任务显式启停；加载路由不创建维护定时器。
 - `config/database.js`：数据库连接池配置。
@@ -87,6 +88,7 @@ node scripts/test-home-request-race.js
 node scripts/test-responsive-boundary.js
 node scripts/test-detail-interactions.js
 npm run test:runtime
+npm run test:http
 node scripts/test-post-media-editor.js
 node scripts/test-mp-draft-modules.js
 node --check frontend/js/home.js

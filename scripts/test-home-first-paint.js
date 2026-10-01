@@ -12,7 +12,7 @@ const publicHomeScript = read('public/js/home.js');
 const frontendAppScript = read('frontend/js/app.js');
 const publicAppScript = read('public/js/app.js');
 const themeMode = read('frontend/js/theme-mode.js');
-const serverSource = read('server.js');
+const serverSource = read('http/static-pages.js');
 const mobileFixCss = read('frontend/css/mobile-fix.css');
 
 assert.strictEqual(frontendHome, publicHome, 'frontend/index.html 与 public/index.html 必须保持一致');
