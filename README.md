@@ -127,6 +127,8 @@ flowchart LR
 
 更细的入口和关联关系见 [代码索引](docs/PROJECT_INDEX.md)和[架构说明](docs/ARCHITECTURE.md)。
 
+![校墙业务与技术架构图](docs/architecture-overview.png)
+
 ## 从零开始本地搭建
 
 以下流程对应当前公开版源码。完成后可访问完整的本地站点、注册普通用户，并创建首位超级管理员。
