@@ -81,6 +81,7 @@
 ## 常用检查
 
 ```powershell
+npm run test:feedback-clarity
 npm run check:mirrors
 npm run check:privacy
 npm test

@@ -13,6 +13,10 @@ const detailCss = read('frontend/css/style.css');
 const detailHtml = read('frontend/post-detail.html');
 
 assert(detail.includes("searchUsers('', true)"), '详情页手动 @ 必须请求空查询的最近用户');
+assert(detail.includes('postData.comments_count = postData.comments.length'), '详情页评论总数必须以实际返回的评论为准');
+assert(detail.includes('function renderComments(comments, totalCount)') && detail.includes("countEl.textContent = String(count)"), '初始评论渲染和排序切换都必须更新评论区标题数量');
+assert(detail.includes('renderComments(data.data.comments || [], data.data.total)'), '评论排序接口的总数必须传入统一渲染流程');
+assert(detail.includes("sectionCountEl.textContent = postData.comments_count"), '删除评论后顶部与评论区数量必须同步');
 assert(detail.includes('data-username=') && detailEmojis.includes('data-username='), '@候选项必须携带可插入的用户名 ID');
 assert(detail.includes('window.CampusWallMentionedUsers'), '评论提交和 @ 选择必须共享提及用户状态');
 assert(detailEmojis.includes('document.getElementById(\'commentInput\')'), '表情/@模块必须通过 DOM 获取评论输入框');

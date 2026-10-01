@@ -235,11 +235,14 @@ document.addEventListener('DOMContentLoaded', function() {
       var data = await authFetch('/api/posts/' + postId);
       if (data.code === 200) {
         postData = data.data;
+        // 详情接口同时返回完整评论数组，使用实际数量覆盖可能过期的冗余计数字段。
+        postData.comments = Array.isArray(postData.comments) ? postData.comments : [];
+        postData.comments_count = postData.comments.length;
         // 动态更新 SEO meta tags
         updatePostMetaTags(postData);
         renderPostDetail(postData);
         // 渲染评论列表
-        renderComments(postData.comments || []);
+        renderComments(postData.comments, postData.comments_count);
       } else {
         showToast(data.message || '加载失败', 'error');
         renderDetailError(data.message || '帖子暂时无法加载');
@@ -515,11 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       var data = await authFetch('/api/posts/' + postId + '/comments?sort=' + sort);
       if (data.code === 200) {
-        renderComments(data.data.comments || []);
-        var countEl = document.getElementById('commentCount');
-        if (countEl && data.data.total !== undefined) {
-          countEl.textContent = data.data.total;
-        }
+        renderComments(data.data.comments || [], data.data.total);
       }
     } catch (err) {
       console.error('加载评论失败:', err);
@@ -645,10 +644,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
-  function renderComments(comments) {
+  function renderComments(comments, totalCount) {
     var commentListEl = document.getElementById('commentList');
     var commentEmptyEl = document.getElementById('commentEmpty');
     var sortBar = document.getElementById('commentSortBar');
+    var countEl = document.getElementById('commentCount');
+    var count = Number(totalCount);
+    if (!Number.isFinite(count) || count < 0) count = Array.isArray(comments) ? comments.length : 0;
+    if (countEl) countEl.textContent = String(count);
     if (!commentListEl) return;
 
     // 显示排序栏
@@ -1238,10 +1241,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var commentItem = btn.closest('.comment-item');
         if (commentItem) commentItem.remove();
         showToast('评论已删除');
-        if (postData && postData.comments_count) {
+        if (postData) {
           postData.comments_count = Math.max(0, postData.comments_count - 1);
-          var commentCountEl = document.getElementById('btnComment').querySelector('span:last-child');
+          var commentCountEl = document.querySelector('#btnComment .action-count');
+          var sectionCountEl = document.getElementById('commentCount');
           if (commentCountEl) commentCountEl.textContent = postData.comments_count;
+          if (sectionCountEl) sectionCountEl.textContent = postData.comments_count;
         }
       } else {
         showToast(data.message || '删除失败', 'error');

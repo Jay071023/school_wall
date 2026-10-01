@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.code === 200 && data.data) {
         var el = document.getElementById('remainingCount');
         if (el) {
-          el.textContent = '今日剩余 ' + data.data.remaining + ' / ' + data.data.limit + ' 次';
+          el.textContent = '今日可提交 ' + data.data.remaining + ' / ' + data.data.limit + ' 次';
           el.style.display = 'inline-flex';
         }
       }
@@ -92,7 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
       dateSelectGroup.style.display = 'block';
       var html = '<option value="">请选择播放日期</option>';
       slot.dates.forEach(function(d) {
-        html += '<option value="' + d.id + '">' + d.date + '(' + d.week + ') 剩余' + d.remaining + '首</option>';
+        var remaining = Math.max(0, Number(d.remaining) || 0);
+        html += '<option value="' + d.id + '"' + (remaining === 0 ? ' disabled' : '') + '>' +
+          d.date + '(' + d.week + ') ' + (remaining > 0 ? '可点 · 剩余' + remaining + '首' : '已满 · 暂不支持候补') + '</option>';
       });
       dateSelect.innerHTML = html;
     } else {
@@ -139,14 +141,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var hint = document.getElementById('availableDatesHint');
         if (hint && timeSlots.length > 0) {
-          var dates = [];
+          var availableDates = [];
+          var fullDates = [];
           timeSlots.forEach(function(s) {
             s.dates && s.dates.forEach(function(d) {
-              if (!dates.includes(d.date)) dates.push(d.date + '(' + d.week + ')');
+              var label = escapeHtml(d.date + '(' + d.week + ' ' + s.name + ')');
+              var target = Number(d.remaining) > 0 ? availableDates : fullDates;
+              if (!target.includes(label)) target.push(label);
             });
           });
-          if (dates.length > 0) {
-            hint.innerHTML = '📅 可点歌日期：' + dates.slice(0, 7).join('、');
+          if (availableDates.length + fullDates.length > 0) {
+            hint.innerHTML = '📅 可点歌：' + (availableDates.length ? availableDates.slice(0, 7).join('、') : '暂无') +
+              '；已满：' + (fullDates.length ? fullDates.slice(0, 7).join('、') + '（不接候补）' : '暂无');
             hint.style.display = 'block';
           }
         }
@@ -174,7 +180,11 @@ document.addEventListener('DOMContentLoaded', function() {
       html += '<div class="slot-card-name">' + escapeHtml(slot.name) + '</div>';
       html += '<div class="slot-card-time">' + escapeHtml(slot.start_time || '') + ' - ' + escapeHtml(slot.end_time || '') + '</div>';
       if (hasDates) {
-        html += '<div class="slot-card-remaining">共' + slot.dates.length + '天可点歌</div>';
+        var availableDateCount = slot.dates.filter(function(date) { return Number(date.remaining) > 0; }).length;
+        var fullDateCount = slot.dates.length - availableDateCount;
+        html += '<div class="slot-card-remaining">' + availableDateCount + '天可点 · ' + fullDateCount + '天已满</div>';
+      } else {
+        html += '<div class="slot-card-remaining">近期暂无开放日期</div>';
       }
       html += '</button>';
     });
@@ -362,6 +372,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      var selectedSlot = timeSlots.find(function(slot) { return String(slot.id) === String(slotId); });
+      var selectedDate = selectedSlot && selectedSlot.dates && selectedSlot.dates.find(function(date) {
+        return String(date.id) === String(dateId);
+      });
+      if (!selectedDate || Number(selectedDate.remaining) <= 0) {
+        showToast('这个播放日期已满或已关闭，目前不接候补，请刷新后选择其他日期', 'error');
+        loadTimeSlots();
+        return;
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = '提交中...';
 
@@ -388,7 +408,12 @@ document.addEventListener('DOMContentLoaded', function() {
           var dateInfo = selectedDate ? selectedDate.textContent : '';
           showSongSubmitConfirm(info, dateInfo, toWhom, message);
         } else {
-          showToast(data.message || '提交失败', 'error');
+          var errorMessage = data.message || '提交失败';
+          if (errorMessage.indexOf('点歌已满') !== -1) {
+            errorMessage = '这个播放日期刚刚满额，目前不接候补，请选择其他日期';
+            loadTimeSlots();
+          }
+          showToast(errorMessage, 'error');
         }
       }).catch(function() {
         submitBtn.disabled = false;

@@ -164,6 +164,12 @@
           </label>
           <span class="toggle-hint">开启后将以匿名身份发布</span>
         </div>
+        <div class="post-visibility-note" role="note" aria-label="署名和可见范围说明">
+          <strong>署名与可见范围</strong>
+          <p>帖子审核通过后会出现在公开首页，所有访客都能浏览；目前不支持仅自己或指定人可见。</p>
+          <p>关闭匿名会显示昵称和头像；开启匿名只对普通浏览者隐藏昵称和头像，管理人员仍可按审核需要核对发布账号。</p>
+          <p>匿名不能遮住正文或图片里主动写出的个人信息，发布前请检查内容。</p>
+        </div>
         <!-- 提交按钮 -->
         <div class="form-actions">
           <button type="button" class="btn-preview" id="previewBtn" onclick="showPreview()">预览效果</button>
@@ -253,6 +259,19 @@
   </footer>
 
   <style>
+    .post-visibility-note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-size: .88rem;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+    .post-visibility-note strong { color: var(--text-primary); }
+    .post-visibility-note p { margin: 6px 0 0; }
     .post-form-card {
       padding: 32px !important;
     }

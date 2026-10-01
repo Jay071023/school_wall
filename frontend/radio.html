@@ -118,8 +118,9 @@
       <div class="radio-form-card">
         <div class="radio-card-header">
           <h2 class="section-title">📝 点歌表单</h2>
-          <div class="remaining-count" id="remainingCount" style="display:none;">今日剩余 3 / 3 次</div>
+          <div class="remaining-count" id="remainingCount" style="display:none;">今日可提交 3 / 3 次</div>
         </div>
+        <p class="radio-intro">今日可提交次数与各播放日期名额分别计算。请选择有剩余名额的日期；满额日期不可选，目前不提供候补。</p>
         <form class="radio-form" id="radioForm">
           <!-- 歌曲名 -->
           <div class="form-group">
@@ -141,6 +142,7 @@
             <div class="form-label" id="slotSelectLabel">播放时段 <span class="required-tag">必填</span></div>
             <input type="hidden" id="slotSelect" value="" aria-hidden="true" tabindex="-1">
             <div class="slot-cards-grid" id="slotCardsGrid" role="radiogroup" aria-labelledby="slotSelectLabel"></div>
+            <p class="radio-capacity-note" id="availableDatesHint" role="status" aria-live="polite" style="display:none;"></p>
           </div>
           <!-- 祝福语 -->
           <div class="form-group radio-form-wide">
@@ -153,6 +155,7 @@
           <!-- 播放日期 -->
           <div class="form-group radio-form-wide" id="dateSelectGroup" style="display:none;">
             <label class="form-label" for="dateSelect">播放日期 <span class="required-tag">必填</span></label>
+            <p class="radio-capacity-note">可点日期显示剩余首数；满额日期不可选，目前不提供候补。</p>
             <select id="dateSelect" class="form-select">
               <option value="">请选择播放日期</option>
             </select>

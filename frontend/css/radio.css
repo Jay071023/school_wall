@@ -67,6 +67,14 @@ body.radio-page .radio-card-header .section-title {
   margin: 0;
 }
 
+body.radio-page .radio-capacity-note {
+  margin: 8px 0 0;
+  color: var(--text-secondary, #66736f);
+  font-size: .84rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 body.radio-page .radio-card-kicker {
   flex: 0 0 auto;
   color: #7a8c87;
