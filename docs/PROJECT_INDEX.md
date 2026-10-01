@@ -31,7 +31,9 @@
 
 ## 前端页面定位
 
-`frontend/` 是生产 Nginx 使用的页面树，`public/` 是 Node 静态服务使用的镜像树。HTML、页面 JS、页面 CSS 修改后必须保持两棵树一致，优先运行 `npm run check:mirrors`。
+`frontend/` 是唯一静态源码，`public/` 是 Node 静态服务使用的生成镜像。修改 HTML、页面 JS、CSS 后执行 `npm run sync:frontend` 和 `npm run check:mirrors`。
+
+静态生成入口为 `scripts/lib/frontend-assets.js`、`scripts/sync-frontend.js`、`scripts/check-frontend-mirror.js`、`scripts/build-static-site.js`。`npm run build` 生成带提交号和文件哈希清单的 `dist/`；`npm run test:frontend-assets` 验证同步冲突保护、上传隔离和输出路径边界。
 
 | 功能 | 页面 | 主要脚本/样式 |
 | --- | --- | --- |

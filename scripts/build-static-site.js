@@ -1,34 +1,34 @@
 'use strict';
-
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
+const { collectFiles, hashFile, synchronize } = require('./lib/frontend-assets');
 
-const root = path.resolve(__dirname, '..');
-const source = path.join(root, 'frontend');
-const output = path.join(root, 'dist');
-
-if (!fs.existsSync(source) || !fs.statSync(source).isDirectory()) {
-  throw new Error('frontend 静态站点目录不存在');
-}
-if (path.dirname(output) !== root || path.basename(output) !== 'dist') {
-  throw new Error('拒绝清理非项目 dist 目录');
-}
-
-fs.rmSync(output, { recursive: true, force: true });
-fs.cpSync(source, output, { recursive: true, force: true });
-
-let fileCount = 0;
-function countFiles(directory) {
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
-    const target = path.join(directory, entry.name);
-    if (entry.isDirectory()) countFiles(target);
-    else if (entry.isFile()) fileCount += 1;
-  }
-}
-countFiles(output);
-
-if (!fs.existsSync(path.join(output, 'index.html')) || !fs.existsSync(path.join(output, 'admin', 'index.html'))) {
-  throw new Error('静态构建缺少首页或管理后台入口');
+function buildStaticSite(projectRoot, revision) {
+  const root = fs.realpathSync(projectRoot);
+  const source = path.join(root, 'frontend');
+  const output = path.join(root, 'dist');
+  const files = collectFiles(source);
+  if (!files.has('index.html') || !files.has('admin/index.html')) throw new Error('静态源码缺少首页或管理后台入口');
+  if (files.has('asset-manifest.json')) throw new Error('asset-manifest.json 是构建保留文件');
+  // Verify the resolved generated output before any recursive removal.
+  if (path.dirname(output) !== root || path.basename(output) !== 'dist') throw new Error('拒绝清理非项目 dist 目录');
+  if (fs.existsSync(output) && (fs.lstatSync(output).isSymbolicLink() || fs.realpathSync(output) !== output)) throw new Error('拒绝清理链接或越界输出目录');
+  fs.rmSync(output, { recursive: true, force: true });
+  synchronize(source, output);
+  const manifest = { revision, files: {} };
+  for (const file of [...files].sort()) manifest.files[file] = hashFile(path.join(output, file));
+  fs.writeFileSync(path.join(output, 'asset-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+  return manifest;
 }
 
-console.log(`[build] 已生成完整静态站点：dist/（${fileCount} 个文件）`);
+if (require.main === module) {
+  try {
+    const root = path.resolve(__dirname, '..');
+    const revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+    const manifest = buildStaticSite(root, revision);
+    console.log('[build] 已生成完整静态站点：dist/（' + Object.keys(manifest.files).length + ' 个文件），含提交及 SHA-256 清单');
+  } catch (error) { console.error('[build]', error.message); process.exitCode = 1; }
+}
+
+module.exports = { buildStaticSite };

@@ -53,7 +53,7 @@
 
 | 设计 | 为什么这样实现 |
 | --- | --- |
-| `frontend/` 与 `public/` 双静态树 | Node 服务和独立静态入口都能提供同一页面。镜像检查防止只改一边、线上两套表现不一致。 |
+| 唯一源码与生成镜像 | 修改 `frontend/` 后自动同步到 `public/`；统一文件规则和镜像检查防止两套页面出现差异。 |
 | 首屏主题门控 | 先确认主题状态再显示页面，避免节日主题在慢网络下先闪出普通样式。 |
 | 帖子视频到公众号草稿的链路 | 站内原视频不被改写；同步端按兼容格式处理并保留原帖入口，降低二次发布丢内容的概率。 |
 | 点歌排期工作流 | 把时段、日期、审核、播放状态和预约写进有约束的业务流程，避免“能提交但没有归宿”。 |
@@ -70,20 +70,26 @@ flowchart LR
 
   subgraph static[静态资源]
     source[frontend 页面源码]
-    mirror[镜像校验]
+    mirror[自动同步与镜像校验]
     runtime[public 运行时静态文件]
     source --> mirror --> runtime
+    source --> artifact[dist 静态产物与哈希清单]
   end
 
   subgraph app[Node.js + Express 应用]
-    server[server.js]
+    server[server.js 进程入口]
+    http[app.js 与 http/ HTTP 组装]
+    maintenance[点歌维护服务]
+    repository[点歌维护 repository]
     middleware[认证、权限、限流]
     routes[业务路由 routes/]
     admin[管理入口 routes/admin.js]
     slots[时段子路由 routes/admin/slots.js]
     services[可复用业务服务 services/]
-    cleanup[定时清理任务]
-    server --> middleware --> routes
+    cleanup[jobs/ 显式启停后台任务]
+    server --> http --> middleware --> routes
+    routes --> maintenance --> repository
+    repository --> database
     routes --> admin --> slots
     routes --> services
     slots --> services
@@ -96,7 +102,7 @@ flowchart LR
   deploy[deploy.sh 部署脚本]
 
   browser -->|页面| runtime
-  browser -->|API 请求| server
+  browser -->|API 请求| http
   services --> database
   services --> uploads
   cleanup --> database
@@ -115,7 +121,11 @@ flowchart LR
 | 文件层 | 图片与视频以运行时上传目录保存；定时任务清理未发布且超过保留期的媒体。 |
 | 可选集成 | SMTP 邮件、智谱 GLM、微信公众号接口、`ffmpeg` / `ffprobe`；不配置时只影响对应能力。 |
 
-更细的入口和关联关系见 [代码索引](docs/PROJECT_INDEX.md)。
+`server.js` 管理初始化、监听和有界退出，`app.js` 独立组装 HTTP 应用。点歌自动维护通过模块组装共享服务实例，SQL 集中在注入连接的 repository；其他业务仍按现有路由与服务边界维护。
+
+静态文件只修改 `frontend/`，执行 `npm run sync:frontend` 生成 `public/`。同步遇到独立镜像改动会停止；`npm run build` 同步、检查并生成带 SHA-256 清单的 `dist/`。生产部署仍沿用既有目录流程。
+
+更细的入口和关联关系见 [代码索引](docs/PROJECT_INDEX.md)和[架构说明](docs/ARCHITECTURE.md)。
 
 ## 从零开始本地搭建
 

@@ -77,13 +77,17 @@ deploy.sh                 拉取、同步、重启、健康检查和回滚
 
 ## 前端静态文件
 
-`frontend/` 是修改源，`public/` 是部署镜像。修改前端后执行：
+`frontend/` 是唯一静态源码，`public/` 是当前运行镜像。修改前端后执行：
 
 ```powershell
+npm run sync:frontend
 npm run check:mirrors
+npm run build
 ```
 
-这个检查会逐文件比较两棵静态树，上传前必须通过。上传目录属于运行时数据，不参与静态镜像比较。
+同步、检查和构建共用 `scripts/lib/frontend-assets.js` 的文件收集规则。同步只复制变化文件，遇到 `public/` 的独立未提交改动会停止，额外镜像文件保留并报错，交给开发者审阅。上传目录和依赖不参与生成；链接和敏感文件会被拒绝。
+
+`npm run build` 先同步并检查镜像，再生成 `dist/` 和包含提交号、逐文件 SHA-256 的 `asset-manifest.json`。构建只清理经过路径校验的项目 `dist/`，拒绝链接输出目录。生产仍沿用现有静态目录部署流程，尚未切换为发布 `dist/`。`npm run test:frontend-assets` 在临时目录验证同步冲突、幂等、上传保留、路径保护和构建清单。
 
 ## 部署安全边界
 
