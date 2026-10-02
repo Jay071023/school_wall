@@ -345,9 +345,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
+  var songSubmitInFlight = false;
   if (radioForm) {
-    radioForm.addEventListener('submit', function(e) {
+    radioForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      if (songSubmitInFlight) return;
       var songNameInput = document.getElementById('songName');
       var artistInput = document.getElementById('songArtist');
       var songName = songNameInput.value.trim();
@@ -382,15 +384,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      songSubmitInFlight = true;
       submitBtn.disabled = true;
       submitBtn.textContent = '提交中...';
 
-      authFetch('/api/songs', {
-        method: 'POST',
-        body: JSON.stringify({ song_name: songName, artist: artist, to_whom: toWhom, message: message, slot_id: slotId, slot_date_id: dateId, is_anonymous: isAnonymous })
-      }).then(function(data) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '提交点歌';
+      var data;
+      try {
+        data = await authFetch('/api/songs', {
+          method: 'POST',
+          body: JSON.stringify({ song_name: songName, artist: artist, to_whom: toWhom, message: message, slot_id: slotId, slot_date_id: dateId, is_anonymous: isAnonymous })
+        });
+      } catch (err) {
+        data = { code: 500, message: '网络错误，请稍后重试' };
+      }
+
+      try {
         if (data.code === 200) {
           showToast('点歌成功！', 'success');
           radioForm.reset();
@@ -415,11 +423,11 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           showToast(errorMessage, 'error');
         }
-      }).catch(function() {
+      } finally {
+        songSubmitInFlight = false;
         submitBtn.disabled = false;
         submitBtn.textContent = '提交点歌';
-        showToast('网络错误', 'error');
-      });
+      }
     });
   }
 

@@ -485,10 +485,23 @@ async function initDB() {
         status ENUM('pending', 'approved', 'rejected', 'played') DEFAULT 'pending',
         play_order INT COMMENT '播放顺序',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (slot_id) REFERENCES song_slots(id) ON DELETE CASCADE
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    // 新版点歌流程的 slot_id 指向 time_slots；旧建表语句遗留的外键却指向
+    // song_slots，导致有效的新版时段 ID 插入时触发外键错误。日期和时段已在
+    // 点歌事务中通过 slot_date_id 联合校验，因此删除这条过期的旧表外键。
+    const [legacySongSlotForeignKeys] = await connection.query(
+      'SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE ' +
+      'WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME = ?',
+      ['song_requests', 'slot_id', 'song_slots']
+    );
+    for (const foreignKey of legacySongSlotForeignKeys) {
+      const constraintName = String(foreignKey.CONSTRAINT_NAME).replace(/`/g, '``');
+      await connection.query(`ALTER TABLE song_requests DROP FOREIGN KEY \`${constraintName}\``);
+      console.log('[数据库] 已移除 song_requests.slot_id 指向旧 song_slots 表的外键');
+    }
 
     // 点歌拒绝理由：保留最近一次审核使用的说明，方便后台追溯。
     const [songRejectReasonCol] = await connection.execute('SHOW COLUMNS FROM song_requests LIKE "reject_reason"');

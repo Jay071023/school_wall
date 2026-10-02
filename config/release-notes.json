@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-10-02-radio-song-submit-server-error",
+    "published_at": "2026-10-02",
+    "title": "修复点歌提交外键错误与重复提交状态",
+    "summary": "移除指向旧时段表的点歌外键，并确保请求失败或异常时提交按钮恢复可用。",
+    "changes": [
+      "新版点歌按 time_slots 与 slot_dates 校验时段；启动迁移会清除 song_requests.slot_id 指向旧 song_slots 的外键。",
+      "点歌提交加单次请求保护并在所有结果下恢复按钮，同时更新脚本缓存版本。"
+    ]
+  },
+  {
     "id": "2026-10-01-feedback-publishing-and-discovery-clarity",
     "published_at": "2026-10-01",
     "title": "修正评论计数并明确发布、点歌与分类信息",
