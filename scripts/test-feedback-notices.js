@@ -4,6 +4,7 @@ const assert = require('assert');
 const Module = require('module');
 
 const executed = [];
+const notified = [];
 let failNextQuery = false;
 const fakePool = {
   execute(sql, params) {
@@ -16,7 +17,7 @@ const fakePool = {
       return Promise.resolve([{}]);
     }
     if (/^\s*INSERT INTO feedbacks/i.test(sql)) {
-      return Promise.resolve([{ affectedRows: 1 }]);
+      return Promise.resolve([{ affectedRows: 1, insertId: 73 }]);
     }
     if (/FROM feedbacks/i.test(sql)) {
       return Promise.resolve([[{ id: 1, title: '测试反馈' }]]);
@@ -58,6 +59,7 @@ function loadRouter(routePath, authModule) {
     if (request === 'express') return fakeExpress;
     if (request === '../config/database') return { pool: fakePool, ensureFeedbackTable };
     if (request === '../middleware/auth') return authModule;
+    if (request === '../services/email') return { notifyAdminsNewFeedback: async (feedback) => { notified.push(feedback); } };
     return originalLoad.call(this, request, parent, isMain);
   };
 
@@ -124,6 +126,8 @@ async function main() {
   assert.strictEqual(executed.filter((item) => /^\s*CREATE TABLE/i.test(item.sql)).length, 1);
   const insert = executed.find((item) => /^\s*INSERT INTO feedbacks/i.test(item.sql));
   assert.deepStrictEqual(insert.params, [42, 'bug', '标题', '内容', '联系方式', 'pending']);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepStrictEqual(notified[0], { id: 73, type: 'bug', title: '标题', content: '内容', requesterName: '用户' });
 
   result = await invoke(submit, {
     body: { type: 'other', title: '第二条', content: '内容' },

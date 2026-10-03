@@ -208,10 +208,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // ============================================
   var commentAnonymousOption = document.getElementById('commentAnonymousOption');
   (window.CampusWallThemeSettings ? window.CampusWallThemeSettings() : authFetch('/api/site-info')).then(function(settings) {
-    if (settings && (settings.anon_comment || (settings.data && settings.data.anon_comment))) {
-      if (commentAnonymousOption) {
-        commentAnonymousOption.style.display = 'flex';
-      }
+    var allowed = !!(settings && (settings.anon_comment || (settings.data && settings.data.anon_comment)));
+    if (commentAnonymousOption) commentAnonymousOption.style.display = allowed ? 'flex' : 'none';
+    if (!allowed) {
+      var anonymousCheckbox = document.getElementById('commentAnonymous');
+      if (anonymousCheckbox) anonymousCheckbox.checked = false;
     }
   }).catch(function() {
     // 获取站点设置失败，静默处理

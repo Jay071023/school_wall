@@ -128,8 +128,17 @@ const settings = admin.slice(
   admin.indexOf("router.get('/settings'"),
   admin.indexOf("router.post('/test-email'")
 );
+const songAdminList = admin.slice(admin.indexOf("router.get('/songs'"), admin.indexOf("router.get('/songs/:id'"));
+assert(songAdminList.includes("CASE sr.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END"), '点歌管理应先显示待审核，再显示已通过未播放');
+assert(songAdminList.indexOf('ORDER BY CASE sr.status') < songAdminList.indexOf('LIMIT ? OFFSET ?'), '点歌状态排序必须在数据库分页之前');
+const oldViewsRoute = admin.slice(admin.indexOf("router.delete('/post-views/old'"), admin.indexOf('// ===== 头衔管理'));
+const adminFrontend = fs.readFileSync(path.join(__dirname, '..', 'frontend/admin/index.html'), 'utf8');
+const clearOldViews = adminFrontend.slice(adminFrontend.indexOf('window.clearOldPostViews ='), adminFrontend.indexOf('window.clearAllPostViews ='));
+assert(oldViewsRoute.includes('Number(days) < 1') && oldViewsRoute.includes('Number(days) > 36500'), '清理旧浏览记录必须拒绝非法天数');
+assert(clearOldViews.includes('const days = prompt(') && !clearOldViews.includes('confirm('), '清理旧浏览记录填写天数后应直接执行');
 assert(settings.includes('festival_theme'), '后台系统设置应支持 festival_theme');
 assert(settings.includes('festival_enabled'), '后台系统设置应使用 festival_enabled 开关');
+assert(settings.includes('await connection.beginTransaction()') && settings.includes('await connection.commit()') && settings.includes('await connection.rollback()'), '后台设置保存失败必须整体回滚并报错');
 assert(admin.includes('siteRouter.invalidateSiteInfoCache()'), '保存后台设置后应清理公开站点设置缓存');
 assert(admin.includes("router.get('/song-reject-reasons', requirePermission('songs:review')") && admin.includes("router.put('/song-reject-reasons', requirePermission('songs:review')"), '打回理由预设应由点歌审核权限维护，而非系统设置权限');
 assert(admin.includes("router.get('/songs/:id', requirePermission('songs:review')"), '广播管理员应可查看点歌详情与预约播放时间');

@@ -2,6 +2,7 @@ const express = require('express');
 const { pool, ensureFeedbackTable } = require('../config/database');
 const { getPagination } = require('../services/pagination');
 const { auth } = require('../middleware/auth');
+const { notifyAdminsNewFeedback } = require('../services/email');
 const router = express.Router();
 
 const VALID_TYPES = new Set(['suggest', 'bug', 'complaint', 'other']);
@@ -78,12 +79,21 @@ router.post('/', auth, async (req, res) => {
 
   try {
     await ensureFeedbackTable(pool);
-    await pool.execute(
+    const [result] = await pool.execute(
       'INSERT INTO feedbacks (user_id, type, title, content, contact, status) VALUES (?, ?, ?, ?, ?, ?)',
       [req.user.id, type, titleResult.value, contentResult.value, contactResult.value, 'pending']
     );
     
     res.json({ code: 200, message: '反馈提交成功，我们会尽快处理！' });
+    setImmediate(() => {
+      notifyAdminsNewFeedback({
+        id: result.insertId,
+        type,
+        title: titleResult.value,
+        content: contentResult.value,
+        requesterName: req.user.nickname || req.user.username || '用户'
+      }).catch(err => console.error('[Feedback] 管理员邮件通知失败:', err.message));
+    });
   } catch (err) {
     console.error('提交反馈失败:', err);
     sendError(res, 500, '服务器错误');

@@ -123,6 +123,7 @@ router.post('/', auth, async (req, res) => {
     const songName = String(song_name || '').trim();
     const songArtist = String(artist || '').trim();
     const slotDateId = parseBoundedPositiveInt(slot_date_id, null, Number.MAX_SAFE_INTEGER);
+    const anonymous = is_anonymous === true || is_anonymous === 1 || is_anonymous === '1' || is_anonymous === 'true';
     
     if (!songName || !songArtist || !slotDateId) {
       return res.json({ code: 400, message: '歌曲名和歌手为必填项，请选择播放时段和日期' });
@@ -132,9 +133,9 @@ router.post('/', auth, async (req, res) => {
     await ensureFutureDates(pool);
     
     // 匿名点歌检查
-    if (is_anonymous) {
+    if (anonymous) {
       const [anonSetting] = await pool.execute("SELECT config_value FROM settings WHERE config_key = 'anon_song'");
-      const allowAnonSong = anonSetting.length === 0 || anonSetting[0].config_value !== 'false';
+      const allowAnonSong = anonSetting.length > 0 && anonSetting[0].config_value === 'true';
       if (!allowAnonSong) {
         return res.json({ code: 400, message: '匿名点歌已关闭，请取消匿名后再提交' });
       }
@@ -200,7 +201,7 @@ router.post('/', auth, async (req, res) => {
 
       const [result] = await connection.execute(
         'INSERT INTO song_requests (user_id, song_name, artist, message, to_whom, slot_id, slot_date_id, is_anonymous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [req.user.id, songName, songArtist, message || '', to_whom || '', actualSlotId, slotDateId, is_anonymous ? 1 : 0]
+        [req.user.id, songName, songArtist, message || '', to_whom || '', actualSlotId, slotDateId, anonymous ? 1 : 0]
       );
       await connection.commit();
       pendingReviewNotice = {
@@ -210,7 +211,7 @@ router.post('/', auth, async (req, res) => {
         slotName: slotDate.slot_name,
         startTime: slotDate.start_time,
         endTime: slotDate.end_time,
-        requesterName: is_anonymous ? '匿名' : (req.user.nickname || req.user.username || '同学')
+        requesterName: anonymous ? '匿名' : (req.user.nickname || req.user.username || '同学')
       };
       res.json({ code: 200, message: '点歌成功', data: { id: result.insertId } });
     } catch (transactionError) {

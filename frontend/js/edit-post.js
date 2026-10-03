@@ -72,6 +72,16 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.code === 200) {
         originalPostData = data.data;
         populateForm(originalPostData);
+        try {
+          var settings = await (window.CampusWallThemeSettings ? window.CampusWallThemeSettings() : authFetch('/api/site-info'));
+          var allowed = !!(settings && (settings.anon_post || (settings.data && settings.data.anon_post)));
+          if (!allowed && !originalPostData.is_anonymous && anonymousToggle) {
+            anonymousToggle.checked = false;
+            anonymousToggle.closest('.form-group').style.display = 'none';
+          }
+        } catch (_) {
+          // 页面仍可编辑，匿名权限由保存接口最终校验。
+        }
       } else if (data.code === 403) {
         showToast('无权编辑此帖子', 'error');
         window.location.href = '/post/' + postId;

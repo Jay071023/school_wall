@@ -64,6 +64,8 @@
 
 ## 邮箱验证码
 
+匿名发布权限由 `routes/posts.js`、`routes/songs.js` 按 `settings` 实时校验；对应回归入口为 `scripts/test-anonymous-policy.js`。反馈邮件由 `routes/feedback.js` 调用 `services/email.js`，回归入口为 `scripts/test-feedback-notices.js`、`scripts/test-email-service.js`。
+
 - 前端发送入口：`frontend/js/auth.js` 的注册邮箱验证码请求；输入和复制按钮在 `frontend/register.html`。
 - 后端发送入口：`routes/auth.js` 的 `/api/auth/send-register-email-code`。
 - 后端生成/校验：使用 Node `crypto` 生成验证码，服务端只保存哈希和过期时间，注册时再次哈希比对；前端只提交邮箱和验证码，不生成、不回传验证码。

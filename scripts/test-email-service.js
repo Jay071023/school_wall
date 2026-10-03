@@ -23,6 +23,13 @@ const fakePool = {
       })];
     }
     if (sql.includes('FROM user_notify_settings')) return [[]];
+    if (sql.includes('FROM users WHERE role IN ("admin", "super_admin")')) {
+      return [[
+        { id: 1, email: 'admin@example.test', nickname: '管理员' },
+        { id: 2, email: 'ADMIN@example.test', nickname: '重复邮箱' },
+        { id: 3, email: 'super@example.test', nickname: '超级管理员' }
+      ]];
+    }
     return [{ affectedRows: 0 }];
   }
 };
@@ -84,6 +91,15 @@ async function main() {
   const songPlayed = sent[5];
   assert(songPlayed.html.includes('你的点歌已经播放') && songPlayed.html.includes('A &lt; B'), '已播放邮件也应使用统一的点歌信息卡');
   assert(songPlayed.html.includes('歌手：歌手 &amp; 乐队'), '已播放邮件中的歌手信息必须转义并清晰展示');
+  await email.notifyAdminsNewFeedback({
+    id: 73, type: 'bug', title: '<故障>', content: '<script>alert(1)</script>', requesterName: '小明 & 同学'
+  });
+  const feedbackEmails = sent.slice(6);
+  assert.deepStrictEqual(feedbackEmails.map(message => message.to), ['admin@example.test', 'super@example.test']);
+  assert(feedbackEmails.every(message => message.subject.includes('新意见反馈')));
+  assert(feedbackEmails[0].html.includes('&lt;故障&gt;') && feedbackEmails[0].html.includes('小明 &amp; 同学'));
+  assert(feedbackEmails[0].html.includes('&lt;script&gt;') && !feedbackEmails[0].html.includes('<script>'));
+  assert(feedbackEmails[0].html.includes('/admin'), '管理员邮件应指向反馈管理所在后台');
   console.log('Email service tests passed');
 }
 

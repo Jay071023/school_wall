@@ -11,6 +11,15 @@ const { adjustUserPoints } = require('../services/gamification');
 const { runBackgroundTask } = require('../services/async-utils');
 const router = express.Router();
 
+function wantsAnonymous(value) {
+  return value === true || value === 1 || value === '1' || value === 'true';
+}
+
+async function anonymousEnabled(key) {
+  const [rows] = await pool.execute('SELECT config_value FROM settings WHERE config_key = ?', [key]);
+  return rows.length > 0 && rows[0].config_value === 'true';
+}
+
 function normalizePostVideoUrl(value) {
   if (value === undefined || value === null || value === '') return null;
   const pathname = String(value).split('?')[0];
@@ -637,11 +646,10 @@ router.post('/', auth, async (req, res) => {
     }
 
     // 检查是否允许匿名发帖
-    const [anonPostSetting] = await pool.execute('SELECT config_value FROM settings WHERE config_key = ?', ['anon_post']);
-    const allowAnonPost = anonPostSetting.length === 0 || anonPostSetting[0].config_value === 'true';
-    
-    // 如果不允许匿名发帖，强制设置为非匿名
-    const finalIsAnonymous = allowAnonPost ? (is_anonymous ? 1 : 0) : 0;
+    const finalIsAnonymous = wantsAnonymous(is_anonymous) ? 1 : 0;
+    if (finalIsAnonymous && !(await anonymousEnabled('anon_post'))) {
+      return res.json({ code: 400, message: '匿名发帖已关闭，请取消匿名后再提交' });
+    }
 
     // 优先使用前端传来的真实IP，否则使用服务器获取的IP
     var clientIp = client_ip || getClientIp(req);
@@ -763,11 +771,10 @@ router.post('/:id/comments', auth, async (req, res) => {
     }
     
     // 检查是否允许匿名评论
-    const [anonCommentSetting] = await pool.execute('SELECT config_value FROM settings WHERE config_key = ?', ['anon_comment']);
-    const allowAnonComment = anonCommentSetting.length === 0 || anonCommentSetting[0].config_value === 'true';
-    
-    // 如果不允许匿名评论，强制设置为非匿名
-    const finalIsAnonymous = allowAnonComment ? (is_anonymous ? 1 : 0) : 0;
+    const finalIsAnonymous = wantsAnonymous(is_anonymous) ? 1 : 0;
+    if (finalIsAnonymous && !(await anonymousEnabled('anon_comment'))) {
+      return res.json({ code: 400, message: '匿名评论已关闭，请取消匿名后再提交' });
+    }
     
     // 获取客户端IP
     var clientIp = client_ip || getClientIp(req);
@@ -815,7 +822,7 @@ router.post('/:id/comments', auth, async (req, res) => {
               posts[0].nickname || posts[0].username || '用户',
               commenter.nickname || commenter.username || '某用户',
               posts[0].title || '无标题',
-              is_anonymous ? '（匿名评论）' : content.trim().substring(0, 100),
+              finalIsAnonymous ? '（匿名评论）' : content.trim().substring(0, 100),
               posts[0].user_id
             );
           }
@@ -893,7 +900,7 @@ router.delete('/:postId/comments/:commentId', auth, async (req, res) => {
     if (comments.length === 0) {
       return res.json({ code: 404, message: '评论不存在' });
     }
-    
+
     const comment = comments[0];
     const isCommentAuthor = comment.user_id === req.user.id;
     
@@ -1049,13 +1056,18 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
       return res.json({ code: 404, message: '评论不存在' });
     }
 
+    const finalIsAnonymous = wantsAnonymous(is_anonymous) ? 1 : 0;
+    if (finalIsAnonymous && !(await anonymousEnabled('anon_comment'))) {
+      return res.json({ code: 400, message: '匿名评论已关闭，请取消匿名后再回复' });
+    }
+
     // 获取客户端IP
     var clientIp = client_ip || getClientIp(req);
 
     // 插入回复
     const [result] = await pool.execute(
       'INSERT INTO comment_replies (comment_id, user_id, content, is_anonymous, ip_address) VALUES (?, ?, ?, ?, ?)',
-      [commentId, req.user.id, content.trim(), is_anonymous ? 1 : 0, clientIp]
+      [commentId, req.user.id, content.trim(), finalIsAnonymous, clientIp]
     );
 
     // 异步查询IP归属地并更新
@@ -1066,7 +1078,7 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
     // 获取当前用户信息用于通知
     const [users] = await pool.execute('SELECT nickname, username FROM users WHERE id = ?', [req.user.id]);
     const commenter = users[0] || {};
-    const commenterDisplayName = is_anonymous
+    const commenterDisplayName = finalIsAnonymous
       ? '匿名同学'
       : (commenter.nickname || commenter.username || '某用户');
 
@@ -1077,7 +1089,7 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
         commentAuthorId,
         'comment_reply',
         '收到新回复',
-        commenterDisplayName + ' 回复了你的评论: ' + (is_anonymous ? '（匿名回复）' : content.trim().substring(0, 50)),
+        commenterDisplayName + ' 回复了你的评论: ' + (finalIsAnonymous ? '（匿名回复）' : content.trim().substring(0, 50)),
         postId,
         'post'
       ).catch(err => {
@@ -1444,8 +1456,11 @@ router.put('/:id', auth, async (req, res) => {
       updateValues.push(videoPoster);
     }
     if (is_anonymous !== undefined) {
+      if (wantsAnonymous(is_anonymous) && !post.is_anonymous && !(await anonymousEnabled('anon_post'))) {
+        return res.json({ code: 400, message: '匿名发帖已关闭，无法将帖子改为匿名' });
+      }
       updateFields.push('is_anonymous = ?');
-      updateValues.push(is_anonymous ? 1 : 0);
+      updateValues.push(wantsAnonymous(is_anonymous) ? 1 : 0);
     }
 
     // 编辑后需要重新审核

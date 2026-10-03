@@ -679,6 +679,37 @@ async function notifyFeedbackReply(userEmail, userNickname, feedbackTitle, reply
   return notifyUser('feedback_reply', { email: userEmail, nickname: userNickname, userId: userId, userNickname: userNickname, feedbackTitle: feedbackTitle, replyContent: replyContent });
 }
 
+async function notifyAdminsNewFeedback(feedback) {
+  const { pool } = require('../config/database');
+  const [admins] = await pool.execute(
+    'SELECT id, email, nickname, username FROM users WHERE role IN ("admin", "super_admin") AND status = 1 AND email IS NOT NULL AND email != ""'
+  );
+  if (admins.length === 0) return;
+
+  const typeNames = { suggest: '功能建议', bug: 'Bug 反馈', complaint: '投诉', other: '其他' };
+  const safeType = escapeHtml(typeNames[feedback.type] || '其他');
+  const safeTitle = escapeHtml(feedback.title || '未命名反馈');
+  const safeRequester = escapeHtml(feedback.requesterName || '用户');
+  const preview = String(feedback.content || '').slice(0, 160);
+  const safePreview = escapeHtml(preview);
+  const adminUrl = escapeHtml((process.env.SITE_URL || 'http://localhost:3000').replace(/\/$/, '') + '/admin');
+  const body = `<p style="font-size:15px;color:#4A3F5C;line-height:1.7;">有一条新的意见反馈等待处理。</p>
+    ${contentCard(`<div style="line-height:1.8;color:#4A3F5C;">
+      <div>编号：#${Number(feedback.id) || 0}</div><div>类型：${safeType}</div>
+      <div>标题：${safeTitle}</div><div>提交者：${safeRequester}</div>
+      <div style="margin-top:10px;white-space:pre-wrap;">${safePreview}${String(feedback.content || '').length > 160 ? '…' : ''}</div>
+    </div>`)}
+    <p style="font-size:14px;"><a href="${adminUrl}" style="color:#9D4EDD;">前往后台「反馈管理」查看和回复</a></p>`;
+  const html = kawaiiLayout('收到新的意见反馈', body, adminUrl);
+  const sentEmails = new Set();
+  for (const admin of admins) {
+    const email = String(admin.email).trim();
+    if (sentEmails.has(email.toLowerCase())) continue;
+    sentEmails.add(email.toLowerCase());
+    await sendEmail(email, '💬 新意见反馈 · 校园墙', html, 'admin_new_feedback', admin.nickname || admin.username || '管理员');
+  }
+}
+
 async function notifyFollowPost(followerEmail, followerNickname, posterNickname, postTitle, postId, followerId) {
   return notifyUser('follow_post', { email: followerEmail, nickname: followerNickname, userId: followerId, followerNickname: followerNickname, posterNickname: posterNickname, postTitle: postTitle, postId: postId });
 }
@@ -760,6 +791,6 @@ module.exports = {
   sendEmail, kawaiiLayout, sendRegistrationCodeEmail,
   notifyNewComment, notifyNewLike, notifyMention, notifyNewFollower,
   notifyPostApproved, notifyPostRejected, notifySongApproved, notifySongRejected,
-  notifySongPlayed, notifyFeedbackReply, notifyFollowPost, notifyAdminNewPostPending,
+  notifySongPlayed, notifyFeedbackReply, notifyAdminsNewFeedback, notifyFollowPost, notifyAdminNewPostPending,
   notifyRadioAdminsNewSongPending
 };

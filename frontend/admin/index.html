@@ -6213,11 +6213,15 @@
         // 清空N天前的浏览记录
         window.clearOldPostViews = async function clearOldPostViews() {
             const days = prompt('要清空多少天前的浏览记录？', '30');
-            if (!days || isNaN(days)) return;
-            if (!confirm(`确认清空 ${days} 天前的所有浏览记录？`)) return;
+            if (days === null) return;
+            const daysNum = Number(days.trim());
+            if (!/^\d+$/.test(days.trim()) || daysNum < 1 || daysNum > 36500) {
+                showToast('请输入 1 到 36500 之间的天数', 'error');
+                return;
+            }
 
             try {
-                const res = await authFetch('/api/admin/post-views/old?days=' + parseInt(days), { method: 'DELETE' });
+                const res = await authFetch('/api/admin/post-views/old?days=' + daysNum, { method: 'DELETE' });
                 const json = await res.json();
                 if (json.code === 200) {
                     showToast(`已清空 ${json.data.deleted} 条记录`, 'success');

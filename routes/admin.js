@@ -672,7 +672,8 @@ router.get('/songs', requirePermission('songs:review'), async (req, res) => {
       LEFT JOIN slot_dates sd ON sr.slot_date_id = sd.id
       LEFT JOIN users u ON sr.user_id = u.id
       WHERE ${whereClause}
-      ORDER BY sr.hot_score DESC, sr.created_at DESC
+      ORDER BY CASE sr.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
+               sr.hot_score DESC, sr.created_at DESC, sr.id DESC
       LIMIT ? OFFSET ?
     `, [...params, parseInt(limit), parseInt(offset)]);
 
@@ -1730,6 +1731,7 @@ router.get('/settings', requirePermission('settings:view'), async (req, res) => 
 router.put('/settings', requirePermission('settings:view'), async (req, res) => {
   try {
     const { site_name, site_description, allow_register, post_review, song_enabled, daily_song_limit, anon_post, anon_comment, anon_song, email_enabled, register_email_verify_enabled, song_pending_admin_notify, smtp_host, smtp_port, smtp_user, smtp_pass, smtp_pass_clear, smtp_from, festival_theme, festival_enabled, song_reject_reasons } = req.body;
+    const enabled = value => value === true || value === 1 || value === '1' || value === 'true';
 
     const keys = [
       ['site_name', site_name || ''],
@@ -1738,9 +1740,9 @@ router.put('/settings', requirePermission('settings:view'), async (req, res) => 
       ['post_review', post_review !== undefined ? String(Boolean(post_review)) : 'false'],
       ['song_enabled', song_enabled !== undefined ? String(Boolean(song_enabled)) : 'true'],
       ['daily_song_limit', daily_song_limit !== undefined ? String(Math.max(1, parseInt(daily_song_limit) || 3)) : '3'],
-      ['anon_post', anon_post !== undefined ? String(Boolean(anon_post)) : 'true'],
-      ['anon_comment', anon_comment !== undefined ? String(Boolean(anon_comment)) : 'true'],
-      ['anon_song', req.body.anon_song !== undefined ? String(Boolean(req.body.anon_song)) : 'true'],
+      ...(anon_post !== undefined ? [['anon_post', String(enabled(anon_post))]] : []),
+      ...(anon_comment !== undefined ? [['anon_comment', String(enabled(anon_comment))]] : []),
+      ...(anon_song !== undefined ? [['anon_song', String(enabled(anon_song))]] : []),
       ['email_enabled', email_enabled !== undefined ? String(Boolean(email_enabled)) : 'false'],
       ['register_email_verify_enabled', register_email_verify_enabled !== undefined ? String(Boolean(register_email_verify_enabled)) : 'false'],
       ['song_pending_admin_notify', song_pending_admin_notify !== undefined ? String(Boolean(song_pending_admin_notify)) : 'true'],
@@ -1759,15 +1761,21 @@ router.put('/settings', requirePermission('settings:view'), async (req, res) => 
     if (song_reject_reasons !== undefined) {
       keys.push(['song_reject_reasons', JSON.stringify(normalizeSongRejectReasons(song_reject_reasons))]);
     }
-    for (const [key, value] of keys) {
-      try {
-        await pool.execute(
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      for (const [key, value] of keys) {
+        await connection.execute(
           'INSERT INTO settings (config_key, config_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE config_value = ?',
           [key, value, value]
         );
-      } catch (dbErr) {
-        console.error('[Settings] 保存配置项失败:', getErrorDetail(dbErr));
       }
+      await connection.commit();
+    } catch (dbErr) {
+      await connection.rollback();
+      throw dbErr;
+    } finally {
+      connection.release();
     }
     if (typeof siteRouter.invalidateSiteInfoCache === 'function') {
       siteRouter.invalidateSiteInfoCache();
@@ -2123,8 +2131,11 @@ router.get('/post-views', requirePermission('post-views:view'), async (req, res)
 // 清空N天前的浏览记录
 router.delete('/post-views/old', requirePermission('post-views:view'), async (req, res) => {
   try {
-    const { days = 30 } = req.query;
-    const daysNum = parseInt(days) || 30;
+    const days = String(req.query.days || '');
+    if (!/^\d+$/.test(days) || Number(days) < 1 || Number(days) > 36500) {
+      return res.json({ code: 400, message: '请输入 1 到 36500 之间的天数' });
+    }
+    const daysNum = Number(days);
     const [result] = await pool.execute(
       'DELETE FROM post_views WHERE viewed_at < DATE_SUB(NOW(), INTERVAL ? DAY)',
       [daysNum]

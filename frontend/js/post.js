@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var MAX_FILE_SIZE = 5 * 1024 * 1024; // 单张图片最大5MB
   var ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   var isSubmitting = false;
+  var anonymousAllowed = null;
 
   // DOM元素引用
   var uploadArea = document.querySelector('.image-upload-area');
@@ -148,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
           if (contactGroup) contactGroup.style.display = draft.category === 'lost_found' ? 'block' : 'none';
         }
       }
-      if (draft.isAnonymous && anonymousToggle) {
+      if (draft.isAnonymous && anonymousToggle && anonymousAllowed !== false) {
         anonymousToggle.checked = true;
       }
       if (draft.images && draft.images.length > 0) {
@@ -864,11 +865,10 @@ window.addPollOption = addPollOption;
   var anonymousToggle = document.getElementById('anonymousToggle');
 
   (window.CampusWallThemeSettings ? window.CampusWallThemeSettings() : authFetch('/api/site-info')).then(function(settings) {
-    if (settings && (settings.anon_post || (settings.data && settings.data.anon_post))) {
-      if (anonymousOption) {
-        anonymousOption.style.display = 'flex';
-      }
-    }
+    var allowed = !!(settings && (settings.anon_post || (settings.data && settings.data.anon_post)));
+    anonymousAllowed = allowed;
+    if (anonymousOption) anonymousOption.style.display = allowed ? 'flex' : 'none';
+    if (!allowed && anonymousToggle) anonymousToggle.checked = false;
   }).catch(function() {
   });
 
